@@ -1,0 +1,107 @@
+1. 'use' for strong aliasing:
+   - in functions like 'use pos = entity.position' which will substitute every 'pos' with 'entity.position';
+   - for types like 'use ssize = #if .TARGET_ARCHITECTURE == .x86_64 then s64 else s32' ('.TARGET_ISA'?)
+
+2. SOA should be declared on the variable definition site, not on the struct declaration one (like in jai)
+
+3. global variables' capture list for functions (like it is for lambdas and outer scopes)
+   - functions and types must be visible implicitly
+   - should we declare global variables of the functions that we're using inside our oun?
+     - if yes then what about input/output streams with global buffers?
+     - а если буферизация включается/выключается на этапе компиляции?
+
+4. pure functions first-class support (with help of the 3rd point)
+   - should this be opt-in or opt-out? I mean, what keyword should we introduce: 'pure' vs 'impure'?
+   - например, 'sin()' в C не является чистой функцией, потому что её результат зависит от
+     IEEE rounding mode. если мы компилируем обычную программу, мы в теории можем проверить, что этот rounding mode
+     не меняется, и если это так, то можем считать sin() чистой функцией
+     - input/output stream-ов это не касается, так как даже в случае выключенной буферизации есть сайд эффект в виде
+       записи инфы в файл/куда-то ещё
+
+5. nodiscard by default
+
+6. const by default
+   - 'mut'? 'mutable'?
+   - подумать, как будет выглядеть синтаксис указателей
+     - типо так: 'ptr : mut * const int' ('const' можно опустить)
+     - читается слева направо как "изменяемый указатель на константный инт"
+
+7. think about C's 'volatile' replacement
+
+8. 'unused' keyword & its enforcement (unlike [[maybe_unused]] in c++, there must be no 'maybe')
+
+9. lexem aliases??? like 'use and = &&;'
+   - looks extremely cursed
+   - we must forbid DSL inventions
+
+10. 'unbind' keyword?
+    - like this:
+
+        entity := &entities[i];
+        if is_valid(entity)
+        {
+            // ...
+        }
+        else
+        {
+            // ...
+        }
+        // 'entity' is available here
+        unbind entity;
+        // 'entity' is unavailable here; also its stack space can be reused
+        // NOTE: to reduce the number of bugs, creating a variable with id 'entity' after 'unbind'-ing must be forbidden.
+
+    - this is like c++
+
+        if (auto* entity = &entities[i]; is_valid(entity)) { /* ... */ } else { /* ... */ }
+
+    - this is basically a manual partial stack rewinding or some shit
+
+11. should capture blocks be available for every code block? like
+
+        if is_valid(entity) [entity, something_else] { /* only 'entity' and 'something_else' can be used here */ }
+
+    this looks kinda cursed ngl
+
+12. если из функции опционально возвращается ошибка (например, -1 или MAP_FAILED), то её обязательно проверять
+
+    если хочется игнорировать её, то надо прописать что-то в духе 'ignore_return_value_error result;' или
+    'assume_return_value_is_not_an_error result;', но это уже перебор кмк
+
+    да, многословно, но игнорировать ошибки это плохая затея (кроме всяких printf), а так можно будет найти все места в
+    коде, где они игнорируются
+
+13. возможность объявить переменную как const до конца работы программы
+
+    пример: в самом начале main инициализируем какую-то глобальную переменную и сразу же после инициализации объявляем
+    её как const, чтобы никто больше не мог её поменять
+
+14. никаких const cast-ов
+
+15. никаких implicit conversion, кроме алиасов через 'use', для которых это явно объявлено типа
+
+        use type1 = implicit type2;
+
+    NOTE: true/false, равные 1 и 0 соотв., можно присваивать только переменным с типами bool32 и bool8.
+
+16. unified function call syntax?
+
+17. поменять синтаксис функций на 'name : type = body'? типа 'main : () -> s32 = { /* ... */ }'
+    - или 'foo : () = { /* ... */ }', если функция ничего не возвращает, то есть является процедурой
+      - для main это означает, что компилятор вставит 'return 0;' автоматически
+    - в этом случае синтаксис будет совпадать с синтаксисом объявления переменных
+    - подумать ещё о том, чтобы поменять синтаксис объявления структур на что-то в духе 'T : type = { /* ... */ }'
+      и 'E : enum(underlying_type) = { /* ... */ }'
+      - это считай cppfront-style
+
+18. добавить 'in, inout, out' ключевые слова для параметров функций? тогда не надо будет писать 'mut/mutable'
+
+19. opt-in 'can_alias' keyword or something like that
+    - не хочется писать restrict везде
+    - в принципе надо подумать об алиасинге
+
+20. type-safe unions?
+
+    что имею в виду: достаточно часто встречается паттерн type + union. можно ли прикрутить сюда type checking,
+    чтобы на этапе компиляции проверять, что в этом юнионе используется только то, что соответствует type-у, без ущерба
+    производительности (то есть чтобы компилировалось всё так, как оно компилируется в C)?
