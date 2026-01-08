@@ -135,6 +135,11 @@ test_parsing_literals(Test_Context* context)
 internal void
 test_parsing_unary(Test_Context* context)
 {
+    // XXX(vlad): Is unary plus really useful? We can accept this production but report it as a compile error.
+    //            I don't know if I want to do it though. Like, if we have this production already, why would we treat
+    //            it as an error?
+    //
+    //            We can disable its support by default and let the user opt-in into unary '+' via a compiler flag.
     {
         const String_View input = string_view("+2");
 
