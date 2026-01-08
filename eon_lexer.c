@@ -1,224 +1,387 @@
 #include "eon_lexer.h"
 
+#include "eon_log.h"
+
 #include <stdlib.h>
-#include <string.h> // FIXME(vlad): Remove this header.
 
-internal inline bool32
-lexer_is_a_keyword(const Token* token)
+maybe_unused internal String_View
+token_type_to_string(const Token_Type type)
 {
-    switch (token->tag)
+#define ADD_TOKEN(type) case type: return string_view(#type)
+    switch (type)
     {
-        case TOKEN_CHAR:
-        case TOKEN_NUMBER:
-        case TOKEN_IDENTIFIER:
-        {
-            return false;
-        } break;
-
-        case TOKEN_TRUE:
-        case TOKEN_FALSE:
-        {
-            return true;
-        } break;
+        ADD_TOKEN(TOKEN_UNDEFINED);
+        ADD_TOKEN(TOKEN_LEFT_PAREN);
+        ADD_TOKEN(TOKEN_RIGHT_PAREN);
+        ADD_TOKEN(TOKEN_LEFT_BRACE);
+        ADD_TOKEN(TOKEN_RIGHT_BRACE);
+        ADD_TOKEN(TOKEN_LEFT_BRACKET);
+        ADD_TOKEN(TOKEN_RIGHT_BRACKET);
+        ADD_TOKEN(TOKEN_COMMA);
+        ADD_TOKEN(TOKEN_DOT);
+        ADD_TOKEN(TOKEN_MINUS);
+        ADD_TOKEN(TOKEN_PLUS);
+        ADD_TOKEN(TOKEN_SLASH);
+        ADD_TOKEN(TOKEN_STAR);
+        ADD_TOKEN(TOKEN_COLON);
+        ADD_TOKEN(TOKEN_SEMICOLON);
+        ADD_TOKEN(TOKEN_NOT);
+        ADD_TOKEN(TOKEN_ASSIGN);
+        ADD_TOKEN(TOKEN_EQUAL);
+        ADD_TOKEN(TOKEN_NOT_EQUAL);
+        ADD_TOKEN(TOKEN_LESS);
+        ADD_TOKEN(TOKEN_LESS_OR_EQUAL);
+        ADD_TOKEN(TOKEN_GREATER);
+        ADD_TOKEN(TOKEN_GREATER_OR_EQUAL);
+        ADD_TOKEN(TOKEN_IDENTIFIER);
+        ADD_TOKEN(TOKEN_STRING);
+        ADD_TOKEN(TOKEN_NUMBER);
+        ADD_TOKEN(TOKEN_FOR);
+        ADD_TOKEN(TOKEN_IF);
+        ADD_TOKEN(TOKEN_ELSE);
+        ADD_TOKEN(TOKEN_WHILE);
+        ADD_TOKEN(TOKEN_TRUE);
+        ADD_TOKEN(TOKEN_FALSE);
+        ADD_TOKEN(TOKEN_EOF);
     }
+#undef ADD_TOKEN
 }
 
-internal Token*
-lexer_get_keyword(Lexer* lexer, const char* lexeme)
+internal void
+lexer_create(Lexer* lexer, const String_View code)
 {
+    lexer->code.data = code.data;
+    lexer->code.length = code.length;
+    lexer->lexeme_start_index = 0;
+    lexer->current_index = 0;
+    lexer->current_line = 0;
+    lexer->current_column = 0;
+
+    const Keyword keywords[] = {
+        { .type = TOKEN_FOR,   .lexeme = string_view("for") },
+        { .type = TOKEN_IF,    .lexeme = string_view("if") },
+        { .type = TOKEN_ELSE,  .lexeme = string_view("else") },
+        { .type = TOKEN_WHILE, .lexeme = string_view("while") },
+        { .type = TOKEN_TRUE,  .lexeme = string_view("true") },
+        { .type = TOKEN_FALSE, .lexeme = string_view("false") },
+    };
+
+    lexer->keywords_count = size_of(keywords) / size_of(keywords[0]);
+    lexer->keywords = (Keyword*) calloc((usize)lexer->keywords_count, sizeof(Keyword));
     for (ssize i = 0;
          i < lexer->keywords_count;
          ++i)
     {
-        if (strcmp(lexer->keywords[i].lexeme, lexeme) == 0)
-        {
-            return &lexer->keywords[i];
-        }
+        lexer->keywords[i] = keywords[i];
     }
-
-    return NULL;
 }
 
-internal Token*
-lexer_get_identifier(Lexer* lexer, const char* lexeme)
+internal inline char
+lexer_peek(Lexer* lexer)
 {
-    for (ssize i = 0;
-         i < lexer->identifiers_count;
-         ++i)
-    {
-        if (strcmp(lexer->identifiers[i].lexeme, lexeme) == 0)
-        {
-            return &lexer->identifiers[i];
-        }
-    }
-
-    return NULL;
+    ASSERT(lexer->current_index < lexer->code.length);
+    return lexer->code.data[lexer->current_index];
 }
 
+// TODO(vlad): Change the return type to 'void'?
 internal inline bool32
-lexer_is_digit(const char c)
+lexer_advance(Lexer* lexer)
 {
-    return '0' <= c && c <= '9';
+    if (lexer->current_index < lexer->code.length)
+    {
+        lexer->current_index += 1;
+        lexer->current_column += 1;
+        return true;
+    }
+
+    return false;
 }
+
+internal inline char
+lexer_get_current_character_and_advance(Lexer* lexer)
+{
+    ASSERT(lexer->current_index < lexer->code.length);
+    char current_char = lexer_peek(lexer);
+    lexer_advance(lexer);
+    return current_char;
+}
+
+internal bool32
+lexer_match_and_optionally_advance(Lexer* lexer, const char expected_char)
+{
+    if (lexer->current_index == lexer->code.length) { return false; }
+    if (lexer_peek(lexer) != expected_char) { return false; }
+
+    lexer_advance(lexer);
+    return true;
+}
+
+internal inline void
+lexer_create_token(Lexer* lexer, Token* token, const Token_Type type)
+{
+    token->type = type;
+    token->lexeme = (String_View) {
+        .data   = lexer->code.data + lexer->lexeme_start_index,
+        .length = lexer->current_index - lexer->lexeme_start_index,
+    };
+    token->line = lexer->current_line;
+    token->column = lexer->current_column - token->lexeme.length;
+}
+
 internal inline bool32
 lexer_is_letter(const char c)
 {
     return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z');
 }
 
-internal void
-lexer_add_keyword(Lexer* lexer, const Token keyword) // TODO(vlad): Get 'keyword' by pointer?
+internal inline bool32
+lexer_is_digit(const char c)
 {
-    ASSERT(lexer_is_a_keyword(&keyword));
-
-    if (lexer->keywords_count >= lexer->keywords_capacity)
-    {
-        lexer->keywords_capacity = MAX(1, 2 * lexer->keywords_capacity);
-        lexer->keywords = (Token*) realloc(lexer->keywords, size_of(Token) * lexer->keywords_capacity);
-    }
-
-    lexer->keywords[lexer->keywords_count++] = keyword;
-}
-
-internal void
-lexer_add_identifier(Lexer* lexer, const Token identifier) // TODO(vlad): Get 'identifier' by pointer?
-{
-    ASSERT(identifier.tag == TOKEN_IDENTIFIER);
-
-    if (lexer->identifiers_count >= lexer->identifiers_capacity)
-    {
-        lexer->identifiers_capacity = MAX(1, 2 * lexer->identifiers_capacity);
-        lexer->identifiers = (Token*) realloc(lexer->identifiers, size_of(Token) * lexer->identifiers_capacity);
-    }
-
-    lexer->identifiers[lexer->identifiers_count++] = identifier;
-}
-
-internal void
-lexer_show_error_at_peek(Lexer* lexer)
-{
-    printf("\n%s\n", lexer->input);
-    for (ssize i = 0;
-         i < lexer->peek_index;
-         ++i)
-    {
-        printf(" ");
-    }
-    printf("^\n");
+    return ('0' <= c && c <= '9');
 }
 
 internal bool32
-lexer_advance(Lexer* lexer)
+lexer_get_next_token(Lexer* lexer, Token* token)
 {
-    if (lexer->peek_index >= lexer->input_length)
+    if (lexer->current_index >= lexer->code.length) { return false; }
+
+    ASSERT(lexer->current_index < lexer->code.length);
+
+    // FIXME(vlad): Remove 'lexeme_start_index' from Lexer and make this a local variable.
+    lexer->lexeme_start_index = lexer->current_index;
+
+    while (lexer->current_index < lexer->code.length)
     {
-        lexer_show_error_at_peek(lexer);
-        puts("[lexer] Error: unexpected EOF reached.");
-        return false;
-    }
+        // FIXME(vlad): Do not advance here?
+        const char current_char = lexer_get_current_character_and_advance(lexer);
 
-    lexer->peek_index += 1;
-    return true;
-}
-
-internal inline char
-lexer_peek(Lexer* lexer)
-{
-    ASSERT(lexer->peek_index < lexer->input_length);
-    return lexer->input[lexer->peek_index];
-}
-
-internal void
-lexer_create(Lexer* lexer, const char* input)
-{
-    lexer->input = input;
-    lexer->input_length = strlen(input);
-
-    lexer->line = 1;
-    lexer->peek_index = 0;
-
-    lexer_add_keyword(lexer, (Token){ .tag = TOKEN_TRUE, .lexeme = "true" });
-    lexer_add_keyword(lexer, (Token){ .tag = TOKEN_FALSE, .lexeme = "false" });
-}
-
-internal bool32
-lexer_scan(Lexer* lexer, Token* next_token)
-{
-    // NOTE(vlad): Skipping whitespaces.
-    {
-        while (true)
+        if (lexer_is_letter(current_char) || current_char == '_')
         {
-            const char peek = lexer_peek(lexer);
-            if (peek == '\n')
+            while (lexer->current_index < lexer->code.length)
             {
-                lexer->line += 1;
+                const char lookahead_char = lexer_peek(lexer);
+
+                if (lexer_is_letter(lookahead_char)
+                    || lexer_is_digit(lookahead_char)
+                    || lookahead_char == '_')
+                {
+                    lexer_advance(lexer);
+                }
+                else
+                {
+                    break;
+                }
             }
-            else if (peek != ' ' && peek != '\t')
+
+            lexer_create_token(lexer, token, TOKEN_IDENTIFIER);
+
+            for (ssize i = 0;
+                 i < lexer->keywords_count;
+                 ++i)
             {
-                break;
+                const Keyword* keyword = &lexer->keywords[i];
+                if (strings_are_equal(token->lexeme, keyword->lexeme))
+                {
+                    token->type = keyword->type;
+                    break;
+                }
             }
+
+            return true;
         }
-    }
 
-    if (lexer_is_digit(lexer_peek(lexer)))
-    {
-        s64 value = 0;
-        do
+        if (lexer_is_digit(current_char))
         {
-            value = 10 * value + (lexer_peek(lexer) - '0');
-            if (!lexer_advance(lexer)) { return false; }
-        }
-        while (lexer_is_digit(lexer_peek(lexer)));
-
-        next_token->tag = TOKEN_NUMBER;
-        next_token->number = value;
-
-        return true;
-    }
-
-    if (lexer_is_letter(lexer_peek(lexer)))
-    {
-        char* identifier = calloc(sizeof(char), lexer->input_length - lexer->peek_index - 1);
-        ssize index = 0;
-
-        do
-        {
-            identifier[index++] = lexer_peek(lexer);
-            if (!lexer_advance(lexer)) { return false; }
-        }
-        while (lexer_is_digit(lexer_peek(lexer))
-               || lexer_is_letter(lexer_peek(lexer)));
-
-        {
-            Token* keyword = lexer_get_keyword(lexer, identifier);
-            if (keyword != NULL)
+            while (lexer->current_index < lexer->code.length)
             {
-                next_token = keyword;
+                const char lookahead_char = lexer_peek(lexer);
+
+                if (lexer_is_digit(lookahead_char))
+                {
+                    lexer_advance(lexer);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            lexer_create_token(lexer, token, TOKEN_NUMBER);
+            return true;
+        }
+
+        switch (current_char)
+        {
+            case '(': { lexer_create_token(lexer, token, TOKEN_LEFT_PAREN); return true; } break;
+            case ')': { lexer_create_token(lexer, token, TOKEN_RIGHT_PAREN); return true; } break;
+            case '{': { lexer_create_token(lexer, token, TOKEN_LEFT_BRACE); return true; } break;
+            case '}': { lexer_create_token(lexer, token, TOKEN_RIGHT_BRACE); return true; } break;
+            case '[': { lexer_create_token(lexer, token, TOKEN_LEFT_BRACKET); return true; } break;
+            case ']': { lexer_create_token(lexer, token, TOKEN_RIGHT_BRACKET); return true; } break;
+            case ':': { lexer_create_token(lexer, token, TOKEN_COLON); return true; } break;
+            case ';': { lexer_create_token(lexer, token, TOKEN_SEMICOLON); return true; } break;
+            case ',': { lexer_create_token(lexer, token, TOKEN_COMMA); return true; } break;
+            case '+': { lexer_create_token(lexer, token, TOKEN_PLUS); return true; } break;
+            case '-': { lexer_create_token(lexer, token, TOKEN_MINUS); return true; } break;
+            case '*': { lexer_create_token(lexer, token, TOKEN_STAR); return true; } break;
+
+            case '!':
+            {
+                if (lexer_match_and_optionally_advance(lexer, '='))
+                {
+                    lexer_create_token(lexer, token, TOKEN_NOT_EQUAL);
+                }
+                else
+                {
+                    lexer_create_token(lexer, token, TOKEN_NOT);
+                }
                 return true;
-            }
-        }
+            } break;
 
-        {
-            Token* existing_identifier = lexer_get_identifier(lexer, identifier);
-            if (existing_identifier != NULL)
+            case '=':
             {
-                next_token = existing_identifier;
+                if (lexer_match_and_optionally_advance(lexer, '='))
+                {
+                    lexer_create_token(lexer, token, TOKEN_EQUAL);
+                }
+                else
+                {
+                    lexer_create_token(lexer, token, TOKEN_ASSIGN);
+                }
                 return true;
-            }
+            } break;
+
+            case '<':
+            {
+                if (lexer_match_and_optionally_advance(lexer, '='))
+                {
+                    lexer_create_token(lexer, token, TOKEN_LESS_OR_EQUAL);
+                }
+                else
+                {
+                    lexer_create_token(lexer, token, TOKEN_LESS);
+                }
+                return true;
+            } break;
+
+            case '>':
+            {
+                if (lexer_match_and_optionally_advance(lexer, '='))
+                {
+                    lexer_create_token(lexer, token, TOKEN_GREATER_OR_EQUAL);
+                }
+                else
+                {
+                    lexer_create_token(lexer, token, TOKEN_GREATER);
+                }
+                return true;
+            } break;
+
+            case '"':
+            {
+                // XXX(vlad): Remove multiline strings support?
+                while (lexer->current_index < lexer->code.length)
+                {
+                    if (lexer_match_and_optionally_advance(lexer, '"'))
+                    {
+                        lexer_create_token(lexer, token, TOKEN_STRING);
+                        return true;
+                    }
+                    else if (lexer_match_and_optionally_advance(lexer, '\n'))
+                    {
+                        lexer->current_column = 0; // TODO(vlad): 1?
+                        lexer->current_line += 1;
+                    }
+
+                    lexer_advance(lexer);
+                }
+            } break;
+
+            case '/':
+            {
+                if (lexer_match_and_optionally_advance(lexer, '/'))
+                {
+                    // NOTE(vlad): Single line comment, skipping this line.
+                    while (lexer->current_index < lexer->code.length)
+                    {
+                        const char lookahead_char = lexer_peek(lexer);
+
+                        if (lookahead_char != '\n')
+                        {
+                            lexer_advance(lexer);
+                        }
+                        else
+                        {
+                            lexer->lexeme_start_index = lexer->current_index + 1;
+                            break;
+                        }
+                    }
+                }
+                else if (lexer_match_and_optionally_advance(lexer, '*'))
+                {
+                    // NOTE(vlad): Block comment.
+                    ssize comment_depth = 1;
+
+                    while (lexer->current_index < lexer->code.length)
+                    {
+                        if (lexer_match_and_optionally_advance(lexer, '*')
+                            && lexer_match_and_optionally_advance(lexer, '/'))
+                        {
+                            comment_depth -= 1;
+                            if (comment_depth == 0)
+                            {
+                                break;
+                            }
+                        }
+
+                        if (lexer_match_and_optionally_advance(lexer, '/')
+                            && lexer_match_and_optionally_advance(lexer, '*'))
+                        {
+                            comment_depth += 1;
+                        }
+
+                        lexer_advance(lexer);
+                    }
+                }
+                else
+                {
+                    lexer_create_token(lexer, token, TOKEN_SLASH);
+                    return true;
+                }
+            } break;
+
+            case ' ':
+            case '\r':
+            case '\t':
+            {
+                lexer->lexeme_start_index = lexer->current_index;
+                // NOTE(vlad): Ignoring whitespaces.
+            } break;
+
+            case '\n':
+            {
+                lexer->current_column = 0;
+                lexer->current_line += 1;
+            } break;
+
+            default:
+            {
+                log_print_code_line_with_highlighting(string_view("Error: unexpected character encountered: "),
+                                                      lexer->code,
+                                                      lexer->current_column - 1,
+                                                      1);
+                printf("Current column: %ld\n", lexer->current_column);
+                lexer->lexeme_start_index = lexer->current_index;
+
+                // FIXME(vlad): Optionally trigger debug trap.
+                FAIL();
+
+                // return false;
+            } break;
         }
-
-        next_token->tag = TOKEN_IDENTIFIER;
-        next_token->lexeme = identifier;
-
-        lexer_add_identifier(lexer, *next_token);
-        return true;
     }
 
-    // FIXME(vlad): Test that 'lexer_peek(lexer)' is an operator like '+', '-' and such.
-    next_token->tag = TOKEN_CHAR;
-    next_token->c = lexer_peek(lexer);
-
-    return true;
+    return false;
 }
 
 internal void
@@ -227,16 +390,5 @@ lexer_destroy(Lexer* lexer)
     if (lexer->keywords)
     {
         free(lexer->keywords);
-    }
-
-    if (lexer->identifiers)
-    {
-        for (ssize i = 0;
-             i < lexer->identifiers_count;
-             ++i)
-        {
-            free((void*)lexer->identifiers[i].lexeme);
-        }
-        free(lexer->identifiers);
     }
 }

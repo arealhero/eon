@@ -1,49 +1,69 @@
 #pragma once
 
-#include "eon_common.h"
+#include <eon/common.h>
+#include <eon/string.h>
 
-enum Token_Tag
+enum Token_Type
 {
-    TOKEN_CHAR,
-    TOKEN_NUMBER,
-    TOKEN_IDENTIFIER,
-    TOKEN_TRUE,
-    TOKEN_FALSE,
+    TOKEN_UNDEFINED = 0,
+
+    TOKEN_LEFT_PAREN, TOKEN_RIGHT_PAREN,
+    TOKEN_LEFT_BRACE, TOKEN_RIGHT_BRACE,
+    TOKEN_LEFT_BRACKET, TOKEN_RIGHT_BRACKET,
+    TOKEN_COMMA, TOKEN_DOT, TOKEN_MINUS, TOKEN_PLUS, TOKEN_SLASH, TOKEN_STAR,
+    TOKEN_COLON, TOKEN_SEMICOLON,
+    TOKEN_NOT,
+
+    TOKEN_ASSIGN,
+
+    TOKEN_EQUAL, TOKEN_NOT_EQUAL,
+    TOKEN_LESS, TOKEN_LESS_OR_EQUAL,
+    TOKEN_GREATER, TOKEN_GREATER_OR_EQUAL,
+
+    TOKEN_IDENTIFIER, TOKEN_STRING, TOKEN_NUMBER,
+
+    // NOTE(vlad): Reserved keywords.
+    TOKEN_FOR, TOKEN_IF, TOKEN_ELSE, TOKEN_WHILE,
+    TOKEN_TRUE, TOKEN_FALSE,
+
+    TOKEN_EOF,
 };
-typedef enum Token_Tag Token_Tag;
+typedef enum Token_Type Token_Type;
+
+internal String_View token_type_to_string(const Token_Type type);
 
 struct Token
 {
-    Token_Tag tag;
-    union
-    {
-        char c;
-        s64 number;
-        const char* lexeme;
-    };
+    Token_Type type;
+    String_View lexeme;
+
+    ssize line;
+    ssize column;
 };
 typedef struct Token Token;
 
+struct Keyword
+{
+    Token_Type type;
+    String_View lexeme;
+};
+typedef struct Keyword Keyword;
+
 struct Lexer
 {
-    const char* input;
-    ssize input_length;
+    String_View code;
 
-    ssize line;
-    ssize peek_index;
+    ssize lexeme_start_index;
+    ssize current_index;
 
-    // TODO(vlad): Use hash map?
-    Token* keywords;
+    ssize current_line;
+    ssize current_column;
+
+    Keyword* keywords;
     ssize keywords_count;
-    ssize keywords_capacity;
-
-    // TODO(vlad): Use hash map?
-    Token* identifiers;
-    ssize identifiers_count;
-    ssize identifiers_capacity;
 };
 typedef struct Lexer Lexer;
 
-internal void lexer_create(Lexer* lexer, const char* input);
-internal bool32 lexer_scan(Lexer* lexer, Token* next_token);
+internal void lexer_create(Lexer* lexer, const String_View code);
+internal bool32 lexer_get_next_token(Lexer* lexer, Token* token);
 internal void lexer_destroy(Lexer* lexer);

@@ -1,33 +1,55 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h> // FIXME(vlad): Remove this header.
 
-#include "eon_common.h"
+#include <eon/common.h>
+#include <eon/memory.h>
+#include <eon/string.h>
+
 #include "eon_lexer.h"
+#include "eon_log.h"
 #include "eon_parser.h"
 
+#include <stdio.h>
+#include <readline/readline.h>
+#include <readline/history.h>
+
 int
-main(const int args_count, const char* args[])
+main(void)
 {
-    if (args_count != 2)
+    Lexer lexer = {0};
+    char* raw_input = NULL;
+    while ((raw_input = readline("> ")) != NULL)
     {
-        puts("usage: eon <expression>");
-        return 1;
+        String_View input = string_view(raw_input);
+        printf("Got input: '%.*s'\n", FORMAT_STRING(input));
+        lexer_create(&lexer, input);
+
+        puts("Got tokens:");
+        Token token = {0};
+        while (lexer_get_next_token(&lexer, &token))
+        {
+            String_View prefix = string_view("Found token: ");
+            log_print_code_line_with_highlighting(string_view(prefix),
+                                                  input,
+                                                  token.column,
+                                                  token.lexeme.length);
+
+            printf(" type = '%.*s', lexeme = '%.*s'\n\n",
+                   FORMAT_STRING(token_type_to_string(token.type)),
+                   FORMAT_STRING(token.lexeme));
+        }
+
+        lexer_destroy(&lexer);
+        free((void*)input.data);
     }
-
-    const char* expression = args[1];
-
-    Parser parser = {0};
-    parser_create(&parser, expression);
-
-    if (parser_parse_expression(&parser))
-    {
-        puts("");
-    }
-
-    parser_destroy(&parser);
 
     return 0;
 }
 
+#include <eon/memory.c>
+#include <eon/string.c>
+
 #include "eon_lexer.c"
+#include "eon_log.c"
 #include "eon_parser.c"
