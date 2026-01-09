@@ -1,5 +1,6 @@
 #pragma once
 
+#include <eon/build-info.h>
 #include <eon/common.h>
 #include <eon/memory.h>
 
@@ -136,26 +137,71 @@ internal String format_string_impl(Arena* const arena,
 #define DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(Integer_Type)      \
     Integer_Type: format_tag_##Integer_Type
 
-#define FORMAT_GET_TYPE_INFO(arg)                  \
-    , /* NOTE(vlad): This comma is crucial. */     \
-    _Generic(                                      \
-        (arg),                                     \
-                                                   \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(s8),  \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(s16), \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(s32), \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(s64), \
-                                                   \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u8),  \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u16), \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u32), \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u64), \
-                                                   \
-        char*: format_tag_c_string,                \
-        const char*: format_tag_c_string,          \
-                                                   \
-        String: format_tag_string,                 \
-        String_View: format_tag_string_view        \
+#if OS_MAC
+#  include <stdint.h> // NOTE(vlad): For 'SIZE_WIDTH' and 'PTRDIFF_WIDTH'.
+
+// NOTE(vlad): This checks are redundant because the width of 'ptrdiff_t'
+//             is the same as the width of 'size_t', but just in case I'll leave them here.
+#  if defined(PTRDIFF_WIDTH)
+#    define EON_SSIZE_WIDTH PTRDIFF_WIDTH
+#  elif defined(__PTRDIFF_WIDTH__)
+#    define EON_SSIZE_WIDTH __PTRDIFF_WIDTH__
+#  else
+#    error I have no clue whether the width of 'ssize' is 32 or 64 bits.
+#  endif
+
+#  if defined(SIZE_WIDTH)
+#    define EON_USIZE_WIDTH SIZE_WIDTH
+#  elif defined(__SIZE_WIDTH__)
+#    define EON_USIZE_WIDTH __SIZE_WIDTH__
+#  else
+#    error I have no clue whether the width of 'usize' is 32 or 64 bits.
+#  endif
+
+#  if EON_SSIZE_WIDTH == 32
+#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SSIZE() ssize: format_tag_s32
+#  elif EON_SSIZE_WIDTH == 64
+#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SSIZE() ssize: format_tag_s64
+#  else
+#    error Size of 'ssize' is neither 32 nor 64 bits. I don't know what's going on.
+#  endif
+
+#  if EON_USIZE_WIDTH == 32
+#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE() usize: format_tag_u32
+#  elif EON_USIZE_WIDTH == 64
+#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE() usize: format_tag_u64
+#  else
+#    error Size of 'usize' is neither 32 nor 64 bits. I don't know what's going on.
+#  endif
+
+#else
+#  define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SSIZE()
+#  define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE()
+#endif
+
+#define FORMAT_GET_TYPE_INFO(arg)                        \
+    , /* NOTE(vlad): This comma is crucial. */           \
+    _Generic(                                            \
+        (arg),                                           \
+                                                         \
+        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(s8),        \
+        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(s16),       \
+        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(s32),       \
+        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(s64),       \
+                                                         \
+        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u8),        \
+        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u16),       \
+        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u32),       \
+        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u64),       \
+                                                         \
+        OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SSIZE(), \
+        OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE(), \
+                                                         \
+        char*: format_tag_c_string,                      \
+        const char*: format_tag_c_string,                \
+                                                         \
+        String: format_tag_string,                       \
+        String_View: format_tag_string_view              \
     )((arg))
 
 // NOTE(vlad): We cannot #undef 'DECLARE_GENERIC_OVERLOAD_FOR_INTEGER' macro here
