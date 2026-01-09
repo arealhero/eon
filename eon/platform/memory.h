@@ -16,6 +16,10 @@ internal bool32 platform_release_memory(void* pointer, ssize number_of_bytes);
     // TODO(vlad): Change to 'unix_memory.c'? Probably not, but then we should use
     //             Linux-specific features like MADV_FREE.
     #include "linux_memory.c"
+#elif OS_MAC
+    // XXX(vlad): This was just copied from 'linux_memory.c'. We can merge them
+    //            to 'unix_memory.c' if we don't use anything bsd- and linux-specific.
+    #include "macos_memory.c"
 #else
     #error This OS is not supported yet.
 #endif
