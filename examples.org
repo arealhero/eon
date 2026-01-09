@@ -1,0 +1,93 @@
+* Empty main
+#+begin_src c
+  main: () = {}
+#+end_src
+
+* Empty main with explicit return
+#+begin_src c
+  main: () -> s32 = { return 0; }
+#+end_src
+
+* Main with function call
+#+begin_src c
+  foo: () -> s32 = {
+      result := 2;
+      return result + result;
+  }
+
+  main: () -> s32 = {
+      return foo();
+  }
+#+end_src
+
+* Main with arguments
+#+begin_src c
+  main: (args_count: C_Int, args: [] C_String) = {
+      for i := 0..args_count-1 {
+          println("arg[{}] = {}", i+1, args[i]);
+      }
+  }
+#+end_src
+
+* ~to_upper~ ASCII function
+#+begin_src c
+  to_upper: (string: mutable String_View) = {
+      for i := 0..string.length - 1 {
+          if 'a' <= string.data[i] && string.data[i] <= 'z' {
+              string.data[i] = 'A' + (string.data[i] - 'a');
+          }
+      }
+  }
+
+  main: (args_count: C_Int, args: [] C_String) = {
+      // NOTE: This should fail to compile because we cannot modify string literals.
+      // println("to_upper({}) = {}", "hello world!", to_upper("hello world!"));
+
+      string: mutable String_View = "hello world!";
+      // NOTE: This would work fine if we guarantee that arguments will be computed from left to right? Or maybe not.
+      // println("to_upper({}) = {}", string, to_upper(string));
+
+      print("to_upper({}) = ", string);
+      print("{}\n", to_upper(string));
+  }
+#+end_src
+
+* Factorial
+** Without memoization, recursive
+#+begin_src c
+  factorial: (n: s32) -> s32 = {
+      if n == 1 {
+          return 1;
+      }
+
+      return n * factorial(n - 1);
+  }
+
+  main: () -> s32 = {
+      return factorial(5);
+  }
+#+end_src
+
+** With memoization, recursive
+#+begin_src c
+  MAX_ARGUMENT: s32 = 10; // Or MAX_ARGUMENT := 10;
+
+  factorial: (n: s32) -> s32 = {
+      memoization: persistent [MAX_ARGUMENT] s32; // NOTE: default initialized to zero.
+
+      if n == 0 {
+          return 1;
+      }
+
+      if memoization[n - 1] == 0 {
+          memoization[n - 1] = n * factorial(n - 1);
+      }
+
+      return memoization[n - 1];
+  }
+
+  main: () -> s32 = {
+      return factorial(5) + factorial(3);
+  }
+#+end_src
+
