@@ -5,6 +5,59 @@
 #define ARENA_HEADER_SIZE (size_of(Arena))
 #define ARENA_ALIGNMENT (size_of(void*))
 
+internal inline void
+copy_memory(      byte* restrict to,
+            const byte* restrict from,
+            const ssize number_of_bytes)
+{
+    for (ssize i = 0;
+         i < number_of_bytes;
+         ++i)
+    {
+        to[i] = from[i];
+    }
+}
+
+internal inline void
+move_memory(      byte* to,
+            const byte* from,
+            const ssize number_of_bytes)
+{
+    if (ABS(to - from) < number_of_bytes)
+    {
+        // NOTE(vlad): Regions overlap.
+
+        if (to < from)
+        {
+            copy_memory(to, from, number_of_bytes);
+        }
+        else
+        {
+            for (ssize i = number_of_bytes - 1;
+                 i >= 0;
+                 --i)
+            {
+                to[i] = from[i];
+            }
+        }
+    }
+    else
+    {
+        copy_memory(to, from, number_of_bytes);
+    }
+}
+
+internal inline void
+fill_memory_with_zeros(byte* memory, const ssize number_of_bytes)
+{
+    for (ssize i = 0;
+         i < number_of_bytes;
+         ++i)
+    {
+        memory[i] = (byte)0;
+    }
+}
+
 maybe_unused internal Arena*
 arena_create(ssize number_of_bytes_to_reserve, ssize number_of_bytes_to_commit)
 {
@@ -47,7 +100,7 @@ maybe_unused internal void*
 arena_push(Arena* arena, const ssize number_of_bytes)
 {
     void* memory = arena_push_uninitialized(arena, number_of_bytes);
-    memset(memory, 0, (usize)number_of_bytes);
+    fill_memory_with_zeros(memory, number_of_bytes);
     return memory;
 }
 

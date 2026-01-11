@@ -1,7 +1,6 @@
 #include "eon_symbols.h"
 
 #include <stdlib.h>
-#include <string.h> // FIXME(vlad): Remove this header.
 
 internal Symbol*
 scope_symbols_find_symbol_in_this_scope(const Scope_Symbols* scope_symbols,

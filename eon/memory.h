@@ -2,6 +2,16 @@
 
 #include <eon/common.h>
 
+internal inline void copy_memory(byte* restrict to,
+                                 const byte* restrict from,
+                                 const ssize number_of_bytes);
+
+internal inline void move_memory(byte* to,
+                                 const byte* from,
+                                 const ssize number_of_bytes);
+
+internal inline void fill_memory_with_zeros(byte* memory, const ssize number_of_bytes);
+
 typedef struct
 {
     ssize reserved_bytes_count;

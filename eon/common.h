@@ -7,9 +7,6 @@
 #include <stddef.h>
 #include <stdlib.h> // NOTE(vlad): for 'abort()'.
 
-// FIXME(vlad): Remove this header.
-#include <string.h> // NOTE(vlad): For 'memset'.
-
 #if !defined(EON_DISABLE_ASSERTS)
     #define EON_DISABLE_ASSERTS 0
 #endif
@@ -91,6 +88,7 @@ typedef u8   ubyte;
 
 #define MAX(lhs, rhs) (((lhs) > (rhs)) ? (lhs) : (rhs))
 #define MIN(lhs, rhs) (((lhs) < (rhs)) ? (lhs) : (rhs))
+#define ABS(number) (((number) > 0) ? (number) : -(number))
 
 internal inline bool32
 is_power_of_two(const usize number)
@@ -104,14 +102,6 @@ is_power_of_two(const usize number)
 #define KiB(count) ((ssize)(count) << 10)
 #define MiB(count) ((ssize)(count) << 20)
 #define GiB(count) ((ssize)(count) << 30)
-
-internal inline void
-copy_memory(      byte* restrict to,
-            const byte* restrict from,
-            const ssize number_of_bytes)
-{
-    memcpy(to, from, (usize)number_of_bytes);
-}
 
 #include <eon/io.h>
 

@@ -1,7 +1,5 @@
 #include "eon_parser.h"
 
-#include <string.h> // FIXME(vlad): Remove this header.
-
 internal inline char
 parser_get_lookahead(Parser* parser)
 {

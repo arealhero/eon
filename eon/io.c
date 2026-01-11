@@ -119,9 +119,9 @@ print_impl(const String_View message)
         {
             const ssize size_of_region_to_move = global_io_state.stdout_buffer_index - flush_region_start_index;
 
-            memmove(global_io_state.stdout_buffer,
-                    global_io_state.stdout_buffer + flush_region_start_index,
-                    (usize)size_of_region_to_move);
+            move_memory(global_io_state.stdout_buffer,
+                        global_io_state.stdout_buffer + flush_region_start_index,
+                        size_of_region_to_move);
 
             global_io_state.stdout_buffer_index = size_of_region_to_move;
         }

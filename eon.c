@@ -1,6 +1,3 @@
-#include <stdlib.h>
-#include <string.h> // FIXME(vlad): Remove this header.
-
 #include <eon/common.h>
 #include <eon/io.h>
 #include <eon/memory.h>
@@ -10,7 +7,9 @@
 #include "eon_log.h"
 #include "eon_parser.h"
 
-#include <stdio.h>
+#include <stdio.h> // NOTE(vlad): This include is needed because 'readline' does not include it
+                   //             itself for some stupid reason.
+#include <stdlib.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 

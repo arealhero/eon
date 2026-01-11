@@ -47,6 +47,7 @@ compile_and_run_test()
 }
 
 set +x
+compile_and_run_test eon/memory_ut.c
 # compile_and_run_test eon/string_ut.c
 # compile_and_run_test eon_lexer_ut.c
 # compile_and_run_test eon_parser_ut.c

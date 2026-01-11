@@ -1,7 +1,6 @@
 #include "eon_lexer.h"
 
 #include <stdlib.h>
-#include <string.h> // FIXME(vlad): Remove this header.
 
 internal inline bool32
 lexer_is_a_keyword(const Token* token)
