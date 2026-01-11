@@ -24,10 +24,10 @@ clang_common_flags="
   -fsanitize=address
 "
 
-# clang eon.c -o build/eon \
-#       $clang_common_flags \
-#       $clang_warnings \
-#       -lreadline
+clang eon.c -o build/eon \
+      $clang_common_flags \
+      $clang_warnings \
+      -lreadline
 
 compile_and_run_test()
 {
@@ -48,9 +48,9 @@ compile_and_run_test()
 
 set +x
 compile_and_run_test eon/memory_ut.c
-# compile_and_run_test eon/string_ut.c
-# compile_and_run_test eon_lexer_ut.c
-# compile_and_run_test eon_parser_ut.c
+compile_and_run_test eon/string_ut.c
+compile_and_run_test eon_lexer_ut.c
+compile_and_run_test eon_parser_ut.c
 
 mkdir -p build/grammar
 
