@@ -137,8 +137,9 @@ check_grammar_soundness(const char* grammar_filename, const String_View grammar)
     Parser parser = {0};
     parser_create(&parser, &lexer);
 
-    Ast ast;
-    // FIXME(vlad): Check 'parser_parse' result.
+    // TODO(vlad): Time the parsing.
+
+    Ast ast = {0};
     if (!parser_parse(arena, scratch, &parser, &ast))
     {
         println("Failed to parse grammar");
