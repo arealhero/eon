@@ -10,8 +10,8 @@
 #include "eon_log.h"
 #include "eon_parser.h"
 
-// #include <readline/readline.h>
-// #include <readline/history.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 
 int
 main(void)
@@ -20,8 +20,7 @@ main(void)
 
     Lexer lexer = {0};
     char* raw_input = NULL;
-    while (raw_input == NULL)
-    // while ((raw_input = readline("> ")) != NULL)
+    while ((raw_input = readline("> ")) != NULL)
     {
         String_View input = string_view(raw_input);
         println("Got input: '{}'", input);
