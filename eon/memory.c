@@ -6,7 +6,7 @@
 #define ARENA_ALIGNMENT (size_of(void*))
 
 internal inline void
-copy_memory(      byte* restrict to,
+copy_memory(byte* restrict to,
             const byte* restrict from,
             const ssize number_of_bytes)
 {
@@ -19,7 +19,7 @@ copy_memory(      byte* restrict to,
 }
 
 internal inline void
-move_memory(      byte* to,
+move_memory(byte* to,
             const byte* from,
             const ssize number_of_bytes)
 {
