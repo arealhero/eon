@@ -23,22 +23,15 @@ move_memory(      byte* to,
             const byte* from,
             const ssize number_of_bytes)
 {
-    if (ABS(to - from) < number_of_bytes)
+    if (to > from && to - from < number_of_bytes)
     {
-        // NOTE(vlad): Regions overlap.
-
-        if (to < from)
+        // NOTE(vlad): 'to's suffix overlaps with 'from's prefix,
+        //             moving memory in reverse order.
+        for (ssize i = number_of_bytes - 1;
+             i >= 0;
+             --i)
         {
-            copy_memory(to, from, number_of_bytes);
-        }
-        else
-        {
-            for (ssize i = number_of_bytes - 1;
-                 i >= 0;
-                 --i)
-            {
-                to[i] = from[i];
-            }
+            to[i] = from[i];
         }
     }
     else
