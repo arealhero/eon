@@ -74,6 +74,8 @@ enum Format_Type_Tag
     TYPE_TAG_STRING_VIEW,
     TYPE_TAG_C_STRING,
 
+    TYPE_TAG_char,
+
     TYPE_TAG_s8,
     TYPE_TAG_s16,
     TYPE_TAG_s32,
@@ -97,6 +99,8 @@ struct Format_Type_Info
         String_View string_view;
         const char* c_string;
 
+        char char_value;
+
         s8  s8_value;
         s16 s16_value;
         s32 s32_value;
@@ -113,6 +117,8 @@ typedef struct Format_Type_Info Format_Type_Info;
 internal inline Format_Type_Info format_tag_string(const String string);
 internal inline Format_Type_Info format_tag_string_view(const String_View string);
 internal inline Format_Type_Info format_tag_c_string(const char* string);
+
+internal inline Format_Type_Info format_tag_char(const char c);
 
 #define DECLARE_FORMAT_TAG_FOR_INTEGER(Integer_Type) \
     internal inline Format_Type_Info format_tag_##Integer_Type(Integer_Type number)
@@ -196,6 +202,8 @@ internal String format_string_impl(Arena* const arena,
                                                          \
         OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SSIZE()  \
         OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE()  \
+                                                         \
+        char: format_tag_char,                           \
                                                          \
         char*: format_tag_c_string,                      \
         const char*: format_tag_c_string,                \

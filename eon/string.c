@@ -199,6 +199,18 @@ format_tag_c_string(const char* string)
     };
 }
 
+internal inline Format_Type_Info
+format_tag_char(const char c)
+{
+    return (Format_Type_Info){
+        .tag = TYPE_TAG_char,
+        .max_size_in_bytes = 1,
+        .argument = {
+            .char_value = c,
+        },
+    };
+}
+
 #define DEFINE_FORMAT_TAG_FOR_INTEGER(Integer_Type, is_sized, width_in_bits) \
     internal inline Format_Type_Info                                    \
     format_tag_##Integer_Type(const Integer_Type number)                \
@@ -378,6 +390,12 @@ vformat_string_impl(Arena* const arena,
                                     info.argument.c_string,
                                     info.max_size_in_bytes);
                         buffer_index += info.max_size_in_bytes;
+                    } break;
+
+                    case TYPE_TAG_char:
+                    {
+                        buffer[buffer_index] = info.argument.char_value;
+                        buffer_index += 1;
                     } break;
 
                     // TODO(vlad): Support other bases.

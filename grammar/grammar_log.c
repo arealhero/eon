@@ -18,11 +18,11 @@ show_grammar_error(Arena* scratch,
     {
         if (current_index >= grammar.length)
         {
-            printf("ERROR: Invalid line number provided:\n"
-                   "       Total lines: %ld\n"
-                   "       Requested line: %ld\n",
-                   current_line,
-                   line);
+            println("ERROR: Invalid line number provided:\n"
+                    "       Total lines: {}\n"
+                    "       Requested line: {}",
+                    current_line,
+                    line);
             FAIL();
         }
 
@@ -50,10 +50,9 @@ show_grammar_error(Arena* scratch,
     requested_line.data = grammar.data + line_start_index;
     requested_line.length = line_length;
 
-    printf("\n");
+    print("\n");
     String error_line_prefix = format_string(scratch, "   {}", line + 1);
-    String error_line = format_string(scratch, "{} | {}\n", error_line_prefix, requested_line);
-    printf("%.*s", FORMAT_STRING(error_line));
+    println("{} | {}", error_line_prefix, requested_line);
 
     // TODO(vlad): Construct string inplace and print it in one function call.
     //             We already know this string's length, so we can preallocate the memory for it.
@@ -61,21 +60,21 @@ show_grammar_error(Arena* scratch,
          i < error_line_prefix.length;
          ++i)
     {
-        printf(" ");
+        print(" ");
     }
-    printf(" | ");
+    print(" | ");
     for (ssize i = 0;
          i < column;
          ++i)
     {
-        printf(" ");
+        print(" ");
     }
-    printf("^");
+    print("^");
     for (ssize i = 0;
          i < highlight_length - 1;
          ++i)
     {
-        printf("~");
+        print("~");
     }
-    printf("\n\n");
+    print("\n\n");
 }

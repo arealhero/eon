@@ -5,6 +5,7 @@
 
 internal ssize platform_get_page_size(void);
 
+// TODO(vlad): Change to 'byte*'?
 internal void*  platform_reserve_memory(ssize number_of_bytes);
 internal bool32 platform_commit_memory(void* pointer, ssize number_of_bytes);
 internal bool32 platform_decommit_memory(void* pointer, ssize number_of_bytes);

@@ -59,8 +59,8 @@ parser_get_and_consume_token_with_type(Arena* scratch,
         return true;
     }
 
-    printf("Parser error: Expected type %d, found %d\n",
-           expected_type, parser->current_token.type);
+    println("Parser error: Expected type {}, found {}",
+            expected_type, parser->current_token.type);
 
     return false;
 }
@@ -160,8 +160,8 @@ parse_identifier_expressions(Arena* arena,
             ASSERT(0 && "Unreachable");
         }
 
-        printf("Parser error: Token with unexpected type %d encountered while parsing a production rule\n",
-               parser->current_token.type);
+        println("Parser error: Token with unexpected type {} encountered while parsing a production rule",
+                parser->current_token.type);
 
         return false;
     }
@@ -204,7 +204,7 @@ parser_parse(Arena* arena,
         Ast_Identifier_Definition definition = {0};
         if (!parse_identifier_definition(arena, scratch, parser, &definition))
         {
-            printf("Unexpected error encountered.\n");
+            println("Unexpected error encountered.");
             return false;
         }
 

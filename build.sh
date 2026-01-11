@@ -52,6 +52,8 @@ set +x
 # compile_and_run_test eon_parser_ut.c
 
 mkdir -p build/grammar
+
+set -x
 clang grammar/check_grammar_soundness.c -o build/grammar/check_grammar_soundness \
       $clang_common_flags \
       $clang_warnings

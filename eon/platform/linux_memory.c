@@ -2,6 +2,8 @@
 #error Do not use this file directly. Include '<eon/platform/memory.h>' instead.
 #endif
 
+#include <eon/io.h>
+
 #include <unistd.h>
 #include <sys/mman.h>
 
@@ -42,9 +44,9 @@ platform_commit_memory(void* pointer, ssize number_of_bytes)
 internal bool32
 platform_decommit_memory(void* pointer, ssize number_of_bytes)
 {
-    printf("Decommitting %ld bytes (%ld pages)\n",
-           number_of_bytes,
-           number_of_bytes / platform_get_page_size());
+    println("Decommitting {} bytes ({} pages)",
+            number_of_bytes,
+            number_of_bytes / platform_get_page_size());
 
     // NOTE(vlad): 'posix_madvise' and 'mprotect' may fail if address is not a multiple
     //             of the page size as returned by 'sysconf()'.

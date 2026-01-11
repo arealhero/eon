@@ -7,19 +7,22 @@
 
 #include <fcntl.h>
 #include <stddef.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
+#include <eon/io.h>
 
 internal bool32 check_grammar_soundness(const char* grammar_filename, const String_View grammar);
 
 int
 main(int argc, const char* argv[])
 {
+    init_io_state(MiB(1));
+
     if (argc != 2)
     {
-        printf("Usage: %s <grammar-file>\n", argv[0]);
+        println("Usage: {} <grammar-file>", argv[0]);
         return 1;
     }
 
@@ -28,8 +31,9 @@ main(int argc, const char* argv[])
     const int fd = open(grammar_filename, O_RDONLY);
     if (fd == -1)
     {
-        printf("Failed to open '%s'", grammar_filename);
-        perror("");
+        println("Failed to open '{}'", grammar_filename);
+        // TODO(vlad): Print errno.
+        // perror("");
         return 1;
     }
 
@@ -40,8 +44,8 @@ main(int argc, const char* argv[])
 
     if (content_length == 0)
     {
-        printf("Error: file '%s' is empty.\n",
-               grammar_filename);
+        println("Error: file '{}' is empty.",
+                grammar_filename);
         return 1;
     }
 
@@ -137,7 +141,7 @@ check_grammar_soundness(const char* grammar_filename, const String_View grammar)
     // FIXME(vlad): Check 'parser_parse' result.
     if (!parser_parse(arena, scratch, &parser, &ast))
     {
-        printf("Failed to parse grammar\n");
+        println("Failed to parse grammar");
         return false;
     }
 
@@ -202,9 +206,9 @@ check_grammar_soundness(const char* grammar_filename, const String_View grammar)
              ++token_index)
         {
             const Token* token = info.undefined_identifiers.tokens[token_index];
-            printf("%s:%ld:%ld: Identifier '%.*s' is undefined\n",
-                   grammar_filename, token->line+1, token->column+1,
-                   FORMAT_STRING(token->lexeme));
+            println("{}:{}:{}: Identifier '{}' is undefined",
+                    grammar_filename, token->line+1, token->column+1,
+                    token->lexeme);
             show_grammar_error(scratch,
                                grammar,
                                token->line,
@@ -229,9 +233,9 @@ check_grammar_soundness(const char* grammar_filename, const String_View grammar)
 
             const Token* token = &identifier->token;
 
-            printf("%s:%ld:%ld: Definition for '%.*s' has no possible expressions\n",
-                   grammar_filename, token->line+1, token->column+1,
-                   FORMAT_STRING(token->lexeme));
+            println("{}:{}:{}: Definition for '{}' has no possible expressions",
+                    grammar_filename, token->line+1, token->column+1,
+                    token->lexeme);
             show_grammar_error(scratch,
                                grammar,
                                token->line,
@@ -252,9 +256,9 @@ check_grammar_soundness(const char* grammar_filename, const String_View grammar)
 
                     const Token* token = &identifier->token;
 
-                    printf("%s:%ld:%ld: Empty expression detected in '%.*s' definition\n",
-                           grammar_filename, token->line+1, token->column+1,
-                           FORMAT_STRING(token->lexeme));
+                    println("{}:{}:{}: Empty expression detected in '{}' definition",
+                            grammar_filename, token->line+1, token->column+1,
+                            token->lexeme);
                     show_grammar_error(scratch,
                                        grammar,
                                        token->line,
@@ -271,9 +275,9 @@ check_grammar_soundness(const char* grammar_filename, const String_View grammar)
 
                     const Token* token = &first_identifier->token;
 
-                    printf("%s:%ld:%ld: Left recursion detected in '%.*s' definition\n",
-                           grammar_filename, token->line+1, token->column+1,
-                           FORMAT_STRING(token->lexeme));
+                    println("{}:{}:{}: Left recursion detected in '{}' definition",
+                            grammar_filename, token->line+1, token->column+1,
+                            token->lexeme);
                     show_grammar_error(scratch,
                                        grammar,
                                        token->line,
@@ -302,6 +306,7 @@ check_grammar_soundness(const char* grammar_filename, const String_View grammar)
 
 #include <eon/memory.c>
 #include <eon/string.c>
+#include <eon/io.c>
 
 #include "grammar_lexer.c"
 #include "grammar_log.c"

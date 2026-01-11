@@ -1,5 +1,7 @@
 #include "eon_lexer.h"
 
+#include <eon/io.h>
+
 #include "eon_log.h"
 
 #include <stdlib.h>
@@ -370,7 +372,7 @@ lexer_get_next_token(Lexer* lexer, Token* token)
                                                       lexer->code,
                                                       lexer->current_column - 1,
                                                       1);
-                printf("Current column: %ld\n", lexer->current_column);
+                println("Current column: {}", lexer->current_column);
                 lexer->lexeme_start_index = lexer->current_index;
 
                 // FIXME(vlad): Optionally trigger debug trap.

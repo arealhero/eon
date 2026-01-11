@@ -143,7 +143,7 @@ lexer_get_next_token(Arena* scratch, Lexer* lexer, Token* token)
                 }
                 else
                 {
-                    printf("ERROR HERE: Unknown character encountered: '%c'\n", current_char);
+                    println("ERROR: Unknown character encountered: '{}'", current_char);
                     show_grammar_error(scratch,
                                        lexer->grammar,
                                        lexer->current_line,
@@ -170,7 +170,7 @@ lexer_get_next_token(Arena* scratch, Lexer* lexer, Token* token)
 
                 if (lookahead_char == '\0' || lookahead_char == '\n')
                 {
-                    printf("ERROR: Terminal was not closed\n");
+                    println("ERROR: Terminal was not closed");
                     show_grammar_error(scratch,
                                        lexer->grammar,
                                        terminal_start_line,
@@ -192,7 +192,7 @@ lexer_get_next_token(Arena* scratch, Lexer* lexer, Token* token)
 
             default:
             {
-                printf("ERROR THERE: Unknown character encountered: '%c'\n", current_char);
+                println("ERROR: Unknown character encountered: '{}'", current_char);
                 show_grammar_error(scratch,
                                    lexer->grammar,
                                    lexer->current_line,

@@ -43,23 +43,6 @@ FAIL(void)
     abort();
 }
 
-#if EON_DISABLE_ASSERTS
-    #define ASSERT(expression) (void)((expression))
-#else
-    #define ASSERT(expression) ASSERT_IMPL(expression, __func__, __FILE__, __LINE__)
-    #define ASSERT_IMPL(expression, function, file, line)                   \
-        do                                                                  \
-        {                                                                   \
-            if (!(expression))                                              \
-            {                                                               \
-                printf("%s:%d: Assertion failed in function %s: %s\n",      \
-                       file, line, function, #expression);                  \
-                /* FIXME(vlad): Print backtrace (use libunwind?). */        \
-                FAIL();                                                     \
-            }                                                               \
-        } while (0)
-#endif
-
 // TODO(vlad): Introduce 'STATIC_ASSERT_C(expression, comment)'
 //             with CONCATENATE(comment, __COUNTER__)?
 
@@ -129,6 +112,42 @@ copy_memory(      byte* restrict to,
 {
     memcpy(to, from, (usize)number_of_bytes);
 }
+
+#include <eon/io.h>
+
+#if EON_DISABLE_ASSERTS
+#  define ASSERT(expression) (void)((expression))
+#  define SILENT_ASSERT(expression) (void)((expression))
+#else
+#  define ASSERT(expression) ASSERT_IMPL(expression, __func__, __FILE__, __LINE__)
+// NOTE(vlad): 'SILENT_ASSERT' is used when the IO state was not initialized.
+//             It can safely be removed when we will rewrite '_start' entrypoing
+//             and remove libc dependency: our IO state will be initialized before
+//             calling 'main()'.
+
+//             TODO(vlad): Support 'TAG(something)' in 'fixme.el'.
+//             @libc
+#  define SILENT_ASSERT(expression)             \
+    do                                          \
+    {                                           \
+        if (!(expression))                      \
+        {                                       \
+            FAIL();                             \
+        }                                       \
+    } while (0)
+
+#  define ASSERT_IMPL(expression, function, file, line)                 \
+    do                                                                  \
+    {                                                                   \
+        if (!(expression))                                              \
+        {                                                               \
+            println("{}:{}: Assertion failed in function {}: {}",       \
+                    file, line, function, #expression);                 \
+            /* FIXME(vlad): Print backtrace (use libunwind?). */        \
+            FAIL();                                                     \
+        }                                                               \
+    } while (0)
+#endif
 
 // NOTE(vlad): Compile-time tests.
 

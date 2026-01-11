@@ -1,10 +1,9 @@
 #pragma once
 
 #include <eon/common.h>
+#include <eon/io.h>
 #include <eon/memory.h>
 #include <eon/string.h>
-
-#include <stdio.h>
 
 #define TRAP_ON_FAILED_ASSERTS 0
 
@@ -61,6 +60,8 @@ internal void registry_register_test(Arena* arena,
 int
 main(void)
 {
+    init_io_state(MiB(1));
+
     Arena* permanent_arena = arena_create(GiB(1), MiB(1));
 
     Tests_Registry registry = {0};
@@ -81,21 +82,21 @@ main(void)
         if (context.result == TEST_FAILED)
         {
             // FIXME(vlad): Use 'println'.
-            printf("%.*s:%ld: Test '%.*s' failed\n"
-                   "%.*s\n",
-                   FORMAT_STRING(context.failure_file),
+            println("{}:{}: Test '{}' failed\n"
+                   "{}",
+                   context.failure_file,
                    context.failure_line,
-                   FORMAT_STRING(test->name),
-                   FORMAT_STRING(context.failure_comment));
+                   test->name,
+                   context.failure_comment);
 
             registry.failed_tests_count += 1;
         }
     }
 
-    printf("\n%.*s tests completed:\n"
-           "  - Total tests count:  %ld\n"
-           "  - Failed tests count: %ld\n",
-           FORMAT_STRING(registry.tests_filename),
+    println("\n{} tests completed:\n"
+           "  - Total tests count:  {}\n"
+           "  - Failed tests count: {}",
+           registry.tests_filename,
            registry.total_tests_count,
            registry.failed_tests_count);
 
@@ -103,6 +104,7 @@ main(void)
     arena_destroy(permanent_arena);
 }
 
+#include <eon/io.c>
 #include <eon/memory.c>
 #include <eon/string.c>
 
