@@ -159,17 +159,17 @@ internal String format_string_impl(Arena* const arena,
 #  endif
 
 #  if EON_SSIZE_WIDTH == 32
-#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SSIZE() ssize: format_tag_s32
+#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SSIZE() ssize: format_tag_s32,
 #  elif EON_SSIZE_WIDTH == 64
-#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SSIZE() ssize: format_tag_s64
+#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SSIZE() ssize: format_tag_s64,
 #  else
 #    error Size of 'ssize' is neither 32 nor 64 bits. I don't know what's going on.
 #  endif
 
 #  if EON_USIZE_WIDTH == 32
-#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE() usize: format_tag_u32
+#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE() usize: format_tag_u32,
 #  elif EON_USIZE_WIDTH == 64
-#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE() usize: format_tag_u64
+#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE() usize: format_tag_u64,
 #  else
 #    error Size of 'usize' is neither 32 nor 64 bits. I don't know what's going on.
 #  endif
@@ -194,8 +194,8 @@ internal String format_string_impl(Arena* const arena,
         DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u32),       \
         DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u64),       \
                                                          \
-        OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SSIZE(), \
-        OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE(), \
+        OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SSIZE()  \
+        OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE()  \
                                                          \
         char*: format_tag_c_string,                      \
         const char*: format_tag_c_string,                \
