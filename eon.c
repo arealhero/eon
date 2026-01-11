@@ -10,6 +10,7 @@
 #include "eon_log.h"
 #include "eon_parser.h"
 
+#include <stdio.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 
