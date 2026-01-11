@@ -157,6 +157,7 @@ arena_reallocate(Arena* restrict arena,
         return memory;
     }
 
+    // FIXME(vlad): Poison old memory.
     // NOTE(vlad): Something else was allocated thus we must reallocate and copy memory.
     void* new_memory = arena_push(arena, requested_size_in_bytes);
     copy_memory(as_bytes(new_memory), memory,

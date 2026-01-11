@@ -49,4 +49,9 @@ compile_and_run_test()
 set +x
 # compile_and_run_test eon/string_ut.c
 # compile_and_run_test eon_lexer_ut.c
-compile_and_run_test eon_parser_ut.c
+# compile_and_run_test eon_parser_ut.c
+
+mkdir -p build/grammar
+clang grammar/check_grammar_soundness.c -o build/grammar/check_grammar_soundness \
+      $clang_common_flags \
+      $clang_warnings

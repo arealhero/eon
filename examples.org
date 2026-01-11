@@ -23,16 +23,25 @@
 * Main with arguments
 #+begin_src c
   main: (args_count: C_Int, args: [] C_String) = {
-      for i := 0..args_count-1 {
+      for i := 0; i < args_count; ++i {
           println("arg[{}] = {}", i+1, args[i]);
       }
   }
 #+end_src
 
-* ~to_upper~ ASCII function
+* WIP: Range-based for loop
 #+begin_src c
-  to_upper: (string: mutable String_View) = {
-      for i := 0..string.length - 1 {
+  print_strings: (strings: [] String) -> nothing = {
+      for string, index in strings {
+          println("{}. {}", index + 1, string);
+      }
+  }
+#+end_src
+
+* ~to_upper_inplace~ ASCII function
+#+begin_src c
+  to_upper_inplace: (string: mutable String) = {
+      for i := 0; i < string.length; ++i {
           if 'a' <= string.data[i] && string.data[i] <= 'z' {
               string.data[i] = 'A' + (string.data[i] - 'a');
           }
@@ -43,12 +52,14 @@
       // NOTE: This should fail to compile because we cannot modify string literals.
       // println("to_upper({}) = {}", "hello world!", to_upper("hello world!"));
 
-      string: mutable String_View = "hello world!";
-      // NOTE: This would work fine if we guarantee that arguments will be computed from left to right? Or maybe not.
+      string: mutable String = "hello world!";
+      // NOTE: This would work fine if we guarantee that arguments will be computed from left to right?
+      //       Or maybe not because we are modifying 'string' in 'to_upper'.
       // println("to_upper({}) = {}", string, to_upper(string));
 
       print("to_upper({}) = ", string);
-      print("{}\n", to_upper(string));
+      to_upper_inplace(string);
+      print("{}\n", string);
   }
 #+end_src
 

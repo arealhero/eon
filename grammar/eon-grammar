@@ -1,0 +1,89 @@
+// BNF
+
+// FIXME(vlad): Merge similar productions.
+
+// program: statement*
+//        ;
+
+// statement: expression_statement
+//          ;
+
+// definition: identifier ":" type "=" "{" declaration_body "}"
+//           ;
+
+// function_definition: identifier ":" function_type "=" "{" statement* "}"
+//                    ;
+
+// type_definition: identifier ":" "struct" "=" "{" type_declaration_body "}"
+//                ;
+
+// // TODO(vlad): Add optional assignment.
+// type_definition_body: (identifier ":" type ";")+
+//                     ;
+
+// FIXME(vlad): Remove productions above this comment.
+
+// TODO(vlad): 'enum_declaration'
+
+identifier: identifier_start identifier_end
+          ;
+
+identifier_start: letter
+                | "_"
+                ;
+
+identifier_body: letter
+               | digit
+               | "_"
+               ;
+
+identifier_end: EPS
+              | identifier_body identifier_end
+              ;
+
+letter: "[a-zA-Z]"
+      ;
+
+digit: "[0-9]"
+     ;
+
+basic_if_statement: "if" expression "{" statement "}"
+                  ;
+
+if_statement: basic_if_statement
+            | basic_if_statement "else" "{" statement "}"
+            | basic_if_statement "else" if_statement
+            ;
+// TODO(vlad): Add grammar for switch statements.
+//             Think about "fallthrough" as a keyword or as an attribute like in C/C++.
+
+statement: if_statement
+         ;
+
+// Example: 'foo: s32;'
+variable_declaration: identifier ":" type ";"
+                    ;
+
+// TODO(vlad): Support compound expressions?
+// Example: 'foo: s32 = 10;'
+// Example: 'foo := 10;' (same result as above)
+// TODO(vlad): Should we defer type deduction for variables defined as above?
+variable_definition: identifier ":" optional_type "=" expression ";"
+                   ;
+
+function_definition: identifier ":" function_type "=" "{" function_body "}"
+                   ;
+
+function_type: "(" function_arguments ")" "->" type
+             ;
+
+// TODO(vlad): Support default arguments.
+function_arguments: EPS
+                  | variable_declaration
+                  | variable_declaration "," function_arguments
+                  ;
+
+// XXX(vlad): Do we need this?
+expression_statement: ";"
+                    | expression ";"
+                    ;
