@@ -18,9 +18,6 @@ struct String
 };
 typedef struct String String;
 
-// NOTE(vlad): This macro must be used in printf-like functions only.
-#define FORMAT_STRING(string) (int)string.length, string.data
-
 internal ssize c_string_length(const char* c_string);
 
 // XXX(vlad): Prefix these functions with 'INTERNAL_'?

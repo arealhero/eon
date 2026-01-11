@@ -38,8 +38,8 @@ main(void)
                                                   token.lexeme.length);
 
             println(" type = '{}', lexeme = '{}'\n",
-                   FORMAT_STRING(token_type_to_string(token.type)),
-                   FORMAT_STRING(token.lexeme));
+                   token_type_to_string(token.type),
+                   token.lexeme);
         }
 
         lexer_destroy(&lexer);
