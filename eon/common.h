@@ -120,22 +120,6 @@ copy_memory(      byte* restrict to,
 #  define SILENT_ASSERT(expression) (void)((expression))
 #else
 #  define ASSERT(expression) ASSERT_IMPL(expression, __func__, __FILE__, __LINE__)
-// NOTE(vlad): 'SILENT_ASSERT' is used when the IO state was not initialized.
-//             It can safely be removed when we will rewrite '_start' entrypoing
-//             and remove libc dependency: our IO state will be initialized before
-//             calling 'main()'.
-
-//             TODO(vlad): Support 'TAG(something)' in 'fixme.el'.
-//             @libc
-#  define SILENT_ASSERT(expression)             \
-    do                                          \
-    {                                           \
-        if (!(expression))                      \
-        {                                       \
-            FAIL();                             \
-        }                                       \
-    } while (0)
-
 #  define ASSERT_IMPL(expression, function, file, line)                 \
     do                                                                  \
     {                                                                   \
@@ -146,6 +130,22 @@ copy_memory(      byte* restrict to,
             /* FIXME(vlad): Print backtrace (use libunwind?). */        \
             FAIL();                                                     \
         }                                                               \
+    } while (0)
+
+// NOTE(vlad): 'SILENT_ASSERT' is used when the IO state was not initialized.
+//             It can safely be removed when we will rewrite '_start' entrypoing
+//             and remove libc dependency: our IO state will be initialized before
+//             calling 'main()'.
+//
+//             TODO(vlad): Support 'TAG(something)' in 'fixme.el'.
+//             @libc
+#  define SILENT_ASSERT(expression)             \
+    do                                          \
+    {                                           \
+        if (!(expression))                      \
+        {                                       \
+            FAIL();                             \
+        }                                       \
     } while (0)
 #endif
 
