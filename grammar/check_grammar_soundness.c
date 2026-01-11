@@ -1,19 +1,14 @@
 #include <eon/common.h>
+#include <eon/io.h>
 #include <eon/string.h>
+
+#include <eon/platform/filesystem.h>
 
 #include "grammar_lexer.h"
 #include "grammar_log.h"
 #include "grammar_parser.h"
 
-#include <fcntl.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
-#include <eon/io.h>
-
-internal bool32 check_grammar_soundness(const char* grammar_filename, const String_View grammar);
+internal bool32 check_grammar_soundness(const String_View grammar_filename, const String_View grammar);
 
 int
 main(int argc, const char* argv[])
@@ -26,42 +21,22 @@ main(int argc, const char* argv[])
         return 1;
     }
 
-    const char* grammar_filename = argv[1];
+    // TODO(vlad): Allocate more memory, otherwise we wouldn't be able to read files with size > 1 GiB.
+    Arena* arena = arena_create(GiB(1), MiB(1));
 
-    const int fd = open(grammar_filename, O_RDONLY);
-    if (fd == -1)
+    const String_View grammar_filename = string_view(argv[1]);
+    Read_File_Result read_result = platform_read_entire_text_file(arena, grammar_filename);
+
+    if (read_result.status == READ_FILE_FAILURE)
     {
-        println("Failed to open '{}'", grammar_filename);
-        // TODO(vlad): Print errno.
-        // perror("");
+        println("Failed to read file '{}'", grammar_filename);
         return 1;
     }
 
-    struct stat file_stats = {0};
-    fstat(fd, &file_stats);
+    const String_View grammar = string_view(read_result.content);
+    const bool32 result = check_grammar_soundness(grammar_filename, grammar);
 
-    ssize content_length = file_stats.st_size;
-
-    if (content_length == 0)
-    {
-        println("Error: file '{}' is empty.",
-                grammar_filename);
-        return 1;
-    }
-
-    char* content = (char*) calloc(sizeof(char),
-                                   (usize)(content_length + 1));
-
-    read(fd, content, (usize)content_length);
-    close(fd);
-
-    String_View grammar = {0};
-    grammar.data = content;
-    grammar.length = content_length;
-
-    bool32 result = check_grammar_soundness(grammar_filename, grammar);
-
-    free(content);
+    arena_destroy(arena);
 
     return !result;
 }
@@ -126,7 +101,7 @@ struct Grammar_Info
 typedef struct Grammar_Info Grammar_Info;
 
 internal bool32
-check_grammar_soundness(const char* grammar_filename, const String_View grammar)
+check_grammar_soundness(const String_View grammar_filename, const String_View grammar)
 {
     Arena* arena = arena_create(GiB(1), MiB(1));
     Arena* scratch = arena_create(GiB(1), MiB(1));
@@ -151,7 +126,7 @@ check_grammar_soundness(const char* grammar_filename, const String_View grammar)
          definition_index < ast.definitions_count;
          ++definition_index)
     {
-        Ast_Identifier_Definition* definition = &ast.definitions[definition_index];
+        const Ast_Identifier_Definition* definition = &ast.definitions[definition_index];
 
         add_identifier(arena, &info.defined_identifiers, &definition->identifier.token);
     }
@@ -172,19 +147,19 @@ check_grammar_soundness(const char* grammar_filename, const String_View grammar)
          definition_index < ast.definitions_count;
          ++definition_index)
     {
-        Ast_Identifier_Definition* definition = &ast.definitions[definition_index];
+        const Ast_Identifier_Definition* definition = &ast.definitions[definition_index];
 
         for (ssize expression_index = 0;
              expression_index < definition->possible_expressions_count;
              ++expression_index)
         {
-            Ast_Expression* expression = &definition->possible_expressions[expression_index];
+            const Ast_Expression* expression = &definition->possible_expressions[expression_index];
 
             for (ssize identifier_index = 0;
                  identifier_index < expression->identifiers_count;
                  ++identifier_index)
             {
-                Ast_Identifier* identifier = &expression->identifiers[identifier_index];
+                const Ast_Identifier* identifier = &expression->identifiers[identifier_index];
 
                 if (identifier->token.type == TOKEN_NON_TERMINAL
                     && !has_identifier(&info.defined_identifiers, &identifier->token))
