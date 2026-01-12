@@ -98,8 +98,7 @@ parser_advance(Parser* parser)
 
     if (!lexer_get_next_token(parser->lexer, &parser->current_token))
     {
-        // FIXME(vlad): memset to zero.
-        // parser->current_token = {0};
+        parser->current_token = (Token){0};
         parser->current_token.type = TOKEN_EOF;
     }
 }
@@ -281,9 +280,8 @@ maybe_unused internal void
 parser_create(Parser* parser, Lexer* lexer)
 {
     parser->lexer = lexer;
-    // TODO(vlad): memset to 0;
-    // parser->previous_token = {0};
-    // parser->current_token = {0};
+    parser->previous_token = (Token){0};
+    parser->current_token = (Token){0};
 }
 
 maybe_unused internal Expression*
