@@ -54,7 +54,20 @@
     #error Unknown target architecture's endianness.
 #endif
 
+// NOTE(vlad): Detecting sanitizers.
+
+#if defined(__has_feature)
+#  if __has_feature(address_sanitizer)
+#    define ASAN_ENABLED 1
+#  endif
+#elif defined(__SANITIZE_ADDRESS__)
+#  define ASAN_ENABLED 1
+#else
+#  define ASAN_ENABLED 0
+#endif
+
 // NOTE(vlad): Detecting the compiler.
+
 #if defined(__clang__)
 #  define COMPILER_CLANG 1
 #  define COMPILER_GCC 0

@@ -1,6 +1,7 @@
 #include "memory.h"
 
 #include <eon/platform/memory.h>
+#include <eon/sanitizers/asan.h>
 
 #define ARENA_HEADER_SIZE (size_of(Arena))
 #define ARENA_ALIGNMENT (size_of(void*))
@@ -69,6 +70,9 @@ arena_create(Size number_of_bytes_to_reserve, Size number_of_bytes_to_commit)
         return NULL;
     }
 
+    ASAN_POISON_MEMORY_REGION(as_bytes(arena) + ARENA_HEADER_SIZE,
+                              number_of_bytes_to_reserve - ARENA_HEADER_SIZE);
+
     if (!platform_commit_memory(arena, number_of_bytes_to_commit))
     {
         ASSERT(0 && "Failed to commit memory");
@@ -86,6 +90,7 @@ arena_create(Size number_of_bytes_to_reserve, Size number_of_bytes_to_commit)
 maybe_unused internal void
 arena_destroy(Arena* arena)
 {
+    // TODO(vlad): Move this memory to a quarantine in asan is enabled.
     platform_release_memory(arena, arena->reserved_bytes_count);
 }
 
@@ -102,6 +107,7 @@ arena_push_uninitialized(Arena* arena, const Size number_of_bytes)
 {
     const Size aligned_memory_offset = ALIGN_UP_TO_POW2(arena->free_memory_offset, ARENA_ALIGNMENT);
 
+    // TODO(vlad): Add redzone if asan is enabled.
     const Size free_memory_offset_after_allocation = aligned_memory_offset + number_of_bytes;
     if (free_memory_offset_after_allocation > arena->reserved_bytes_count)
     {
@@ -137,6 +143,9 @@ arena_push_uninitialized(Arena* arena, const Size number_of_bytes)
     Byte* memory = as_bytes(arena) + aligned_memory_offset;
     arena->free_memory_offset = free_memory_offset_after_allocation;
 
+    // FIXME(vlad): Add redzones before and after memory if asan is enabled.
+    ASAN_UNPOISON_MEMORY_REGION(memory, number_of_bytes);
+
     return memory;
 }
 
@@ -145,7 +154,16 @@ arena_pop_to_position(Arena* arena, const Index position)
 {
     if (position < arena->free_memory_offset)
     {
-        arena->free_memory_offset = MAX(position, ARENA_HEADER_SIZE);
+        const Index new_free_memory_offset = MAX(position, ARENA_HEADER_SIZE);
+
+#if ASAN_ENABLED
+        // NOTE(vlad): We do not actually reset 'free_memory_offset' to a 'new_free_memory_offset' here
+        //             if asan is enabled. See NOTE in 'arena_clear'.
+        ASAN_POISON_MEMORY_REGION(as_bytes(arena) + new_free_memory_offset,
+                                  arena->free_memory_offset - new_free_memory_offset);
+#else
+        arena->free_memory_offset = new_free_memory_offset;
+#endif
     }
 
     // TODO(vlad): Decommit memory? Probably not, but maybe we should add
@@ -155,6 +173,37 @@ arena_pop_to_position(Arena* arena, const Index position)
 maybe_unused internal void
 arena_clear(Arena* arena)
 {
+#if ASAN_ENABLED
+    // NOTE(vlad): We do not actually reset 'free_memory_offset' here
+    //             to be able to find use-after-free bugs like this:
+    //
+    //                 int* first_int = allocate(arena, int);
+    //                 arena_clear(arena);
+    //                 int* second_int = allocate(arena, int);
+    //                 *first_int = 10; // Use after free.
+    //                 *second_int = 10; // OK
+    //
+    ASAN_POISON_MEMORY_REGION(as_bytes(arena) + ARENA_HEADER_SIZE,
+                              arena->free_memory_offset - ARENA_HEADER_SIZE);
+
+    // TODO(vlad): We will quickly run out of memory if we don't clear
+    //             long standing frequently reusable arenas (e.g. frame arenas).
+    //             We need to track how many memory was used since the last clear
+    //             and if there are less memory available in the arena than the max previous
+    //             usage then we need to actually clear it. Yes, we will not find use-after-free
+    //             bugs after clearing the arena, but we will get OOMs otherwise.
+    //
+    //             Another approach: track how many times we postponed clearing the arena
+    //             and clear it if it exceeds some threshold (say, 10). But I like the
+    //             max used memory approach more.
+    //
+    //             Also we need to think about this situation when we will implement growable arenas.
+    //
+    //             @tag(asan) @tag(growable-arena)
+
+    return;
+#endif
+
     const Size page_size = platform_get_page_size();
 
     ASSERT(arena->committed_memory_offset % page_size == 0);
@@ -193,6 +242,8 @@ arena_reallocate(Arena* restrict arena,
             const Size difference = memory_size_in_bytes - requested_size_in_bytes;
             arena->free_memory_offset = MAX(arena->free_memory_offset - difference,
                                             ARENA_HEADER_SIZE);
+            ASAN_POISON_MEMORY_REGION(as_bytes(arena) + arena->free_memory_offset,
+                                      difference);
         }
         else
         {
@@ -203,10 +254,12 @@ arena_reallocate(Arena* restrict arena,
         return memory;
     }
 
-    // FIXME(vlad): Poison old memory.
     // NOTE(vlad): Something else was allocated thus we must reallocate and copy memory.
     void* new_memory = arena_push(arena, requested_size_in_bytes);
     copy_memory(as_bytes(new_memory), memory,
                 MIN(requested_size_in_bytes, memory_size_in_bytes));
+
+    ASAN_POISON_MEMORY_REGION(memory, memory_size_in_bytes);
+
     return new_memory;
 }
