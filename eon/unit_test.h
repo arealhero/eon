@@ -5,10 +5,10 @@
 #include <eon/memory.h>
 #include <eon/string.h>
 
-#define TRAP_ON_FAILED_ASSERTS 0
+#define FAIL_ON_FAILED_ASSERTS 0
 
-#if !defined(TRAP_ON_FAILED_ASSERTS)
-#    define TRAP_ON_FAILED_ASSERTS 0
+#if !defined(FAIL_ON_FAILED_ASSERTS)
+#    define FAIL_ON_FAILED_ASSERTS 0
 #endif
 
 enum Test_Result
@@ -167,7 +167,7 @@ registry_register_test(Arena* arena,
         context->failure_comment = string_view(failure_comment);        \
         context->failure_file = string_view(file);                      \
         context->failure_line = line;                                   \
-        if (TRAP_ON_FAILED_ASSERTS) { abort(); }                        \
+        if (FAIL_ON_FAILED_ASSERTS) { FAIL(); }                         \
         return;                                                         \
     }                                                                   \
     REQUIRE_SEMICOLON
