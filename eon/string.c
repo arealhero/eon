@@ -340,7 +340,7 @@ vformat_string_impl(Arena* const arena,
                                                                number_of_arguments,
                                                                args);
 
-    // FIXME(vlad): Ensure that buffer has enough space before every char copying below.
+    // FIXME(vlad): Ensure that buffer has enough space before every call to 'copy_memory' in this function.
     char* buffer = allocate_uninitialized_array(arena, formatted_string_length, char);
     Index buffer_index = 0;
 
