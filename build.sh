@@ -2,7 +2,7 @@
 
 mkdir -p build
 
-set -ex
+set -e
 
 clang_warnings="
   -pedantic
@@ -26,6 +26,8 @@ clang_common_flags="
 
 compile()
 {
+    echo -e "\nCompiling '$1'"
+    TIMEFORMAT="Compilation took %2R seconds"
     time clang $@
 }
 
@@ -42,16 +44,21 @@ compile_and_run_test()
 
     mkdir -p "build/tests/$test_dir"
 
-    set -x
     compile "$test_filename" -o "build/tests/$test_dir/$test_name" \
             $clang_common_flags \
             $clang_warnings
 
-    "./build/tests/$test_dir/$test_name"
-    set +x
+    if [ "$test_dir" = "." ];
+    then
+        reported_test_name="$test_name"
+    else
+        reported_test_name="$test_dir/$test_name"
+    fi
+
+    echo "Running tests in '$reported_test_name'"
+    "./build/tests/$test_dir/$test_name" --hide-stats
 }
 
-set +x
 compile_and_run_test eon/memory_ut.c
 compile_and_run_test eon/string_ut.c
 compile_and_run_test eon_lexer_ut.c
@@ -59,7 +66,6 @@ compile_and_run_test eon_parser_ut.c
 
 mkdir -p build/grammar
 
-set -x
 compile grammar/check_grammar_soundness.c -o build/grammar/check_grammar_soundness \
         $clang_common_flags \
         $clang_warnings

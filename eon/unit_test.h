@@ -58,9 +58,15 @@ internal void registry_register_test(Arena* arena,
                                      const String_View test_name);
 
 int
-main(void)
+main(const int argc, const char* argv[])
 {
     init_io_state(MiB(1));
+
+    Bool show_stats_at_the_end = true;
+    if (argc >= 2 && strings_are_equal(string_view(argv[1]), string_view("--hide-stats")))
+    {
+        show_stats_at_the_end = false;
+    }
 
     Arena* permanent_arena = arena_create(GiB(1), MiB(1));
 
@@ -93,12 +99,16 @@ main(void)
         }
     }
 
-    println("\n{} tests completed:\n"
-           "  - Total tests count:  {}\n"
-           "  - Failed tests count: {}",
-           registry.tests_filename,
-           registry.total_tests_count,
-           registry.failed_tests_count);
+    if (show_stats_at_the_end)
+    {
+        println("\n"
+                "{} tests completed:\n"
+                "  - Total tests count:  {}\n"
+                "  - Failed tests count: {}",
+                registry.tests_filename,
+                registry.total_tests_count,
+                registry.failed_tests_count);
+    }
 
     arena_destroy(test_arena);
     arena_destroy(permanent_arena);
