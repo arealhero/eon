@@ -141,7 +141,7 @@ internal String format_string_impl(Arena* const arena,
     Integer_Type: format_tag_##Integer_Type
 
 #if OS_MAC
-// NOTE(vlad): This checks are redundant because the width of 'ptrdiff_t'
+// NOTE(vlad): These checks are redundant because the width of 'ptrdiff_t'
 //             is the same as the width of 'size_t', but just in case I'll leave them here.
 #  if defined(__PTRDIFF_WIDTH__)
 #    define EON_SIZE_WIDTH __PTRDIFF_WIDTH__
