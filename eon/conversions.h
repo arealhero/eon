@@ -2,13 +2,13 @@
 
 #include <eon/types.h>
 
-#define TO_KIBI(value) ((Size)(value) << 10)
-#define TO_MEBI(count) ((Size)(count) << 20)
-#define TO_GIBI(count) ((Size)(count) << 30)
-
 #define TO_MILLI(value) ((Size)(value) * 1000)
 #define TO_MICRO(value) (TO_MILLI(value) * 1000)
 #define TO_NANO(value) (TO_MICRO(value) * 1000)
+
+#define TO_KIBI(value) ((Size)(value) << 10)
+#define TO_MEBI(count) ((Size)(count) << 20)
+#define TO_GIBI(count) ((Size)(count) << 30)
 
 // TODO(vlad): Support floating-point conversions.
 
