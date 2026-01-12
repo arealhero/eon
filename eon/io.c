@@ -2,6 +2,7 @@
 
 #include <eon/memory.h>
 #include <eon/platform/memory.h>
+#include <eon/sanitizers/asan.h>
 
 #include <stdlib.h> // NOTE(vlad): For 'atexit' and 'memmove'.
 #include <unistd.h> // NOTE(vlad): For 'write'.
@@ -18,6 +19,14 @@ deinit_io_state(void)
     // NOTE(vlad): There's no need to release memory manually: OS will reclaim it automatically.
 
     print_flush_stdout();
+
+    // NOTE(vlad): Poisoning 'stdout_buffer' just in case. Also note that
+    //             one can change bufferization policy to 'IO_UNBUFFERED' and
+    //             circumvent this poisoning. I tried to poison 'global_io_state',
+    //             it does not work: 'ASAN_POISON_MEMORY_REGION' works without issues,
+    //             but e.g. 'global_io_state.bufferization_policy' can still be changed
+    //             and read from.
+    ASAN_POISON_MEMORY_REGION(global_io_state.stdout_buffer, STDOUT_BUFFER_SIZE);
 }
 
 internal void
