@@ -143,37 +143,37 @@ internal String format_string_impl(Arena* const arena,
 #if OS_MAC
 // NOTE(vlad): These checks are redundant because the width of 'ptrdiff_t'
 //             is the same as the width of 'size_t', but just in case I'll leave them here.
-#  if defined(__PTRDIFF_WIDTH__)
-#    define EON_SIZE_WIDTH __PTRDIFF_WIDTH__
-#  else
-#    error MacOS: Failed to determine the width of "Size".
-#  endif
+#    if defined(__PTRDIFF_WIDTH__)
+#        define EON_SIZE_WIDTH __PTRDIFF_WIDTH__
+#    else
+#        error MacOS: Failed to determine the width of "Size".
+#    endif
 
-#  if defined(__SIZE_WIDTH__)
-#    define EON_USIZE_WIDTH __SIZE_WIDTH__
-#  else
-#    error MacOS: Failed to determine the width of "USize".
-#  endif
+#    if defined(__SIZE_WIDTH__)
+#        define EON_USIZE_WIDTH __SIZE_WIDTH__
+#    else
+#        error MacOS: Failed to determine the width of "USize".
+#    endif
 
-#  if EON_SIZE_WIDTH == 32
-#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SIZE() Size: format_tag_s32,
-#  elif EON_SIZE_WIDTH == 64
-#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SIZE() Size: format_tag_s64,
-#  else
-#    error MacOS: Width of "Size" is neither 32 nor 64 bits. I don't know what's going on.
-#  endif
+#    if EON_SIZE_WIDTH == 32
+#        define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SIZE() Size: format_tag_s32,
+#    elif EON_SIZE_WIDTH == 64
+#        define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SIZE() Size: format_tag_s64,
+#    else
+#        error MacOS: Width of "Size" is neither 32 nor 64 bits. I don't know what's going on.
+#    endif
 
-#  if EON_USIZE_WIDTH == 32
-#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE() USize: format_tag_u32,
-#  elif EON_USIZE_WIDTH == 64
-#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE() USize: format_tag_u64,
-#  else
-#    error MacOS: Width of "USize" is neither 32 nor 64 bits. I don't know what's going on.
-#  endif
+#    if EON_USIZE_WIDTH == 32
+#        define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE() USize: format_tag_u32,
+#    elif EON_USIZE_WIDTH == 64
+#        define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE() USize: format_tag_u64,
+#    else
+#        error MacOS: Width of "USize" is neither 32 nor 64 bits. I don't know what's going on.
+#    endif
 
 #else
-#  define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SIZE()
-#  define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE()
+#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SIZE()
+#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE()
 #endif
 
 #define FORMAT_GET_TYPE_INFO(arg)                        \

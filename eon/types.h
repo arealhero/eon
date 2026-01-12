@@ -7,25 +7,25 @@
 #if defined(__UINT8_TYPE__)
 typedef __UINT8_TYPE__ u8;
 #else
-#  error __UINT8_TYPE__ is not defined.
+#    error __UINT8_TYPE__ is not defined.
 #endif
 
 #if defined(__UINT16_TYPE__)
 typedef __UINT16_TYPE__ u16;
 #else
-#  error __UINT16_TYPE__ is not defined.
+#    error __UINT16_TYPE__ is not defined.
 #endif
 
 #if defined(__UINT32_TYPE__)
 typedef __UINT32_TYPE__ u32;
 #else
-#  error __UINT32_TYPE__ is not defined.
+#    error __UINT32_TYPE__ is not defined.
 #endif
 
 #if defined(__UINT64_TYPE__)
 typedef __UINT64_TYPE__ u64;
 #else
-#  error __UINT64_TYPE__ is not defined.
+#    error __UINT64_TYPE__ is not defined.
 #endif
 
 // NOTE(vlad): Defining signed integer types.
@@ -33,48 +33,48 @@ typedef __UINT64_TYPE__ u64;
 #if defined(__INT8_TYPE__)
 typedef __INT8_TYPE__ s8;
 #else
-#  error __INT8_TYPE__ is not defined.
+#    error __INT8_TYPE__ is not defined.
 #endif
 
 #if defined(__INT16_TYPE__)
 typedef __INT16_TYPE__ s16;
 #else
-#  error __INT16_TYPE__ is not defined.
+#    error __INT16_TYPE__ is not defined.
 #endif
 
 #if defined(__INT32_TYPE__)
 typedef __INT32_TYPE__ s32;
 #else
-#  error __INT32_TYPE__ is not defined.
+#    error __INT32_TYPE__ is not defined.
 #endif
 
 #if defined(__INT64_TYPE__)
 typedef __INT64_TYPE__ s64;
 #else
-#  error __INT64_TYPE__ is not defined.
+#    error __INT64_TYPE__ is not defined.
 #endif
 
 // NOTE(vlad): Defining floating-point types.
 
 // FIXME(vlad): Ensure that f32 and f64 conforms to IEEE 754.
 #if defined(__SIZEOF_FLOAT__)
-#  if __SIZEOF_FLOAT__ == 4
+#    if __SIZEOF_FLOAT__ == 4
 typedef float  f32;
-#  else
-#    error Failed to define "f32": __SIZEOF_FLOAT__ != 4.
-#  endif
+#    else
+#        error Failed to define "f32": __SIZEOF_FLOAT__ != 4.
+#    endif
 #else
-#  error Failed to define "f32": __SIZEOF_FLOAT__ is not defined.
+#    error Failed to define "f32": __SIZEOF_FLOAT__ is not defined.
 #endif
 
 #if defined(__SIZEOF_DOUBLE__)
-#  if __SIZEOF_DOUBLE__ == 8
+#    if __SIZEOF_DOUBLE__ == 8
 typedef double f64;
-#  else
-#    error Failed to define "f64": __SIZEOF_DOUBLE__ != 8.
-#  endif
+#    else
+#        error Failed to define "f64": __SIZEOF_DOUBLE__ != 8.
+#    endif
 #else
-#  error Failed to define "f64": __SIZEOF_DOUBLE__ is not defined.
+#    error Failed to define "f64": __SIZEOF_DOUBLE__ is not defined.
 #endif
 
 // NOTE(vlad): Defining memory-related types.
@@ -84,13 +84,13 @@ typedef __PTRDIFF_TYPE__ Size;
 #else
 // TODO(vlad): Try to use __PTRDIFF_WIDTH__ and use the appropriate integer type.
 //             Something like this: 'typedef CONCATENATE(s, __PTRDIFF_WIDTH__) Size;'
-#  error Failed to define "Size": __PTRDIFF_TYPE__ is not defined.
+#    error Failed to define "Size": __PTRDIFF_TYPE__ is not defined.
 #endif
 
 #if defined(__SIZE_TYPE__)
 typedef __SIZE_TYPE__ USize;
 #else
-#  error Failed to define "USize": __SIZE_TYPE__ is not defined.
+#    error Failed to define "USize": __SIZE_TYPE__ is not defined.
 #endif
 
 typedef Size Index;

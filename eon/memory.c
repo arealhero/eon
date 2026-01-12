@@ -198,7 +198,6 @@ arena_clear(Arena* arena)
     //             max used memory approach more.
     //
     //             Also we need to think about this situation when we will implement growable arenas.
-    //
     //             @tag(asan) @tag(growable-arena)
 
     return;

@@ -1,7 +1,7 @@
 #pragma once
 
 #if !defined(EON_DISABLE_ASSERTS)
-    #define EON_DISABLE_ASSERTS 0
+#    define EON_DISABLE_ASSERTS 0
 #endif
 
 #include <eon/common.h>
@@ -24,11 +24,11 @@ FAIL(void)
 }
 
 #if EON_DISABLE_ASSERTS
-#  define ASSERT(expression) (void)((expression))
-#  define SILENT_ASSERT(expression) (void)((expression))
+#    define ASSERT(expression) (void)((expression))
+#    define SILENT_ASSERT(expression) (void)((expression))
 #else
-#  define ASSERT(expression) ASSERT_IMPL(expression, __func__, __FILE__, __LINE__)
-#  define ASSERT_IMPL(expression, function, file, line)                 \
+#    define ASSERT(expression) ASSERT_IMPL(expression, __func__, __FILE__, __LINE__)
+#    define ASSERT_IMPL(expression, function, file, line)               \
     do                                                                  \
     {                                                                   \
         if (!(expression))                                              \
@@ -47,7 +47,7 @@ FAIL(void)
 //
 //             TODO(vlad): Support 'TAG(something)' in 'fixme.el'.
 //             @libc
-#  define SILENT_ASSERT(expression)             \
+#    define SILENT_ASSERT(expression)           \
     do                                          \
     {                                           \
         if (!(expression))                      \

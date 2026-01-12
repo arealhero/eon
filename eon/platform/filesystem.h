@@ -24,7 +24,7 @@ typedef struct Read_File_Result Read_File_Result;
 internal Read_File_Result platform_read_entire_text_file(Arena* arena, const String_View filename);
 
 #if OS_LINUX
-#  include "linux_filesystem.c"
+#    include "linux_filesystem.c"
 #else
-#  error This OS is not supported yet.
+#    error This OS is not supported yet.
 #endif
