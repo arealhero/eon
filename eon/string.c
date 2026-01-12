@@ -100,7 +100,9 @@ copy_string(Arena* const arena, const String_View string_to_copy)
     result.data = allocate_uninitialized_array(arena, string_to_copy.length, char);
     result.length = string_to_copy.length;
 
-    copy_memory(result.data, string_to_copy.data, string_to_copy.length);
+    copy_memory(as_bytes(result.data),
+                as_bytes(string_to_copy.data),
+                string_to_copy.length);
 
     return result;
 }
@@ -370,24 +372,24 @@ vformat_string_impl(Arena* const arena,
                 {
                     case TYPE_TAG_STRING:
                     {
-                        copy_memory(buffer + buffer_index,
-                                    info.argument.string.data,
+                        copy_memory(as_bytes(buffer + buffer_index),
+                                    as_bytes(info.argument.string.data),
                                     info.argument.string.length);
                         buffer_index += info.argument.string.length;
                     } break;
 
                     case TYPE_TAG_STRING_VIEW:
                     {
-                        copy_memory(buffer + buffer_index,
-                                    info.argument.string_view.data,
+                        copy_memory(as_bytes(buffer + buffer_index),
+                                    as_bytes(info.argument.string_view.data),
                                     info.argument.string_view.length);
                         buffer_index += info.argument.string_view.length;
                     } break;
 
                     case TYPE_TAG_C_STRING:
                     {
-                        copy_memory(buffer + buffer_index,
-                                    info.argument.c_string,
+                        copy_memory(as_bytes(buffer + buffer_index),
+                                    as_bytes(info.argument.c_string),
                                     info.max_size_in_bytes);
                         buffer_index += info.max_size_in_bytes;
                     } break;

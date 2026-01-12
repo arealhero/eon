@@ -13,7 +13,7 @@ platform_read_entire_text_file(Arena* arena, const String_View filename)
 
     char* zero_terminated_filename = allocate_uninitialized_array(arena, filename.length + 1, char);
     copy_memory(as_bytes(zero_terminated_filename),
-                filename.data,
+                as_bytes(filename.data),
                 filename.length);
     zero_terminated_filename[filename.length] = '\0';
 

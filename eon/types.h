@@ -95,10 +95,8 @@ typedef __SIZE_TYPE__ USize;
 
 typedef Size Index;
 
-// FIXME(vlad): Change to 's8'. Or rather 'byte' should be 'u8' by default
-//              and 'sbyte' should be 's8' (if we really need 'sbyte' in the first place).
-typedef char Byte;
-typedef u8   UByte;
+typedef u8 Byte;
+typedef s8 Signed_Byte;
 
 // NOTE(vlad): Defining boolean types.
 

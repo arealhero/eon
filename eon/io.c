@@ -100,11 +100,11 @@ print_impl(const String_View message)
 {
     if (global_io_state.bufferization_policy == IO_UNBUFFERED)
     {
-        write_data_to_stdout(message.data, message.length);
+        write_data_to_stdout(as_bytes(message.data), message.length);
         return;
     }
 
-    add_data_to_stdout_buffer_and_flush_if_needed(message.data, message.length);
+    add_data_to_stdout_buffer_and_flush_if_needed(as_bytes(message.data), message.length);
 
     if (global_io_state.bufferization_policy == IO_FLUSH_ON_NEWLINE)
     {
