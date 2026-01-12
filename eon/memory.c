@@ -91,6 +91,7 @@ maybe_unused internal void
 arena_destroy(Arena* arena)
 {
     // TODO(vlad): Move this memory to a quarantine in asan is enabled.
+    //             @tag(asan)
     platform_release_memory(arena, arena->reserved_bytes_count);
 }
 
@@ -108,6 +109,7 @@ arena_push_uninitialized(Arena* arena, const Size number_of_bytes)
     const Size aligned_memory_offset = ALIGN_UP_TO_POW2(arena->free_memory_offset, ARENA_ALIGNMENT);
 
     // TODO(vlad): Add redzone if asan is enabled.
+    //             @tag(asan)
     const Size free_memory_offset_after_allocation = aligned_memory_offset + number_of_bytes;
     if (free_memory_offset_after_allocation > arena->reserved_bytes_count)
     {
@@ -144,6 +146,7 @@ arena_push_uninitialized(Arena* arena, const Size number_of_bytes)
     arena->free_memory_offset = free_memory_offset_after_allocation;
 
     // FIXME(vlad): Add redzones before and after memory if asan is enabled.
+    //             @tag(asan)
     ASAN_UNPOISON_MEMORY_REGION(memory, number_of_bytes);
 
     return memory;
