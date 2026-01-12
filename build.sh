@@ -24,10 +24,15 @@ clang_common_flags="
   -fsanitize=address
 "
 
-clang eon.c -o build/eon \
-      $clang_common_flags \
-      $clang_warnings \
-      -lreadline
+compile()
+{
+    time clang $@
+}
+
+compile eon.c -o build/eon \
+        $clang_common_flags \
+        $clang_warnings \
+        -lreadline
 
 compile_and_run_test()
 {
@@ -38,9 +43,9 @@ compile_and_run_test()
     mkdir -p "build/tests/$test_dir"
 
     set -x
-    clang "$test_filename" -o "build/tests/$test_dir/$test_name" \
-          $clang_common_flags \
-          $clang_warnings
+    compile "$test_filename" -o "build/tests/$test_dir/$test_name" \
+            $clang_common_flags \
+            $clang_warnings
 
     "./build/tests/$test_dir/$test_name"
     set +x
@@ -55,6 +60,6 @@ compile_and_run_test eon_parser_ut.c
 mkdir -p build/grammar
 
 set -x
-clang grammar/check_grammar_soundness.c -o build/grammar/check_grammar_soundness \
-      $clang_common_flags \
-      $clang_warnings
+compile grammar/check_grammar_soundness.c -o build/grammar/check_grammar_soundness \
+        $clang_common_flags \
+        $clang_warnings
