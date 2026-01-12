@@ -15,6 +15,9 @@ FAIL(void)
     // TODO(vlad): Print backtrace?
     // TODO(vlad): Use trap in debug builds only and 'quick_exit()' in release builds?
     __builtin_debugtrap();
+
+    // NOTE(vlad): GCC will emit an implicit call to `abort()` here.
+    //             @tag(libc)
     __builtin_trap();
 }
 
@@ -40,8 +43,7 @@ FAIL(void)
 //             and remove libc dependency: our IO state will be initialized before
 //             calling 'main()'.
 //
-//             TODO(vlad): Support 'TAG(something)' in 'fixme.el'.
-//             @libc
+//             @tag(libc)
 #    define SILENT_ASSERT(expression)           \
     do                                          \
     {                                           \
