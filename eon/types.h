@@ -109,6 +109,7 @@ typedef s32 Bool;
 #define false 0
 
 #define size_of(Type) (Size)(sizeof(Type))
+#define as_bytes(expression) (Byte*)(expression)
 
 // NOTE(vlad): Compile-time tests.
 

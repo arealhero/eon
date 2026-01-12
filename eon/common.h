@@ -6,9 +6,6 @@
 #include <eon/assert.h>
 #include <eon/macros.h>
 
-// TODO(vlad): Move to <eon/memory.h> or something.
-#define as_bytes(expression) (Byte*)(expression)
-
 internal inline void
 unused_impl(void* dummy_parameter_for_varargs, ...)
 {
