@@ -22,6 +22,7 @@ clang_common_flags="
   -ggdb
   -I.
   -fsanitize=address
+  -fno-omit-frame-pointer
 "
 
 compile()
