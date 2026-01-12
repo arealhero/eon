@@ -123,7 +123,7 @@ is_power_of_two(const usize number)
     } while (0)
 
 // NOTE(vlad): 'SILENT_ASSERT' is used when the IO state was not initialized.
-//             It can safely be removed when we will rewrite '_start' entrypoing
+//             It can safely be removed when we will rewrite '_start' entrypoint
 //             and remove libc dependency: our IO state will be initialized before
 //             calling 'main()'.
 //
