@@ -1,6 +1,7 @@
 #pragma once
 
 #include <eon/common.h>
+#include <eon/conversions.h> // NOTE(vlad): Exporting 'KiB', 'MiB', etc for convenience.
 
 internal inline void copy_memory(Byte* restrict to,
                                  const Byte* restrict from,

@@ -17,10 +17,6 @@ unused_impl(void* dummy_parameter_for_varargs, ...)
 #define MIN(lhs, rhs) (((lhs) < (rhs)) ? (lhs) : (rhs))
 #define ABS(number) (((number) > 0) ? (number) : -(number))
 
-#define KiB(count) ((Size)(count) << 10)
-#define MiB(count) ((Size)(count) << 20)
-#define GiB(count) ((Size)(count) << 30)
-
 internal inline Bool
 is_power_of_two(const USize number)
 {
@@ -31,10 +27,6 @@ is_power_of_two(const USize number)
     (((Size)(number) + ((Size)(power) - 1)) & (~((Size)(power) - 1)))
 
 // NOTE(vlad): Compile-time tests.
-
-STATIC_ASSERT(KiB(1) == (Size) 1*1024);
-STATIC_ASSERT(MiB(2) == (Size) 2*1024*1024);
-STATIC_ASSERT(GiB(3) == (Size) 3*1024*1024*1024);
 
 STATIC_ASSERT(ALIGN_UP_TO_POW2(0x12, 0x20) == 0x20);
 STATIC_ASSERT(ALIGN_UP_TO_POW2(0x123, 0x10) == 0x130);
