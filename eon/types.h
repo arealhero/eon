@@ -109,6 +109,21 @@ typedef s32 Bool;
 #define size_of(Type) (Size)(sizeof(Type))
 #define as_bytes(expression) (Byte*)(expression)
 
+// NOTE(vlad): Integer limits.
+
+#define MAX_s8_VALUE  0x7F
+#define MAX_s16_VALUE 0x7FFF
+#define MAX_s32_VALUE 0x7FFFFFFF
+#define MAX_s64_VALUE 0x7FFFFFFFFFFFFFFF
+
+#define MAX_u8_VALUE  0xFF
+#define MAX_u16_VALUE 0xFFFF
+#define MAX_u32_VALUE 0xFFFFFFFF
+#define MAX_u64_VALUE 0xFFFFFFFFFFFFFFFF
+
+#define MAX_VALUE(Integer_Type) (Integer_Type)(MAX_##Integer_Type##_VALUE)
+#define MIN_VALUE(Integer_Type) (Integer_Type)~(MAX_VALUE(Integer_Type))
+
 // NOTE(vlad): Compile-time tests.
 
 #include <eon/static_assert.h>
