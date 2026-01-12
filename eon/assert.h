@@ -9,18 +9,13 @@
 #include <eon/keywords.h>
 #include <eon/macros.h>
 
-#include <stdlib.h> // NOTE(vlad): for 'abort()'.
-
 noreturn internal inline void
 FAIL(void)
 {
     // TODO(vlad): Print backtrace?
     // TODO(vlad): Use trap in debug builds only and 'quick_exit()' in release builds?
     __builtin_debugtrap();
-
-    // NOTE(vlad): This line is needed to get rid of this compile error:
-    //             "function declared 'noreturn' should not return".
-    abort();
+    __builtin_trap();
 }
 
 #if EON_DISABLE_ASSERTS
