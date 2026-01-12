@@ -4,7 +4,7 @@
 #include <eon/platform/memory.h>
 #include <eon/sanitizers/asan.h>
 
-#include <stdlib.h> // NOTE(vlad): For 'atexit' and 'memmove'.
+#include <stdlib.h> // NOTE(vlad): For 'atexit'.
 #include <unistd.h> // NOTE(vlad): For 'write'.
 
 #define STDOUT_BUFFER_SIZE KiB(4)
