@@ -53,3 +53,16 @@
 #else
     #error Unknown target architecture's endianness.
 #endif
+
+// NOTE(vlad): Detecting the compiler.
+#if defined(__clang__)
+#  define COMPILER_CLANG 1
+#  define COMPILER_GCC 0
+#  define COMPILER_MSVC 0
+#elif defined(__GNUC__)
+#  define COMPILER_CLANG 0
+#  define COMPILER_GCC 1
+#  define COMPILER_MSVC 0
+#else
+#  error Failed to detect this compiler.
+#endif
