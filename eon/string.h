@@ -144,7 +144,7 @@ internal String format_string_impl(Arena* const arena,
 // NOTE(vlad): This checks are redundant because the width of 'ptrdiff_t'
 //             is the same as the width of 'size_t', but just in case I'll leave them here.
 #  if defined(__PTRDIFF_WIDTH__)
-#    define EON_SSIZE_WIDTH __PTRDIFF_WIDTH__
+#    define EON_SIZE_WIDTH __PTRDIFF_WIDTH__
 #  else
 #    error MacOS: Failed to determine the width of "Size".
 #  endif
@@ -155,10 +155,10 @@ internal String format_string_impl(Arena* const arena,
 #    error MacOS: Failed to determine the width of "USize".
 #  endif
 
-#  if EON_SSIZE_WIDTH == 32
-#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SSIZE() Size: format_tag_s32,
-#  elif EON_SSIZE_WIDTH == 64
-#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SSIZE() Size: format_tag_s64,
+#  if EON_SIZE_WIDTH == 32
+#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SIZE() Size: format_tag_s32,
+#  elif EON_SIZE_WIDTH == 64
+#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SIZE() Size: format_tag_s64,
 #  else
 #    error MacOS: Width of "Size" is neither 32 nor 64 bits. I don't know what's going on.
 #  endif
@@ -172,7 +172,7 @@ internal String format_string_impl(Arena* const arena,
 #  endif
 
 #else
-#  define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SSIZE()
+#  define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SIZE()
 #  define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE()
 #endif
 
@@ -191,7 +191,7 @@ internal String format_string_impl(Arena* const arena,
         DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u32),       \
         DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u64),       \
                                                          \
-        OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SSIZE()  \
+        OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SIZE()   \
         OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE()  \
                                                          \
         char: format_tag_char,                           \
