@@ -77,3 +77,5 @@
 
 #define FOR_EACH_IMPL(N, DO, ...) CONCATENATE(FOR_EACH_, N)(DO, __VA_ARGS__)
 #define FOR_EACH(DO, ...) FOR_EACH_IMPL(NUMBER_OF_ARGS(__VA_ARGS__), DO, __VA_ARGS__)
+
+#define REQUIRE_SEMICOLON void CONCATENATE(Semicolon_Required_, __COUNTER__)(void)

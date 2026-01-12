@@ -5,15 +5,15 @@
 internal void
 show_grammar_error(Arena* scratch,
                    String_View grammar,
-                   const ssize line,
-                   const ssize column,
-                   const ssize highlight_length)
+                   const s64 line,
+                   const s64 column,
+                   const Size highlight_length)
 {
-    ssize line_start_index = 0;
-    ssize line_length = 0;
+    Index line_start_index = 0;
+    Size line_length = 0;
 
-    ssize current_line = 0;
-    ssize current_index = 0;
+    s64 current_line = 0;
+    s64 current_index = 0;
     while (current_line != line)
     {
         if (current_index >= grammar.length)
@@ -56,21 +56,21 @@ show_grammar_error(Arena* scratch,
 
     // TODO(vlad): Construct string inplace and print it in one function call.
     //             We already know this string's length, so we can preallocate the memory for it.
-    for (ssize i = 0;
+    for (Index i = 0;
          i < error_line_prefix.length;
          ++i)
     {
         print(" ");
     }
     print(" | ");
-    for (ssize i = 0;
+    for (Index i = 0;
          i < column;
          ++i)
     {
         print(" ");
     }
     print("^");
-    for (ssize i = 0;
+    for (Index i = 0;
          i < highlight_length - 1;
          ++i)
     {

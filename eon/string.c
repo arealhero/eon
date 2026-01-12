@@ -2,12 +2,12 @@
 
 #include <stdarg.h>
 
-internal ssize
+internal Size
 c_string_length(const char* c_string)
 {
     if (c_string == NULL) return 0;
 
-    ssize length = 0;
+    Size length = 0;
     while (c_string[length] != '\0')
     {
         ++length;
@@ -47,9 +47,9 @@ compare_strings(const String_View lhs, const String_View rhs)
     // TODO(vlad): Change to 'comptime_constant' if we will decide to use C11+.
     enum { LESS = -1, EQUAL = 0, GREATER = 1 };
 
-    const ssize min_length = MIN(lhs.length, rhs.length);
+    const Size min_length = MIN(lhs.length, rhs.length);
 
-    for (ssize i = 0;
+    for (Index i = 0;
          i < min_length;
          ++i)
     {
@@ -75,12 +75,12 @@ compare_strings(const String_View lhs, const String_View rhs)
     return EQUAL;
 }
 
-maybe_unused internal bool32
+maybe_unused internal Bool
 strings_are_equal(const String_View lhs, const String_View rhs)
 {
     if (lhs.length != rhs.length) return false;
 
-    for (ssize i = 0;
+    for (Index i = 0;
          i < lhs.length;
          ++i)
     {
@@ -235,18 +235,18 @@ DEFINE_FORMAT_TAG_FOR_INTEGER(u16, true, 16);
 DEFINE_FORMAT_TAG_FOR_INTEGER(u32, true, 32);
 DEFINE_FORMAT_TAG_FOR_INTEGER(u64, true, 64);
 
-internal ssize
+internal Size
 validate_arguments_and_calculate_total_size_in_bytes(String_View format,
-                                                     ssize number_of_arguments,
+                                                     Size number_of_arguments,
                                                      va_list args)
 {
-    ssize total_size = 0;
-    bool32 brace_was_opened = false;
+    Size total_size = 0;
+    Bool brace_was_opened = false;
 
     va_list copy_of_args;
     va_copy(copy_of_args, args);
 
-    for (ssize i = 0;
+    for (Index i = 0;
          i < format.length;
          ++i)
     {
@@ -330,20 +330,20 @@ validate_arguments_and_calculate_total_size_in_bytes(String_View format,
 maybe_unused internal String
 vformat_string_impl(Arena* const arena,
                     const String_View format,
-                    const ssize number_of_arguments,
+                    const Size number_of_arguments,
                     va_list args)
 {
-    const ssize formatted_string_length
+    const Size formatted_string_length
         = validate_arguments_and_calculate_total_size_in_bytes(format,
                                                                number_of_arguments,
                                                                args);
 
     // FIXME(vlad): Ensure that buffer has enough space before every char copying below.
     char* buffer = allocate_uninitialized_array(arena, formatted_string_length, char);
-    ssize buffer_index = 0;
+    Index buffer_index = 0;
 
-    bool32 brace_was_opened = false;
-    for (ssize i = 0;
+    Bool brace_was_opened = false;
+    for (Index i = 0;
          i < format.length;
          ++i)
     {
@@ -454,7 +454,7 @@ vformat_string_impl(Arena* const arena,
 maybe_unused internal String
 format_string_impl(Arena* const arena,
                    const String_View format,
-                   const ssize number_of_arguments,
+                   const Size number_of_arguments,
                    ...)
 {
     if (number_of_arguments == 0)

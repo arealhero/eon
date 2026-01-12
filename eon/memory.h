@@ -2,37 +2,37 @@
 
 #include <eon/common.h>
 
-internal inline void copy_memory(byte* restrict to,
-                                 const byte* restrict from,
-                                 const ssize number_of_bytes);
+internal inline void copy_memory(Byte* restrict to,
+                                 const Byte* restrict from,
+                                 const Size number_of_bytes);
 
-internal inline void move_memory(byte* to,
-                                 const byte* from,
-                                 const ssize number_of_bytes);
+internal inline void move_memory(Byte* to,
+                                 const Byte* from,
+                                 const Size number_of_bytes);
 
-internal inline void fill_memory_with_zeros(byte* memory, const ssize number_of_bytes);
+internal inline void fill_memory_with_zeros(Byte* memory, const Size number_of_bytes);
 
 typedef struct
 {
-    ssize reserved_bytes_count;
+    Size reserved_bytes_count;
 
-    ssize free_memory_offset;
-    ssize committed_memory_offset;
+    Index free_memory_offset;
+    Index committed_memory_offset;
 } Arena;
 
-internal Arena* arena_create(ssize number_of_bytes_to_reserve, ssize number_of_bytes_to_commit);
+internal Arena* arena_create(Size number_of_bytes_to_reserve, Size number_of_bytes_to_commit);
 internal void arena_destroy(Arena* arena);
 
-internal void* arena_push(Arena* arena, ssize number_of_bytes);
-internal void* arena_push_uninitialized(Arena* arena, ssize number_of_bytes);
+internal void* arena_push(Arena* arena, Size number_of_bytes);
+internal void* arena_push_uninitialized(Arena* arena, Size number_of_bytes);
 // TODO(vlad): Change to 'arena_save_position' and 'arena_restore_position'.
-internal void arena_pop_to_position(Arena* arena, ssize position);
+internal void arena_pop_to_position(Arena* arena, Index position);
 internal void arena_clear(Arena* arena);
 
 internal void* arena_reallocate(Arena* restrict arena,
-                                byte* restrict memory,
-                                const ssize memory_size_in_bytes,
-                                const ssize requested_size_in_bytes);
+                                Byte* restrict memory,
+                                const Size memory_size_in_bytes,
+                                const Size requested_size_in_bytes);
 
 #define allocate(arena, Type) (Type*)(arena_push((arena), size_of(Type)))
 #define allocate_uninitialized(arena, Type) (Type*)(arena_push_uninitialized((arena), size_of(Type)))

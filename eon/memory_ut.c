@@ -9,7 +9,7 @@ create_source_string(Arena* arena)
     result.data = allocate_uninitialized_array(arena, TEST_STRING_LENGTH, char);
     result.length = TEST_STRING_LENGTH;
 
-    for (ssize i = 0;
+    for (Index i = 0;
          i < result.length;
          ++i)
     {
@@ -26,7 +26,7 @@ create_destination_string(Arena* arena)
     result.data = allocate_array(arena, TEST_STRING_LENGTH, char);
     result.length = TEST_STRING_LENGTH;
 
-    for (ssize i = 0;
+    for (Index i = 0;
          i < result.length;
          ++i)
     {

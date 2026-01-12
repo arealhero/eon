@@ -29,7 +29,7 @@ platform_read_entire_text_file(Arena* arena, const String_View filename)
     fstat(fd, &file_stats);
 
     // TODO(vlad): Handle symlinks: 'fstat' would return the symlink's size, not the size of the target file.
-    const ssize content_length = file_stats.st_size;
+    const Size content_length = file_stats.st_size;
 
     if (content_length == 0)
     {
@@ -41,7 +41,7 @@ platform_read_entire_text_file(Arena* arena, const String_View filename)
     {
         // TODO(vlad): Save arena position and restore it if we could not read the file.
         char* content = allocate_uninitialized_array(arena, content_length, char);
-        const ssize read_result = read(fd, content, (usize)content_length);
+        const Size read_result = read(fd, content, (USize)content_length);
 
         if (read_result == -1)
         {

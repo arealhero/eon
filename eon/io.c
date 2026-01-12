@@ -21,7 +21,7 @@ deinit_io_state(void)
 }
 
 internal void
-init_io_state(const ssize initial_arena_size)
+init_io_state(const Size initial_arena_size)
 {
     global_io_state.arena = arena_create(initial_arena_size, KiB(0));
     global_io_state.stdout_buffer = as_bytes(platform_reserve_memory(STDOUT_BUFFER_SIZE));
@@ -38,18 +38,18 @@ init_io_state(const ssize initial_arena_size)
 }
 
 internal void
-write_data_to_stdout(const byte* data, const ssize data_size)
+write_data_to_stdout(const Byte* data, const Size data_size)
 {
     if (data_size == 0)
     {
         return;
     }
 
-    ssize written_bytes_count = 0;
+    Size written_bytes_count = 0;
 
     while (written_bytes_count != data_size)
     {
-        written_bytes_count = write(STDOUT_FD, data, (usize)data_size);
+        written_bytes_count = write(STDOUT_FD, data, (USize)data_size);
         if (written_bytes_count == -1)
         {
             // NOTE(vlad): Is there something better we can do here?
@@ -59,15 +59,15 @@ write_data_to_stdout(const byte* data, const ssize data_size)
 }
 
 internal void
-add_data_to_stdout_buffer_and_flush_if_needed(const byte* data, ssize data_size)
+add_data_to_stdout_buffer_and_flush_if_needed(const Byte* data, Size data_size)
 {
-    ssize overflow_bytes_count = 0;
+    Size overflow_bytes_count = 0;
     do
     {
-        const ssize available_bytes_count_in_buffer = STDOUT_BUFFER_SIZE - global_io_state.stdout_buffer_index;
+        const Size available_bytes_count_in_buffer = STDOUT_BUFFER_SIZE - global_io_state.stdout_buffer_index;
 
         overflow_bytes_count = MAX(0, data_size - available_bytes_count_in_buffer);
-        const ssize bytes_to_write = data_size - overflow_bytes_count;
+        const Size bytes_to_write = data_size - overflow_bytes_count;
 
         copy_memory(global_io_state.stdout_buffer + global_io_state.stdout_buffer_index,
                     data,
@@ -99,15 +99,15 @@ print_impl(const String_View message)
 
     if (global_io_state.bufferization_policy == IO_FLUSH_ON_NEWLINE)
     {
-        ssize flush_region_start_index = 0;
+        Size flush_region_start_index = 0;
 
-        for (ssize current_index = 0;
+        for (Size current_index = 0;
              current_index < global_io_state.stdout_buffer_index;
              ++current_index)
         {
             if (global_io_state.stdout_buffer[current_index] == '\n')
             {
-                const ssize flush_region_size = current_index - flush_region_start_index + 1;
+                const Size flush_region_size = current_index - flush_region_start_index + 1;
                 write_data_to_stdout(global_io_state.stdout_buffer + flush_region_start_index,
                                      flush_region_size);
 
@@ -117,7 +117,7 @@ print_impl(const String_View message)
 
         if (flush_region_start_index != 0)
         {
-            const ssize size_of_region_to_move = global_io_state.stdout_buffer_index - flush_region_start_index;
+            const Size size_of_region_to_move = global_io_state.stdout_buffer_index - flush_region_start_index;
 
             move_memory(global_io_state.stdout_buffer,
                         global_io_state.stdout_buffer + flush_region_start_index,

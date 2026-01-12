@@ -1,24 +1,24 @@
 #pragma once
 
-#include <eon/build-info.h>
+#include <eon/build_info.h>
 #include <eon/common.h>
 #include <eon/memory.h>
 
 struct String_View
 {
     const char* data;
-    ssize length;
+    Size length;
 };
 typedef struct String_View String_View;
 
 struct String
 {
     char* data;
-    ssize length;
+    Size length;
 };
 typedef struct String String;
 
-internal ssize c_string_length(const char* c_string);
+internal Size c_string_length(const char* c_string);
 
 // XXX(vlad): Prefix these functions with 'INTERNAL_'?
 internal inline String_View string_view_passthrough(const String_View string_view);
@@ -34,7 +34,7 @@ internal inline String_View string_view_from_string(const String string);
     )((arg))
 
 internal s32 compare_strings(const String_View lhs, const String_View rhs);
-internal bool32 strings_are_equal(const String_View lhs, const String_View rhs);
+internal Bool strings_are_equal(const String_View lhs, const String_View rhs);
 
 internal String copy_string(Arena* const arena, const String_View string_to_copy);
 
@@ -88,7 +88,7 @@ typedef enum Format_Type_Tag Format_Type_Tag;
 struct Format_Type_Info
 {
     Format_Type_Tag tag;
-    ssize max_size_in_bytes;
+    Size max_size_in_bytes;
 
     union
     {
@@ -134,7 +134,7 @@ DECLARE_FORMAT_TAG_FOR_INTEGER(u64);
 
 internal String format_string_impl(Arena* const arena,
                                    const String_View format,
-                                   const ssize number_of_arguments,
+                                   const Size number_of_arguments,
                                    ...);
 
 #define DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(Integer_Type)      \

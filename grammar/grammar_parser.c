@@ -2,7 +2,7 @@
 
 #include "grammar_log.h"
 
-internal bool32
+internal Bool
 parser_get_next_token(Arena* scratch, Parser* parser)
 {
     if (parser->current_token.type != TOKEN_UNDEFINED)
@@ -29,7 +29,7 @@ parser_consume_token(Parser* parser)
     parser->current_token = (Token){0};
 }
 
-internal bool32
+internal Bool
 parser_try_to_consume_token_with_type(Parser* parser,
                                       const Token_Type expected_type)
 {
@@ -44,7 +44,7 @@ parser_try_to_consume_token_with_type(Parser* parser,
     return false;
 }
 
-internal bool32
+internal Bool
 parser_get_and_consume_token_with_type(Arena* scratch,
                                        Parser* parser,
                                        const Token_Type expected_type)
@@ -65,7 +65,7 @@ parser_get_and_consume_token_with_type(Arena* scratch,
     return false;
 }
 
-internal bool32
+internal Bool
 parse_identifier(Arena* scratch, Parser* parser, Ast_Identifier* identifier)
 {
     if (!parser_get_next_token(scratch, parser))
@@ -85,7 +85,7 @@ parse_identifier(Arena* scratch, Parser* parser, Ast_Identifier* identifier)
     return true;
 }
 
-internal bool32
+internal Bool
 parse_identifier_expressions(Arena* arena,
                              Arena* scratch,
                              Parser* parser,
@@ -106,11 +106,11 @@ parse_identifier_expressions(Arena* arena,
 
             if (current_expression.identifiers_count == current_expression.identifiers_capacity)
             {
-                const ssize new_capacity = MAX(1, 2 * current_expression.identifiers_capacity);
+                const Size new_capacity = MAX(1, 2 * current_expression.identifiers_capacity);
 
-                const ssize element_size = size_of(current_expression.identifiers[0]);
-                const ssize old_size = current_expression.identifiers_capacity * element_size;
-                const ssize new_size = new_capacity * element_size;
+                const Size element_size = size_of(current_expression.identifiers[0]);
+                const Size old_size = current_expression.identifiers_capacity * element_size;
+                const Size new_size = new_capacity * element_size;
 
                 current_expression.identifiers = arena_reallocate(arena,
                                                                   as_bytes(current_expression.identifiers),
@@ -123,19 +123,19 @@ parse_identifier_expressions(Arena* arena,
             current_expression.identifiers_count += 1;
         }
 
-        const bool32 has_next_possible_expression = parser_try_to_consume_token_with_type(parser, TOKEN_OR);
-        const bool32 all_expressions_parsed = !has_next_possible_expression
+        const Bool has_next_possible_expression = parser_try_to_consume_token_with_type(parser, TOKEN_OR);
+        const Bool all_expressions_parsed = !has_next_possible_expression
             && parser_try_to_consume_token_with_type(parser, TOKEN_SEMICOLON);
 
         if (has_next_possible_expression || all_expressions_parsed)
         {
             if (definition->possible_expressions_count == definition->possible_expressions_capacity)
             {
-                const ssize new_capacity = MAX(1, 2 * definition->possible_expressions_capacity);
+                const Size new_capacity = MAX(1, 2 * definition->possible_expressions_capacity);
 
-                const ssize element_size = size_of(definition->possible_expressions[0]);
-                const ssize old_size = definition->possible_expressions_capacity * element_size;
-                const ssize new_size = new_capacity * element_size;
+                const Size element_size = size_of(definition->possible_expressions[0]);
+                const Size old_size = definition->possible_expressions_capacity * element_size;
+                const Size new_size = new_capacity * element_size;
 
                 definition->possible_expressions = arena_reallocate(arena,
                                                                     as_bytes(definition->possible_expressions),
@@ -167,7 +167,7 @@ parse_identifier_expressions(Arena* arena,
     }
 }
 
-internal bool32
+internal Bool
 parse_identifier_definition(Arena* arena,
                             Arena* scratch,
                             Parser* parser,
@@ -193,7 +193,7 @@ parser_create(Parser* parser, Lexer* lexer)
     parser->current_token = (Token){0};
 }
 
-internal bool32
+internal Bool
 parser_parse(Arena* arena,
              Arena* scratch,
              Parser* parser,
@@ -211,11 +211,11 @@ parser_parse(Arena* arena,
         if (ast->definitions_count == ast->definitions_capacity)
         {
             // XXX(vlad): We can change 'MAX(1, 2 * capacity)' to '(2 * capacity) | 1'.
-            const ssize new_capacity = MAX(1, 2 * ast->definitions_capacity);
+            const Size new_capacity = MAX(1, 2 * ast->definitions_capacity);
 
-            const ssize element_size = size_of(ast->definitions[0]);
-            const ssize old_size = ast->definitions_capacity * element_size;
-            const ssize new_size = new_capacity * element_size;
+            const Size element_size = size_of(ast->definitions[0]);
+            const Size old_size = ast->definitions_capacity * element_size;
+            const Size new_size = new_capacity * element_size;
 
             ast->definitions = arena_reallocate(arena,
                                                 as_bytes(ast->definitions),

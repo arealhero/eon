@@ -37,8 +37,8 @@ struct Token
     Token_Type type;
     String_View lexeme;
 
-    ssize line;
-    ssize column;
+    Size line;
+    Size column;
 };
 typedef struct Token Token;
 
@@ -53,17 +53,17 @@ struct Lexer
 {
     String_View code;
 
-    ssize lexeme_start_index;
-    ssize current_index;
+    Size lexeme_start_index;
+    Size current_index;
 
-    ssize current_line;
-    ssize current_column;
+    Size current_line;
+    Size current_column;
 
     Keyword* keywords;
-    ssize keywords_count;
+    Size keywords_count;
 };
 typedef struct Lexer Lexer;
 
 internal void lexer_create(Lexer* lexer, const String_View code);
-internal bool32 lexer_get_next_token(Lexer* lexer, Token* token);
+internal Bool lexer_get_next_token(Lexer* lexer, Token* token);
 internal void lexer_destroy(Lexer* lexer);

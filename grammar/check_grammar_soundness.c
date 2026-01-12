@@ -8,7 +8,7 @@
 #include "grammar_log.h"
 #include "grammar_parser.h"
 
-internal bool32 check_grammar_soundness(const String_View grammar_filename, const String_View grammar);
+internal Bool check_grammar_soundness(const String_View grammar_filename, const String_View grammar);
 
 int
 main(int argc, const char* argv[])
@@ -34,7 +34,7 @@ main(int argc, const char* argv[])
     }
 
     const String_View grammar = string_view(read_result.content);
-    const bool32 result = check_grammar_soundness(grammar_filename, grammar);
+    const Bool result = check_grammar_soundness(grammar_filename, grammar);
 
     arena_destroy(arena);
 
@@ -44,8 +44,8 @@ main(int argc, const char* argv[])
 struct Identifiers_Array
 {
     const Token** tokens;
-    ssize tokens_count;
-    ssize tokens_capacity;
+    Size tokens_count;
+    Size tokens_capacity;
 };
 typedef struct Identifiers_Array Identifiers_Array;
 
@@ -56,11 +56,11 @@ add_identifier(Arena* arena,
 {
     if (array->tokens_count == array->tokens_capacity)
     {
-        const ssize new_capacity = MAX(1, 2 * array->tokens_capacity);
+        const Size new_capacity = MAX(1, 2 * array->tokens_capacity);
 
-        const ssize element_size = size_of(array->tokens[0]);
-        const ssize old_size = array->tokens_capacity * element_size;
-        const ssize new_size = new_capacity * element_size;
+        const Size element_size = size_of(array->tokens[0]);
+        const Size old_size = array->tokens_capacity * element_size;
+        const Size new_size = new_capacity * element_size;
 
         array->tokens = arena_reallocate(arena,
                                          as_bytes(array->tokens),
@@ -73,11 +73,11 @@ add_identifier(Arena* arena,
     array->tokens_count += 1;
 }
 
-internal bool32
+internal Bool
 has_identifier(Identifiers_Array* array,
                const Token* identifier_token)
 {
-    for (ssize i = 0;
+    for (Index i = 0;
          i < array->tokens_count;
          ++i)
     {
@@ -100,7 +100,7 @@ struct Grammar_Info
 };
 typedef struct Grammar_Info Grammar_Info;
 
-internal bool32
+internal Bool
 check_grammar_soundness(const String_View grammar_filename, const String_View grammar)
 {
     Arena* arena = arena_create(GiB(1), MiB(1));
@@ -122,7 +122,7 @@ check_grammar_soundness(const String_View grammar_filename, const String_View gr
     }
 
     Grammar_Info info = {0};
-    for (ssize definition_index = 0;
+    for (Index definition_index = 0;
          definition_index < ast.definitions_count;
          ++definition_index)
     {
@@ -140,22 +140,22 @@ check_grammar_soundness(const String_View grammar_filename, const String_View gr
     //     printf("%2ld. %.*s\n", token_index+1, FORMAT_STRING(token->lexeme));
     // }
 
-    bool32 found_errors = false;
+    Bool found_errors = false;
 
     // NOTE(vlad): Test that all identifiers were defined.
-    for (ssize definition_index = 0;
+    for (Index definition_index = 0;
          definition_index < ast.definitions_count;
          ++definition_index)
     {
         const Ast_Identifier_Definition* definition = &ast.definitions[definition_index];
 
-        for (ssize expression_index = 0;
+        for (Index expression_index = 0;
              expression_index < definition->possible_expressions_count;
              ++expression_index)
         {
             const Ast_Expression* expression = &definition->possible_expressions[expression_index];
 
-            for (ssize identifier_index = 0;
+            for (Index identifier_index = 0;
                  identifier_index < expression->identifiers_count;
                  ++identifier_index)
             {
@@ -177,7 +177,7 @@ check_grammar_soundness(const String_View grammar_filename, const String_View gr
     {
         found_errors = true;
 
-        for (ssize token_index = 0;
+        for (Index token_index = 0;
              token_index < info.undefined_identifiers.tokens_count;
              ++token_index)
         {
@@ -196,7 +196,7 @@ check_grammar_soundness(const String_View grammar_filename, const String_View gr
     // NOTE(vlad): Test that there are no left recursions in the grammar.
     //             Also test that every definition has at least 1 possible expression
     //             and every expression has at least one identifier to expand to (terminal or non-terminal).
-    for (ssize definition_index = 0;
+    for (Index definition_index = 0;
          definition_index < ast.definitions_count;
          ++definition_index)
     {
@@ -220,7 +220,7 @@ check_grammar_soundness(const String_View grammar_filename, const String_View gr
         }
         else
         {
-            for (ssize expression_index = 0;
+            for (Index expression_index = 0;
                  expression_index < definition->possible_expressions_count;
                  ++expression_index)
             {

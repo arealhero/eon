@@ -2,13 +2,13 @@
 
 #include "grammar_log.h"
 
-internal inline bool32
+internal inline Bool
 is_letter(const char c)
 {
     return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z');
 }
 
-internal inline bool32
+internal inline Bool
 is_digit(const char c)
 {
     return '0' <= c && c <= '9';
@@ -33,7 +33,7 @@ lexer_lookahead(Lexer* lexer)
 }
 
 // TODO(vlad): Change the return type to 'void'?
-internal inline bool32
+internal inline Bool
 lexer_advance(Lexer* lexer)
 {
     if (lexer->current_index < lexer->grammar.length)
@@ -58,7 +58,7 @@ lexer_advance(Lexer* lexer)
 internal void
 lexer_create_token(Lexer* lexer,
                    Token* token,
-                   const ssize lexeme_start_index,
+                   const Index lexeme_start_index,
                    const Token_Type type)
 {
     token->type = type;
@@ -80,7 +80,7 @@ lexer_create(Lexer* lexer, String_View grammar)
     lexer->current_column = 0;
 }
 
-internal bool32
+internal Bool
 lexer_get_next_token(Arena* scratch, Lexer* lexer, Token* token)
 {
     if (lexer->current_index >= lexer->grammar.length)
@@ -91,7 +91,7 @@ lexer_get_next_token(Arena* scratch, Lexer* lexer, Token* token)
 
     while (lexer->current_index < lexer->grammar.length)
     {
-        const ssize lexeme_start_index = lexer->current_index;
+        const Index lexeme_start_index = lexer->current_index;
         const char current_char = lexer_peek(lexer);
 
         if (is_letter(current_char))
@@ -155,8 +155,8 @@ lexer_get_next_token(Arena* scratch, Lexer* lexer, Token* token)
 
             case '"':
             {
-                const ssize terminal_start_line = lexer->current_line;
-                const ssize terminal_start_column = lexer->current_column;
+                const s64 terminal_start_line = lexer->current_line;
+                const s64 terminal_start_column = lexer->current_column;
 
                 // TODO(vlad): Support escaped quotes.
                 char lookahead_char = lexer_lookahead(lexer);

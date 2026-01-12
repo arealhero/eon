@@ -69,8 +69,8 @@ lexer_create(Lexer* lexer, const String_View code)
     };
 
     lexer->keywords_count = size_of(keywords) / size_of(keywords[0]);
-    lexer->keywords = (Keyword*) calloc((usize)lexer->keywords_count, sizeof(Keyword));
-    for (ssize i = 0;
+    lexer->keywords = (Keyword*) calloc((USize)lexer->keywords_count, sizeof(Keyword));
+    for (Index i = 0;
          i < lexer->keywords_count;
          ++i)
     {
@@ -86,7 +86,7 @@ lexer_peek(Lexer* lexer)
 }
 
 // TODO(vlad): Change the return type to 'void'?
-internal inline bool32
+internal inline Bool
 lexer_advance(Lexer* lexer)
 {
     if (lexer->current_index < lexer->code.length)
@@ -108,7 +108,7 @@ lexer_get_current_character_and_advance(Lexer* lexer)
     return current_char;
 }
 
-internal bool32
+internal Bool
 lexer_match_and_optionally_advance(Lexer* lexer, const char expected_char)
 {
     if (lexer->current_index == lexer->code.length) { return false; }
@@ -130,19 +130,19 @@ lexer_create_token(Lexer* lexer, Token* token, const Token_Type type)
     token->column = lexer->current_column - token->lexeme.length;
 }
 
-internal inline bool32
+internal inline Bool
 lexer_is_letter(const char c)
 {
     return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z');
 }
 
-internal inline bool32
+internal inline Bool
 lexer_is_digit(const char c)
 {
     return ('0' <= c && c <= '9');
 }
 
-internal bool32
+internal Bool
 lexer_get_next_token(Lexer* lexer, Token* token)
 {
     if (lexer->current_index >= lexer->code.length) { return false; }
@@ -177,7 +177,7 @@ lexer_get_next_token(Lexer* lexer, Token* token)
 
             lexer_create_token(lexer, token, TOKEN_IDENTIFIER);
 
-            for (ssize i = 0;
+            for (Index i = 0;
                  i < lexer->keywords_count;
                  ++i)
             {
@@ -322,7 +322,7 @@ lexer_get_next_token(Lexer* lexer, Token* token)
                 else if (lexer_match_and_optionally_advance(lexer, '*'))
                 {
                     // NOTE(vlad): Block comment.
-                    ssize comment_depth = 1;
+                    Size comment_depth = 1;
 
                     while (lexer->current_index < lexer->code.length)
                     {

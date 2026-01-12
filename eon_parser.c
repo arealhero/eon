@@ -1,6 +1,6 @@
 #include "eon_parser.h"
 
-internal String_View
+maybe_unused internal String_View
 convert_expression_to_prn(Arena* const restrict arena,
                           const Expression* const restrict expression)
 {
@@ -42,7 +42,7 @@ convert_expression_to_prn(Arena* const restrict arena,
     }
 }
 
-internal void
+maybe_unused internal void
 expression_destroy(Expression* expression)
 {
     switch (expression->type)
@@ -104,7 +104,7 @@ parser_advance(Parser* parser)
     }
 }
 
-internal bool32
+internal Bool
 parser_match_and_optionally_advance(Parser* parser, const Token_Type type)
 {
     if (parser->current_token.type == type)
@@ -277,7 +277,7 @@ parser_parse_expression(Parser* parser, Expression* expression)
     parser_parse_equality(parser, expression);
 }
 
-internal void
+maybe_unused internal void
 parser_create(Parser* parser, Lexer* lexer)
 {
     parser->lexer = lexer;
@@ -286,7 +286,7 @@ parser_create(Parser* parser, Lexer* lexer)
     // parser->current_token = {0};
 }
 
-internal Expression*
+maybe_unused internal Expression*
 parser_parse(Parser* parser)
 {
     parser_advance(parser);
@@ -296,7 +296,7 @@ parser_parse(Parser* parser)
     return expression;
 }
 
-internal void
+maybe_unused internal void
 parser_destroy(Parser* parser)
 {
     UNUSED(parser);

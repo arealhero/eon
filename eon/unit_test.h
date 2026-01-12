@@ -26,7 +26,7 @@ struct Test_Context
 
     String_View failure_comment;
     String_View failure_file;
-    ssize failure_line;
+    s64 failure_line;
 };
 typedef struct Test_Context Test_Context;
 
@@ -44,10 +44,10 @@ struct Tests_Registry
     String_View tests_filename;
 
     Test_Info* tests;
-    ssize tests_capacity;
+    Size tests_capacity;
 
-    ssize total_tests_count;
-    ssize failed_tests_count;
+    Size total_tests_count;
+    Size failed_tests_count;
 };
 typedef struct Tests_Registry Tests_Registry;
 
@@ -69,7 +69,7 @@ main(void)
 
     Arena* test_arena = arena_create(GiB(1), MiB(1));
 
-    for (ssize i = 0;
+    for (Index i = 0;
          i < registry.total_tests_count;
          ++i)
     {
@@ -125,7 +125,7 @@ registry_register_test(Arena* arena,
 {
     if (registry->total_tests_count == registry->tests_capacity)
     {
-        const ssize new_capacity = MAX(1, 2 * registry->tests_capacity);
+        const Size new_capacity = MAX(1, 2 * registry->tests_capacity);
         registry->tests = (Test_Info*) arena_reallocate(arena,
                                                         as_bytes(registry->tests),
                                                         size_of(Test_Info) * registry->tests_capacity,

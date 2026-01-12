@@ -17,14 +17,14 @@ struct IO_State
     Arena* arena;
 
     // FIXME(vlad): Change to cyclic buffer over 'mmap'-ed memory.
-    byte* stdout_buffer;
-    ssize stdout_buffer_index;
+    Byte* stdout_buffer;
+    Size stdout_buffer_index;
 
     IO_Bufferization_Policy bufferization_policy;
 };
 internal struct IO_State global_io_state = {0};
 
-internal void init_io_state(const ssize initial_arena_size);
+internal void init_io_state(const Size initial_arena_size);
 
 internal void print_impl(const String_View message);
 internal void print_flush_stdout(void);
