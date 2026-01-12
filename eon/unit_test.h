@@ -4,6 +4,7 @@
 #include <eon/io.h>
 #include <eon/memory.h>
 #include <eon/string.h>
+#include <eon/platform/time.h>
 
 #define FAIL_ON_FAILED_ASSERTS 0
 
@@ -75,6 +76,8 @@ main(const int argc, const char* argv[])
 
     Arena* test_arena = arena_create(GiB(1), MiB(1));
 
+    const Timestamp tests_start_timestamp = platform_timestamp_now();
+
     for (Index i = 0;
          i < registry.total_tests_count;
          ++i)
@@ -98,6 +101,10 @@ main(const int argc, const char* argv[])
             registry.failed_tests_count += 1;
         }
     }
+
+    const Timestamp tests_end_timestamp = platform_timestamp_now();
+
+    println("Tests completed in {} mcs", tests_end_timestamp - tests_start_timestamp);
 
     if (show_stats_at_the_end)
     {
