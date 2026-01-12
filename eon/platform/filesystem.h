@@ -25,6 +25,8 @@ internal Read_File_Result platform_read_entire_text_file(Arena* arena, const Str
 
 #if OS_LINUX
 #    include "linux_filesystem.c"
+#elif OS_MAC
+#    include "macos_filesystem.c"
 #else
 #    error This OS is not supported yet.
 #endif

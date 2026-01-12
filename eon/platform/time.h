@@ -11,6 +11,8 @@ internal Timestamp platform_timestamp_now(void);
 
 #if OS_LINUX
 #    include "linux_time.c"
+#elif OS_MAC
+#    include "macos_time.c"
 #else
 #    error This OS is not supported yet.
 #endif
