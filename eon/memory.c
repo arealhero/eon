@@ -52,6 +52,37 @@ fill_memory_with_zeros(Byte* memory, const Size number_of_bytes)
     }
 }
 
+#if ASAN_ENABLED
+#    define ARENA_REDZONE_SIZE_IN_PAGES 1
+
+internal void
+ARENA_ADD_REDZONE(Arena* arena)
+{
+    const Size aligned_memory_offset = ALIGN_UP_TO_POW2(arena->free_memory_offset,
+                                                        ARENA_ALIGNMENT);
+    const Size redzone_size = ARENA_REDZONE_SIZE_IN_PAGES * platform_get_page_size();
+    const Size free_memory_offset_after_allocation = aligned_memory_offset + redzone_size;
+
+    if (free_memory_offset_after_allocation > arena->reserved_bytes_count)
+    {
+        // NOTE(vlad): We are using 'SILENT_ASSERT' here to prevent stack overflows
+        //             if there are no memory left in the IO state's arena.
+        SILENT_ASSERT(0 && "Failed to add redzone for ASAN.");
+        FAIL();
+    }
+
+    // XXX(vlad): Do we need to commit the redzone's memory here?
+
+    Byte* redzone = as_bytes(arena) + aligned_memory_offset;
+    arena->free_memory_offset = free_memory_offset_after_allocation;
+
+    ASAN_POISON_MEMORY_REGION(redzone, redzone_size);
+}
+
+#else
+#    define ARENA_ADD_REDZONE(arena)
+#endif
+
 maybe_unused internal Arena*
 arena_create(Size number_of_bytes_to_reserve, Size number_of_bytes_to_commit)
 {
@@ -90,7 +121,9 @@ arena_create(Size number_of_bytes_to_reserve, Size number_of_bytes_to_commit)
 maybe_unused internal void
 arena_destroy(Arena* arena)
 {
-    // TODO(vlad): Move this memory to a quarantine in asan is enabled.
+    // TODO(vlad): Move this memory to a quarantine in asan is enabled?
+    //             This would prevent EOF in situations when the OS will
+    //             give us back released memory.
     //             @tag(asan)
     platform_release_memory(arena, arena->reserved_bytes_count);
 }
@@ -106,13 +139,15 @@ arena_push(Arena* arena, const Size number_of_bytes)
 maybe_unused internal void*
 arena_push_uninitialized(Arena* arena, const Size number_of_bytes)
 {
+    ARENA_ADD_REDZONE(arena);
+
     const Size aligned_memory_offset = ALIGN_UP_TO_POW2(arena->free_memory_offset, ARENA_ALIGNMENT);
 
-    // TODO(vlad): Add redzone if asan is enabled.
-    //             @tag(asan)
     const Size free_memory_offset_after_allocation = aligned_memory_offset + number_of_bytes;
     if (free_memory_offset_after_allocation > arena->reserved_bytes_count)
     {
+        // TODO(vlad): Implement growable arenas.
+        //             @tag(growable-arena)
         ASSERT(0 && "Failed to allocate memory");
         return NULL;
     }
@@ -145,9 +180,9 @@ arena_push_uninitialized(Arena* arena, const Size number_of_bytes)
     Byte* memory = as_bytes(arena) + aligned_memory_offset;
     arena->free_memory_offset = free_memory_offset_after_allocation;
 
-    // FIXME(vlad): Add redzones before and after memory if asan is enabled.
-    //             @tag(asan)
     ASAN_UNPOISON_MEMORY_REGION(memory, number_of_bytes);
+
+    ARENA_ADD_REDZONE(arena);
 
     return memory;
 }
@@ -234,6 +269,11 @@ arena_reallocate(Arena* restrict arena,
     // TODO(vlad): Add these assertions to all arena-related functions?
     ASSERT(memory_size_in_bytes > 0 && requested_size_in_bytes >= 0);
 
+#if ASAN_ENABLED
+    // NOTE(vlad): Always reallocate and copy memory if asan is enabled.
+    //             This would be able to find stale pointers to the memory that could
+    //             be potentially moved here.
+#else
     if (memory + memory_size_in_bytes == as_bytes(arena) + arena->free_memory_offset)
     {
         // NOTE(vlad): This memory is at the end of the arena, so we can just
@@ -244,8 +284,6 @@ arena_reallocate(Arena* restrict arena,
             const Size difference = memory_size_in_bytes - requested_size_in_bytes;
             arena->free_memory_offset = MAX(arena->free_memory_offset - difference,
                                             ARENA_HEADER_SIZE);
-            ASAN_POISON_MEMORY_REGION(as_bytes(arena) + arena->free_memory_offset,
-                                      difference);
         }
         else
         {
@@ -255,6 +293,7 @@ arena_reallocate(Arena* restrict arena,
 
         return memory;
     }
+#endif
 
     // NOTE(vlad): Something else was allocated thus we must reallocate and copy memory.
     void* new_memory = arena_push(arena, requested_size_in_bytes);

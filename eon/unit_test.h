@@ -158,6 +158,7 @@ registry_register_test(Arena* arena,
     registry->total_tests_count += 1;
 }
 
+// FIXME(vlad): Do not return after the first encountered error.
 #define DEFAULT_COMMENT "Assertion failed"
 #define ASSERT_EQUAL_IMPL(expression, actual, expected, comment, file, line) \
     if ((expression)) {}                                                \

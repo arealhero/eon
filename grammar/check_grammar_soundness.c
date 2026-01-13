@@ -13,7 +13,7 @@ internal Bool check_grammar_soundness(const String_View grammar_filename, const 
 int
 main(int argc, const char* argv[])
 {
-    init_io_state(MiB(1));
+    init_io_state(MiB(10));
 
     if (argc != 2)
     {

@@ -43,11 +43,15 @@ compile_and_run_test()
     test_dir=$(dirname "$test_filename")
     test_name=$(basename -s _ut.c "$test_filename")
 
+    shift
+    additional_flags="$@"
+
     mkdir -p "build/tests/$test_dir"
 
     compile "$test_filename" -o "build/tests/$test_dir/$test_name" \
             $clang_common_flags \
-            $clang_warnings
+            $clang_warnings \
+            $additional_flags
 
     if [ "$test_dir" = "." ];
     then
@@ -64,6 +68,7 @@ compile_and_run_test eon/memory_ut.c
 compile_and_run_test eon/string_ut.c
 compile_and_run_test eon_lexer_ut.c
 compile_and_run_test eon_parser_ut.c
+compile_and_run_test eon/sanitizers/asan_ut.c -fsanitize=address -fsanitize-recover=address
 
 mkdir -p build/grammar
 
