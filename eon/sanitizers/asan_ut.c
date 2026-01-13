@@ -104,6 +104,28 @@ test_use_after_free_in_arenas(Test_Context* context)
 
         arena_destroy(arena);
     }
+
+    // NOTE(vlad): UAF after buffer reallocation.
+    {
+        global_sanitizer_was_triggered = false;
+
+        Arena* arena = arena_create(MiB(1), MiB(1));
+
+        int* values = allocate_array(arena, 10, int);
+
+        int* first_value = &values[0];
+        *first_value = 10;
+
+        ASSERT_FALSE(global_sanitizer_was_triggered);
+
+        values = reallocate(arena, values, int, 10, 20);
+
+        *first_value = 20;
+
+        ASSERT_TRUE(global_sanitizer_was_triggered);
+
+        arena_destroy(arena);
+    }
 }
 
 internal void
