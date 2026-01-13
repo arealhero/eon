@@ -90,7 +90,6 @@ test_copy_memory(Test_Context* context)
     //               1. the compiler will detect at least some of these incorrect usages
     //                  and emit correct instructions to restore the expected behaviour;
     //               2. asan can detect these erroneous usages and report them.
-    // NOTE(vlad): Destination's prefix is the same as a source's suffix.
 
     // NOTE(vlad): Source and destination are the same.
     {
