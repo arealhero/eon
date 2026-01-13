@@ -25,12 +25,11 @@ __asan_default_options(void)
 }
 #    endif
 
-// FIXME(vlad): Change '#ifdef's to '#if defined()' and '#ifndef's to '#if !defined()'.
-#    ifdef ASAN_POISON_MEMORY_REGION
+#    if defined(ASAN_POISON_MEMORY_REGION)
 #        undef ASAN_POISON_MEMORY_REGION
 #    endif
 
-#    ifdef ASAN_UNPOISON_MEMORY_REGION
+#    if defined(ASAN_UNPOISON_MEMORY_REGION)
 #        undef ASAN_UNPOISON_MEMORY_REGION
 #    endif
 
