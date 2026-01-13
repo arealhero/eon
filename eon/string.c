@@ -18,13 +18,13 @@ c_string_length(const char* c_string)
 
 // NOTE(vlad): No-op for 'string_view' generic.
 internal inline String_View
-string_view_passthrough(const String_View string_view)
+INTERNAL_string_view_passthrough(const String_View string_view)
 {
     return string_view;
 }
 
 internal inline String_View
-c_string_view(const char* const c_string)
+INTERNAL_c_string_view(const char* const c_string)
 {
     return (String_View) {
         .data   = c_string,
@@ -33,7 +33,7 @@ c_string_view(const char* const c_string)
 }
 
 internal inline String_View
-string_view_from_string(const String string)
+INTERNAL_string_view_from_string(const String string)
 {
     return (String_View) {
         .data   = string.data,
@@ -166,7 +166,7 @@ DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(u32, true, 32);
 DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(u64, true, 64);
 
 internal inline Format_Type_Info
-format_tag_string(const String string)
+INTERNAL_format_tag_string(const String string)
 {
     return (Format_Type_Info){
         .tag = TYPE_TAG_STRING,
@@ -178,7 +178,7 @@ format_tag_string(const String string)
 }
 
 internal inline Format_Type_Info
-format_tag_string_view(const String_View string)
+INTERNAL_format_tag_string_view(const String_View string)
 {
     return (Format_Type_Info){
         .tag = TYPE_TAG_STRING_VIEW,
@@ -190,7 +190,7 @@ format_tag_string_view(const String_View string)
 }
 
 internal inline Format_Type_Info
-format_tag_c_string(const char* string)
+INTERNAL_format_tag_c_string(const char* string)
 {
     return (Format_Type_Info){
         .tag = TYPE_TAG_C_STRING,
@@ -202,7 +202,7 @@ format_tag_c_string(const char* string)
 }
 
 internal inline Format_Type_Info
-format_tag_char(const char c)
+INTERNAL_format_tag_char(const char c)
 {
     return (Format_Type_Info){
         .tag = TYPE_TAG_char,
@@ -215,7 +215,7 @@ format_tag_char(const char c)
 
 #define DEFINE_FORMAT_TAG_FOR_INTEGER(Integer_Type, is_sized, width_in_bits) \
     internal inline Format_Type_Info                                    \
-    format_tag_##Integer_Type(const Integer_Type number)                \
+    INTERNAL_format_tag_##Integer_Type(const Integer_Type number)       \
     {                                                                   \
         return (Format_Type_Info){                                      \
             .tag = TYPE_TAG_##Integer_Type,                             \

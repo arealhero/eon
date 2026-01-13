@@ -18,19 +18,18 @@ struct String
 };
 typedef struct String String;
 
-internal Size c_string_length(const char* c_string);
-
-// XXX(vlad): Prefix these functions with 'INTERNAL_'?
-internal inline String_View string_view_passthrough(const String_View string_view);
-internal inline String_View c_string_view(const char* const c_string);
-internal inline String_View string_view_from_string(const String string);
-#define string_view(arg)                     \
-    _Generic(                                \
-        (arg),                               \
-        char*: c_string_view,                \
-        const char*: c_string_view,          \
-        String: string_view_from_string,     \
-        String_View: string_view_passthrough \
+// NOTE(vlad): We cannot move these functions to 'string.c' because they must be visible
+//             from the 'string_view()'s call site.
+internal inline String_View INTERNAL_string_view_passthrough(const String_View string_view);
+internal inline String_View INTERNAL_c_string_view(const char* const c_string);
+internal inline String_View INTERNAL_string_view_from_string(const String string);
+#define string_view(arg)                              \
+    _Generic(                                         \
+        (arg),                                        \
+        char*: INTERNAL_c_string_view,                \
+        const char*: INTERNAL_c_string_view,          \
+        String: INTERNAL_string_view_from_string,     \
+        String_View: INTERNAL_string_view_passthrough \
     )((arg))
 
 internal s32 compare_strings(const String_View lhs, const String_View rhs);
@@ -40,6 +39,7 @@ internal String copy_string(Arena* const arena, const String_View string_to_copy
 
 internal void reverse_string(String string);
 
+// TODO(vlad): Use '_Generic' to overload 'Bool' and 'Bool8'?
 #define BOOL_TO_STRING(value) string_view(((value) ? "true" : "false"))
 
 enum Number_Base
@@ -113,14 +113,16 @@ struct Format_Type_Info
 };
 typedef struct Format_Type_Info Format_Type_Info;
 
-internal inline Format_Type_Info format_tag_string(const String string);
-internal inline Format_Type_Info format_tag_string_view(const String_View string);
-internal inline Format_Type_Info format_tag_c_string(const char* string);
+// NOTE(vlad): We cannot move these functions to 'string.c' because they must be visible
+//             from the 'format_string()'s call site.
+internal inline Format_Type_Info INTERNAL_format_tag_string(const String string);
+internal inline Format_Type_Info INTERNAL_format_tag_string_view(const String_View string);
+internal inline Format_Type_Info INTERNAL_format_tag_c_string(const char* string);
 
-internal inline Format_Type_Info format_tag_char(const char c);
+internal inline Format_Type_Info INTERNAL_format_tag_char(const char c);
 
 #define DECLARE_FORMAT_TAG_FOR_INTEGER(Integer_Type)                    \
-    internal inline Format_Type_Info format_tag_##Integer_Type(Integer_Type number)
+    internal inline Format_Type_Info INTERNAL_format_tag_##Integer_Type(Integer_Type number)
 
 DECLARE_FORMAT_TAG_FOR_INTEGER(s8);
 DECLARE_FORMAT_TAG_FOR_INTEGER(s16);
@@ -140,7 +142,7 @@ internal String format_string_impl(Arena* const arena,
                                    ...);
 
 #define DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(Integer_Type)      \
-    Integer_Type: format_tag_##Integer_Type
+    Integer_Type: INTERNAL_format_tag_##Integer_Type
 
 #if OS_MAC
 // NOTE(vlad): These checks are redundant because the width of 'ptrdiff_t'
@@ -158,17 +160,17 @@ internal String format_string_impl(Arena* const arena,
 #    endif
 
 #    if EON_SIZE_WIDTH == 32
-#        define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SIZE() Size: format_tag_s32,
+#        define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SIZE() Size: INTERNAL_format_tag_s32,
 #    elif EON_SIZE_WIDTH == 64
-#        define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SIZE() Size: format_tag_s64,
+#        define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SIZE() Size: INTERNAL_format_tag_s64,
 #    else
 #        error MacOS: Width of "Size" is neither 32 nor 64 bits. I don't know what's going on.
 #    endif
 
 #    if EON_USIZE_WIDTH == 32
-#        define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE() USize: format_tag_u32,
+#        define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE() USize: INTERNAL_format_tag_u32,
 #    elif EON_USIZE_WIDTH == 64
-#        define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE() USize: format_tag_u64,
+#        define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE() USize: INTERNAL_format_tag_u64,
 #    else
 #        error MacOS: Width of "USize" is neither 32 nor 64 bits. I don't know what's going on.
 #    endif
@@ -196,13 +198,13 @@ internal String format_string_impl(Arena* const arena,
         OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SIZE()  \
         OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE() \
                                                         \
-        char: format_tag_char,                          \
+        char: INTERNAL_format_tag_char,                 \
                                                         \
-        char*: format_tag_c_string,                     \
-        const char*: format_tag_c_string,               \
+        char*: INTERNAL_format_tag_c_string,            \
+        const char*: INTERNAL_format_tag_c_string,      \
                                                         \
-        String: format_tag_string,                      \
-        String_View: format_tag_string_view             \
+        String: INTERNAL_format_tag_string,             \
+        String_View: INTERNAL_format_tag_string_view    \
     )((arg))
 
 // NOTE(vlad): We cannot #undef 'DECLARE_GENERIC_OVERLOAD_FOR_INTEGER' macro here
