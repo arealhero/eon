@@ -40,6 +40,8 @@ internal String copy_string(Arena* const arena, const String_View string_to_copy
 
 internal void reverse_string(String string);
 
+#define BOOL_TO_STRING(value) string_view(((value) ? "true" : "false"))
+
 enum Number_Base
 {
     NUMBER_BASE_BINARY = 2,
