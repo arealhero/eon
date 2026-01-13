@@ -37,8 +37,8 @@ main(void)
                                                   token.lexeme.length);
 
             println(" type = '{}', lexeme = '{}'\n",
-                   token_type_to_string(token.type),
-                   token.lexeme);
+                    token_type_to_string(token.type),
+                    token.lexeme);
         }
 
         lexer_destroy(&lexer);

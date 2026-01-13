@@ -1,5 +1,5 @@
 #if !EON_PLATFORM_TIME_INCLUDED
-#error Do not use this file directly. Include "<eon/platform/time.h>" instead.
+#    error Do not use this file directly. Include "<eon/platform/time.h>" instead.
 #endif
 
 #include <eon/conversions.h>

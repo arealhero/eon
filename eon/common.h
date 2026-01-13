@@ -23,7 +23,7 @@ is_power_of_two(const USize number)
     return number != 0 && (number & (number - 1)) == 0;
 }
 
-#define ALIGN_UP_TO_POW2(number, power) \
+#define ALIGN_UP_TO_POW2(number, power)                                 \
     (((Size)(number) + ((Size)(power) - 1)) & (~((Size)(power) - 1)))
 
 // NOTE(vlad): Compile-time tests.

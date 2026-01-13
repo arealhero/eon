@@ -117,7 +117,7 @@ internal inline Format_Type_Info format_tag_c_string(const char* string);
 
 internal inline Format_Type_Info format_tag_char(const char c);
 
-#define DECLARE_FORMAT_TAG_FOR_INTEGER(Integer_Type) \
+#define DECLARE_FORMAT_TAG_FOR_INTEGER(Integer_Type)                    \
     internal inline Format_Type_Info format_tag_##Integer_Type(Integer_Type number)
 
 DECLARE_FORMAT_TAG_FOR_INTEGER(s8);
@@ -176,31 +176,31 @@ internal String format_string_impl(Arena* const arena,
 #    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE()
 #endif
 
-#define FORMAT_GET_TYPE_INFO(arg)                        \
-    , /* NOTE(vlad): This comma is crucial. */           \
-    _Generic(                                            \
-        (arg),                                           \
-                                                         \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(s8),        \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(s16),       \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(s32),       \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(s64),       \
-                                                         \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u8),        \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u16),       \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u32),       \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u64),       \
-                                                         \
-        OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SIZE()   \
-        OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE()  \
-                                                         \
-        char: format_tag_char,                           \
-                                                         \
-        char*: format_tag_c_string,                      \
-        const char*: format_tag_c_string,                \
-                                                         \
-        String: format_tag_string,                       \
-        String_View: format_tag_string_view              \
+#define FORMAT_GET_TYPE_INFO(arg)                       \
+    , /* NOTE(vlad): This comma is crucial. */          \
+    _Generic(                                           \
+        (arg),                                          \
+                                                        \
+        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(s8),       \
+        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(s16),      \
+        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(s32),      \
+        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(s64),      \
+                                                        \
+        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u8),       \
+        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u16),      \
+        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u32),      \
+        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u64),      \
+                                                        \
+        OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SIZE()  \
+        OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE() \
+                                                        \
+        char: format_tag_char,                          \
+                                                        \
+        char*: format_tag_c_string,                     \
+        const char*: format_tag_c_string,               \
+                                                        \
+        String: format_tag_string,                      \
+        String_View: format_tag_string_view             \
     )((arg))
 
 // NOTE(vlad): We cannot #undef 'DECLARE_GENERIC_OVERLOAD_FOR_INTEGER' macro here

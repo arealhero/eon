@@ -1,5 +1,5 @@
 #if !EON_PLATFORM_FILESYSTEM_INCLUDED
-#error Do not use this file directly. Include "<eon/platform/filesystem.h>" instead.
+#    error Do not use this file directly. Include "<eon/platform/filesystem.h>" instead.
 #endif
 
 #include <fcntl.h> // NOTE(vlad): For 'open'.

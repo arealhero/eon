@@ -1,5 +1,5 @@
 #if !EON_PLATFORM_MEMORY_INCLUDED
-#error Do not use this file directly. Include "<eon/platform/memory.h>" instead.
+#    error Do not use this file directly. Include "<eon/platform/memory.h>" instead.
 #endif
 
 #include <eon/io.h>

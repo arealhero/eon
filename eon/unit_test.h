@@ -92,11 +92,11 @@ main(const int argc, const char* argv[])
         {
             // FIXME(vlad): Use 'println'.
             println("{}:{}: Test '{}' failed\n"
-                   "{}",
-                   context.failure_file,
-                   context.failure_line,
-                   test->name,
-                   context.failure_comment);
+                    "{}",
+                    context.failure_file,
+                    context.failure_line,
+                    test->name,
+                    context.failure_comment);
 
             registry.failed_tests_count += 1;
         }
