@@ -7,7 +7,7 @@
 #include <time.h> // NOTE(vlad): For 'struct timespec' and 'clock_gettime'.
 
 internal Timestamp
-platform_timestamp_now(void)
+platform_get_current_monotonic_timestamp(void)
 {
     struct timespec spec;
     ASSERT(clock_gettime(CLOCK_MONOTONIC, &spec) != -1);

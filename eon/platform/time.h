@@ -7,7 +7,7 @@
 // XXX(vlad): Change 'Size' to 's64'? How would it work on 32-bit platforms?
 typedef Size Timestamp; // NOTE(vlad): In microseconds.
 
-internal Timestamp platform_timestamp_now(void);
+internal Timestamp platform_get_current_monotonic_timestamp(void);
 
 #if OS_LINUX
 #    include "linux_time.c"

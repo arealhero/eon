@@ -76,7 +76,7 @@ main(const int argc, const char* argv[])
 
     Arena* test_arena = arena_create(GiB(1), MiB(1));
 
-    const Timestamp tests_start_timestamp = platform_timestamp_now();
+    const Timestamp tests_start_timestamp = platform_get_current_monotonic_timestamp();
 
     for (Index i = 0;
          i < registry.total_tests_count;
@@ -102,7 +102,7 @@ main(const int argc, const char* argv[])
         }
     }
 
-    const Timestamp tests_end_timestamp = platform_timestamp_now();
+    const Timestamp tests_end_timestamp = platform_get_current_monotonic_timestamp();
 
     println("Tests completed in {} mcs", tests_end_timestamp - tests_start_timestamp);
 
