@@ -42,6 +42,8 @@ main(void)
         }
 
         lexer_destroy(&lexer);
+
+        // TODO(vlad): Use arenas instead.
         free((void*)input.data);
     }
 

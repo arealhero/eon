@@ -22,10 +22,10 @@ platform_get_page_size(void)
     return page_size;
 }
 
-internal void*
+internal Byte*
 platform_reserve_memory(const Size number_of_bytes)
 {
-    void* result = mmap(NULL, (USize)number_of_bytes, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+    Byte* result = mmap(NULL, (USize)number_of_bytes, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
     if (result == MAP_FAILED)
     {
         ASSERT(0 && "Failed to reserve memory");
@@ -35,14 +35,14 @@ platform_reserve_memory(const Size number_of_bytes)
 }
 
 internal Bool
-platform_commit_memory(void* pointer, Size number_of_bytes)
+platform_commit_memory(Byte* pointer, Size number_of_bytes)
 {
     const int result = mprotect(pointer, (USize)number_of_bytes, PROT_READ|PROT_WRITE);
     return (result == 0) ? 1 : 0;
 }
 
 internal Bool
-platform_decommit_memory(void* pointer, Size number_of_bytes)
+platform_decommit_memory(Byte* pointer, Size number_of_bytes)
 {
     println("Decommitting {} bytes ({} pages)",
             number_of_bytes,
@@ -69,7 +69,7 @@ platform_decommit_memory(void* pointer, Size number_of_bytes)
 }
 
 internal Bool
-platform_release_memory(void* pointer, Size number_of_bytes)
+platform_release_memory(Byte* pointer, Size number_of_bytes)
 {
     const int result = munmap(pointer, (USize)number_of_bytes);
     return !result;

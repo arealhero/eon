@@ -7,11 +7,11 @@
 #include <eon/macros.h>
 
 internal inline void
-unused_impl(void* dummy_parameter_for_varargs, ...)
+unused_impl(int dummy_parameter_for_varargs, ...)
 {
     (void) dummy_parameter_for_varargs;
 }
-#define UNUSED(...) unused_impl(NULL __VA_OPT__(,) __VA_ARGS__)
+#define UNUSED(...) unused_impl(0, __VA_ARGS__)
 
 #define MAX(lhs, rhs) (((lhs) > (rhs)) ? (lhs) : (rhs))
 #define MIN(lhs, rhs) (((lhs) < (rhs)) ? (lhs) : (rhs))

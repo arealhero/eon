@@ -57,15 +57,11 @@ add_identifier(Arena* arena,
     if (array->tokens_count == array->tokens_capacity)
     {
         const Size new_capacity = MAX(1, 2 * array->tokens_capacity);
-
-        const Size element_size = size_of(array->tokens[0]);
-        const Size old_size = array->tokens_capacity * element_size;
-        const Size new_size = new_capacity * element_size;
-
-        array->tokens = arena_reallocate(arena,
-                                         as_bytes(array->tokens),
-                                         old_size,
-                                         new_size);
+        array->tokens = reallocate(arena,
+                                   array->tokens,
+                                   const Token*,
+                                   array->tokens_capacity,
+                                   new_capacity);
         array->tokens_capacity = new_capacity;
     }
 

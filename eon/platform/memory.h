@@ -2,14 +2,14 @@
 #define EON_PLATFORM_MEMORY_INCLUDED 1
 
 #include <eon/common.h>
+#include <eon/types.h>
 
 internal Size platform_get_page_size(void);
 
-// TODO(vlad): Change to 'byte*'?
-internal void*  platform_reserve_memory(Size number_of_bytes);
-internal Bool platform_commit_memory(void* pointer, Size number_of_bytes);
-internal Bool platform_decommit_memory(void* pointer, Size number_of_bytes);
-internal Bool platform_release_memory(void* pointer, Size number_of_bytes);
+internal Byte* platform_reserve_memory(Size number_of_bytes);
+internal Bool platform_commit_memory(Byte* pointer, Size number_of_bytes);
+internal Bool platform_decommit_memory(Byte* pointer, Size number_of_bytes);
+internal Bool platform_release_memory(Byte* pointer, Size number_of_bytes);
 
 #if OS_WINDOWS
 #    include "win32_memory.c"

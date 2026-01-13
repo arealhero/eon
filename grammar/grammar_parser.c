@@ -107,15 +107,11 @@ parse_identifier_expressions(Arena* arena,
             if (current_expression.identifiers_count == current_expression.identifiers_capacity)
             {
                 const Size new_capacity = MAX(1, 2 * current_expression.identifiers_capacity);
-
-                const Size element_size = size_of(current_expression.identifiers[0]);
-                const Size old_size = current_expression.identifiers_capacity * element_size;
-                const Size new_size = new_capacity * element_size;
-
-                current_expression.identifiers = arena_reallocate(arena,
-                                                                  as_bytes(current_expression.identifiers),
-                                                                  old_size,
-                                                                  new_size);
+                current_expression.identifiers = reallocate(arena,
+                                                            current_expression.identifiers,
+                                                            Ast_Identifier,
+                                                            current_expression.identifiers_capacity,
+                                                            new_capacity);
                 current_expression.identifiers_capacity = new_capacity;
             }
 
@@ -132,15 +128,11 @@ parse_identifier_expressions(Arena* arena,
             if (definition->possible_expressions_count == definition->possible_expressions_capacity)
             {
                 const Size new_capacity = MAX(1, 2 * definition->possible_expressions_capacity);
-
-                const Size element_size = size_of(definition->possible_expressions[0]);
-                const Size old_size = definition->possible_expressions_capacity * element_size;
-                const Size new_size = new_capacity * element_size;
-
-                definition->possible_expressions = arena_reallocate(arena,
-                                                                    as_bytes(definition->possible_expressions),
-                                                                    old_size,
-                                                                    new_size);
+                definition->possible_expressions = reallocate(arena,
+                                                              definition->possible_expressions,
+                                                              Ast_Expression,
+                                                              definition->possible_expressions_capacity,
+                                                              new_capacity);
                 definition->possible_expressions_capacity = new_capacity;
             }
 
@@ -212,15 +204,11 @@ parser_parse(Arena* arena,
         {
             // XXX(vlad): We can change 'MAX(1, 2 * capacity)' to '(2 * capacity) | 1'.
             const Size new_capacity = MAX(1, 2 * ast->definitions_capacity);
-
-            const Size element_size = size_of(ast->definitions[0]);
-            const Size old_size = ast->definitions_capacity * element_size;
-            const Size new_size = new_capacity * element_size;
-
-            ast->definitions = arena_reallocate(arena,
-                                                as_bytes(ast->definitions),
-                                                old_size,
-                                                new_size);
+            ast->definitions = reallocate(arena,
+                                          ast->definitions,
+                                          Ast_Identifier_Definition,
+                                          ast->definitions_capacity,
+                                          new_capacity);
             ast->definitions_capacity = new_capacity;
         }
 

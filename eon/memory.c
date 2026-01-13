@@ -4,7 +4,7 @@
 #include <eon/sanitizers/asan.h>
 
 #define ARENA_HEADER_SIZE (size_of(Arena))
-#define ARENA_ALIGNMENT (size_of(void*))
+#define ARENA_ALIGNMENT (size_of(Byte*))
 
 internal inline void
 copy_memory(Byte* restrict to,
@@ -104,7 +104,7 @@ arena_create(Size number_of_bytes_to_reserve, Size number_of_bytes_to_commit)
     ASAN_POISON_MEMORY_REGION(as_bytes(arena) + ARENA_HEADER_SIZE,
                               number_of_bytes_to_reserve - ARENA_HEADER_SIZE);
 
-    if (!platform_commit_memory(arena, number_of_bytes_to_commit))
+    if (!platform_commit_memory(as_bytes(arena), number_of_bytes_to_commit))
     {
         ASSERT(0 && "Failed to commit memory");
         return NULL;
@@ -125,18 +125,18 @@ arena_destroy(Arena* arena)
     //             This would prevent EOF in situations when the OS will
     //             give us back released memory.
     //             @tag(asan)
-    platform_release_memory(arena, arena->reserved_bytes_count);
+    platform_release_memory(as_bytes(arena), arena->reserved_bytes_count);
 }
 
-maybe_unused internal void*
+maybe_unused internal Byte*
 arena_push(Arena* arena, const Size number_of_bytes)
 {
-    void* memory = arena_push_uninitialized(arena, number_of_bytes);
+    Byte* memory = arena_push_uninitialized(arena, number_of_bytes);
     fill_memory_with_zeros(memory, number_of_bytes);
     return memory;
 }
 
-maybe_unused internal void*
+maybe_unused internal Byte*
 arena_push_uninitialized(Arena* arena, const Size number_of_bytes)
 {
     ARENA_ADD_REDZONE(arena);
@@ -246,7 +246,7 @@ arena_clear(Arena* arena)
     ASSERT(arena->committed_memory_offset % page_size == 0);
     ASSERT(ARENA_HEADER_SIZE < page_size);
 
-    void* memory_to_decommit = as_bytes(arena) + page_size;
+    Byte* memory_to_decommit = as_bytes(arena) + page_size;
     const Size number_of_bytes_to_decommit = arena->committed_memory_offset - page_size;
 
     platform_decommit_memory(memory_to_decommit, number_of_bytes_to_decommit);
@@ -255,7 +255,7 @@ arena_clear(Arena* arena)
     arena->free_memory_offset = ARENA_HEADER_SIZE;
 }
 
-maybe_unused internal void*
+maybe_unused internal Byte*
 arena_reallocate(Arena* restrict arena,
                  Byte* restrict memory,
                  const Size memory_size_in_bytes,
@@ -296,7 +296,7 @@ arena_reallocate(Arena* restrict arena,
 #endif
 
     // NOTE(vlad): Something else was allocated thus we must reallocate and copy memory.
-    void* new_memory = arena_push(arena, requested_size_in_bytes);
+    Byte* new_memory = arena_push(arena, requested_size_in_bytes);
     copy_memory(as_bytes(new_memory), memory,
                 MIN(requested_size_in_bytes, memory_size_in_bytes));
 
