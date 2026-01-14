@@ -13,6 +13,8 @@ enum Token_Type
 
     TOKEN_COLON, TOKEN_OR, TOKEN_SEMICOLON,
 
+    TOKEN_EPS,
+
     // XXX(vlad): Do we want to support these?
     // TOKEN_LEFT_PAREN, TOKEN_RIGHT_PAREN,
 
@@ -29,6 +31,13 @@ struct Token
 };
 typedef struct Token Token;
 
+struct Keyword
+{
+    String_View lexeme;
+    Token_Type type;
+};
+typedef struct Keyword Keyword;
+
 struct Lexer
 {
     String_View grammar;
@@ -36,9 +45,12 @@ struct Lexer
     Index current_index;
     s64 current_line;
     s64 current_column;
+
+    Keyword* keywords;
+    Size keywords_count;
 };
 typedef struct Lexer Lexer;
 
-internal void lexer_create(Lexer* lexer, String_View grammar);
+internal void lexer_create(Arena* arena, Lexer* lexer, String_View grammar);
 internal Bool lexer_get_next_token(Arena* scratch, Lexer* lexer, Token* token);
 internal void lexer_destroy(Lexer* lexer);

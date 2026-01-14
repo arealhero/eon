@@ -74,7 +74,8 @@ parse_identifier(Arena* scratch, Parser* parser, Ast_Identifier* identifier)
     }
 
     if (parser->current_token.type != TOKEN_TERMINAL
-        && parser->current_token.type != TOKEN_NON_TERMINAL)
+        && parser->current_token.type != TOKEN_NON_TERMINAL
+        && parser->current_token.type != TOKEN_EPS)
     {
         return false;
     }

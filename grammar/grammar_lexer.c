@@ -71,13 +71,27 @@ lexer_create_token(Lexer* lexer,
 }
 
 internal void
-lexer_create(Lexer* lexer, String_View grammar)
+lexer_create(Arena* arena, Lexer* lexer, String_View grammar)
 {
     lexer->grammar = grammar;
 
     lexer->current_index = 0;
     lexer->current_line = 0;
     lexer->current_column = 0;
+
+    const Keyword keywords[] = {
+        { .lexeme = string_view("EPS"), .type = TOKEN_EPS },
+    };
+    const Size keywords_count = size_of(keywords) / size_of(keywords[0]);
+
+    lexer->keywords = allocate_uninitialized_array(arena, keywords_count, Keyword);
+    lexer->keywords_count = keywords_count;
+    for (Index i = 0;
+         i < keywords_count;
+         ++i)
+    {
+        lexer->keywords[i] = keywords[i];
+    }
 }
 
 internal Bool
@@ -114,6 +128,19 @@ lexer_get_next_token(Arena* scratch, Lexer* lexer, Token* token)
             }
 
             lexer_create_token(lexer, token, lexeme_start_index, TOKEN_NON_TERMINAL);
+
+            for (Index i = 0;
+                 i < lexer->keywords_count;
+                 ++i)
+            {
+                const Keyword* keyword = &lexer->keywords[i];
+                if (strings_are_equal(token->lexeme, keyword->lexeme))
+                {
+                    token->type = keyword->type;
+                    break;
+                }
+            }
+
             return true;
         }
 

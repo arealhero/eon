@@ -103,7 +103,7 @@ check_grammar_soundness(const String_View grammar_filename, const String_View gr
     Arena* scratch = arena_create(GiB(1), MiB(1));
 
     Lexer lexer = {0};
-    lexer_create(&lexer, grammar);
+    lexer_create(arena, &lexer, grammar);
 
     Parser parser = {0};
     parser_create(&parser, &lexer);
