@@ -3,6 +3,7 @@
 #include <eon/string.h>
 
 #include <eon/platform/filesystem.h>
+#include <eon/platform/time.h>
 
 #include "grammar_lexer.h"
 #include "grammar_log.h"
@@ -99,6 +100,8 @@ typedef struct Grammar_Info Grammar_Info;
 internal Bool
 check_grammar_soundness(const String_View grammar_filename, const String_View grammar)
 {
+    println("\nChecking '{}' soundness", grammar_filename);
+
     Arena* arena = arena_create(GiB(1), MiB(1));
     Arena* scratch = arena_create(GiB(1), MiB(1));
 
@@ -108,13 +111,19 @@ check_grammar_soundness(const String_View grammar_filename, const String_View gr
     Parser parser = {0};
     parser_create(&parser, &lexer);
 
-    // TODO(vlad): Time the parsing.
-
     Ast ast = {0};
-    if (!parser_parse(arena, scratch, &parser, &ast))
     {
-        println("Failed to parse grammar");
-        return false;
+        const Timestamp parsing_start = platform_get_current_monotonic_timestamp();
+        const Bool result = parser_parse(arena, scratch, &parser, &ast);
+        const Timestamp parsing_end = platform_get_current_monotonic_timestamp();
+
+        println("Grammar parsed in {} msc", parsing_end - parsing_start);
+
+        if (!result)
+        {
+            println("Failed to parse grammar");
+            return false;
+        }
     }
 
     Grammar_Info info = {0};
@@ -126,15 +135,6 @@ check_grammar_soundness(const String_View grammar_filename, const String_View gr
 
         add_identifier(arena, &info.defined_identifiers, &definition->identifier.token);
     }
-
-    // printf("Found %ld defined identifiers\n", info.defined_identifiers.tokens_count);
-    // for (ssize token_index = 0;
-    //      token_index < info.defined_identifiers.tokens_count;
-    //      ++token_index)
-    // {
-    //     const Token* token = info.defined_identifiers.tokens[token_index];
-    //     printf("%2ld. %.*s\n", token_index+1, FORMAT_STRING(token->lexeme));
-    // }
 
     Bool found_errors = false;
 
