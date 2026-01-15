@@ -18,6 +18,7 @@ clang_warnings="
   -Wno-error=unused-parameter
 "
 clang_common_flags="
+  -std=gnu11
   -O0
   -ggdb
   -I.
