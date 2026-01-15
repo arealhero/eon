@@ -28,7 +28,8 @@ clang_common_flags="
 
 compile()
 {
-    echo -e "\nCompiling '$1'"
+    echo
+    echo "Compiling '$1'"
     TIMEFORMAT="Compilation took %2R seconds"
     time clang $@
 }
