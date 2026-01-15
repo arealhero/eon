@@ -14,7 +14,7 @@ internal Bool check_grammar_soundness(const String_View grammar_filename, const 
 int
 main(int argc, const char* argv[])
 {
-    init_io_state(MiB(10));
+    init_io_state(MiB(40));
 
     if (argc != 2)
     {
@@ -96,6 +96,214 @@ struct Grammar_Info
     // String_View* found_terminals;
 };
 typedef struct Grammar_Info Grammar_Info;
+
+struct Definition_Node
+{
+    const Ast_Identifier_Definition* definition;
+
+    // NOTE(vlad): Reachable through left recursion.
+    Index* reachable_definitions;
+    Size reachable_definitions_count;
+};
+typedef struct Definition_Node Definition_Node;
+
+// FIXME(vlad): Clean up this mess of a code. Also make it fast. @tag(performance)
+// FIXME(vlad): Centralise error reporting.
+internal Bool
+detect_left_recursions(Arena* scratch,
+                       const String_View grammar_filename,
+                       const String_View grammar,
+                       const Ast* ast)
+{
+    Bool found_errors = false;
+
+    const Size nodes_count = ast->definitions_count;
+    Definition_Node* nodes = allocate_array(scratch,
+                                            nodes_count,
+                                            Definition_Node);
+
+    // NOTE(vlad): Initialise nodes so their identifiers are available for searching.
+    for (Index definition_index = 0;
+         definition_index < ast->definitions_count;
+         ++definition_index)
+    {
+        Definition_Node* this_node = &nodes[definition_index];
+        this_node->definition = &ast->definitions[definition_index];
+    }
+
+    // NOTE(vlad): Initialise graph edges.
+    //             Also test that every definition has at least 1 possible expression
+    //             and every expression has at least one identifier to expand to (terminal or non-terminal).
+    for (Index node_index = 0;
+         node_index < nodes_count;
+         ++node_index)
+    {
+        Definition_Node* this_node = &nodes[node_index];
+        const Ast_Identifier_Definition* definition = this_node->definition;
+
+        this_node->reachable_definitions = allocate_array(scratch,
+                                                          definition->possible_expressions_count,
+                                                          Index);
+
+        if (definition->possible_expressions_count == 0)
+        {
+            found_errors = true;
+
+            const Token* token = &definition->identifier.token;
+
+            println("{}:{}:{}: Definition for '{}' has no possible expressions",
+                    grammar_filename, token->line+1, token->column+1,
+                    token->lexeme);
+            show_grammar_error(scratch,
+                               grammar,
+                               token->line,
+                               token->column,
+                               token->lexeme.length);
+        }
+
+        for (Index expression_index = 0;
+             expression_index < definition->possible_expressions_count;
+             ++expression_index)
+        {
+            const Ast_Expression* expression = &definition->possible_expressions[expression_index];
+            if (expression->identifiers_count == 0)
+            {
+                found_errors = true;
+
+                const Token* token = &definition->identifier.token;
+
+                println("{}:{}:{}: Empty expression detected in '{}' definition",
+                        grammar_filename, token->line+1, token->column+1,
+                        token->lexeme);
+                show_grammar_error(scratch,
+                                   grammar,
+                                   token->line,
+                                   token->column,
+                                   token->lexeme.length);
+
+                continue;
+            }
+
+            const Ast_Identifier* first_identifier = &expression->identifiers[0];
+            if (first_identifier->token.type != TOKEN_NON_TERMINAL)
+            {
+                continue;
+            }
+
+            for (Index reachable_node_index = 0;
+                 reachable_node_index < nodes_count;
+                 ++reachable_node_index)
+            {
+                const Definition_Node* node = &nodes[reachable_node_index];
+
+                if (strings_are_equal(node->definition->identifier.token.lexeme, first_identifier->token.lexeme))
+                {
+                    Bool alreadyAdded = false;
+                    for (Index i = 0;
+                         i < this_node->reachable_definitions_count;
+                         ++i)
+                    {
+                        if (this_node->reachable_definitions[i] == reachable_node_index)
+                        {
+                            alreadyAdded = true;
+                            break;
+                        }
+                    }
+
+                    if (!alreadyAdded)
+                    {
+                        this_node->reachable_definitions[this_node->reachable_definitions_count] = reachable_node_index;
+                        this_node->reachable_definitions_count += 1;
+                    }
+
+                    break;
+                }
+            }
+        }
+    }
+
+    // NOTE(vlad): Traverse this graph via DFS and find cycles.
+
+    Bool* node_was_visited = allocate_array(scratch, nodes_count, Bool);
+
+    enum { JUST_DEFINITION = -1 };
+    struct Stack_Element
+    {
+        Index node_index;
+        Index reachable_definition_index;
+    };
+    typedef struct Stack_Element Stack_Element;
+
+    Stack_Element* stack = allocate_array(scratch, nodes_count, Stack_Element);
+    Index stack_index = 0;
+
+    for (Index this_node_index = 0;
+         this_node_index < nodes_count;
+         ++this_node_index)
+    {
+        fill_with_zeros(node_was_visited, nodes_count, Bool);
+
+        stack_index = 0;
+        stack[stack_index++] = (Stack_Element) {this_node_index, JUST_DEFINITION};
+
+        while (stack_index > 0)
+        {
+            const Stack_Element element = stack[--stack_index];
+
+            const Index node_index = element.node_index;
+            const Index reachable_definition_index = element.reachable_definition_index;
+
+            const Definition_Node* node = &nodes[node_index];
+
+            if (reachable_definition_index == JUST_DEFINITION)
+            {
+                if (node_was_visited[node_index])
+                {
+                    found_errors = true;
+
+                    const Definition_Node* start_node = &nodes[this_node_index];
+
+                    const Ast_Identifier* identifier = &start_node->definition->identifier;
+                    const Token* token = &identifier->token;
+
+                    println("{}:{}:{}: Left recursion detected in {} definition",
+                            grammar_filename, token->line+1, token->column+1,
+                            token->lexeme);
+                    show_grammar_error(scratch,
+                                       grammar,
+                                       token->line,
+                                       token->column,
+                                       token->lexeme.length);
+                    // TODO(vlad): Print recursion path.
+                    // NOTE(vlad): Actually we are finding cycles in this function.
+                    //             It would make sense to print them here showing
+                    //             every relevant expression on its path.
+                    //             Also print its length.
+
+                    break;
+                }
+
+                for (Index definition_index = 0;
+                     definition_index < node->reachable_definitions_count;
+                     ++definition_index)
+                {
+                    stack[stack_index++] = (Stack_Element) { node_index, definition_index };
+                }
+
+                node_was_visited[node_index] = true;
+            }
+            else
+            {
+                stack[stack_index++] = (Stack_Element) {
+                    .node_index = node->reachable_definitions[reachable_definition_index],
+                    .reachable_definition_index = JUST_DEFINITION,
+                };
+            }
+        }
+    }
+
+    return found_errors;
+}
 
 internal Bool
 check_grammar_soundness(const String_View grammar_filename, const String_View grammar)
@@ -189,78 +397,8 @@ check_grammar_soundness(const String_View grammar_filename, const String_View gr
         }
     }
 
-    // NOTE(vlad): Test that there are no left recursions in the grammar.
-    //             Also test that every definition has at least 1 possible expression
-    //             and every expression has at least one identifier to expand to (terminal or non-terminal).
-    for (Index definition_index = 0;
-         definition_index < ast.definitions_count;
-         ++definition_index)
-    {
-        const Ast_Identifier_Definition* definition = &ast.definitions[definition_index];
-        const Ast_Identifier* identifier = &definition->identifier;
+    found_errors |= detect_left_recursions(scratch, grammar_filename, grammar, &ast);
 
-        if (definition->possible_expressions_count == 0)
-        {
-            found_errors = true;
-
-            const Token* token = &identifier->token;
-
-            println("{}:{}:{}: Definition for '{}' has no possible expressions",
-                    grammar_filename, token->line+1, token->column+1,
-                    token->lexeme);
-            show_grammar_error(scratch,
-                               grammar,
-                               token->line,
-                               token->column,
-                               token->lexeme.length);
-        }
-        else
-        {
-            for (Index expression_index = 0;
-                 expression_index < definition->possible_expressions_count;
-                 ++expression_index)
-            {
-                Ast_Expression* expression = &definition->possible_expressions[expression_index];
-
-                if (expression->identifiers_count == 0)
-                {
-                    found_errors = true;
-
-                    const Token* token = &identifier->token;
-
-                    println("{}:{}:{}: Empty expression detected in '{}' definition",
-                            grammar_filename, token->line+1, token->column+1,
-                            token->lexeme);
-                    show_grammar_error(scratch,
-                                       grammar,
-                                       token->line,
-                                       token->column,
-                                       token->lexeme.length);
-                    continue;
-                }
-
-                Ast_Identifier* first_identifier = &expression->identifiers[0];
-
-                if (strings_are_equal(identifier->token.lexeme, first_identifier->token.lexeme))
-                {
-                    found_errors = true;
-
-                    const Token* token = &first_identifier->token;
-
-                    println("{}:{}:{}: Left recursion detected in '{}' definition",
-                            grammar_filename, token->line+1, token->column+1,
-                            token->lexeme);
-                    show_grammar_error(scratch,
-                                       grammar,
-                                       token->line,
-                                       token->column,
-                                       token->lexeme.length);
-                }
-            }
-        }
-    }
-
-    // FIXME(vlad): Detect cycles and deep left recursions.
     // FIXME(vlad): Detect if there are common subexpressions that can be refactored to their own production rules.
     //              Start with detecting proper prefixes like these:
     //

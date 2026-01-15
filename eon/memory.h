@@ -13,6 +13,9 @@ internal inline void move_memory(Byte* to,
 
 internal inline void fill_memory_with_zeros(Byte* memory, const Size number_of_bytes);
 
+#define fill_with_zeros(pointer, number_of_elements, Type)              \
+    fill_memory_with_zeros(as_bytes(pointer), size_of(Type) * number_of_elements)
+
 typedef struct
 {
     Size reserved_bytes_count;
