@@ -5,12 +5,9 @@ digit: "[0-9]";
 
 program: function_definitions;
 
-function_definitions: EPS
-                    | function_definition function_definitions;
-
+function_definitions: EPS | function_definition function_definitions;
 function_definition: identifier ":" function_type "=" "{" function_body "}";
-
-function_body: EPS;
+function_body: EPS; // TODO(vlad): Add function body. @tag(eon-grammar)
 
 identifier: identifier_start identifier_end;
 
@@ -22,5 +19,5 @@ function_type: "(" arguments_declaration ")" "->" type;
 type: function_type | identifier;
 
 arguments_declaration: EPS | argument_declaration arguments_declaration_tail;
-argument_declaration: identifier ":" type;
+argument_declaration: identifier ":" type; // TODO(vlad): Add default values support. @tag(eon-grammar)
 arguments_declaration_tail: EPS | "," argument_declaration arguments_declaration_tail;
