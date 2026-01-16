@@ -151,7 +151,7 @@ detect_left_recursions(Arena* scratch,
 
             const Token* token = &definition->identifier.token;
 
-            println("{}:{}:{}: Definition for '{}' has no possible expressions",
+            println("{}:{}:{}: Error: definition for '{}' has no possible expressions",
                     grammar_filename, token->line+1, token->column+1,
                     token->lexeme);
             show_grammar_error(scratch,
@@ -172,7 +172,7 @@ detect_left_recursions(Arena* scratch,
 
                 const Token* token = &definition->identifier.token;
 
-                println("{}:{}:{}: Empty expression detected in '{}' definition",
+                println("{}:{}:{}: Error: empty expression detected in '{}' definition",
                         grammar_filename, token->line+1, token->column+1,
                         token->lexeme);
                 show_grammar_error(scratch,
@@ -266,7 +266,7 @@ detect_left_recursions(Arena* scratch,
                     const Ast_Identifier* identifier = &start_node->definition->identifier;
                     const Token* token = &identifier->token;
 
-                    println("{}:{}:{}: Left recursion detected in {} definition",
+                    println("{}:{}:{}: Error: left recursion detected in {} definition",
                             grammar_filename, token->line+1, token->column+1,
                             token->lexeme);
                     show_grammar_error(scratch,
@@ -386,7 +386,7 @@ check_grammar_soundness(const String_View grammar_filename, const String_View gr
              ++token_index)
         {
             const Token* token = info.undefined_identifiers.tokens[token_index];
-            println("{}:{}:{}: Identifier '{}' is undefined",
+            println("{}:{}:{}: Error: identifier '{}' is undefined",
                     grammar_filename, token->line+1, token->column+1,
                     token->lexeme);
             show_grammar_error(scratch,
