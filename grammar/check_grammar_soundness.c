@@ -402,7 +402,7 @@ check_grammar_soundness(const String_View grammar_filename, const String_View gr
         found_errors |= detect_left_recursions(scratch, grammar_filename, grammar, &ast);
         const Timestamp time_end = platform_get_current_monotonic_timestamp();
 
-        println("Left recursions detected in {} mcs", time_end - time_start);
+        println("Left recursions detection took {} mcs", time_end - time_start);
     }
 
     // FIXME(vlad): Detect if there are common subexpressions that can be refactored to their own production rules.
