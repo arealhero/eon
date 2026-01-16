@@ -10,6 +10,7 @@ clang_warnings="
   -Wextra
   -Werror
   -Wconversion
+  -Wshadow
 
   -Wno-variadic-macro-arguments-omitted
 
