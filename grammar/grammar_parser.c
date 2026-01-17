@@ -16,10 +16,6 @@ parser_get_next_token(Arena* scratch, Parser* parser)
         return false;
     }
 
-    // printf("Token found: type = %d, lexeme: '%.*s', column = %ld\n",
-    //        parser->current_token.type, FORMAT_STRING(parser->current_token.lexeme),
-    //        parser->current_token.column);
-
     return true;
 }
 
@@ -75,7 +71,8 @@ parse_identifier(Arena* scratch, Parser* parser, Ast_Identifier* identifier)
 
     if (parser->current_token.type != TOKEN_TERMINAL
         && parser->current_token.type != TOKEN_NON_TERMINAL
-        && parser->current_token.type != TOKEN_EPS)
+        && parser->current_token.type != TOKEN_EPS
+        && parser->current_token.type != TOKEN_EOF)
     {
         return false;
     }
@@ -219,7 +216,7 @@ parser_parse(Arena* arena,
         // NOTE(vlad): Prefetching the next token to check if its type is EOF.
         parser_get_next_token(scratch, parser);
     }
-    while (parser->current_token.type != TOKEN_EOF);
+    while (parser->current_token.type != TOKEN_END);
 
     return true;
 }

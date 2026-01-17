@@ -13,12 +13,12 @@ enum Token_Type
 
     TOKEN_COLON, TOKEN_OR, TOKEN_SEMICOLON,
 
-    TOKEN_EPS,
+    TOKEN_EPS, TOKEN_EOF,
 
     // XXX(vlad): Do we want to support these?
     // TOKEN_LEFT_PAREN, TOKEN_RIGHT_PAREN,
 
-    TOKEN_EOF,
+    TOKEN_END,
 };
 typedef enum Token_Type Token_Type;
 

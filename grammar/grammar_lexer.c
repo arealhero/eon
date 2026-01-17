@@ -80,7 +80,8 @@ lexer_create(Arena* arena, Lexer* lexer, String_View grammar)
     lexer->current_column = 0;
 
     const Keyword keywords[] = {
-        { .lexeme = string_view("EPS"), .type = TOKEN_EPS },
+        { .lexeme = string_view("EPS"), .type = TOKEN_EPS, },
+        { .lexeme = string_view("EOF"), .type = TOKEN_EOF, },
     };
     const Size keywords_count = size_of(keywords) / size_of(keywords[0]);
 
@@ -99,7 +100,7 @@ lexer_get_next_token(Arena* scratch, Lexer* lexer, Token* token)
 {
     if (lexer->current_index >= lexer->grammar.length)
     {
-        lexer_create_token(lexer, token, lexer->current_index, TOKEN_EOF);
+        lexer_create_token(lexer, token, lexer->current_index, TOKEN_END);
         return true;
     }
 
@@ -230,7 +231,7 @@ lexer_get_next_token(Arena* scratch, Lexer* lexer, Token* token)
         }
     }
 
-    lexer_create_token(lexer, token, lexer->current_index, TOKEN_EOF);
+    lexer_create_token(lexer, token, lexer->current_index, TOKEN_END);
     return true;
 }
 

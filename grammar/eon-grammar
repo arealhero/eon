@@ -5,18 +5,18 @@ digit: "[0-9]";
 
 program: function_definitions;
 
-function_definitions: EPS | function_definition function_definitions;
+function_definitions: EOF | function_definition function_definitions;
 function_definition: identifier ":" function_type "=" "{" function_body "}";
 function_body: EPS; // TODO(vlad): Add function body. @tag(eon-grammar)
 
 identifier: identifier_start identifier_end;
 
 identifier_start: letter | "_";
-identifier_body: letter | digit | "_";
 identifier_end: EPS | identifier_body identifier_end;
+identifier_body: letter | digit | "_";
 
 function_type: "(" arguments_declaration ")" "->" type;
-type: function_type | identifier;
+type: function_type | identifier; // TODO(vlad): Add support for arrays, pointers, qualifiers, etc.
 
 arguments_declaration: EPS | argument_declaration arguments_declaration_tail;
 argument_declaration: identifier ":" type; // TODO(vlad): Add default values support. @tag(eon-grammar)
