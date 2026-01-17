@@ -16,7 +16,7 @@ identifier_end: EPS | identifier_body identifier_end;
 identifier_body: letter | digit | "_";
 
 function_type: "(" arguments_declaration ")" "->" type;
-type: function_type | identifier; // TODO(vlad): Add support for arrays, pointers, qualifiers, etc.
+type: function_type | identifier; // TODO(vlad): Add support for arrays, pointers, qualifiers, etc. @tag(eon-grammar)
 
 arguments_declaration: EPS | argument_declaration arguments_declaration_tail;
 argument_declaration: identifier ":" type; // TODO(vlad): Add default values support. @tag(eon-grammar)
