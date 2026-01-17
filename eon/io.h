@@ -29,6 +29,9 @@ internal void init_io_state(const Size initial_arena_size);
 internal void print_impl(const String_View message);
 internal void print_flush_stdout(void);
 
+internal inline void INTERNAL_print_message_directly_to_stdout(const String_View message);
+#define print_message_directly_to_stdout(message) INTERNAL_print_message_directly_to_stdout(string_view(message))
+
 #define print(...) print_impl(string_view(format_string(global_io_state.arena __VA_OPT__(,) __VA_ARGS__)))
 #define println(...)                            \
     do {                                        \

@@ -23,7 +23,7 @@ main(int argc, const char* argv[])
     }
 
     // TODO(vlad): Allocate more memory, otherwise we wouldn't be able to read files with size > 1 GiB.
-    Arena* arena = arena_create(GiB(1), MiB(1));
+    Arena* arena = arena_create("filesystem", GiB(1), MiB(1));
 
     const String_View grammar_filename = string_view(argv[1]);
     Read_File_Result read_result = platform_read_entire_text_file(arena, grammar_filename);
@@ -310,8 +310,8 @@ check_grammar_soundness(const String_View grammar_filename, const String_View gr
 {
     println("\nChecking '{}' soundness", grammar_filename);
 
-    Arena* arena = arena_create(GiB(1), MiB(1));
-    Arena* scratch = arena_create(GiB(1), MiB(1));
+    Arena* arena = arena_create("main", GiB(1), MiB(1));
+    Arena* scratch = arena_create("scratch", GiB(1), MiB(1));
 
     Lexer lexer = {0};
     lexer_create(arena, &lexer, grammar);

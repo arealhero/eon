@@ -2,6 +2,7 @@
 
 #include <eon/common.h>
 #include <eon/conversions.h> // NOTE(vlad): Exporting 'KiB', 'MiB', etc for convenience.
+#include <eon/string.h>
 
 internal inline void copy_memory(Byte* restrict to,
                                  const Byte* restrict from,
@@ -16,15 +17,22 @@ internal inline void fill_memory_with_zeros(Byte* memory, const Size number_of_b
 #define fill_with_zeros(pointer, number_of_elements, Type)              \
     fill_memory_with_zeros(as_bytes(pointer), size_of(Type) * number_of_elements)
 
-typedef struct
+typedef struct Arena
 {
+    String_View name;
+
     Size reserved_bytes_count;
 
     Index free_memory_offset;
     Index committed_memory_offset;
 } Arena;
 
-internal Arena* arena_create(Size number_of_bytes_to_reserve, Size number_of_bytes_to_commit);
+internal Arena* INTERNAL_arena_create(const String_View name,
+                                      Size number_of_bytes_to_reserve,
+                                      Size number_of_bytes_to_commit);
+
+#define arena_create(name, number_of_bytes_to_reserve, number_of_bytes_to_commit) \
+    INTERNAL_arena_create(string_view(name), number_of_bytes_to_reserve, number_of_bytes_to_commit)
 internal void arena_destroy(Arena* arena);
 
 internal Byte* arena_push(Arena* arena, Size number_of_bytes);

@@ -260,8 +260,7 @@ validate_arguments_and_calculate_total_size_in_bytes(String_View format,
             {
                 if (brace_was_opened)
                 {
-                    ASSERT(0 && "format_string: nested braces are not allowed.");
-                    FAIL();
+                    FAIL("format_string: nested braces are not allowed.");
                 }
 
                 brace_was_opened = true;
@@ -277,8 +276,7 @@ validate_arguments_and_calculate_total_size_in_bytes(String_View format,
 
                 if (number_of_arguments == 0)
                 {
-                    ASSERT(0 && "format_string: not enough parameters provided.");
-                    FAIL();
+                    FAIL("format_string: not enough parameters provided.");
                 }
 
                 number_of_arguments -= 1;
@@ -320,8 +318,7 @@ validate_arguments_and_calculate_total_size_in_bytes(String_View format,
         //             it's not an error to provide more arguments than required
         //             in the format string, we will treat this situation as an error.
         //             @ref: https://en.cppreference.com/w/cpp/utility/format/format.html#Notes
-        ASSERT(0 && "format_string: excessive parameters provided.");
-        FAIL();
+        FAIL("format_string: excessive parameters provided.");
     }
 
     va_end(copy_of_args);

@@ -23,7 +23,7 @@ show_grammar_error(Arena* scratch,
                     "       Requested line: {}",
                     current_line,
                     line);
-            FAIL();
+            FAIL("Invalid line number provided");
         }
 
         ASSERT(current_index < grammar.length);

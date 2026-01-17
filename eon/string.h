@@ -2,7 +2,8 @@
 
 #include <eon/build_info.h>
 #include <eon/common.h>
-#include <eon/memory.h>
+
+struct Arena;
 
 struct String_View
 {
@@ -35,7 +36,7 @@ internal inline String_View INTERNAL_string_view_from_string(const String string
 internal s32 compare_strings(const String_View lhs, const String_View rhs);
 internal Bool strings_are_equal(const String_View lhs, const String_View rhs);
 
-internal String copy_string(Arena* const arena, const String_View string_to_copy);
+internal String copy_string(struct Arena* const arena, const String_View string_to_copy);
 
 internal void reverse_string(String string);
 
@@ -136,7 +137,7 @@ DECLARE_FORMAT_TAG_FOR_INTEGER(u64);
 
 #undef DECLARE_FORMAT_TAG_FOR_INTEGER
 
-internal String format_string_impl(Arena* const arena,
+internal String format_string_impl(struct Arena* const arena,
                                    const String_View format,
                                    const Size number_of_arguments,
                                    ...);

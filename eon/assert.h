@@ -10,8 +10,12 @@
 #include <eon/macros.h>
 
 noreturn internal inline void
-FAIL(void)
+INTERNAL_exit(const String_View message)
 {
+    print_message_directly_to_stdout("FAIL: ");
+    print_message_directly_to_stdout(message);
+    print_message_directly_to_stdout("\n");
+
     // TODO(vlad): Print backtrace?
     // TODO(vlad): Use trap in debug builds only and 'quick_exit()' in release builds?
     __builtin_debugtrap();
@@ -20,6 +24,7 @@ FAIL(void)
     //             @tag(libc)
     __builtin_trap();
 }
+#define FAIL(message) INTERNAL_exit(string_view(message))
 
 #if EON_DISABLE_ASSERTS
 #    define ASSERT(expression) (void)((expression))
@@ -34,7 +39,7 @@ FAIL(void)
             println("{}:{}: Assertion failed in function {}: {}",       \
                     file, line, function, #expression);                 \
             /* FIXME(vlad): Print backtrace (use libunwind?). */        \
-            FAIL();                                                     \
+            FAIL("Assertion failed");                                   \
         }                                                               \
     } while (0)
 
@@ -44,12 +49,12 @@ FAIL(void)
 //             calling 'main()'.
 //
 //             @tag(libc)
-#    define SILENT_ASSERT(expression)           \
+#    define SILENT_ASSERT(expression, message)  \
     do                                          \
     {                                           \
         if (!(expression))                      \
         {                                       \
-            FAIL();                             \
+            FAIL(message);                      \
         }                                       \
     } while (0)
 #endif

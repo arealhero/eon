@@ -69,12 +69,12 @@ main(const int argc, const char* argv[])
         show_stats_at_the_end = false;
     }
 
-    Arena* permanent_arena = arena_create(GiB(1), MiB(1));
+    Arena* permanent_arena = arena_create("main", GiB(1), MiB(1));
 
     Tests_Registry registry = {0};
     registry_register_tests(permanent_arena, &registry);
 
-    Arena* test_arena = arena_create(GiB(1), MiB(1));
+    Arena* test_arena = arena_create("unit-test-arena", GiB(1), MiB(1));
 
     const Timestamp tests_start_timestamp = platform_get_current_monotonic_timestamp();
 
@@ -175,7 +175,7 @@ registry_register_test(Arena* arena,
         context->failure_comment = string_view(failure_comment);        \
         context->failure_file = string_view(file);                      \
         context->failure_line = line;                                   \
-        if (FAIL_ON_FAILED_ASSERTS) { FAIL(); }                         \
+        if (FAIL_ON_FAILED_ASSERTS) { FAIL("Test failed"); }            \
         return;                                                         \
     }                                                                   \
     REQUIRE_SEMICOLON

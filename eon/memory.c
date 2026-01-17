@@ -1,5 +1,6 @@
 #include "memory.h"
 
+#include <eon/io.h>
 #include <eon/platform/memory.h>
 #include <eon/sanitizers/asan.h>
 
@@ -52,6 +53,21 @@ fill_memory_with_zeros(Byte* memory, const Size number_of_bytes)
     }
 }
 
+internal inline void
+arena_print_error_message_impl(const Arena* arena,
+                               const String_View message)
+{
+    // NOTE(vlad): Do not use 'println' here to prevent stack overflows
+    //             if there are not memory left in the IO state's arena.
+    print_message_directly_to_stdout("[arena '");
+    print_message_directly_to_stdout(arena->name);
+    print_message_directly_to_stdout("'] ");
+    print_message_directly_to_stdout(message);
+    print_message_directly_to_stdout("\n");
+}
+#define arena_print_error_message(arena, message)               \
+    arena_print_error_message_impl(arena, string_view(message))
+
 #if ASAN_ENABLED
 #    define ARENA_REDZONE_SIZE_IN_PAGES 1
 
@@ -65,10 +81,8 @@ ARENA_ADD_REDZONE(Arena* arena)
 
     if (free_memory_offset_after_allocation > arena->reserved_bytes_count)
     {
-        // NOTE(vlad): We are using 'SILENT_ASSERT' here to prevent stack overflows
-        //             if there are no memory left in the IO state's arena.
-        SILENT_ASSERT(0 && "Failed to add redzone for ASAN.");
-        FAIL();
+        arena_print_error_message(arena, "Failed to add redzone for ASAN: out of memory.");
+        FAIL("Failed to add redzone for ASAN: out of memory");
     }
 
     // XXX(vlad): Do we need to commit the redzone's memory here?
@@ -84,7 +98,9 @@ ARENA_ADD_REDZONE(Arena* arena)
 #endif
 
 maybe_unused internal Arena*
-arena_create(Size number_of_bytes_to_reserve, Size number_of_bytes_to_commit)
+INTERNAL_arena_create(const String_View name,
+                      Size number_of_bytes_to_reserve,
+                      Size number_of_bytes_to_commit)
 {
     // XXX(vlad): Reserve 'number_of_bytes_to_commit' instead?
     ASSERT(number_of_bytes_to_reserve >= number_of_bytes_to_commit);
@@ -109,6 +125,8 @@ arena_create(Size number_of_bytes_to_reserve, Size number_of_bytes_to_commit)
         ASSERT(0 && "Failed to commit memory");
         return NULL;
     }
+
+    arena->name = name;
 
     arena->reserved_bytes_count = number_of_bytes_to_reserve;
 
