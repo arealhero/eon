@@ -103,8 +103,11 @@ typedef s8 Signed_Byte;
 typedef s8  Bool8;
 typedef s32 Bool;
 
-#define true 1
-#define false 0
+#define true ((Bool)1)
+#define false ((Bool)0)
+
+#define true8 ((Bool8)1)
+#define false8 ((Bool8)0)
 
 #define size_of(Type) (Size)(sizeof(Type))
 #define as_bytes(expression) (Byte*)(expression)
