@@ -59,7 +59,7 @@ test_use_after_free_in_arenas(Test_Context* context)
     {
         global_sanitizer_was_triggered = false;
 
-        Arena* arena = arena_create(MiB(1), MiB(1));
+        Arena* arena = arena_create("asan-test-arena", MiB(1), MiB(1));
 
         int* freed_variable = allocate(arena, int);
         arena_clear(arena);
@@ -75,7 +75,7 @@ test_use_after_free_in_arenas(Test_Context* context)
     {
         global_sanitizer_was_triggered = false;
 
-        Arena* arena = arena_create(MiB(1), MiB(1));
+        Arena* arena = arena_create("asan-test-arena", MiB(1), MiB(1));
 
         int* freed_variable = allocate(arena, int);
         arena_clear(arena);
@@ -93,7 +93,7 @@ test_use_after_free_in_arenas(Test_Context* context)
     {
         global_sanitizer_was_triggered = false;
 
-        Arena* arena = arena_create(MiB(1), MiB(1));
+        Arena* arena = arena_create("asan-test-arena", MiB(1), MiB(1));
 
         int* freed_variable = allocate(arena, int);
         arena_pop_to_position(arena, 0);
@@ -109,7 +109,7 @@ test_use_after_free_in_arenas(Test_Context* context)
     {
         global_sanitizer_was_triggered = false;
 
-        Arena* arena = arena_create(MiB(1), MiB(1));
+        Arena* arena = arena_create("asan-test-arena", MiB(1), MiB(1));
 
         int* values = allocate_array(arena, 10, int);
 
@@ -139,7 +139,7 @@ test_buffer_overruns_in_arenas(Test_Context* context)
     {
         global_sanitizer_was_triggered = false;
 
-        Arena* arena = arena_create(MiB(1), MiB(1));
+        Arena* arena = arena_create("asan-test-arena", MiB(1), MiB(1));
 
         int* values = allocate_array(arena, TEST_ARRAY_SIZE, int);
 
@@ -154,7 +154,7 @@ test_buffer_overruns_in_arenas(Test_Context* context)
     {
         global_sanitizer_was_triggered = false;
 
-        Arena* arena = arena_create(MiB(1), MiB(1));
+        Arena* arena = arena_create("asan-test-arena", MiB(1), MiB(1));
 
         int* values = allocate_array(arena, TEST_ARRAY_SIZE, int);
         int* other_values = allocate_array(arena, TEST_ARRAY_SIZE, int);
@@ -179,7 +179,7 @@ test_buffer_underruns_in_arenas(Test_Context* context)
     {
         global_sanitizer_was_triggered = false;
 
-        Arena* arena = arena_create(MiB(1), MiB(1));
+        Arena* arena = arena_create("asan-test-arena", MiB(1), MiB(1));
 
         int* values = allocate_array(arena, TEST_ARRAY_SIZE, int);
 
@@ -194,7 +194,7 @@ test_buffer_underruns_in_arenas(Test_Context* context)
     {
         global_sanitizer_was_triggered = false;
 
-        Arena* arena = arena_create(MiB(1), MiB(1));
+        Arena* arena = arena_create("asan-test-arena", MiB(1), MiB(1));
 
         int* values = allocate_array(arena, TEST_ARRAY_SIZE, int);
         int* other_values = allocate_array(arena, TEST_ARRAY_SIZE, int);
