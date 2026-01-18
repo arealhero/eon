@@ -3,422 +3,239 @@
 #include "eon_parser.h"
 
 internal void
-test_expression_conversion_to_rpn(Test_Context* context)
+test_function_definitions_parsing(Test_Context* context)
 {
     {
-        Token number_two = {0};
-        number_two.type = TOKEN_NUMBER;
-        number_two.lexeme = string_view("2");
-
-        Literal_Expression literal_two = {0};
-        literal_two.token = number_two;
-
-        Expression two = {0};
-        two.type = EXPRESSION_LITERAL;
-        two.literal = &literal_two;
-
-        Token operator_plus = {0};
-        operator_plus.type = TOKEN_PLUS;
-        operator_plus.lexeme = string_view("+");
-
-        Binary_Expression sum = {0};
-        sum.operator = operator_plus;
-        sum.lhs = &two;
-        sum.rhs = &two;
-
-        Expression expression = {0};
-        expression.type = EXPRESSION_BINARY;
-        expression.binary = &sum;
-
-        const String_View expression_in_rpn = convert_expression_to_prn(context->arena,
-                                                                        &expression);
-        ASSERT_STRINGS_ARE_EQUAL(expression_in_rpn, "2 2 +");
-    }
-}
-
-internal void
-test_parsing_literals(Test_Context* context)
-{
-    {
-        const String_View input = string_view("2");
+        const String_View input = string_view("foo: () -> Bool = {}");
 
         Lexer lexer = {0};
         Parser parser = {0};
 
         lexer_create(&lexer, input);
-        parser_create(&parser, &lexer);
+        parser_create(context->arena, &parser, &lexer);
 
-        Expression* expression = parser_parse(&parser);
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
 
-        ASSERT_EQUAL(expression->type, EXPRESSION_LITERAL);
-        ASSERT_EQUAL(expression->literal->token.type, TOKEN_NUMBER);
-        ASSERT_STRINGS_ARE_EQUAL(expression->literal->token.lexeme, "2");
+        ASSERT_EQUAL(ast.function_definitions_count, 1);
 
-        const String_View expression_in_prn = convert_expression_to_prn(context->arena,
-                                                                        expression);
-        ASSERT_STRINGS_ARE_EQUAL(expression_in_prn, "2");
+        const Ast_Function_Definition* definition = &ast.function_definitions[0];
+        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
-        expression_destroy(expression);
+        const Ast_Type* function_type = definition->type;
+        ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+
+        const Ast_Function_Arguments* arguments = &function_type->arguments;
+        ASSERT_EQUAL(arguments->arguments_count, 0);
+
+        const Ast_Type* return_type = function_type->return_type;
+        ASSERT_EQUAL(return_type->type, AST_TYPE_USER_DEFINED);
+        ASSERT_STRINGS_ARE_EQUAL(return_type->name.token.lexeme, "Bool");
 
         parser_destroy(&parser);
         lexer_destroy(&lexer);
     }
 
     {
-        const String_View input = string_view("hello");
+        const String_View input = string_view("foo: () -> void = {}");
 
         Lexer lexer = {0};
         Parser parser = {0};
 
         lexer_create(&lexer, input);
-        parser_create(&parser, &lexer);
+        parser_create(context->arena, &parser, &lexer);
 
-        Expression* expression = parser_parse(&parser);
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
 
-        ASSERT_EQUAL(expression->type, EXPRESSION_LITERAL);
-        ASSERT_EQUAL(expression->literal->token.type, TOKEN_IDENTIFIER);
-        ASSERT_STRINGS_ARE_EQUAL(expression->literal->token.lexeme, "hello");
+        ASSERT_EQUAL(ast.function_definitions_count, 1);
 
-        const String_View expression_in_prn = convert_expression_to_prn(context->arena,
-                                                                        expression);
-        ASSERT_STRINGS_ARE_EQUAL(expression_in_prn, "hello");
+        const Ast_Function_Definition* definition = &ast.function_definitions[0];
+        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
-        expression_destroy(expression);
+        const Ast_Type* function_type = definition->type;
+        ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+
+        const Ast_Function_Arguments* arguments = &function_type->arguments;
+        ASSERT_EQUAL(arguments->arguments_count, 0);
+
+        const Ast_Type* return_type = function_type->return_type;
+        ASSERT_EQUAL(return_type->type, AST_TYPE_VOID);
 
         parser_destroy(&parser);
         lexer_destroy(&lexer);
     }
 
     {
-        const String_View input = string_view("true");
+        const String_View input = string_view("foo: (argument: Int32) -> void = {}");
 
         Lexer lexer = {0};
         Parser parser = {0};
 
         lexer_create(&lexer, input);
-        parser_create(&parser, &lexer);
+        parser_create(context->arena, &parser, &lexer);
 
-        Expression* expression = parser_parse(&parser);
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
 
-        ASSERT_EQUAL(expression->type, EXPRESSION_LITERAL);
-        ASSERT_EQUAL(expression->literal->token.type, TOKEN_TRUE);
-        ASSERT_STRINGS_ARE_EQUAL(expression->literal->token.lexeme, "true");
+        ASSERT_EQUAL(ast.function_definitions_count, 1);
 
-        expression_destroy(expression);
+        const Ast_Function_Definition* definition = &ast.function_definitions[0];
+        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
+
+        const Ast_Type* function_type = definition->type;
+        ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+
+        const Ast_Function_Arguments* arguments = &function_type->arguments;
+        ASSERT_EQUAL(arguments->arguments_count, 1);
+
+        const Ast_Function_Argument* argument = &arguments->arguments[0];
+        ASSERT_STRINGS_ARE_EQUAL(argument->name.token.lexeme, "argument");
+
+        const Ast_Type* argument_type = argument->type;
+        ASSERT_EQUAL(argument_type->type, AST_TYPE_INT_32);
+
+        const Ast_Type* return_type = function_type->return_type;
+        ASSERT_EQUAL(return_type->type, AST_TYPE_VOID);
 
         parser_destroy(&parser);
         lexer_destroy(&lexer);
     }
 
     {
-        const String_View input = string_view("false");
+        const String_View input = string_view("foo: () -> () -> void = {}");
 
         Lexer lexer = {0};
         Parser parser = {0};
 
         lexer_create(&lexer, input);
-        parser_create(&parser, &lexer);
+        parser_create(context->arena, &parser, &lexer);
 
-        Expression* expression = parser_parse(&parser);
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
 
-        ASSERT_EQUAL(expression->type, EXPRESSION_LITERAL);
-        ASSERT_EQUAL(expression->literal->token.type, TOKEN_FALSE);
-        ASSERT_STRINGS_ARE_EQUAL(expression->literal->token.lexeme, "false");
+        ASSERT_EQUAL(ast.function_definitions_count, 1);
 
-        expression_destroy(expression);
+        const Ast_Function_Definition* definition = &ast.function_definitions[0];
+        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
-    }
-}
+        const Ast_Type* function_type = definition->type;
+        ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
 
-internal void
-test_parsing_unary(Test_Context* context)
-{
-    // XXX(vlad): Is unary plus really useful? We can accept this production but report it as a compile error.
-    //            I don't know if I want to do it though. Like, if we have this production already, why would we treat
-    //            it as an error?
-    //
-    //            We can disable its support by default and let the user opt-in into unary '+' via a compiler flag.
-    {
-        const String_View input = string_view("+2");
+        const Ast_Function_Arguments* arguments = &function_type->arguments;
+        ASSERT_EQUAL(arguments->arguments_count, 0);
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        lexer_create(&lexer, input);
-        parser_create(&parser, &lexer);
-
-        Expression* expression = parser_parse(&parser);
-
-        ASSERT_EQUAL(expression->type, EXPRESSION_UNARY);
-
-        Token* operator = &expression->unary->operator;
-        ASSERT_EQUAL(operator->type, TOKEN_PLUS);
-        ASSERT_STRINGS_ARE_EQUAL(operator->lexeme, "+");
-
-        Expression* subexpression = expression->unary->expression;
-        ASSERT_EQUAL(subexpression->type, EXPRESSION_LITERAL);
-        ASSERT_EQUAL(subexpression->literal->token.type, TOKEN_NUMBER);
-        ASSERT_STRINGS_ARE_EQUAL(subexpression->literal->token.lexeme, "2");
-
-        const String_View expression_in_prn = convert_expression_to_prn(context->arena,
-                                                                        expression);
-        ASSERT_STRINGS_ARE_EQUAL(expression_in_prn, "2 +");
-
-        expression_destroy(expression);
+        const Ast_Type* return_type = function_type->return_type;
+        ASSERT_EQUAL(return_type->type, AST_TYPE_FUNCTION);
+        ASSERT_EQUAL(return_type->arguments.arguments_count, 0);
+        ASSERT_EQUAL(return_type->return_type->type, AST_TYPE_VOID);
 
         parser_destroy(&parser);
         lexer_destroy(&lexer);
     }
 
     {
-        const String_View input = string_view("-2");
+        const String_View input = string_view("foo: (first: Int32, second: Some_Type) -> void = {}");
 
         Lexer lexer = {0};
         Parser parser = {0};
 
         lexer_create(&lexer, input);
-        parser_create(&parser, &lexer);
+        parser_create(context->arena, &parser, &lexer);
 
-        Expression* expression = parser_parse(&parser);
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
 
-        ASSERT_EQUAL(expression->type, EXPRESSION_UNARY);
+        ASSERT_EQUAL(ast.function_definitions_count, 1);
 
-        Token* operator = &expression->unary->operator;
-        ASSERT_EQUAL(operator->type, TOKEN_MINUS);
-        ASSERT_STRINGS_ARE_EQUAL(operator->lexeme, "-");
+        const Ast_Function_Definition* definition = &ast.function_definitions[0];
+        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
-        Expression* subexpression = expression->unary->expression;
-        ASSERT_EQUAL(subexpression->type, EXPRESSION_LITERAL);
-        ASSERT_EQUAL(subexpression->literal->token.type, TOKEN_NUMBER);
-        ASSERT_STRINGS_ARE_EQUAL(subexpression->literal->token.lexeme, "2");
+        const Ast_Type* function_type = definition->type;
+        ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
 
-        const String_View expression_in_prn = convert_expression_to_prn(context->arena,
-                                                                        expression);
-        ASSERT_STRINGS_ARE_EQUAL(expression_in_prn, "2 -");
+        const Ast_Function_Arguments* arguments = &function_type->arguments;
+        ASSERT_EQUAL(arguments->arguments_count, 2);
 
-        expression_destroy(expression);
+        {
+            const Ast_Function_Argument* first_argument = &arguments->arguments[0];
+            ASSERT_STRINGS_ARE_EQUAL(first_argument->name.token.lexeme, "first");
+
+            const Ast_Type* first_argument_type = first_argument->type;
+            ASSERT_EQUAL(first_argument_type->type, AST_TYPE_INT_32);
+        }
+
+        {
+            const Ast_Function_Argument* second_argument = &arguments->arguments[1];
+            ASSERT_STRINGS_ARE_EQUAL(second_argument->name.token.lexeme, "second");
+
+            const Ast_Type* second_argument_type = second_argument->type;
+            ASSERT_EQUAL(second_argument_type->type, AST_TYPE_USER_DEFINED);
+            ASSERT_STRINGS_ARE_EQUAL(second_argument_type->name.token.lexeme, "Some_Type");
+        }
+
+        const Ast_Type* return_type = function_type->return_type;
+        ASSERT_EQUAL(return_type->type, AST_TYPE_VOID);
 
         parser_destroy(&parser);
         lexer_destroy(&lexer);
     }
 
+    // NOTE(vlad): Multiple function definitions.
     {
-        const String_View input = string_view("!false");
+        const String_View input = string_view("foo: () -> void = {}\n"
+                                              "bar: (arg: Type) -> Other_Type = {}");
 
         Lexer lexer = {0};
         Parser parser = {0};
 
         lexer_create(&lexer, input);
-        parser_create(&parser, &lexer);
+        parser_create(context->arena, &parser, &lexer);
 
-        Expression* expression = parser_parse(&parser);
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
 
-        ASSERT_EQUAL(expression->type, EXPRESSION_UNARY);
+        ASSERT_EQUAL(ast.function_definitions_count, 2);
 
-        Token* operator = &expression->unary->operator;
-        ASSERT_EQUAL(operator->type, TOKEN_NOT);
-        ASSERT_STRINGS_ARE_EQUAL(operator->lexeme, "!");
+        {
+            const Ast_Function_Definition* definition = &ast.function_definitions[0];
+            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
-        Expression* subexpression = expression->unary->expression;
-        ASSERT_EQUAL(subexpression->type, EXPRESSION_LITERAL);
-        ASSERT_EQUAL(subexpression->literal->token.type, TOKEN_FALSE);
-        ASSERT_STRINGS_ARE_EQUAL(subexpression->literal->token.lexeme, "false");
+            const Ast_Type* function_type = definition->type;
+            ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
 
-        const String_View expression_in_prn = convert_expression_to_prn(context->arena,
-                                                                        expression);
-        ASSERT_STRINGS_ARE_EQUAL(expression_in_prn, "false !");
+            const Ast_Function_Arguments* arguments = &function_type->arguments;
+            ASSERT_EQUAL(arguments->arguments_count, 0);
 
-        expression_destroy(expression);
+            const Ast_Type* return_type = function_type->return_type;
+            ASSERT_EQUAL(return_type->type, AST_TYPE_VOID);
+        }
 
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
-    }
-}
+        {
+            const Ast_Function_Definition* definition = &ast.function_definitions[1];
+            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "bar");
 
-internal void
-test_simple_expressions(Test_Context* context)
-{
-    {
-        const String_View input = string_view("2 + 2");
+            const Ast_Type* function_type = definition->type;
+            ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
 
-        Lexer lexer = {0};
-        Parser parser = {0};
+            const Ast_Function_Arguments* arguments = &function_type->arguments;
+            ASSERT_EQUAL(arguments->arguments_count, 1);
+            ASSERT_STRINGS_ARE_EQUAL(arguments->arguments[0].name.token.lexeme, "arg");
+            ASSERT_EQUAL(arguments->arguments[0].type->type, AST_TYPE_USER_DEFINED);
+            ASSERT_STRINGS_ARE_EQUAL(arguments->arguments[0].type->name.token.lexeme, "Type");
 
-        lexer_create(&lexer, input);
-        parser_create(&parser, &lexer);
-
-        Expression* expression = parser_parse(&parser);
-        const String_View expression_in_prn = convert_expression_to_prn(context->arena,
-                                                                        expression);
-        ASSERT_STRINGS_ARE_EQUAL(expression_in_prn, "2 2 +");
-
-        expression_destroy(expression);
+            const Ast_Type* return_type = function_type->return_type;
+            ASSERT_EQUAL(return_type->type, AST_TYPE_USER_DEFINED);
+            ASSERT_STRINGS_ARE_EQUAL(return_type->name.token.lexeme, "Other_Type");
+        }
 
         parser_destroy(&parser);
         lexer_destroy(&lexer);
     }
-
-    {
-        const String_View input = string_view("2 - 2");
-
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        lexer_create(&lexer, input);
-        parser_create(&parser, &lexer);
-
-        Expression* expression = parser_parse(&parser);
-        const String_View expression_in_prn = convert_expression_to_prn(context->arena,
-                                                                        expression);
-        ASSERT_STRINGS_ARE_EQUAL(expression_in_prn, "2 2 -");
-
-        expression_destroy(expression);
-
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
-    }
-
-    {
-        const String_View input = string_view("2 * 2");
-
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        lexer_create(&lexer, input);
-        parser_create(&parser, &lexer);
-
-        Expression* expression = parser_parse(&parser);
-        const String_View expression_in_prn = convert_expression_to_prn(context->arena,
-                                                                        expression);
-        ASSERT_STRINGS_ARE_EQUAL(expression_in_prn, "2 2 *");
-
-        expression_destroy(expression);
-
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
-    }
-
-    {
-        const String_View input = string_view("2 / 2");
-
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        lexer_create(&lexer, input);
-        parser_create(&parser, &lexer);
-
-        Expression* expression = parser_parse(&parser);
-        const String_View expression_in_prn = convert_expression_to_prn(context->arena,
-                                                                        expression);
-        ASSERT_STRINGS_ARE_EQUAL(expression_in_prn, "2 2 /");
-
-        expression_destroy(expression);
-
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
-    }
-
-    {
-        const String_View input = string_view("hello + true");
-
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        lexer_create(&lexer, input);
-        parser_create(&parser, &lexer);
-
-        Expression* expression = parser_parse(&parser);
-        const String_View expression_in_prn = convert_expression_to_prn(context->arena,
-                                                                        expression);
-        ASSERT_STRINGS_ARE_EQUAL(expression_in_prn, "hello true +");
-
-        expression_destroy(expression);
-
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
-    }
-}
-
-internal void
-test_operator_precedence(Test_Context* context)
-{
-    {
-        const String_View input = string_view("2 + 2 * 2");
-
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        lexer_create(&lexer, input);
-        parser_create(&parser, &lexer);
-
-        Expression* expression = parser_parse(&parser);
-        const String_View expression_in_rpn = convert_expression_to_prn(context->arena,
-                                                                        expression);
-        ASSERT_STRINGS_ARE_EQUAL(expression_in_rpn, "2 2 2 * +");
-
-        expression_destroy(expression);
-
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
-    }
-
-    {
-        const String_View input = string_view("2 + (2 * 2)");
-
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        lexer_create(&lexer, input);
-        parser_create(&parser, &lexer);
-
-        Expression* expression = parser_parse(&parser);
-        const String_View expression_in_rpn = convert_expression_to_prn(context->arena,
-                                                                        expression);
-        ASSERT_STRINGS_ARE_EQUAL(expression_in_rpn, "2 2 2 * +");
-
-        expression_destroy(expression);
-
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
-    }
-
-    {
-        const String_View input = string_view("(2 + 2) * 2");
-
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        lexer_create(&lexer, input);
-        parser_create(&parser, &lexer);
-
-        Expression* expression = parser_parse(&parser);
-        const String_View expression_in_rpn = convert_expression_to_prn(context->arena,
-                                                                        expression);
-        ASSERT_STRINGS_ARE_EQUAL(expression_in_rpn, "2 2 + 2 *");
-
-        expression_destroy(expression);
-
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
-    }
-}
-
-internal void
-test_syntax_errors(Test_Context* context)
-{
-    // FIXME(vlad): Write the tests after implementing a centralized compile errors reporting system.
-    UNUSED(context);
 }
 
 REGISTER_TESTS(
-    test_expression_conversion_to_rpn,
-    test_parsing_literals,
-    test_parsing_unary,
-    test_simple_expressions,
-    test_operator_precedence,
-    test_syntax_errors
+    test_function_definitions_parsing
 )
 
 #include "eon_parser.c"

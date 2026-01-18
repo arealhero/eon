@@ -1,3 +1,9 @@
+#include <stdio.h> // NOTE(vlad): This include is needed because 'readline' does not include it
+                   //             itself for some stupid reason.
+#include <stdlib.h>
+#include <readline/readline.h>
+#include <readline/history.h>
+
 #include <eon/common.h>
 #include <eon/io.h>
 #include <eon/memory.h>
@@ -7,16 +13,10 @@
 #include "eon_log.h"
 #include "eon_parser.h"
 
-#include <stdio.h> // NOTE(vlad): This include is needed because 'readline' does not include it
-                   //             itself for some stupid reason.
-#include <stdlib.h>
-#include <readline/readline.h>
-#include <readline/history.h>
-
 int
 main(void)
 {
-    init_io_state(MiB(1));
+    init_io_state(GiB(1));
 
     Lexer lexer = {0};
     char* raw_input = NULL;

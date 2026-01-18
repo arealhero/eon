@@ -12,7 +12,8 @@ test_line_comments(Test_Context* context)
         lexer_create(&lexer, input);
 
         Token token = {0};
-        ASSERT_FALSE(lexer_get_next_token(&lexer, &token));
+        ASSERT_TRUE(lexer_get_next_token(&lexer, &token));
+        ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         lexer_destroy(&lexer);
     }
@@ -24,7 +25,8 @@ test_line_comments(Test_Context* context)
         lexer_create(&lexer, input);
 
         Token token = {0};
-        ASSERT_FALSE(lexer_get_next_token(&lexer, &token));
+        ASSERT_TRUE(lexer_get_next_token(&lexer, &token));
+        ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         lexer_destroy(&lexer);
     }
@@ -43,7 +45,8 @@ test_line_comments(Test_Context* context)
         ASSERT_EQUAL(token.line, 1);
         ASSERT_EQUAL(token.column, 0);
 
-        ASSERT_FALSE(lexer_get_next_token(&lexer, &token));
+        ASSERT_TRUE(lexer_get_next_token(&lexer, &token));
+        ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         lexer_destroy(&lexer);
     }
@@ -74,7 +77,8 @@ test_line_comments(Test_Context* context)
         ASSERT_EQUAL(token.line, 1);
         ASSERT_EQUAL(token.column, 0);
 
-        ASSERT_FALSE(lexer_get_next_token(&lexer, &token));
+        ASSERT_TRUE(lexer_get_next_token(&lexer, &token));
+        ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         lexer_destroy(&lexer);
     }
@@ -107,7 +111,8 @@ test_line_comments(Test_Context* context)
         ASSERT_EQUAL(token.line, 0);
         ASSERT_EQUAL(token.column, 24);
 
-        ASSERT_FALSE(lexer_get_next_token(&lexer, &token));
+        ASSERT_TRUE(lexer_get_next_token(&lexer, &token));
+        ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         lexer_destroy(&lexer);
     }
@@ -138,7 +143,8 @@ test_line_comments(Test_Context* context)
         ASSERT_EQUAL(token.line, 0);
         ASSERT_EQUAL(token.column, 44);
 
-        ASSERT_FALSE(lexer_get_next_token(&lexer, &token));
+        ASSERT_TRUE(lexer_get_next_token(&lexer, &token));
+        ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         lexer_destroy(&lexer);
     }
@@ -157,7 +163,8 @@ test_line_comments(Test_Context* context)
         ASSERT_EQUAL(token.line, 0);
         ASSERT_EQUAL(token.column, 54);
 
-        ASSERT_FALSE(lexer_get_next_token(&lexer, &token));
+        ASSERT_TRUE(lexer_get_next_token(&lexer, &token));
+        ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         lexer_destroy(&lexer);
     }
@@ -192,7 +199,8 @@ test_numbers(Test_Context* context)
         ASSERT_EQUAL(token.line, 0);
         ASSERT_EQUAL(token.column, 4);
 
-        ASSERT_FALSE(lexer_get_next_token(&lexer, &token));
+        ASSERT_TRUE(lexer_get_next_token(&lexer, &token));
+        ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         lexer_destroy(&lexer);
     }
@@ -223,7 +231,8 @@ test_numbers(Test_Context* context)
         ASSERT_EQUAL(token.line, 0);
         ASSERT_EQUAL(token.column, 13);
 
-        ASSERT_FALSE(lexer_get_next_token(&lexer, &token));
+        ASSERT_TRUE(lexer_get_next_token(&lexer, &token));
+        ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         lexer_destroy(&lexer);
     }
@@ -262,7 +271,8 @@ test_identifiers(Test_Context* context)
         ASSERT_EQUAL(token.line, 0);
         ASSERT_EQUAL(token.column, 4);
 
-        ASSERT_FALSE(lexer_get_next_token(&lexer, &token));
+        ASSERT_TRUE(lexer_get_next_token(&lexer, &token));
+        ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         lexer_destroy(&lexer);
     }
@@ -287,7 +297,8 @@ test_identifiers(Test_Context* context)
         ASSERT_EQUAL(token.line, 0);
         ASSERT_EQUAL(token.column, 7);
 
-        ASSERT_FALSE(lexer_get_next_token(&lexer, &token));
+        ASSERT_TRUE(lexer_get_next_token(&lexer, &token));
+        ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         lexer_destroy(&lexer);
     }
@@ -344,14 +355,15 @@ test_identifiers(Test_Context* context)
         ASSERT_EQUAL(token.line, 0);
         ASSERT_EQUAL(token.column, 12);
 
-        ASSERT_FALSE(lexer_get_next_token(&lexer, &token));
+        ASSERT_TRUE(lexer_get_next_token(&lexer, &token));
+        ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         lexer_destroy(&lexer);
     }
 }
 
 internal void
-test_keywords(Test_Context* context)
+test_keywords_and_digraphs(Test_Context* context)
 {
     {
         const String_View input = string_view("for a");
@@ -373,7 +385,28 @@ test_keywords(Test_Context* context)
         ASSERT_EQUAL(token.line, 0);
         ASSERT_EQUAL(token.column, 4);
 
-        ASSERT_FALSE(lexer_get_next_token(&lexer, &token));
+        ASSERT_TRUE(lexer_get_next_token(&lexer, &token));
+        ASSERT_EQUAL(token.type, TOKEN_EOF);
+
+        lexer_destroy(&lexer);
+    }
+
+    {
+        const String_View input = string_view("->");
+
+        Lexer lexer = {0};
+        lexer_create(&lexer, input);
+
+        Token token = {0};
+
+        ASSERT_TRUE(lexer_get_next_token(&lexer, &token));
+        ASSERT_EQUAL(token.type, TOKEN_ARROW);
+        ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "->");
+        ASSERT_EQUAL(token.line, 0);
+        ASSERT_EQUAL(token.column, 0);
+
+        ASSERT_TRUE(lexer_get_next_token(&lexer, &token));
+        ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         lexer_destroy(&lexer);
     }
@@ -383,7 +416,7 @@ REGISTER_TESTS(
     test_line_comments,
     test_numbers,
     test_identifiers,
-    test_keywords
+    test_keywords_and_digraphs
 )
 
 #include "eon_lexer.c"

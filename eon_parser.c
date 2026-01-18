@@ -1,300 +1,364 @@
 #include "eon_parser.h"
 
-maybe_unused internal String_View
-convert_expression_to_prn(Arena* const restrict arena,
-                          const Expression* const restrict expression)
+#include <eon/io.h>
+
+// FIXME(vlad): Report syntax errors here.
+
+internal Bool
+parser_get_next_token(Parser* parser)
 {
-    switch (expression->type)
+    if (parser->current_token.type != TOKEN_UNDEFINED)
     {
-        case EXPRESSION_UNDEFINED:
-        {
-            FAIL();
-        } break;
-
-        case EXPRESSION_BINARY:
-        {
-            Binary_Expression* binary = expression->binary;
-
-            const String_View lhs = convert_expression_to_prn(arena, binary->lhs);
-            const String_View rhs = convert_expression_to_prn(arena, binary->rhs);
-            return string_view(format_string(arena, "{} {} {}", lhs, rhs, binary->operator.lexeme));
-        } break;
-
-        case EXPRESSION_UNARY:
-        {
-            Unary_Expression* unary = expression->unary;
-
-            const String_View unary_expression = convert_expression_to_prn(arena, unary->expression);
-            return string_view(format_string(arena, "{} {}", unary_expression, unary->operator.lexeme));
-        } break;
-
-        case EXPRESSION_LITERAL:
-        {
-            Literal_Expression* literal = expression->literal;
-            return string_view(format_string(arena, "{}", literal->token.lexeme));
-        } break;
-
-        case EXPRESSION_GROUPING:
-        {
-            Grouping_Expression* grouping = expression->grouping;
-            return convert_expression_to_prn(arena, grouping->expression);
-        } break;
+        // NOTE(vlad): Current token was not consumed yet.
+        return true;
     }
-}
-
-maybe_unused internal void
-expression_destroy(Expression* expression)
-{
-    switch (expression->type)
-    {
-        case EXPRESSION_UNDEFINED:
-        {
-            FAIL();
-        } break;
-
-        case EXPRESSION_BINARY:
-        {
-            Binary_Expression* binary = expression->binary;
-
-            expression_destroy(binary->lhs);
-            expression_destroy(binary->rhs);
-
-            free(binary);
-        } break;
-
-        case EXPRESSION_UNARY:
-        {
-            Unary_Expression* unary = expression->unary;
-
-            expression_destroy(unary->expression);
-
-            free(unary);
-        } break;
-
-        case EXPRESSION_LITERAL:
-        {
-            Literal_Expression* literal = expression->literal;
-
-            free(literal);
-        } break;
-
-        case EXPRESSION_GROUPING:
-        {
-            Grouping_Expression* grouping = expression->grouping;
-
-            expression_destroy(grouping->expression);
-
-            free(grouping);
-        } break;
-    }
-
-    free(expression);
-}
-
-internal void
-parser_advance(Parser* parser)
-{
-    parser->previous_token = parser->current_token;
 
     if (!lexer_get_next_token(parser->lexer, &parser->current_token))
     {
-        parser->current_token = (Token){0};
-        parser->current_token.type = TOKEN_EOF;
+        return false;
     }
+
+    return true;
+}
+
+internal inline void
+parser_consume_token(Parser* parser)
+{
+    parser->current_token = (Token){0};
 }
 
 internal Bool
-parser_match_and_optionally_advance(Parser* parser, const Token_Type type)
+parser_try_to_consume_token_with_type(Parser* parser,
+                                      const Token_Type expected_type)
 {
-    if (parser->current_token.type == type)
+    ASSERT(parser->current_token.type != TOKEN_UNDEFINED && "Tried to consume undefined token.");
+
+    if (parser->current_token.type == expected_type)
     {
-        parser_advance(parser);
+        parser_consume_token(parser);
         return true;
     }
 
     return false;
 }
 
-internal void parser_parse_expression(Parser* parser, Expression* expression);
-
-internal void
-parser_parse_primary(Parser* parser, Expression* expression)
+internal Bool
+parser_get_and_consume_token_with_type(Parser* parser,
+                                       const Token_Type expected_type)
 {
-    if (parser_match_and_optionally_advance(parser, TOKEN_TRUE)
-        || parser_match_and_optionally_advance(parser, TOKEN_FALSE)
-        || parser_match_and_optionally_advance(parser, TOKEN_IDENTIFIER)
-        || parser_match_and_optionally_advance(parser, TOKEN_NUMBER))
+    if (!parser_get_next_token(parser))
     {
-        expression->type = EXPRESSION_LITERAL;
-        expression->literal = calloc(1, sizeof(Literal_Expression));
-        expression->literal->token = parser->previous_token;
+        return false;
     }
-    else if (parser_match_and_optionally_advance(parser, TOKEN_LEFT_PAREN))
-    {
-        Expression* expression_in_parens = calloc(1, sizeof(Expression));
-        parser_parse_expression(parser, expression_in_parens);
 
-        if (!parser_match_and_optionally_advance(parser, TOKEN_RIGHT_PAREN))
-        {
-            ASSERT(0 && "Expected ')' after expression");
-        }
-
-        expression->type = EXPRESSION_GROUPING;
-        expression->grouping = calloc(1, sizeof(Grouping_Expression));
-        expression->grouping->expression = expression_in_parens;
-    }
-    else
+    if (parser_try_to_consume_token_with_type(parser, expected_type))
     {
-        ASSERT(0 && "Unsupported token found");
+        return true;
     }
+
+    println("Parser error: Expected type {}, found {}",
+            expected_type, parser->current_token.type);
+
+    return false;
 }
 
 internal void
-parser_parse_unary(Parser* parser, Expression* expression)
-{
-    if (parser_match_and_optionally_advance(parser, TOKEN_NOT)
-        || parser_match_and_optionally_advance(parser, TOKEN_PLUS)
-        || parser_match_and_optionally_advance(parser, TOKEN_MINUS))
-    {
-        Token operator = parser->previous_token;
-
-        Expression* subexpression = calloc(1, sizeof(Expression));
-        parser_parse_unary(parser, subexpression);
-
-        expression->type = EXPRESSION_UNARY;
-        expression->unary = calloc(1, sizeof(Unary_Expression));
-        expression->unary->operator = operator;
-        expression->unary->expression = subexpression;
-    }
-    else
-    {
-        parser_parse_primary(parser, expression);
-    }
-}
-
-internal void
-parser_parse_factor(Parser* parser, Expression* expression)
-{
-    parser_parse_unary(parser, expression);
-
-    while (parser_match_and_optionally_advance(parser, TOKEN_SLASH)
-           || parser_match_and_optionally_advance(parser, TOKEN_STAR))
-    {
-        Token operator = parser->previous_token;
-
-        Expression* rhs = calloc(1, sizeof(Expression));
-        parser_parse_unary(parser, rhs);
-
-        Expression* lhs = calloc(1, sizeof(Expression));
-        copy_memory(as_bytes(lhs), as_bytes(expression), sizeof(Expression));
-
-        expression->type = EXPRESSION_BINARY;
-        expression->binary = calloc(1, sizeof(Binary_Expression));
-        expression->binary->lhs = lhs;
-        expression->binary->operator = operator;
-        expression->binary->rhs = rhs;
-    }
-}
-
-internal void
-parser_parse_term(Parser* parser, Expression* expression)
-{
-    parser_parse_factor(parser, expression);
-
-    while (parser_match_and_optionally_advance(parser, TOKEN_MINUS)
-           || parser_match_and_optionally_advance(parser, TOKEN_PLUS))
-    {
-        Token operator = parser->previous_token;
-
-        Expression* rhs = calloc(1, sizeof(Expression));
-        parser_parse_factor(parser, rhs);
-
-        Expression* lhs = calloc(1, sizeof(Expression));
-        copy_memory(as_bytes(lhs), as_bytes(expression), sizeof(Expression));
-
-        expression->type = EXPRESSION_BINARY;
-        expression->binary = calloc(1, sizeof(Binary_Expression));
-        expression->binary->lhs = lhs;
-        expression->binary->operator = operator;
-        expression->binary->rhs = rhs;
-    }
-}
-
-internal void
-parser_parse_comparison(Parser* parser, Expression* expression)
-{
-    parser_parse_term(parser, expression);
-
-    while (parser_match_and_optionally_advance(parser, TOKEN_LESS)
-           || parser_match_and_optionally_advance(parser, TOKEN_LESS_OR_EQUAL)
-           || parser_match_and_optionally_advance(parser, TOKEN_GREATER)
-           || parser_match_and_optionally_advance(parser, TOKEN_GREATER_OR_EQUAL))
-    {
-        Token operator = parser->previous_token;
-
-        Expression* rhs = calloc(1, sizeof(Expression));
-        parser_parse_term(parser, rhs);
-
-        Expression* lhs = calloc(1, sizeof(Expression));
-        copy_memory(as_bytes(lhs), as_bytes(expression), sizeof(Expression));
-
-        expression->type = EXPRESSION_BINARY;
-        expression->binary = calloc(1, sizeof(Binary_Expression));
-        expression->binary->lhs = lhs;
-        expression->binary->operator = operator;
-        expression->binary->rhs = rhs;
-    }
-}
-
-internal void
-parser_parse_equality(Parser* parser, Expression* expression)
-{
-    parser_parse_comparison(parser, expression);
-
-    while (parser_match_and_optionally_advance(parser, TOKEN_EQUAL)
-           || parser_match_and_optionally_advance(parser, TOKEN_NOT_EQUAL))
-    {
-        Token operator = parser->previous_token;
-
-        Expression* rhs = calloc(1, sizeof(Expression));
-        parser_parse_comparison(parser, rhs);
-
-        Expression* lhs = calloc(1, sizeof(Expression));
-        copy_memory(as_bytes(lhs), as_bytes(expression), sizeof(Expression));
-
-        expression->type = EXPRESSION_BINARY;
-        expression->binary = calloc(1, sizeof(Binary_Expression));
-        expression->binary->lhs = lhs;
-        expression->binary->operator = operator;
-        expression->binary->rhs = rhs;
-    }
-}
-
-internal void
-parser_parse_expression(Parser* parser, Expression* expression)
-{
-    parser_parse_equality(parser, expression);
-}
-
-maybe_unused internal void
-parser_create(Parser* parser, Lexer* lexer)
+parser_create(Arena* arena, Parser* parser, Lexer* lexer)
 {
     parser->lexer = lexer;
-    parser->previous_token = (Token){0};
     parser->current_token = (Token){0};
+
+    const Builtin_Type builtin_types[] = {
+        { .lexeme = string_view("void"), .type = AST_TYPE_VOID, },
+        { .lexeme = string_view("Int32"), .type = AST_TYPE_INT_32, },
+    };
+    const Size builtin_types_count = size_of(builtin_types) / size_of(builtin_types[0]);
+
+    parser->builtin_types = allocate_uninitialized_array(arena,
+                                                         builtin_types_count,
+                                                         Builtin_Type);
+    parser->builtin_types_count = builtin_types_count;
+
+    for (Index i = 0;
+         i < builtin_types_count;
+         ++i)
+    {
+        parser->builtin_types[i] = builtin_types[i];
+    }
 }
 
-maybe_unused internal Expression*
-parser_parse(Parser* parser)
+internal Bool
+parse_identifier(Parser* parser,
+                 Ast_Identifier* identifier)
 {
-    parser_advance(parser);
+    if (!parser_get_next_token(parser))
+    {
+        return false;
+    }
 
-    Expression* expression = calloc(1, sizeof(Expression));
-    parser_parse_expression(parser, expression);
-    return expression;
+    if (parser->current_token.type != TOKEN_IDENTIFIER)
+    {
+        println("Expected identifier, got {}", parser->current_token.type);
+        // TODO(vlad): Report parsing error.
+        FAIL("Expected identifier");
+        return false;
+    }
+
+    identifier->token = parser->current_token;
+    parser_consume_token(parser);
+
+    return true;
 }
 
-maybe_unused internal void
+internal Bool parse_function_type(Arena* arena,
+                                  Parser* parser,
+                                  Ast_Type* type);
+
+internal Bool
+parse_type(Arena* arena,
+           Parser* parser,
+           Ast_Type* type)
+{
+    if (!parser_get_next_token(parser))
+    {
+        return false;
+    }
+
+    switch (parser->current_token.type)
+    {
+        case TOKEN_LEFT_PAREN:
+        {
+            return parse_function_type(arena, parser, type);
+        } break;
+
+        case TOKEN_IDENTIFIER:
+        {
+            type->type = AST_TYPE_USER_DEFINED;
+            type->name.token = parser->current_token;
+            parser_consume_token(parser);
+
+            for (Index i = 0;
+                 i < parser->builtin_types_count;
+                 ++i)
+            {
+                Builtin_Type* builtin_type = &parser->builtin_types[i];
+                if (strings_are_equal(builtin_type->lexeme, type->name.token.lexeme))
+                {
+                    type->type = builtin_type->type;
+                    break;
+                }
+            }
+
+            return true;
+        } break;
+
+        default:
+        {
+            println("Failed to parse type");
+            return false;
+        };
+    }
+}
+
+internal Bool
+parse_argument_declaration(Arena* arena,
+                           Parser* parser,
+                           Ast_Function_Argument* argument)
+{
+    if (!parser_get_next_token(parser))
+    {
+        return false;
+    }
+
+    if (parser->current_token.type != TOKEN_IDENTIFIER)
+    {
+        return false;
+    }
+
+    argument->name.token = parser->current_token;
+    parser_consume_token(parser);
+
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_COLON))
+    {
+        return false;
+    }
+
+    argument->type = allocate(arena, Ast_Type);
+    return parse_type(arena, parser, argument->type);
+}
+
+internal Bool
+parse_arguments_declaration(Arena* arena,
+                            Parser* parser,
+                            Ast_Function_Arguments* arguments)
+{
+    while (true)
+    {
+        Ast_Function_Argument argument = {0};
+        if (!parse_argument_declaration(arena, parser, &argument))
+        {
+            return false;
+        }
+
+        if (arguments->arguments_count == arguments->arguments_capacity)
+        {
+            // XXX(vlad): We can change 'MAX(1, 2 * capacity)' to '(2 * capacity) | 1'.
+            const Size new_capacity = MAX(1, 2 * arguments->arguments_capacity);
+            arguments->arguments = reallocate(arena,
+                                              arguments->arguments,
+                                              Ast_Function_Argument,
+                                              arguments->arguments_capacity,
+                                              new_capacity);
+            arguments->arguments_capacity = new_capacity;
+        }
+
+        arguments->arguments[arguments->arguments_count] = argument;
+        arguments->arguments_count += 1;
+
+        if (!parser_get_next_token(parser))
+        {
+            return false;
+        }
+
+        if (parser->current_token.type != TOKEN_COMMA)
+        {
+            return true;
+        }
+
+        parser_consume_token(parser);
+    }
+}
+
+internal Bool
+parse_function_type(Arena* arena,
+                    Parser* parser,
+                    Ast_Type* type)
+{
+    type->type = AST_TYPE_FUNCTION;
+
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_LEFT_PAREN))
+    {
+        return false;
+    }
+
+    if (!parser_get_next_token(parser))
+    {
+        return false;
+    }
+
+    if (parser->current_token.type != TOKEN_RIGHT_PAREN)
+    {
+        if (!parse_arguments_declaration(arena, parser, &type->arguments))
+        {
+            return false;
+        }
+    }
+
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_RIGHT_PAREN))
+    {
+        return false;
+    }
+
+    // XXX(vlad): Make the return type optional for 'main'?
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_ARROW))
+    {
+        return false;
+    }
+
+    type->return_type = allocate(arena, Ast_Type);
+    return parse_type(arena, parser, type->return_type);
+}
+
+internal Bool
+parse_function_body(Parser* parser)
+{
+    UNUSED(parser);
+    return true;
+}
+
+internal Bool
+parse_function_definition(Arena* arena,
+                          Parser* parser,
+                          Ast_Function_Definition* function_definition)
+{
+    if (!parse_identifier(parser, &function_definition->name))
+    {
+        return false;
+    }
+
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_COLON))
+    {
+        return false;
+    }
+
+    function_definition->type = allocate(arena, Ast_Type);
+    if (!parse_function_type(arena, parser, function_definition->type))
+    {
+        return false;
+    }
+
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_ASSIGN))
+    {
+        return false;
+    }
+
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_LEFT_BRACE))
+    {
+        return false;
+    }
+
+    if (!parse_function_body(parser))
+    {
+        return false;
+    }
+
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_RIGHT_BRACE))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+internal Bool
+parser_parse(Arena* arena, Parser* parser, Ast* ast)
+{
+    do
+    {
+        Ast_Function_Definition function_definition = {0};
+        if (!parse_function_definition(arena, parser, &function_definition))
+        {
+            println("Failed to parse function definition.");
+            return false;
+        }
+
+        if (ast->function_definitions_count == ast->function_definitions_capacity)
+        {
+            // XXX(vlad): We can change 'MAX(1, 2 * capacity)' to '(2 * capacity) | 1'.
+            const Size new_capacity = MAX(1, 2 * ast->function_definitions_capacity);
+            ast->function_definitions = reallocate(arena,
+                                                   ast->function_definitions,
+                                                   Ast_Function_Definition,
+                                                   ast->function_definitions_capacity,
+                                                   new_capacity);
+            ast->function_definitions_capacity = new_capacity;
+        }
+
+        ast->function_definitions[ast->function_definitions_count] = function_definition;
+        ast->function_definitions_count += 1;
+
+        // NOTE(vlad): Prefetching the next token to check if its type is EOF.
+        if (!parser_get_next_token(parser))
+        {
+            return false;
+        }
+    }
+    while (parser->current_token.type != TOKEN_EOF);
+
+    return true;
+}
+
+internal void
 parser_destroy(Parser* parser)
 {
     UNUSED(parser);

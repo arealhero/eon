@@ -61,7 +61,7 @@ internal void registry_register_test(Arena* arena,
 int
 main(const int argc, const char* argv[])
 {
-    init_io_state(MiB(1));
+    init_io_state(MiB(10));
 
     Bool show_stats_at_the_end = true;
     if (argc >= 2 && strings_are_equal(string_view(argv[1]), string_view("--hide-stats")))

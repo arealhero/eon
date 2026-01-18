@@ -13,12 +13,14 @@ token_type_to_string(const Token_Type type)
     switch (type)
     {
         ADD_TOKEN(TOKEN_UNDEFINED);
+
         ADD_TOKEN(TOKEN_LEFT_PAREN);
         ADD_TOKEN(TOKEN_RIGHT_PAREN);
         ADD_TOKEN(TOKEN_LEFT_BRACE);
         ADD_TOKEN(TOKEN_RIGHT_BRACE);
         ADD_TOKEN(TOKEN_LEFT_BRACKET);
         ADD_TOKEN(TOKEN_RIGHT_BRACKET);
+
         ADD_TOKEN(TOKEN_COMMA);
         ADD_TOKEN(TOKEN_DOT);
         ADD_TOKEN(TOKEN_MINUS);
@@ -27,23 +29,30 @@ token_type_to_string(const Token_Type type)
         ADD_TOKEN(TOKEN_STAR);
         ADD_TOKEN(TOKEN_COLON);
         ADD_TOKEN(TOKEN_SEMICOLON);
+
         ADD_TOKEN(TOKEN_NOT);
+
         ADD_TOKEN(TOKEN_ASSIGN);
+
         ADD_TOKEN(TOKEN_EQUAL);
         ADD_TOKEN(TOKEN_NOT_EQUAL);
         ADD_TOKEN(TOKEN_LESS);
         ADD_TOKEN(TOKEN_LESS_OR_EQUAL);
         ADD_TOKEN(TOKEN_GREATER);
         ADD_TOKEN(TOKEN_GREATER_OR_EQUAL);
+
         ADD_TOKEN(TOKEN_IDENTIFIER);
         ADD_TOKEN(TOKEN_STRING);
         ADD_TOKEN(TOKEN_NUMBER);
+
         ADD_TOKEN(TOKEN_FOR);
         ADD_TOKEN(TOKEN_IF);
         ADD_TOKEN(TOKEN_ELSE);
         ADD_TOKEN(TOKEN_WHILE);
         ADD_TOKEN(TOKEN_TRUE);
         ADD_TOKEN(TOKEN_FALSE);
+        ADD_TOKEN(TOKEN_ARROW);
+
         ADD_TOKEN(TOKEN_EOF);
     }
 #undef ADD_TOKEN
@@ -60,12 +69,13 @@ lexer_create(Lexer* lexer, const String_View code)
     lexer->current_column = 0;
 
     const Keyword keywords[] = {
-        { .type = TOKEN_FOR,   .lexeme = string_view("for") },
-        { .type = TOKEN_IF,    .lexeme = string_view("if") },
-        { .type = TOKEN_ELSE,  .lexeme = string_view("else") },
-        { .type = TOKEN_WHILE, .lexeme = string_view("while") },
-        { .type = TOKEN_TRUE,  .lexeme = string_view("true") },
-        { .type = TOKEN_FALSE, .lexeme = string_view("false") },
+        { .type = TOKEN_FOR,   .lexeme = string_view("for"), },
+        { .type = TOKEN_IF,    .lexeme = string_view("if"), },
+        { .type = TOKEN_ELSE,  .lexeme = string_view("else"), },
+        { .type = TOKEN_WHILE, .lexeme = string_view("while"), },
+        { .type = TOKEN_TRUE,  .lexeme = string_view("true"), },
+        { .type = TOKEN_FALSE, .lexeme = string_view("false"), },
+        { .type = TOKEN_ARROW, .lexeme = string_view("->"), }
     };
 
     lexer->keywords_count = size_of(keywords) / size_of(keywords[0]);
@@ -145,7 +155,11 @@ lexer_is_digit(const char c)
 internal Bool
 lexer_get_next_token(Lexer* lexer, Token* token)
 {
-    if (lexer->current_index >= lexer->code.length) { return false; }
+    if (lexer->current_index >= lexer->code.length)
+    {
+        lexer_create_token(lexer, token, TOKEN_EOF);
+        return true;
+    }
 
     ASSERT(lexer->current_index < lexer->code.length);
 
@@ -224,7 +238,6 @@ lexer_get_next_token(Lexer* lexer, Token* token)
             case ';': { lexer_create_token(lexer, token, TOKEN_SEMICOLON); return true; } break;
             case ',': { lexer_create_token(lexer, token, TOKEN_COMMA); return true; } break;
             case '+': { lexer_create_token(lexer, token, TOKEN_PLUS); return true; } break;
-            case '-': { lexer_create_token(lexer, token, TOKEN_MINUS); return true; } break;
             case '*': { lexer_create_token(lexer, token, TOKEN_STAR); return true; } break;
 
             case '!':
@@ -249,6 +262,19 @@ lexer_get_next_token(Lexer* lexer, Token* token)
                 else
                 {
                     lexer_create_token(lexer, token, TOKEN_ASSIGN);
+                }
+                return true;
+            } break;
+
+            case '-':
+            {
+                if (lexer_match_and_optionally_advance(lexer, '>'))
+                {
+                    lexer_create_token(lexer, token, TOKEN_ARROW);
+                }
+                else
+                {
+                    lexer_create_token(lexer, token, TOKEN_MINUS);
                 }
                 return true;
             } break;
@@ -364,6 +390,7 @@ lexer_get_next_token(Lexer* lexer, Token* token)
             {
                 lexer->current_column = 0;
                 lexer->current_line += 1;
+                lexer->lexeme_start_index = lexer->current_index;
             } break;
 
             default:
@@ -375,15 +402,17 @@ lexer_get_next_token(Lexer* lexer, Token* token)
                 println("Current column: {}", lexer->current_column);
                 lexer->lexeme_start_index = lexer->current_index;
 
-                // FIXME(vlad): Optionally trigger debug trap.
-                FAIL();
+                // FIXME(vlad): Optionally trigger debug a trap?
+                // FAIL();
 
-                // return false;
+                // TODO(vlad): Try to recover from this error?
+                return false;
             } break;
         }
     }
 
-    return false;
+    lexer_create_token(lexer, token, TOKEN_EOF);
+    return true;
 }
 
 internal void
