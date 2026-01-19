@@ -7,7 +7,13 @@ program: function_definitions;
 
 function_definitions: EOF | function_definition function_definitions;
 function_definition: identifier ":" function_type "=" "{" function_body "}";
-function_body: EPS; // TODO(vlad): Add function body. @tag(eon-grammar)
+function_body: statements;
+
+statements: EPS | statement statements;
+statement: variable_declaration;
+
+// TODO(vlad): Merge with 'argument_declaration'?
+variable_declaration: identifier ":" type;
 
 identifier: identifier_start identifier_end;
 

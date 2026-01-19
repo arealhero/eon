@@ -232,6 +232,43 @@ test_function_definitions_parsing(Test_Context* context)
         parser_destroy(&parser);
         lexer_destroy(&lexer);
     }
+
+    {
+        const String_View input = string_view("foo: () -> void = { variable: Int32; }");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        lexer_create(&lexer, input);
+        parser_create(context->arena, &parser, &lexer);
+
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+
+        ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* definition = &ast.function_definitions[0];
+        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
+
+        const Ast_Type* function_type = definition->type;
+        ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+
+        const Ast_Function_Arguments* arguments = &function_type->arguments;
+        ASSERT_EQUAL(arguments->arguments_count, 0);
+
+        const Ast_Type* return_type = function_type->return_type;
+        ASSERT_EQUAL(return_type->type, AST_TYPE_VOID);
+
+        ASSERT_EQUAL(definition->statements.statements_count, 1);
+
+        const Ast_Statement* statement = &definition->statements.statements[0];
+        ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DECLARATION);
+        ASSERT_STRINGS_ARE_EQUAL(statement->variable_declaration.name.token.lexeme, "variable");
+        ASSERT_EQUAL(statement->variable_declaration.type->type, AST_TYPE_INT_32);
+
+        parser_destroy(&parser);
+        lexer_destroy(&lexer);
+    }
 }
 
 REGISTER_TESTS(

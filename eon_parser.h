@@ -78,10 +78,45 @@ struct Ast_Type
 };
 typedef struct Ast_Type Ast_Type;
 
+struct Ast_Variable_Declaration
+{
+    Ast_Identifier name;
+    Ast_Type* type;
+};
+typedef struct Ast_Variable_Declaration Ast_Variable_Declaration;
+
+enum Ast_Statement_Type
+{
+    AST_UNDEFINED = 0,
+
+    AST_STATEMENT_VARIABLE_DECLARATION,
+};
+typedef enum Ast_Statement_Type Ast_Statement_Type;
+
+struct Ast_Statement
+{
+    Ast_Statement_Type type;
+    union
+    {
+        Ast_Variable_Declaration variable_declaration;
+    };
+};
+typedef struct Ast_Statement Ast_Statement;
+
+struct Ast_Statements
+{
+    Ast_Statement* statements;
+    Size statements_count;
+    Size statements_capacity;
+};
+typedef struct Ast_Statements Ast_Statements;
+
 struct Ast_Function_Definition
 {
     Ast_Identifier name;
     Ast_Type* type;
+
+    Ast_Statements statements;
 };
 typedef struct Ast_Function_Definition Ast_Function_Definition;
 

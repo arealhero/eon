@@ -270,10 +270,93 @@ parse_function_type(Arena* arena,
 }
 
 internal Bool
-parse_function_body(Parser* parser)
+parse_variable_declaration(Arena* arena,
+                           Parser* parser,
+                           Ast_Variable_Declaration* declaration)
 {
-    UNUSED(parser);
+    if (!parser_get_next_token(parser))
+    {
+        return false;
+    }
+
+    if (parser->current_token.type != TOKEN_IDENTIFIER)
+    {
+        return false;
+    }
+
+    declaration->name.token = parser->current_token;
+    parser_consume_token(parser);
+
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_COLON))
+    {
+        return false;
+    }
+
+    declaration->type = allocate(arena, Ast_Type);
+    if (!parse_type(arena, parser, declaration->type))
+    {
+        return false;
+    }
+
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_SEMICOLON))
+    {
+        return false;
+    }
+
     return true;
+}
+
+internal Bool
+parse_statement(Arena* arena, Parser* parser, Ast_Statement* statement)
+{
+    statement->type = AST_STATEMENT_VARIABLE_DECLARATION;
+    return parse_variable_declaration(arena, parser, &statement->variable_declaration);
+}
+
+internal Bool
+parse_statements(Arena* arena, Parser* parser, Ast_Statements* statements)
+{
+    if (!parser_get_next_token(parser))
+    {
+        return false;
+    }
+
+    while (parser->current_token.type != TOKEN_RIGHT_BRACE)
+    {
+        Ast_Statement statement = {0};
+        if (!parse_statement(arena, parser, &statement))
+        {
+            return false;
+        }
+
+        if (statements->statements_count == statements->statements_capacity)
+        {
+            // XXX(vlad): We can change 'MAX(1, 2 * capacity)' to '(2 * capacity) | 1'.
+            const Size new_capacity = MAX(1, 2 * statements->statements_capacity);
+            statements->statements = reallocate(arena,
+                                                statements->statements,
+                                                Ast_Statement,
+                                                statements->statements_capacity,
+                                                new_capacity);
+            statements->statements_capacity = new_capacity;
+        }
+
+        statements->statements[statements->statements_count] = statement;
+        statements->statements_count += 1;
+
+        if (!parser_get_next_token(parser))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+internal Bool
+parse_function_body(Arena* arena, Parser* parser, Ast_Statements* statements)
+{
+    return parse_statements(arena, parser, statements);
 }
 
 internal Bool
@@ -307,7 +390,7 @@ parse_function_definition(Arena* arena,
         return false;
     }
 
-    if (!parse_function_body(parser))
+    if (!parse_function_body(arena, parser, &function_definition->statements))
     {
         return false;
     }
