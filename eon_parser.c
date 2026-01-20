@@ -264,7 +264,7 @@ parse_function_type(Arena* arena,
 }
 
 internal Bool
-parse_expression(Parser* parser, Ast_Expression* expression)
+parse_primary_expression(Parser* parser, Ast_Expression* expression)
 {
     if (!parser_get_next_token(parser))
     {
@@ -307,6 +307,11 @@ parse_expression(Parser* parser, Ast_Expression* expression)
             return false;
         } break;
     }
+}
+internal Bool
+parse_expression(Parser* parser, Ast_Expression* expression)
+{
+    return parse_primary_expression(parser, expression);
 }
 
 internal Bool

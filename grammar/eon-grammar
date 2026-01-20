@@ -42,4 +42,5 @@ optional_variable_type: EPS | type;
 // TODO(vlad): Rename to 'optional_variable_initialisation' or something.
 optional_variable_assignment: EPS | "=" expression; // TODO(vlad): Support 'uninitialized' keyword or something.
 
-expression: number | string_literal | identifier;
+expression: primary_expression;
+primary_expression: number | string_literal | identifier;
