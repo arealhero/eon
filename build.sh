@@ -35,6 +35,14 @@ compile()
     time clang $@
 }
 
+mkdir -p build/grammar
+
+compile grammar/check_grammar_soundness.c -o build/grammar/check_grammar_soundness \
+        $clang_common_flags \
+        $clang_warnings
+
+./build/grammar/check_grammar_soundness grammar/eon-grammar
+
 compile eon.c -o build/eon \
         $clang_common_flags \
         $clang_warnings \
@@ -72,9 +80,3 @@ compile_and_run_test eon/string_ut.c
 compile_and_run_test eon_lexer_ut.c
 compile_and_run_test eon_parser_ut.c
 compile_and_run_test eon/sanitizers/asan_ut.c -fsanitize=address -fsanitize-recover=address
-
-mkdir -p build/grammar
-
-compile grammar/check_grammar_soundness.c -o build/grammar/check_grammar_soundness \
-        $clang_common_flags \
-        $clang_warnings
