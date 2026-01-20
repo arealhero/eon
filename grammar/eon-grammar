@@ -1,7 +1,24 @@
 // BNF
 
+// NOTE(vlad): Lexer.
+
 letter: "[a-zA-Z]";
 digit: "[0-9]";
+
+// TODO(vlad): Support floating-point numbers.
+number: optional_number_sign digit number_tail;
+optional_number_sign: EPS | "-" | "+";
+number_tail: EPS | digit number_tail;
+
+string_literal: "\"" ANY "\"";
+
+identifier: identifier_start identifier_end;
+
+identifier_start: letter | "_";
+identifier_end: EPS | identifier_body identifier_end;
+identifier_body: letter | digit | "_";
+
+// NOTE(vlad): Parser.
 
 program: function_definitions;
 
@@ -13,12 +30,6 @@ statements: EPS | statement statements;
 statement: variable_definition;
 
 variable_definition: identifier ":" optional_variable_type optional_variable_assignment ";";
-
-identifier: identifier_start identifier_end;
-
-identifier_start: letter | "_";
-identifier_end: EPS | identifier_body identifier_end;
-identifier_body: letter | digit | "_";
 
 function_type: "(" arguments_declaration ")" "->" type;
 type: function_type | identifier; // TODO(vlad): Add support for arrays, pointers, qualifiers, etc. @tag(eon-grammar)
@@ -32,10 +43,3 @@ optional_variable_type: EPS | type;
 optional_variable_assignment: EPS | "=" expression; // TODO(vlad): Support 'uninitialized' keyword or something.
 
 expression: number | string_literal;
-
-// TODO(vlad): Support floating-point numbers.
-number: optional_number_sign digit number_tail;
-optional_number_sign: EPS | "-" | "+";
-number_tail: EPS | digit number_tail;
-
-string_literal: "\"" ANY "\"";
