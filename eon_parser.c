@@ -294,6 +294,14 @@ parse_expression(Parser* parser, Ast_Expression* expression)
             return true;
         } break;
 
+        case TOKEN_IDENTIFIER:
+        {
+            expression->type = AST_EXPRESSION_IDENTIFIER;
+            expression->identifier.token = parser->current_token;
+            parser_consume_token(parser);
+            return true;
+        } break;
+
         default:
         {
             return false;

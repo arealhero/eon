@@ -95,8 +95,10 @@ typedef struct Ast_Type Ast_Type;
 enum Ast_Expression_Type
 {
     AST_EXPRESSION_UNDEFINED = 0,
+
     AST_EXPRESSION_NUMBER,
     AST_EXPRESSION_STRING_LITERAL,
+    AST_EXPRESSION_IDENTIFIER,
 };
 typedef enum Ast_Expression_Type Ast_Expression_Type;
 
@@ -107,6 +109,7 @@ struct Ast_Expression
     {
         Ast_Number number;
         Ast_String_Literal string_literal;
+        Ast_Identifier identifier;
     };
 };
 typedef struct Ast_Expression Ast_Expression;
