@@ -186,13 +186,14 @@ lexer_get_next_token(Arena* scratch, Lexer* lexer, Token* token)
                 const s64 terminal_start_line = lexer->current_line;
                 const s64 terminal_start_column = lexer->current_column;
 
-                // TODO(vlad): Support escaped quotes.
+                char previous_char = current_char;
                 char lookahead_char = lexer_lookahead(lexer);
-                while (lookahead_char != '"'
+                while (!(lookahead_char == '"' && previous_char != '\\')
                        && lookahead_char != '\0'
                        && lookahead_char != '\n')
                 {
                     lexer_advance(lexer);
+                    previous_char = lookahead_char;
                     lookahead_char = lexer_lookahead(lexer);
                 }
 
