@@ -402,7 +402,7 @@ lexer_get_next_token(Lexer* lexer, Token* token)
                 println("Current column: {}", lexer->current_column);
                 lexer->lexeme_start_index = lexer->current_index;
 
-                // FIXME(vlad): Optionally trigger debug a trap?
+                // FIXME(vlad): Optionally trigger a debug trap?
                 // FAIL();
 
                 // TODO(vlad): Try to recover from this error?
