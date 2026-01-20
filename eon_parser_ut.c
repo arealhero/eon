@@ -232,7 +232,12 @@ test_function_definitions_parsing(Test_Context* context)
         parser_destroy(&parser);
         lexer_destroy(&lexer);
     }
+}
 
+internal void
+test_variable_definitions_parsing(Test_Context* context)
+{
+    // NOTE(vlad): Variable without initialisation.
     {
         const String_View input = string_view("foo: () -> void = { variable: Int32; }");
 
@@ -262,9 +267,100 @@ test_function_definitions_parsing(Test_Context* context)
         ASSERT_EQUAL(definition->statements.statements_count, 1);
 
         const Ast_Statement* statement = &definition->statements.statements[0];
-        ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DECLARATION);
-        ASSERT_STRINGS_ARE_EQUAL(statement->variable_declaration.name.token.lexeme, "variable");
-        ASSERT_EQUAL(statement->variable_declaration.type->type, AST_TYPE_INT_32);
+        ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_STRINGS_ARE_EQUAL(statement->variable_definition.name.token.lexeme, "variable");
+        ASSERT_EQUAL(statement->variable_definition.type->type, AST_TYPE_INT_32);
+        ASSERT_EQUAL(statement->variable_definition.initialisation_type, AST_INITIALISATION_DEFAULT);
+
+        parser_destroy(&parser);
+        lexer_destroy(&lexer);
+    }
+
+    // NOTE(vlad): Variable with initialisation.
+    {
+        const String_View input = string_view("foo: () -> void = {"
+                                              "    variable: Int32 = 123;"
+                                              "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        lexer_create(&lexer, input);
+        parser_create(context->arena, &parser, &lexer);
+
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+
+        ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &ast.function_definitions[0];
+        ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
+
+        const Ast_Type* function_type = function_definition->type;
+        ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+
+        const Ast_Function_Arguments* arguments = &function_type->arguments;
+        ASSERT_EQUAL(arguments->arguments_count, 0);
+
+        const Ast_Type* return_type = function_type->return_type;
+        ASSERT_EQUAL(return_type->type, AST_TYPE_VOID);
+
+        ASSERT_EQUAL(function_definition->statements.statements_count, 1);
+
+        const Ast_Statement* statement = &function_definition->statements.statements[0];
+        ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+
+        const Ast_Variable_Definition* definition = &statement->variable_definition;
+        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "variable");
+        ASSERT_EQUAL(definition->type->type, AST_TYPE_INT_32);
+        ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
+        ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_NUMBER);
+        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.number.token.lexeme, "123");
+
+        parser_destroy(&parser);
+        lexer_destroy(&lexer);
+    }
+
+    // NOTE(vlad): Variable with deduced type.
+    {
+        const String_View input = string_view("foo: () -> void = {"
+                                              "    variable := 123;"
+                                              "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        lexer_create(&lexer, input);
+        parser_create(context->arena, &parser, &lexer);
+
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+
+        ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &ast.function_definitions[0];
+        ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
+
+        const Ast_Type* function_type = function_definition->type;
+        ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+
+        const Ast_Function_Arguments* arguments = &function_type->arguments;
+        ASSERT_EQUAL(arguments->arguments_count, 0);
+
+        const Ast_Type* return_type = function_type->return_type;
+        ASSERT_EQUAL(return_type->type, AST_TYPE_VOID);
+
+        ASSERT_EQUAL(function_definition->statements.statements_count, 1);
+
+        const Ast_Statement* statement = &function_definition->statements.statements[0];
+        ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+
+        const Ast_Variable_Definition* definition = &statement->variable_definition;
+        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "variable");
+        ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+        ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
+        ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_NUMBER);
+        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.number.token.lexeme, "123");
 
         parser_destroy(&parser);
         lexer_destroy(&lexer);
@@ -272,7 +368,8 @@ test_function_definitions_parsing(Test_Context* context)
 }
 
 REGISTER_TESTS(
-    test_function_definitions_parsing
+    test_function_definitions_parsing,
+    test_variable_definitions_parsing
 )
 
 #include "eon_parser.c"

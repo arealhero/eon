@@ -21,6 +21,7 @@ parser_get_next_token(Parser* parser)
     return true;
 }
 
+// TODO(vlad): Remove this and use 'parser_try_to_consume_token_with_type' only?
 internal inline void
 parser_consume_token(Parser* parser)
 {
@@ -124,6 +125,7 @@ parse_type(Arena* arena,
         return false;
     }
 
+    // TODO(vlad): Change to 'parser_try_to_consume_token_with_type'?
     switch (parser->current_token.type)
     {
         case TOKEN_LEFT_PAREN:
@@ -165,18 +167,10 @@ parse_argument_declaration(Arena* arena,
                            Parser* parser,
                            Ast_Function_Argument* argument)
 {
-    if (!parser_get_next_token(parser))
+    if (!parse_identifier(parser, &argument->name))
     {
         return false;
     }
-
-    if (parser->current_token.type != TOKEN_IDENTIFIER)
-    {
-        return false;
-    }
-
-    argument->name.token = parser->current_token;
-    parser_consume_token(parser);
 
     if (!parser_get_and_consume_token_with_type(parser, TOKEN_COLON))
     {
@@ -270,34 +264,92 @@ parse_function_type(Arena* arena,
 }
 
 internal Bool
-parse_variable_declaration(Arena* arena,
-                           Parser* parser,
-                           Ast_Variable_Declaration* declaration)
+parse_expression(Parser* parser, Ast_Expression* expression)
 {
     if (!parser_get_next_token(parser))
     {
         return false;
     }
 
-    if (parser->current_token.type != TOKEN_IDENTIFIER)
+    if (parser->current_token.type != TOKEN_NUMBER)
     {
         return false;
     }
 
-    declaration->name.token = parser->current_token;
+    expression->type = AST_EXPRESSION_NUMBER;
+    expression->number.token = parser->current_token;
     parser_consume_token(parser);
+
+    return true;
+}
+
+internal Bool
+parse_optional_variable_assignment(Parser* parser, Ast_Variable_Definition* definition)
+{
+    if (!parser_get_next_token(parser))
+    {
+        return false;
+    }
+
+    if (parser->current_token.type == TOKEN_ASSIGN)
+    {
+        parser_consume_token(parser);
+
+        definition->initialisation_type = AST_INITIALISATION_WITH_VALUE;
+
+        if (!parse_expression(parser, &definition->initial_value))
+        {
+            return false;
+        }
+    }
+    else
+    {
+        definition->initialisation_type = AST_INITIALISATION_DEFAULT;
+    }
+
+    return true;
+}
+
+internal Bool
+parse_variable_definition(Arena* arena,
+                          Parser* parser,
+                          Ast_Variable_Definition* definition)
+{
+    if (!parse_identifier(parser, &definition->name))
+    {
+        return false;
+    }
 
     if (!parser_get_and_consume_token_with_type(parser, TOKEN_COLON))
     {
         return false;
     }
 
-    declaration->type = allocate(arena, Ast_Type);
-    if (!parse_type(arena, parser, declaration->type))
+    if (!parser_get_next_token(parser))
     {
         return false;
     }
 
+    definition->type = allocate(arena, Ast_Type);
+    if (parser->current_token.type != TOKEN_ASSIGN)
+    {
+        if (!parse_type(arena, parser, definition->type))
+        {
+            return false;
+        }
+    }
+    else
+    {
+        definition->type->type = AST_TYPE_DEDUCED;
+    }
+
+    if (!parse_optional_variable_assignment(parser, definition))
+    {
+        return false;
+    }
+
+    // TODO(vlad): Move the semicolon parsing to 'parse_statement' or 'parse_expression_statement'
+    //             or something more high-level.
     if (!parser_get_and_consume_token_with_type(parser, TOKEN_SEMICOLON))
     {
         return false;
@@ -309,8 +361,8 @@ parse_variable_declaration(Arena* arena,
 internal Bool
 parse_statement(Arena* arena, Parser* parser, Ast_Statement* statement)
 {
-    statement->type = AST_STATEMENT_VARIABLE_DECLARATION;
-    return parse_variable_declaration(arena, parser, &statement->variable_declaration);
+    statement->type = AST_STATEMENT_VARIABLE_DEFINITION;
+    return parse_variable_definition(arena, parser, &statement->variable_definition);
 }
 
 internal Bool

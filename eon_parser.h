@@ -12,10 +12,17 @@ struct Ast_Identifier
 };
 typedef struct Ast_Identifier Ast_Identifier;
 
+struct Ast_Number
+{
+    Token token;
+};
+typedef struct Ast_Number Ast_Number;
+
 enum Ast_Type_Type
 {
     AST_TYPE_UNDEFINED = 0,
 
+    AST_TYPE_DEDUCED,
     AST_TYPE_USER_DEFINED,
 
     AST_TYPE_FUNCTION,
@@ -78,18 +85,44 @@ struct Ast_Type
 };
 typedef struct Ast_Type Ast_Type;
 
-struct Ast_Variable_Declaration
+enum Ast_Expression_Type
+{
+    AST_EXPRESSION_UNDEFINED = 0,
+    AST_EXPRESSION_NUMBER,
+};
+typedef enum Ast_Expression_Type Ast_Expression_Type;
+
+struct Ast_Expression
+{
+    Ast_Expression_Type type;
+    Ast_Number number;
+};
+typedef struct Ast_Expression Ast_Expression;
+
+enum Ast_Initialisation_Type
+{
+    AST_INITIALISATION_UNDEFINED = 0,
+
+    AST_INITIALISATION_DEFAULT,
+    AST_INITIALISATION_WITH_VALUE,
+};
+typedef enum Ast_Initialisation_Type Ast_Initialisation_Type;
+
+struct Ast_Variable_Definition
 {
     Ast_Identifier name;
     Ast_Type* type;
+
+    Ast_Initialisation_Type initialisation_type;
+    Ast_Expression initial_value;
 };
-typedef struct Ast_Variable_Declaration Ast_Variable_Declaration;
+typedef struct Ast_Variable_Definition Ast_Variable_Definition;
 
 enum Ast_Statement_Type
 {
     AST_UNDEFINED = 0,
 
-    AST_STATEMENT_VARIABLE_DECLARATION,
+    AST_STATEMENT_VARIABLE_DEFINITION,
 };
 typedef enum Ast_Statement_Type Ast_Statement_Type;
 
@@ -98,7 +131,7 @@ struct Ast_Statement
     Ast_Statement_Type type;
     union
     {
-        Ast_Variable_Declaration variable_declaration;
+        Ast_Variable_Definition variable_definition;
     };
 };
 typedef struct Ast_Statement Ast_Statement;

@@ -10,10 +10,9 @@ function_definition: identifier ":" function_type "=" "{" function_body "}";
 function_body: statements;
 
 statements: EPS | statement statements;
-statement: variable_declaration;
+statement: variable_definition;
 
-// TODO(vlad): Merge with 'argument_declaration'?
-variable_declaration: identifier ":" type;
+variable_definition: identifier ":" optional_variable_type optional_variable_assignment ";";
 
 identifier: identifier_start identifier_end;
 
@@ -27,3 +26,14 @@ type: function_type | identifier; // TODO(vlad): Add support for arrays, pointer
 arguments_declaration: EPS | argument_declaration arguments_declaration_tail;
 argument_declaration: identifier ":" type; // TODO(vlad): Add default values support. @tag(eon-grammar)
 arguments_declaration_tail: EPS | "," argument_declaration arguments_declaration_tail;
+
+optional_variable_type: EPS | type;
+// TODO(vlad): Rename to 'optional_variable_initialisation' or something.
+optional_variable_assignment: EPS | "=" expression; // TODO(vlad): Support 'uninitialized' keyword or something.
+
+expression: number;
+
+// TODO(vlad): Support floating-point numbers.
+number: optional_number_sign digit number_tail;
+optional_number_sign: EPS | "-" | "+";
+number_tail: EPS | digit number_tail;
