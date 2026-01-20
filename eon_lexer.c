@@ -52,6 +52,7 @@ token_type_to_string(const Token_Type type)
         ADD_TOKEN(TOKEN_TRUE);
         ADD_TOKEN(TOKEN_FALSE);
         ADD_TOKEN(TOKEN_ARROW);
+        ADD_TOKEN(TOKEN_RETURN);
 
         ADD_TOKEN(TOKEN_EOF);
     }
@@ -75,7 +76,8 @@ lexer_create(Lexer* lexer, const String_View code)
         { .type = TOKEN_WHILE, .lexeme = string_view("while"), },
         { .type = TOKEN_TRUE,  .lexeme = string_view("true"), },
         { .type = TOKEN_FALSE, .lexeme = string_view("false"), },
-        { .type = TOKEN_ARROW, .lexeme = string_view("->"), }
+        { .type = TOKEN_ARROW, .lexeme = string_view("->"), },
+        { .type = TOKEN_RETURN, .lexeme = string_view("return"), },
     };
 
     lexer->keywords_count = size_of(keywords) / size_of(keywords[0]);

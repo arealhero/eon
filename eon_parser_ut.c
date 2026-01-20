@@ -531,12 +531,97 @@ test_variable_definitions_parsing(Test_Context* context)
         parser_destroy(&parser);
         lexer_destroy(&lexer);
     }
+}
 
+internal void
+test_return_statement_parsing(Test_Context* context)
+{
+    // NOTE(vlad): Empty return statement.
+    {
+        const String_View input = string_view("foo: () -> void = {"
+                                              "    return;"
+                                              "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        lexer_create(&lexer, input);
+        parser_create(context->arena, &parser, &lexer);
+
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+
+        ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* definition = &ast.function_definitions[0];
+        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
+
+        const Ast_Type* function_type = definition->type;
+        ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+
+        const Ast_Function_Arguments* arguments = &function_type->arguments;
+        ASSERT_EQUAL(arguments->arguments_count, 0);
+
+        const Ast_Type* return_type = function_type->return_type;
+        ASSERT_EQUAL(return_type->type, AST_TYPE_VOID);
+
+        ASSERT_EQUAL(definition->statements.statements_count, 1);
+
+        const Ast_Statement* statement = &definition->statements.statements[0];
+        ASSERT_EQUAL(statement->type, AST_STATEMENT_RETURN);
+        ASSERT_TRUE(statement->return_statement.is_empty);
+
+        parser_destroy(&parser);
+        lexer_destroy(&lexer);
+    }
+
+    // NOTE(vlad): Simple return statement with a number constant.
+    {
+        const String_View input = string_view("foo: () -> Int32 = {"
+                                              "    return 123;"
+                                              "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        lexer_create(&lexer, input);
+        parser_create(context->arena, &parser, &lexer);
+
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+
+        ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* definition = &ast.function_definitions[0];
+        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
+
+        const Ast_Type* function_type = definition->type;
+        ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+
+        const Ast_Function_Arguments* arguments = &function_type->arguments;
+        ASSERT_EQUAL(arguments->arguments_count, 0);
+
+        const Ast_Type* return_type = function_type->return_type;
+        ASSERT_EQUAL(return_type->type, AST_TYPE_INT_32);
+
+        ASSERT_EQUAL(definition->statements.statements_count, 1);
+
+        const Ast_Statement* statement = &definition->statements.statements[0];
+        ASSERT_EQUAL(statement->type, AST_STATEMENT_RETURN);
+        ASSERT_FALSE(statement->return_statement.is_empty);
+        ASSERT_EQUAL(statement->return_statement.expression.type, AST_EXPRESSION_NUMBER);
+        ASSERT_STRINGS_ARE_EQUAL(statement->return_statement.expression.number.token.lexeme,
+                                 "123");
+
+        parser_destroy(&parser);
+        lexer_destroy(&lexer);
+    }
 }
 
 REGISTER_TESTS(
     test_function_definitions_parsing,
-    test_variable_definitions_parsing
+    test_variable_definitions_parsing,
+    test_return_statement_parsing
 )
 
 #include "eon_parser.c"

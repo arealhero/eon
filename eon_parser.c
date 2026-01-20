@@ -308,6 +308,7 @@ parse_primary_expression(Parser* parser, Ast_Expression* expression)
         } break;
     }
 }
+
 internal Bool
 parse_expression(Parser* parser, Ast_Expression* expression)
 {
@@ -390,10 +391,66 @@ parse_variable_definition(Arena* arena,
 }
 
 internal Bool
+parse_return_statement(Parser* parser, Ast_Return_Statement* statement)
+{
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_RETURN))
+    {
+        return false;
+    }
+
+    if (!parser_get_next_token(parser))
+    {
+        return false;
+    }
+
+    if (parser_try_to_consume_token_with_type(parser, TOKEN_SEMICOLON))
+    {
+        statement->is_empty = true;
+        return true;
+    }
+
+    statement->is_empty = false;
+
+    if (!parse_expression(parser, &statement->expression))
+    {
+        return false;
+    }
+
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_SEMICOLON))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+internal Bool
 parse_statement(Arena* arena, Parser* parser, Ast_Statement* statement)
 {
-    statement->type = AST_STATEMENT_VARIABLE_DEFINITION;
-    return parse_variable_definition(arena, parser, &statement->variable_definition);
+    if (!parser_get_next_token(parser))
+    {
+        return false;
+    }
+
+    switch (parser->current_token.type)
+    {
+        case TOKEN_IDENTIFIER:
+        {
+            statement->type = AST_STATEMENT_VARIABLE_DEFINITION;
+            return parse_variable_definition(arena, parser, &statement->variable_definition);
+        } break;
+
+        case TOKEN_RETURN:
+        {
+            statement->type = AST_STATEMENT_RETURN;
+            return parse_return_statement(parser, &statement->return_statement);
+        } break;
+
+        default:
+        {
+            return false;
+        } break;
+    }
 }
 
 internal Bool

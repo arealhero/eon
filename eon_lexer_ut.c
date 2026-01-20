@@ -392,6 +392,26 @@ test_keywords_and_digraphs(Test_Context* context)
     }
 
     {
+        const String_View input = string_view("return");
+
+        Lexer lexer = {0};
+        lexer_create(&lexer, input);
+
+        Token token = {0};
+
+        ASSERT_TRUE(lexer_get_next_token(&lexer, &token));
+        ASSERT_EQUAL(token.type, TOKEN_RETURN);
+        ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "return");
+        ASSERT_EQUAL(token.line, 0);
+        ASSERT_EQUAL(token.column, 0);
+
+        ASSERT_TRUE(lexer_get_next_token(&lexer, &token));
+        ASSERT_EQUAL(token.type, TOKEN_EOF);
+
+        lexer_destroy(&lexer);
+    }
+
+    {
         const String_View input = string_view("->");
 
         Lexer lexer = {0};

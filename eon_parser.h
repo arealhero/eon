@@ -138,8 +138,16 @@ enum Ast_Statement_Type
     AST_UNDEFINED = 0,
 
     AST_STATEMENT_VARIABLE_DEFINITION,
+    AST_STATEMENT_RETURN,
 };
 typedef enum Ast_Statement_Type Ast_Statement_Type;
+
+struct Ast_Return_Statement
+{
+    Bool is_empty;
+    Ast_Expression expression;
+};
+typedef struct Ast_Return_Statement Ast_Return_Statement;
 
 struct Ast_Statement
 {
@@ -147,6 +155,7 @@ struct Ast_Statement
     union
     {
         Ast_Variable_Definition variable_definition;
+        Ast_Return_Statement return_statement;
     };
 };
 typedef struct Ast_Statement Ast_Statement;

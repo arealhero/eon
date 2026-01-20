@@ -27,7 +27,7 @@ enum Token_Type
     // NOTE(vlad): Reserved keywords and digraphs.
     TOKEN_FOR, TOKEN_IF, TOKEN_ELSE, TOKEN_WHILE,
     TOKEN_TRUE, TOKEN_FALSE,
-    TOKEN_ARROW,
+    TOKEN_ARROW, TOKEN_RETURN,
 
     TOKEN_EOF,
 };
