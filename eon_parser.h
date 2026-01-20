@@ -18,6 +18,13 @@ struct Ast_Number
 };
 typedef struct Ast_Number Ast_Number;
 
+struct Ast_String_Literal
+{
+    Token token;
+    String_View value;
+};
+typedef struct Ast_String_Literal Ast_String_Literal;
+
 enum Ast_Type_Type
 {
     AST_TYPE_UNDEFINED = 0,
@@ -89,13 +96,18 @@ enum Ast_Expression_Type
 {
     AST_EXPRESSION_UNDEFINED = 0,
     AST_EXPRESSION_NUMBER,
+    AST_EXPRESSION_STRING_LITERAL,
 };
 typedef enum Ast_Expression_Type Ast_Expression_Type;
 
 struct Ast_Expression
 {
     Ast_Expression_Type type;
-    Ast_Number number;
+    union
+    {
+        Ast_Number number;
+        Ast_String_Literal string_literal;
+    };
 };
 typedef struct Ast_Expression Ast_Expression;
 

@@ -31,9 +31,11 @@ optional_variable_type: EPS | type;
 // TODO(vlad): Rename to 'optional_variable_initialisation' or something.
 optional_variable_assignment: EPS | "=" expression; // TODO(vlad): Support 'uninitialized' keyword or something.
 
-expression: number;
+expression: number | string_literal;
 
 // TODO(vlad): Support floating-point numbers.
 number: optional_number_sign digit number_tail;
 optional_number_sign: EPS | "-" | "+";
 number_tail: EPS | digit number_tail;
+
+string_literal: "\"" ANY "\"";

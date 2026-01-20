@@ -13,7 +13,7 @@ enum Token_Type
 
     TOKEN_COLON, TOKEN_OR, TOKEN_SEMICOLON,
 
-    TOKEN_EPS, TOKEN_EOF,
+    TOKEN_EPS, TOKEN_EOF, TOKEN_ANY,
 
     // XXX(vlad): Do we want to support these?
     // TOKEN_LEFT_PAREN, TOKEN_RIGHT_PAREN,

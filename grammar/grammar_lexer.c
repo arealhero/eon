@@ -82,6 +82,7 @@ lexer_create(Arena* arena, Lexer* lexer, String_View grammar)
     const Keyword keywords[] = {
         { .lexeme = string_view("EPS"), .type = TOKEN_EPS, },
         { .lexeme = string_view("EOF"), .type = TOKEN_EOF, },
+        { .lexeme = string_view("ANY"), .type = TOKEN_ANY, },
     };
     const Size keywords_count = size_of(keywords) / size_of(keywords[0]);
 

@@ -271,16 +271,34 @@ parse_expression(Parser* parser, Ast_Expression* expression)
         return false;
     }
 
-    if (parser->current_token.type != TOKEN_NUMBER)
+    switch (parser->current_token.type)
     {
-        return false;
+        case TOKEN_NUMBER:
+        {
+            expression->type = AST_EXPRESSION_NUMBER;
+            expression->number.token = parser->current_token;
+            parser_consume_token(parser);
+            return true;
+        } break;
+
+        case TOKEN_STRING:
+        {
+            expression->type = AST_EXPRESSION_STRING_LITERAL;
+            expression->string_literal.token = parser->current_token;
+
+            expression->string_literal.value = expression->string_literal.token.lexeme;
+            expression->string_literal.value.data += 1;
+            expression->string_literal.value.length -= 2;
+
+            parser_consume_token(parser);
+            return true;
+        } break;
+
+        default:
+        {
+            return false;
+        } break;
     }
-
-    expression->type = AST_EXPRESSION_NUMBER;
-    expression->number.token = parser->current_token;
-    parser_consume_token(parser);
-
-    return true;
 }
 
 internal Bool
