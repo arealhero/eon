@@ -421,6 +421,7 @@ parse_primary_expression(Arena* parser_arena, Parser* parser, Ast_Expression* ex
 internal Bool
 parse_multiplicative_expression(Arena* parser_arena, Parser* parser, Ast_Expression* expression)
 {
+    // TODO(vlad): Use 'expression' here, otherwise we would overallocate.
     Ast_Expression* lhs = allocate(parser_arena, Ast_Expression);
     if (!parse_primary_expression(parser_arena, parser, lhs))
     {
@@ -481,6 +482,7 @@ parse_multiplicative_expression(Arena* parser_arena, Parser* parser, Ast_Express
 internal Bool
 parse_additive_expression(Arena* parser_arena, Parser* parser, Ast_Expression* expression)
 {
+    // TODO(vlad): Use 'expression' here, otherwise we would overallocate.
     Ast_Expression* lhs = allocate(parser_arena, Ast_Expression);
     if (!parse_multiplicative_expression(parser_arena, parser, lhs))
     {
