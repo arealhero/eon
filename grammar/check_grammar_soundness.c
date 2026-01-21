@@ -405,6 +405,71 @@ check_grammar_soundness(const String_View grammar_filename, const String_View gr
         println("Left recursions detection took {} mcs", time_end - time_start);
     }
 
+    // NOTE(vlad): Find unused non-terminals.
+    {
+        Bool* non_terminal_was_used = allocate_array(scratch, ast.definitions_count, Bool);
+
+        for (Index definition_index = 0;
+             definition_index < ast.definitions_count;
+             ++definition_index)
+        {
+            const Ast_Identifier_Definition* definition = &ast.definitions[definition_index];
+
+            for (Index expression_index = 0;
+                 expression_index < definition->possible_expressions_count;
+                 ++expression_index)
+            {
+                const Ast_Expression* expression = &definition->possible_expressions[expression_index];
+
+                for (Index identifier_index = 0;
+                     identifier_index < expression->identifiers_count;
+                     ++identifier_index)
+                {
+                    const Ast_Identifier* identifier = &expression->identifiers[identifier_index];
+
+                    if (identifier->token.type == TOKEN_NON_TERMINAL
+                        && !has_identifier(&info.undefined_identifiers, &identifier->token))
+                    {
+                        for (Index i = 0;
+                             i < ast.definitions_count;
+                             ++i)
+                        {
+                            const Ast_Identifier_Definition* current_definition = &ast.definitions[i];
+
+                            if (strings_are_equal(current_definition->identifier.token.lexeme,
+                                                  identifier->token.lexeme))
+                            {
+                                non_terminal_was_used[i] = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        for (Index definition_index = 0;
+             definition_index < ast.definitions_count;
+             ++definition_index)
+        {
+            const Ast_Identifier_Definition* definition = &ast.definitions[definition_index];
+            const Token* token = &definition->identifier.token;
+
+            if (!non_terminal_was_used[definition_index]
+              // FIXME(vlad): Make 'START' a special non-terminal and change its type to 'TOKEN_START' or something.
+                && !strings_are_equal(token->lexeme, string_view("START")))
+            {
+                println("{}:{}:{}: Error: non-terminal '{}' is unused",
+                        grammar_filename, token->line+1, token->column+1,
+                        token->lexeme);
+                show_grammar_error(scratch,
+                                   grammar,
+                                   token->line,
+                                   token->column,
+                                   token->lexeme.length);
+            }
+        }
+    }
+
     // FIXME(vlad): Detect if there are common subexpressions that can be refactored to their own production rules.
     //              Start with detecting proper prefixes like these:
     //
