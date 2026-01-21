@@ -169,10 +169,10 @@ internal inline Format_Type_Info
 INTERNAL_format_tag_string(const String string)
 {
     return (Format_Type_Info){
-        .tag = TYPE_TAG_STRING,
+        .tag = TYPE_TAG_STRING_VIEW,
         .max_size_in_bytes = string.length,
         .argument = {
-            .string = string,
+            .string_view = (String_View){ .data = string.data, .length = string.length, },
         },
     };
 }
@@ -192,11 +192,12 @@ INTERNAL_format_tag_string_view(const String_View string)
 internal inline Format_Type_Info
 INTERNAL_format_tag_c_string(const char* string)
 {
+    const Size length = c_string_length(string);
     return (Format_Type_Info){
-        .tag = TYPE_TAG_C_STRING,
-        .max_size_in_bytes = c_string_length(string),
+        .tag = TYPE_TAG_STRING_VIEW,
+        .max_size_in_bytes = length,
         .argument = {
-            .c_string = string,
+            .string_view = (String_View){ .data = string, .length = length, },
         },
     };
 }
@@ -367,28 +368,12 @@ vformat_string_impl(Arena* const arena,
 
                 switch (info.tag)
                 {
-                    case TYPE_TAG_STRING:
-                    {
-                        copy_memory(as_bytes(buffer + buffer_index),
-                                    as_bytes(info.argument.string.data),
-                                    info.argument.string.length);
-                        buffer_index += info.argument.string.length;
-                    } break;
-
                     case TYPE_TAG_STRING_VIEW:
                     {
                         copy_memory(as_bytes(buffer + buffer_index),
                                     as_bytes(info.argument.string_view.data),
                                     info.argument.string_view.length);
                         buffer_index += info.argument.string_view.length;
-                    } break;
-
-                    case TYPE_TAG_C_STRING:
-                    {
-                        copy_memory(as_bytes(buffer + buffer_index),
-                                    as_bytes(info.argument.c_string),
-                                    info.max_size_in_bytes);
-                        buffer_index += info.max_size_in_bytes;
                     } break;
 
                     case TYPE_TAG_char:

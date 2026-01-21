@@ -70,9 +70,7 @@ DECLARE_NUMBER_TO_STRING_INPLACE_FUNCTION(u64);
 
 enum Format_Type_Tag
 {
-    TYPE_TAG_STRING,
     TYPE_TAG_STRING_VIEW,
-    TYPE_TAG_C_STRING,
 
     TYPE_TAG_char,
 
@@ -95,9 +93,7 @@ struct Format_Type_Info
 
     union
     {
-        String string;
         String_View string_view;
-        const char* c_string;
 
         char char_value;
 
