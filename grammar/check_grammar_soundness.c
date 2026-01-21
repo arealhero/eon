@@ -198,19 +198,19 @@ detect_left_recursions(Arena* scratch,
 
                 if (strings_are_equal(node->definition->identifier.token.lexeme, first_identifier->token.lexeme))
                 {
-                    Bool alreadyAdded = false;
+                    Bool already_added = false;
                     for (Index i = 0;
                          i < this_node->reachable_definitions_count;
                          ++i)
                     {
                         if (this_node->reachable_definitions[i] == reachable_node_index)
                         {
-                            alreadyAdded = true;
+                            already_added = true;
                             break;
                         }
                     }
 
-                    if (!alreadyAdded)
+                    if (!already_added)
                     {
                         this_node->reachable_definitions[this_node->reachable_definitions_count] = reachable_node_index;
                         this_node->reachable_definitions_count += 1;
