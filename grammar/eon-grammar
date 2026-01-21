@@ -1,5 +1,7 @@
 // BNF
 
+START: program;
+
 // NOTE(vlad): Lexer.
 
 letter: "[a-zA-Z]";
