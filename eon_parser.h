@@ -5,6 +5,7 @@
 #include <eon/string.h>
 
 #include "eon_lexer.h"
+#include "eon_errors.h"
 
 struct Ast_Identifier
 {
@@ -194,6 +195,9 @@ typedef struct Builtin_Type Builtin_Type;
 
 struct Parser
 {
+    // TODO(vlad): Remove this.
+    Errors errors;
+
     Lexer* lexer;
     Token current_token;
 
@@ -202,6 +206,6 @@ struct Parser
 };
 typedef struct Parser Parser;
 
-internal void parser_create(Arena* arena, Parser* parser, Lexer* lexer);
-internal Bool parser_parse(Arena* arena, Parser* parser, Ast* ast);
+internal void parser_create(Arena* parser_arena, Arena* errors_arena, Parser* parser, Lexer* lexer);
+internal Bool parser_parse(Arena* parser_arena, Parser* parser, Ast* ast);
 internal void parser_destroy(Parser* parser);

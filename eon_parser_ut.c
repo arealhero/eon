@@ -11,8 +11,8 @@ test_function_definitions_parsing(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, input);
-        parser_create(context->arena, &parser, &lexer);
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
 
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
@@ -42,11 +42,12 @@ test_function_definitions_parsing(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, input);
-        parser_create(context->arena, &parser, &lexer);
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
 
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 1);
 
@@ -72,11 +73,12 @@ test_function_definitions_parsing(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, input);
-        parser_create(context->arena, &parser, &lexer);
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
 
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 1);
 
@@ -108,11 +110,12 @@ test_function_definitions_parsing(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, input);
-        parser_create(context->arena, &parser, &lexer);
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
 
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 1);
 
@@ -140,11 +143,12 @@ test_function_definitions_parsing(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, input);
-        parser_create(context->arena, &parser, &lexer);
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
 
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 1);
 
@@ -173,11 +177,12 @@ test_function_definitions_parsing(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, input);
-        parser_create(context->arena, &parser, &lexer);
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
 
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 1);
 
@@ -222,11 +227,12 @@ test_function_definitions_parsing(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, input);
-        parser_create(context->arena, &parser, &lexer);
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
 
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 2);
 
@@ -277,11 +283,12 @@ test_variable_definitions_parsing(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, input);
-        parser_create(context->arena, &parser, &lexer);
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
 
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 1);
 
@@ -318,11 +325,12 @@ test_variable_definitions_parsing(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, input);
-        parser_create(context->arena, &parser, &lexer);
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
 
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 1);
 
@@ -363,11 +371,12 @@ test_variable_definitions_parsing(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, input);
-        parser_create(context->arena, &parser, &lexer);
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
 
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 1);
 
@@ -409,11 +418,12 @@ test_variable_definitions_parsing(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, input);
-        parser_create(context->arena, &parser, &lexer);
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
 
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 1);
 
@@ -467,11 +477,12 @@ test_variable_definitions_parsing(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, input);
-        parser_create(context->arena, &parser, &lexer);
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
 
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 1);
 
@@ -515,11 +526,12 @@ test_variable_definitions_parsing(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, input);
-        parser_create(context->arena, &parser, &lexer);
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
 
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 1);
 
@@ -574,11 +586,12 @@ test_variable_definitions_parsing(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, input);
-        parser_create(context->arena, &parser, &lexer);
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
 
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 1);
 
@@ -618,11 +631,12 @@ test_variable_definitions_parsing(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, input);
-        parser_create(context->arena, &parser, &lexer);
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
 
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 1);
 
@@ -667,11 +681,12 @@ test_return_statement_parsing(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, input);
-        parser_create(context->arena, &parser, &lexer);
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
 
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 1);
 
@@ -706,8 +721,8 @@ test_return_statement_parsing(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, input);
-        parser_create(context->arena, &parser, &lexer);
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
 
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
@@ -740,12 +755,55 @@ test_return_statement_parsing(Test_Context* context)
     }
 }
 
+internal void
+test_syntax_errors(Test_Context* context)
+{
+    {
+        const String_View input = string_view("");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
+
+        Ast ast = {0};
+        ASSERT_FALSE(parser_parse(context->arena, &parser, &ast));
+
+        ASSERT_EQUAL(parser.errors.errors_count, 1);
+        ASSERT_STRINGS_ARE_EQUAL(parser.errors.errors[0].message, "Expected identifier, found end of file");
+
+        parser_destroy(&parser);
+        lexer_destroy(&lexer);
+    }
+
+    {
+        const String_View input = string_view("foo");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
+
+        Ast ast = {0};
+        ASSERT_FALSE(parser_parse(context->arena, &parser, &ast));
+
+        ASSERT_EQUAL(parser.errors.errors_count, 1);
+        ASSERT_STRINGS_ARE_EQUAL(parser.errors.errors[0].message, "Expected :, found end of file");
+
+        parser_destroy(&parser);
+        lexer_destroy(&lexer);
+    }
+}
+
 REGISTER_TESTS(
     test_function_definitions_parsing,
     test_variable_definitions_parsing,
-    test_return_statement_parsing
+    test_return_statement_parsing,
+    test_syntax_errors
 )
 
-#include "eon_parser.c"
+#include "eon_errors.c"
 #include "eon_lexer.c"
-#include "eon_log.c"
+#include "eon_parser.c"

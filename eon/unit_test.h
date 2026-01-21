@@ -90,7 +90,6 @@ main(const int argc, const char* argv[])
 
         if (context.result == TEST_FAILED)
         {
-            // FIXME(vlad): Use 'println'.
             println("{}:{}: Test '{}' failed\n"
                     "{}",
                     context.failure_file,
@@ -100,6 +99,8 @@ main(const int argc, const char* argv[])
 
             registry.failed_tests_count += 1;
         }
+
+        arena_clear(test_arena);
     }
 
     const Timestamp tests_end_timestamp = platform_get_current_monotonic_timestamp();
@@ -161,8 +162,7 @@ registry_register_test(Arena* arena,
 // FIXME(vlad): Do not return after the first encountered error.
 #define DEFAULT_COMMENT "Assertion failed"
 #define ASSERT_EQUAL_IMPL(expression, actual, expected, comment, file, line) \
-    if ((expression)) {}                                                \
-    else                                                                \
+    if (!(expression))                                                  \
     {                                                                   \
         context->result = TEST_FAILED;                                  \
         const String failure_comment = format_string(context->arena,    \

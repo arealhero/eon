@@ -4,6 +4,59 @@
 
 // FIXME(vlad): Report syntax errors here.
 
+internal String_View
+parser_token_type_to_string(const Token_Type type)
+{
+#define ADD_TOKEN(type, string) case type: return string_view(string)
+    switch (type)
+    {
+        ADD_TOKEN(TOKEN_UNDEFINED, "undefined token");
+
+        ADD_TOKEN(TOKEN_LEFT_PAREN, "(");
+        ADD_TOKEN(TOKEN_RIGHT_PAREN, ")");
+        ADD_TOKEN(TOKEN_LEFT_BRACE, "{");
+        ADD_TOKEN(TOKEN_RIGHT_BRACE, "}");
+        ADD_TOKEN(TOKEN_LEFT_BRACKET, "[");
+        ADD_TOKEN(TOKEN_RIGHT_BRACKET, "]");
+
+        ADD_TOKEN(TOKEN_COMMA, ",");
+        ADD_TOKEN(TOKEN_DOT, ".");
+        ADD_TOKEN(TOKEN_MINUS, "-");
+        ADD_TOKEN(TOKEN_PLUS, "+");
+        ADD_TOKEN(TOKEN_SLASH, "/");
+        ADD_TOKEN(TOKEN_STAR, "*");
+        ADD_TOKEN(TOKEN_COLON, ":");
+        ADD_TOKEN(TOKEN_SEMICOLON, ";");
+
+        ADD_TOKEN(TOKEN_NOT, "!");
+
+        ADD_TOKEN(TOKEN_ASSIGN, "=");
+
+        ADD_TOKEN(TOKEN_EQUAL, "==");
+        ADD_TOKEN(TOKEN_NOT_EQUAL, "!=");
+        ADD_TOKEN(TOKEN_LESS, "<");
+        ADD_TOKEN(TOKEN_LESS_OR_EQUAL, "<=");
+        ADD_TOKEN(TOKEN_GREATER, ">");
+        ADD_TOKEN(TOKEN_GREATER_OR_EQUAL, ">=");
+
+        ADD_TOKEN(TOKEN_IDENTIFIER, "identifier");
+        ADD_TOKEN(TOKEN_STRING, "string literal");
+        ADD_TOKEN(TOKEN_NUMBER, "number");
+
+        ADD_TOKEN(TOKEN_FOR, "for");
+        ADD_TOKEN(TOKEN_IF, "if");
+        ADD_TOKEN(TOKEN_ELSE, "else");
+        ADD_TOKEN(TOKEN_WHILE, "while");
+        ADD_TOKEN(TOKEN_TRUE, "true");
+        ADD_TOKEN(TOKEN_FALSE, "false");
+        ADD_TOKEN(TOKEN_ARROW, "->");
+        ADD_TOKEN(TOKEN_RETURN, "return");
+
+        ADD_TOKEN(TOKEN_EOF, "end of file");
+    }
+#undef ADD_TOKEN
+}
+
 internal Bool
 parser_get_next_token(Parser* parser)
 {
@@ -13,7 +66,7 @@ parser_get_next_token(Parser* parser)
         return true;
     }
 
-    if (!lexer_get_next_token(parser->lexer, &parser->current_token))
+    if (!lexer_get_next_token(parser->lexer, &parser->current_token, &parser->errors))
     {
         return false;
     }
@@ -29,18 +82,44 @@ parser_consume_token(Parser* parser)
 }
 
 internal Bool
-parser_try_to_consume_token_with_type(Parser* parser,
-                                      const Token_Type expected_type)
+parser_ensure_that_current_token_has_type(Parser* parser, const Token_Type expected_type)
 {
-    ASSERT(parser->current_token.type != TOKEN_UNDEFINED && "Tried to consume undefined token.");
+    ASSERT(parser->current_token.type != TOKEN_UNDEFINED && "Current token is undefined");
 
-    if (parser->current_token.type == expected_type)
+    if (parser->current_token.type != expected_type)
     {
-        parser_consume_token(parser);
-        return true;
+        Error error = {0};
+        error.filename = parser->current_token.filename;
+        error.line = parser->current_token.line;
+        error.column = parser->current_token.column;
+        error.highlight_length = parser->current_token.lexeme.length;
+        error.code = parser->lexer->code;
+
+        // TODO(vlad): Use scratch arena instead?
+        const String message = format_string(parser->errors.errors_arena,
+                                             "Expected {}, found {}",
+                                             parser_token_type_to_string(expected_type),
+                                             parser_token_type_to_string(parser->current_token.type));
+        error.message = string_view(message);
+
+        add_error(&parser->errors, &error);
+
+        return false;
     }
 
-    return false;
+    return true;
+}
+
+internal Bool
+parser_try_to_consume_token_with_type(Parser* parser, const Token_Type expected_type)
+{
+    if (!parser_ensure_that_current_token_has_type(parser, expected_type))
+    {
+        return false;
+    }
+
+    parser_consume_token(parser);
+    return true;
 }
 
 internal Bool
@@ -57,15 +136,15 @@ parser_get_and_consume_token_with_type(Parser* parser,
         return true;
     }
 
-    println("Parser error: Expected type {}, found {}",
-            expected_type, parser->current_token.type);
-
     return false;
 }
 
 internal void
-parser_create(Arena* arena, Parser* parser, Lexer* lexer)
+parser_create(Arena* parser_arena, Arena* errors_arena, Parser* parser, Lexer* lexer)
 {
+    parser->errors = (Errors){0};
+    parser->errors.errors_arena = errors_arena;
+
     parser->lexer = lexer;
     parser->current_token = (Token){0};
 
@@ -75,7 +154,7 @@ parser_create(Arena* arena, Parser* parser, Lexer* lexer)
     };
     const Size builtin_types_count = size_of(builtin_types) / size_of(builtin_types[0]);
 
-    parser->builtin_types = allocate_uninitialized_array(arena,
+    parser->builtin_types = allocate_uninitialized_array(parser_arena,
                                                          builtin_types_count,
                                                          Builtin_Type);
     parser->builtin_types_count = builtin_types_count;
@@ -89,19 +168,15 @@ parser_create(Arena* arena, Parser* parser, Lexer* lexer)
 }
 
 internal Bool
-parse_identifier(Parser* parser,
-                 Ast_Identifier* identifier)
+parse_identifier(Parser* parser, Ast_Identifier* identifier)
 {
     if (!parser_get_next_token(parser))
     {
         return false;
     }
 
-    if (parser->current_token.type != TOKEN_IDENTIFIER)
+    if (!parser_ensure_that_current_token_has_type(parser, TOKEN_IDENTIFIER))
     {
-        println("Expected identifier, got {}", parser->current_token.type);
-        // TODO(vlad): Report parsing error.
-        FAIL("Expected identifier");
         return false;
     }
 
@@ -111,11 +186,11 @@ parse_identifier(Parser* parser,
     return true;
 }
 
-internal Bool parse_function_type(Arena* arena, Parser* parser, Ast_Type* type);
-internal Bool parse_pointer_type(Arena* arena, Parser* parser, Ast_Type* type);
+internal Bool parse_function_type(Arena* parser_arena, Parser* parser, Ast_Type* type);
+internal Bool parse_pointer_type(Arena* parser_arena, Parser* parser, Ast_Type* type);
 
 internal Bool
-parse_type(Arena* arena,
+parse_type(Arena* parser_arena,
            Parser* parser,
            Ast_Type* type)
 {
@@ -129,12 +204,12 @@ parse_type(Arena* arena,
     {
         case TOKEN_LEFT_PAREN:
         {
-            return parse_function_type(arena, parser, type);
+            return parse_function_type(parser_arena, parser, type);
         } break;
 
         case TOKEN_STAR:
         {
-            return parse_pointer_type(arena, parser, type);
+            return parse_pointer_type(parser_arena, parser, type);
         } break;
 
         case TOKEN_IDENTIFIER:
@@ -160,6 +235,7 @@ parse_type(Arena* arena,
 
         default:
         {
+            // TODO(vlad): Ensure that token has one of these types and report an error if it does not.
             println("Failed to parse type");
             return false;
         };
@@ -167,7 +243,7 @@ parse_type(Arena* arena,
 }
 
 internal Bool
-parse_argument_declaration(Arena* arena,
+parse_argument_declaration(Arena* parser_arena,
                            Parser* parser,
                            Ast_Function_Argument* argument)
 {
@@ -181,19 +257,19 @@ parse_argument_declaration(Arena* arena,
         return false;
     }
 
-    argument->type = allocate(arena, Ast_Type);
-    return parse_type(arena, parser, argument->type);
+    argument->type = allocate(parser_arena, Ast_Type);
+    return parse_type(parser_arena, parser, argument->type);
 }
 
 internal Bool
-parse_arguments_declaration(Arena* arena,
+parse_arguments_declaration(Arena* parser_arena,
                             Parser* parser,
                             Ast_Function_Arguments* arguments)
 {
     while (true)
     {
         Ast_Function_Argument argument = {0};
-        if (!parse_argument_declaration(arena, parser, &argument))
+        if (!parse_argument_declaration(parser_arena, parser, &argument))
         {
             return false;
         }
@@ -202,7 +278,7 @@ parse_arguments_declaration(Arena* arena,
         {
             // XXX(vlad): We can change 'MAX(1, 2 * capacity)' to '(2 * capacity) | 1'.
             const Size new_capacity = MAX(1, 2 * arguments->arguments_capacity);
-            arguments->arguments = reallocate(arena,
+            arguments->arguments = reallocate(parser_arena,
                                               arguments->arguments,
                                               Ast_Function_Argument,
                                               arguments->arguments_capacity,
@@ -228,7 +304,7 @@ parse_arguments_declaration(Arena* arena,
 }
 
 internal Bool
-parse_function_type(Arena* arena,
+parse_function_type(Arena* parser_arena,
                     Parser* parser,
                     Ast_Type* type)
 {
@@ -246,7 +322,7 @@ parse_function_type(Arena* arena,
 
     if (parser->current_token.type != TOKEN_RIGHT_PAREN)
     {
-        if (!parse_arguments_declaration(arena, parser, &type->arguments))
+        if (!parse_arguments_declaration(parser_arena, parser, &type->arguments))
         {
             return false;
         }
@@ -263,12 +339,12 @@ parse_function_type(Arena* arena,
         return false;
     }
 
-    type->return_type = allocate(arena, Ast_Type);
-    return parse_type(arena, parser, type->return_type);
+    type->return_type = allocate(parser_arena, Ast_Type);
+    return parse_type(parser_arena, parser, type->return_type);
 }
 
 internal Bool
-parse_pointer_type(Arena* arena, Parser* parser, Ast_Type* type)
+parse_pointer_type(Arena* parser_arena, Parser* parser, Ast_Type* type)
 {
     type->type = AST_TYPE_POINTER;
 
@@ -277,8 +353,8 @@ parse_pointer_type(Arena* arena, Parser* parser, Ast_Type* type)
         return false;
     }
 
-    type->pointed_to = allocate(arena, Ast_Type);
-    return parse_type(arena, parser, type->pointed_to);
+    type->pointed_to = allocate(parser_arena, Ast_Type);
+    return parse_type(parser_arena, parser, type->pointed_to);
 }
 
 internal Bool
@@ -322,6 +398,8 @@ parse_primary_expression(Parser* parser, Ast_Expression* expression)
 
         default:
         {
+            // TODO(vlad): Ensure that token has one of these types and report an error if it does not.
+            println("Failed to parse primary expression");
             return false;
         } break;
     }
@@ -361,7 +439,7 @@ parse_optional_variable_assignment(Parser* parser, Ast_Variable_Definition* defi
 }
 
 internal Bool
-parse_variable_definition(Arena* arena,
+parse_variable_definition(Arena* parser_arena,
                           Parser* parser,
                           Ast_Variable_Definition* definition)
 {
@@ -380,10 +458,10 @@ parse_variable_definition(Arena* arena,
         return false;
     }
 
-    definition->type = allocate(arena, Ast_Type);
+    definition->type = allocate(parser_arena, Ast_Type);
     if (parser->current_token.type != TOKEN_ASSIGN)
     {
-        if (!parse_type(arena, parser, definition->type))
+        if (!parse_type(parser_arena, parser, definition->type))
         {
             return false;
         }
@@ -443,7 +521,7 @@ parse_return_statement(Parser* parser, Ast_Return_Statement* statement)
 }
 
 internal Bool
-parse_statement(Arena* arena, Parser* parser, Ast_Statement* statement)
+parse_statement(Arena* parser_arena, Parser* parser, Ast_Statement* statement)
 {
     if (!parser_get_next_token(parser))
     {
@@ -455,7 +533,7 @@ parse_statement(Arena* arena, Parser* parser, Ast_Statement* statement)
         case TOKEN_IDENTIFIER:
         {
             statement->type = AST_STATEMENT_VARIABLE_DEFINITION;
-            return parse_variable_definition(arena, parser, &statement->variable_definition);
+            return parse_variable_definition(parser_arena, parser, &statement->variable_definition);
         } break;
 
         case TOKEN_RETURN:
@@ -466,13 +544,15 @@ parse_statement(Arena* arena, Parser* parser, Ast_Statement* statement)
 
         default:
         {
+            // TODO(vlad): Ensure that token has one of these types and report an error if it does not.
+            println("Failed to parse statement");
             return false;
         } break;
     }
 }
 
 internal Bool
-parse_statements(Arena* arena, Parser* parser, Ast_Statements* statements)
+parse_statements(Arena* parser_arena, Parser* parser, Ast_Statements* statements)
 {
     if (!parser_get_next_token(parser))
     {
@@ -482,7 +562,7 @@ parse_statements(Arena* arena, Parser* parser, Ast_Statements* statements)
     while (parser->current_token.type != TOKEN_RIGHT_BRACE)
     {
         Ast_Statement statement = {0};
-        if (!parse_statement(arena, parser, &statement))
+        if (!parse_statement(parser_arena, parser, &statement))
         {
             return false;
         }
@@ -491,7 +571,7 @@ parse_statements(Arena* arena, Parser* parser, Ast_Statements* statements)
         {
             // XXX(vlad): We can change 'MAX(1, 2 * capacity)' to '(2 * capacity) | 1'.
             const Size new_capacity = MAX(1, 2 * statements->statements_capacity);
-            statements->statements = reallocate(arena,
+            statements->statements = reallocate(parser_arena,
                                                 statements->statements,
                                                 Ast_Statement,
                                                 statements->statements_capacity,
@@ -512,13 +592,13 @@ parse_statements(Arena* arena, Parser* parser, Ast_Statements* statements)
 }
 
 internal Bool
-parse_function_body(Arena* arena, Parser* parser, Ast_Statements* statements)
+parse_function_body(Arena* parser_arena, Parser* parser, Ast_Statements* statements)
 {
-    return parse_statements(arena, parser, statements);
+    return parse_statements(parser_arena, parser, statements);
 }
 
 internal Bool
-parse_function_definition(Arena* arena,
+parse_function_definition(Arena* parser_arena,
                           Parser* parser,
                           Ast_Function_Definition* function_definition)
 {
@@ -532,8 +612,8 @@ parse_function_definition(Arena* arena,
         return false;
     }
 
-    function_definition->type = allocate(arena, Ast_Type);
-    if (!parse_function_type(arena, parser, function_definition->type))
+    function_definition->type = allocate(parser_arena, Ast_Type);
+    if (!parse_function_type(parser_arena, parser, function_definition->type))
     {
         return false;
     }
@@ -548,7 +628,7 @@ parse_function_definition(Arena* arena,
         return false;
     }
 
-    if (!parse_function_body(arena, parser, &function_definition->statements))
+    if (!parse_function_body(parser_arena, parser, &function_definition->statements))
     {
         return false;
     }
@@ -562,14 +642,14 @@ parse_function_definition(Arena* arena,
 }
 
 internal Bool
-parser_parse(Arena* arena, Parser* parser, Ast* ast)
+parser_parse(Arena* parser_arena, Parser* parser, Ast* ast)
 {
     do
     {
         Ast_Function_Definition function_definition = {0};
-        if (!parse_function_definition(arena, parser, &function_definition))
+        if (!parse_function_definition(parser_arena, parser, &function_definition))
         {
-            println("Failed to parse function definition.");
+            println("Failed to parse function definition");
             return false;
         }
 
@@ -577,7 +657,7 @@ parser_parse(Arena* arena, Parser* parser, Ast* ast)
         {
             // XXX(vlad): We can change 'MAX(1, 2 * capacity)' to '(2 * capacity) | 1'.
             const Size new_capacity = MAX(1, 2 * ast->function_definitions_capacity);
-            ast->function_definitions = reallocate(arena,
+            ast->function_definitions = reallocate(parser_arena,
                                                    ast->function_definitions,
                                                    Ast_Function_Definition,
                                                    ast->function_definitions_capacity,
@@ -602,5 +682,6 @@ parser_parse(Arena* arena, Parser* parser, Ast* ast)
 internal void
 parser_destroy(Parser* parser)
 {
+    // XXX(vlad): Clear errors here? Probably not.
     UNUSED(parser);
 }

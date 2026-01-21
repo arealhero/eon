@@ -2,8 +2,6 @@
 
 #include <eon/io.h>
 
-#include "eon_log.h"
-
 #include <stdlib.h>
 
 maybe_unused internal String_View
@@ -60,8 +58,9 @@ token_type_to_string(const Token_Type type)
 }
 
 internal void
-lexer_create(Lexer* lexer, const String_View code)
+lexer_create(Lexer* lexer, const String_View filename, const String_View code)
 {
+    lexer->filename = filename;
     lexer->code.data = code.data;
     lexer->code.length = code.length;
     lexer->lexeme_start_index = 0;
@@ -138,6 +137,7 @@ lexer_create_token(Lexer* lexer, Token* token, const Token_Type type)
         .data   = lexer->code.data + lexer->lexeme_start_index,
         .length = lexer->current_index - lexer->lexeme_start_index,
     };
+    token->filename = lexer->filename;
     token->line = lexer->current_line;
     token->column = lexer->current_column - token->lexeme.length;
 }
@@ -155,7 +155,7 @@ lexer_is_digit(const char c)
 }
 
 internal Bool
-lexer_get_next_token(Lexer* lexer, Token* token)
+lexer_get_next_token(Lexer* lexer, Token* token, Errors* errors)
 {
     if (lexer->current_index >= lexer->code.length)
     {
@@ -397,11 +397,17 @@ lexer_get_next_token(Lexer* lexer, Token* token)
 
             default:
             {
-                log_print_code_line_with_highlighting(string_view("Error: unexpected character encountered: "),
-                                                      lexer->code,
-                                                      lexer->current_column - 1,
-                                                      1);
-                println("Current column: {}", lexer->current_column);
+                Error error = {0};
+                error.filename = string_view("<input>");
+                error.line = lexer->current_line;
+                error.column = lexer->current_column - 1;
+                error.highlight_length = 1;
+                error.code = lexer->code;
+                error.message = string_view("Unexpected character encountered");
+
+                add_error(errors, &error);
+
+                // TODO(vlad): Do we really need this?
                 lexer->lexeme_start_index = lexer->current_index;
 
                 // FIXME(vlad): Optionally trigger a debug trap?

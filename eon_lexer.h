@@ -3,6 +3,8 @@
 #include <eon/common.h>
 #include <eon/string.h>
 
+#include "eon_errors.h"
+
 enum Token_Type
 {
     TOKEN_UNDEFINED = 0,
@@ -40,8 +42,9 @@ struct Token
     Token_Type type;
     String_View lexeme;
 
-    Size line;
-    Size column;
+    String_View filename;
+    Index line;
+    Index column;
 };
 typedef struct Token Token;
 
@@ -54,19 +57,20 @@ typedef struct Keyword Keyword;
 
 struct Lexer
 {
+    String_View filename;
     String_View code;
 
-    Size lexeme_start_index;
-    Size current_index;
+    Index lexeme_start_index;
+    Index current_index;
 
-    Size current_line;
-    Size current_column;
+    Index current_line;
+    Index current_column;
 
     Keyword* keywords;
     Size keywords_count;
 };
 typedef struct Lexer Lexer;
 
-internal void lexer_create(Lexer* lexer, const String_View code);
-internal Bool lexer_get_next_token(Lexer* lexer, Token* token);
+internal void lexer_create(Lexer* lexer, const String_View filename, const String_View code);
+internal Bool lexer_get_next_token(Lexer* lexer, Token* token, Errors* errors);
 internal void lexer_destroy(Lexer* lexer);
