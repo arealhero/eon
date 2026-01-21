@@ -357,8 +357,10 @@ parse_pointer_type(Arena* parser_arena, Parser* parser, Ast_Type* type)
     return parse_type(parser_arena, parser, type->pointed_to);
 }
 
+internal Bool parse_expression(Arena* parser_arena, Parser* parser, Ast_Expression* expression);
+
 internal Bool
-parse_primary_expression(Parser* parser, Ast_Expression* expression)
+parse_primary_expression(Arena* parser_arena, Parser* parser, Ast_Expression* expression)
 {
     if (!parser_get_next_token(parser))
     {
@@ -396,6 +398,17 @@ parse_primary_expression(Parser* parser, Ast_Expression* expression)
             return true;
         } break;
 
+        case TOKEN_LEFT_PAREN:
+        {
+            parser_consume_token(parser);
+            if (!parse_expression(parser_arena, parser, expression))
+            {
+                return false;
+            }
+            parser_get_and_consume_token_with_type(parser, TOKEN_RIGHT_PAREN);
+            return true;
+        } break;
+
         default:
         {
             // TODO(vlad): Ensure that token has one of these types and report an error if it does not.
@@ -406,13 +419,133 @@ parse_primary_expression(Parser* parser, Ast_Expression* expression)
 }
 
 internal Bool
-parse_expression(Parser* parser, Ast_Expression* expression)
+parse_multiplicative_expression(Arena* parser_arena, Parser* parser, Ast_Expression* expression)
 {
-    return parse_primary_expression(parser, expression);
+    Ast_Expression* lhs = allocate(parser_arena, Ast_Expression);
+    if (!parse_primary_expression(parser_arena, parser, lhs))
+    {
+        return false;
+    }
+
+    if (!parser_get_next_token(parser))
+    {
+        return false;
+    }
+
+    switch (parser->current_token.type)
+    {
+        case TOKEN_STAR:
+        {
+            const Token operator = parser->current_token;
+            parser_consume_token(parser);
+
+            Ast_Expression* rhs = allocate(parser_arena, Ast_Expression);
+            if (!parse_multiplicative_expression(parser_arena, parser, rhs))
+            {
+                return false;
+            }
+
+            expression->type = AST_EXPRESSION_MULTIPLY;
+            expression->binary_expression.operator = operator;
+            expression->binary_expression.lhs = lhs;
+            expression->binary_expression.rhs = rhs;
+            return true;
+        } break;
+
+        case TOKEN_SLASH:
+        {
+            const Token operator = parser->current_token;
+            parser_consume_token(parser);
+
+            Ast_Expression* rhs = allocate(parser_arena, Ast_Expression);
+            if (!parse_multiplicative_expression(parser_arena, parser, rhs))
+            {
+                return false;
+            }
+
+            expression->type = AST_EXPRESSION_DIVIDE;
+            expression->binary_expression.operator = operator;
+            expression->binary_expression.lhs = lhs;
+            expression->binary_expression.rhs = rhs;
+            return true;
+        } break;
+
+        default:
+        {
+            *expression = *lhs;
+            return true;
+        }
+    }
 }
 
 internal Bool
-parse_optional_variable_assignment(Parser* parser, Ast_Variable_Definition* definition)
+parse_additive_expression(Arena* parser_arena, Parser* parser, Ast_Expression* expression)
+{
+    Ast_Expression* lhs = allocate(parser_arena, Ast_Expression);
+    if (!parse_multiplicative_expression(parser_arena, parser, lhs))
+    {
+        return false;
+    }
+
+    if (!parser_get_next_token(parser))
+    {
+        return false;
+    }
+
+    switch (parser->current_token.type)
+    {
+        case TOKEN_PLUS:
+        {
+            const Token operator = parser->current_token;
+            parser_consume_token(parser);
+
+            Ast_Expression* rhs = allocate(parser_arena, Ast_Expression);
+            if (!parse_additive_expression(parser_arena, parser, rhs))
+            {
+                return false;
+            }
+
+            expression->type = AST_EXPRESSION_ADD;
+            expression->binary_expression.operator = operator;
+            expression->binary_expression.lhs = lhs;
+            expression->binary_expression.rhs = rhs;
+            return true;
+        } break;
+
+        case TOKEN_MINUS:
+        {
+            const Token operator = parser->current_token;
+            parser_consume_token(parser);
+
+            Ast_Expression* rhs = allocate(parser_arena, Ast_Expression);
+            if (!parse_additive_expression(parser_arena, parser, rhs))
+            {
+                return false;
+            }
+
+            expression->type = AST_EXPRESSION_SUBTRACT;
+            expression->binary_expression.operator = operator;
+            expression->binary_expression.lhs = lhs;
+            expression->binary_expression.rhs = rhs;
+            return true;
+        } break;
+
+        default:
+        {
+            *expression = *lhs;
+            return true;
+        }
+    }
+}
+
+internal Bool
+parse_expression(Arena* parser_arena, Parser* parser, Ast_Expression* expression)
+{
+    return parse_additive_expression(parser_arena, parser, expression);
+}
+
+internal Bool
+parse_optional_variable_assignment(Arena* parser_arena, Parser* parser, Ast_Variable_Definition* definition)
 {
     if (!parser_get_next_token(parser))
     {
@@ -425,7 +558,7 @@ parse_optional_variable_assignment(Parser* parser, Ast_Variable_Definition* defi
 
         definition->initialisation_type = AST_INITIALISATION_WITH_VALUE;
 
-        if (!parse_expression(parser, &definition->initial_value))
+        if (!parse_expression(parser_arena, parser, &definition->initial_value))
         {
             return false;
         }
@@ -471,7 +604,7 @@ parse_variable_definition(Arena* parser_arena,
         definition->type->type = AST_TYPE_DEDUCED;
     }
 
-    if (!parse_optional_variable_assignment(parser, definition))
+    if (!parse_optional_variable_assignment(parser_arena, parser, definition))
     {
         return false;
     }
@@ -487,7 +620,7 @@ parse_variable_definition(Arena* parser_arena,
 }
 
 internal Bool
-parse_return_statement(Parser* parser, Ast_Return_Statement* statement)
+parse_return_statement(Arena* parser_arena, Parser* parser, Ast_Return_Statement* statement)
 {
     if (!parser_get_and_consume_token_with_type(parser, TOKEN_RETURN))
     {
@@ -507,7 +640,7 @@ parse_return_statement(Parser* parser, Ast_Return_Statement* statement)
 
     statement->is_empty = false;
 
-    if (!parse_expression(parser, &statement->expression))
+    if (!parse_expression(parser_arena, parser, &statement->expression))
     {
         return false;
     }
@@ -539,7 +672,7 @@ parse_statement(Arena* parser_arena, Parser* parser, Ast_Statement* statement)
         case TOKEN_RETURN:
         {
             statement->type = AST_STATEMENT_RETURN;
-            return parse_return_statement(parser, &statement->return_statement);
+            return parse_return_statement(parser_arena, parser, &statement->return_statement);
         } break;
 
         default:

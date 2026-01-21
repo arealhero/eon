@@ -97,11 +97,30 @@ enum Ast_Expression_Type
 {
     AST_EXPRESSION_UNDEFINED = 0,
 
+    // NOTE(vlad): Primary expressions.
     AST_EXPRESSION_NUMBER,
     AST_EXPRESSION_STRING_LITERAL,
     AST_EXPRESSION_IDENTIFIER,
+
+    // NOTE(vlad): Additive expressions.
+    AST_EXPRESSION_ADD,
+    AST_EXPRESSION_SUBTRACT,
+
+    // NOTE(vlad): Multiplicative expressions.
+    AST_EXPRESSION_MULTIPLY,
+    AST_EXPRESSION_DIVIDE,
 };
 typedef enum Ast_Expression_Type Ast_Expression_Type;
+
+struct Ast_Expression;
+
+struct Ast_Binary_Expression
+{
+    Token operator;
+    struct Ast_Expression* lhs;
+    struct Ast_Expression* rhs;
+};
+typedef struct Ast_Binary_Expression Ast_Binary_Expression;
 
 struct Ast_Expression
 {
@@ -111,6 +130,8 @@ struct Ast_Expression
         Ast_Number number;
         Ast_String_Literal string_literal;
         Ast_Identifier identifier;
+
+        Ast_Binary_Expression binary_expression;
     };
 };
 typedef struct Ast_Expression Ast_Expression;
