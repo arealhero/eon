@@ -84,7 +84,7 @@ struct Ast_Type
         // NOTE(vlad): 'type == AST_TYPE_POINTER'.
         struct
         {
-            struct Ast_Type* pointed_to_type;
+            struct Ast_Type* pointed_to;
         };
 
         // NOTE(vlad): Trivial types (VOID, INT_32, etc) have no data.

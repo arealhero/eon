@@ -34,7 +34,8 @@ variable_definition: identifier ":" optional_variable_type optional_variable_ass
 return_statement: "return" optional_expression ";";
 
 function_type: "(" arguments_declaration ")" "->" type;
-type: function_type | identifier; // TODO(vlad): Add support for arrays, pointers, qualifiers, etc. @tag(eon-grammar)
+type: function_type | pointer_type | identifier; // TODO(vlad): Add support for arrays, qualifiers, etc. @tag(eon-grammar)
+pointer_type: "*" type;
 
 arguments_declaration: EPS | argument_declaration arguments_declaration_tail;
 argument_declaration: identifier ":" type; // TODO(vlad): Add default values support. @tag(eon-grammar)

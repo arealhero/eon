@@ -111,9 +111,8 @@ parse_identifier(Parser* parser,
     return true;
 }
 
-internal Bool parse_function_type(Arena* arena,
-                                  Parser* parser,
-                                  Ast_Type* type);
+internal Bool parse_function_type(Arena* arena, Parser* parser, Ast_Type* type);
+internal Bool parse_pointer_type(Arena* arena, Parser* parser, Ast_Type* type);
 
 internal Bool
 parse_type(Arena* arena,
@@ -131,6 +130,11 @@ parse_type(Arena* arena,
         case TOKEN_LEFT_PAREN:
         {
             return parse_function_type(arena, parser, type);
+        } break;
+
+        case TOKEN_STAR:
+        {
+            return parse_pointer_type(arena, parser, type);
         } break;
 
         case TOKEN_IDENTIFIER:
@@ -261,6 +265,20 @@ parse_function_type(Arena* arena,
 
     type->return_type = allocate(arena, Ast_Type);
     return parse_type(arena, parser, type->return_type);
+}
+
+internal Bool
+parse_pointer_type(Arena* arena, Parser* parser, Ast_Type* type)
+{
+    type->type = AST_TYPE_POINTER;
+
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_STAR))
+    {
+        return false;
+    }
+
+    type->pointed_to = allocate(arena, Ast_Type);
+    return parse_type(arena, parser, type->pointed_to);
 }
 
 internal Bool
