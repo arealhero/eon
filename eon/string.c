@@ -1,5 +1,7 @@
 #include "string.h"
 
+#include <eon/io.h>
+
 #include <stdarg.h>
 
 internal Size
@@ -291,16 +293,16 @@ validate_arguments_and_calculate_total_size_in_bytes(String_View format,
             default:
             {
                 // FIXME(vlad): support format settings in braces like std::format or fmt:format
-                // if (!brace_was_opened)
-                // {
-                //     total_size += 1;
-                // }
-
-                if (brace_was_opened)
+                if (!brace_was_opened)
                 {
-                    brace_was_opened = 0;
                     total_size += 1;
                 }
+
+                // if (brace_was_opened)
+                // {
+                //     brace_was_opened = 0;
+                //     total_size += 1;
+                // }
 
                 total_size += 1;
             } break;
@@ -342,6 +344,7 @@ vformat_string_impl(Arena* const arena,
     char* buffer = allocate_uninitialized_array(arena, formatted_string_length, char);
     Index buffer_index = 0;
 
+    Number_Base number_base = NUMBER_BASE_DECIMAL;
     Bool brace_was_opened = false;
     for (Index i = 0;
          i < format.length;
@@ -354,6 +357,7 @@ vformat_string_impl(Arena* const arena,
             case '{':
             {
                 brace_was_opened = true;
+                number_base = NUMBER_BASE_DECIMAL;
             } break;
 
             case '}':
@@ -391,7 +395,7 @@ vformat_string_impl(Arena* const arena,
                         target.length = info.max_size_in_bytes;         \
                         Integer_Type##_to_string_inplace(&target,       \
                                                          info.argument.Integer_Type##_value, \
-                                                         NUMBER_BASE_DECIMAL); \
+                                                         number_base);  \
                         buffer_index += target.length;                  \
                     } break;                                            \
                     REQUIRE_SEMICOLON
@@ -405,6 +409,8 @@ vformat_string_impl(Arena* const arena,
                     HANDLE_INTEGER_CASE(u16);
                     HANDLE_INTEGER_CASE(u32);
                     HANDLE_INTEGER_CASE(u64);
+#undef HANDLE_INTEGER_CASE
+
                 }
 
                 brace_was_opened = false;
@@ -414,11 +420,26 @@ vformat_string_impl(Arena* const arena,
             {
                 if (brace_was_opened)
                 {
-                    buffer[buffer_index++] = '{';
-                    brace_was_opened = false;
+                    if (c == 'h')
+                    {
+                        number_base = NUMBER_BASE_HEXADECIMAL;
+                    }
+                    else
+                    {
+                        println("Unknown character encountered: {}", c);
+                        FAIL("Unknown character encountered");
+                    }
+                }
+                else
+                {
+                    buffer[buffer_index++] = c;
                 }
 
-                buffer[buffer_index++] = c;
+                // if (brace_was_opened)
+                // {
+                //     buffer[buffer_index++] = '{';
+                //     brace_was_opened = false;
+                // }
             } break;
         }
     }
@@ -426,6 +447,7 @@ vformat_string_impl(Arena* const arena,
     if (brace_was_opened)
     {
         // NOTE(vlad): Trailing brace.
+        // FIXME(vlad): Restore optional format-like string that followed '{'.
         buffer[buffer_index++] = '{';
     }
 

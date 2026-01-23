@@ -148,6 +148,29 @@ test_unsigned_integers_formatting(Test_Context* context)
         const String result = format_string(context->arena, "{}", MIN_VALUE(u64));
         ASSERT_STRINGS_ARE_EQUAL(result, "0");
     }
+
+    // NOTE(vlad): Print integers in hex.
+    {
+        const String result = format_string(context->arena, "{h}", 123);
+        ASSERT_STRINGS_ARE_EQUAL(result, "7b");
+    }
+
+    // TODO(vlad): Support this?
+    // {
+    //     const String result = format_string(context->arena, "{H}", 123);
+    //     ASSERT_STRINGS_ARE_EQUAL(result, "7B");
+    // }
+
+    // // NOTE(vlad): Print integers in hex (padded).
+    // {
+    //     const String result = format_string(context->arena, "{:h<04}", 123);
+    //     ASSERT_STRINGS_ARE_EQUAL(result, "007b");
+    // }
+
+    // {
+    //     const String result = format_string(context->arena, "{:h>04}", 123);
+    //     ASSERT_STRINGS_ARE_EQUAL(result, "7b00");
+    // }
 }
 
 REGISTER_TESTS(
