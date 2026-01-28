@@ -155,12 +155,42 @@ test_unsigned_integers_formatting(Test_Context* context)
         ASSERT_STRINGS_ARE_EQUAL(result, "7b");
     }
 
+    // NOTE(vlad): Padding tests.
+    {
+        const String result = format_string(context->arena,
+                                            "{left-pad-count: 10}",
+                                            0);
+        ASSERT_STRINGS_ARE_EQUAL(result, "         0");
+    }
+
+    {
+        const String result = format_string(context->arena,
+                                            "{left-pad-count: 0}",
+                                            0);
+        ASSERT_STRINGS_ARE_EQUAL(result, "0");
+    }
+
+    {
+        const String result = format_string(context->arena,
+                                            "{left-pad-count: 1}",
+                                            0);
+        ASSERT_STRINGS_ARE_EQUAL(result, "0");
+    }
+
+    {
+        const String result = format_string(context->arena,
+                                            "{left-pad-count: 10, left-pad-char: x}",
+                                            0);
+        ASSERT_STRINGS_ARE_EQUAL(result, "xxxxxxxxx0");
+    }
+
     {
         const String result = format_string(context->arena,
                                             "{base: 16, left-pad-count: 4}",
                                             123);
         ASSERT_STRINGS_ARE_EQUAL(result, "  7b");
     }
+
     {
         const String result = format_string(context->arena,
                                             "{"
@@ -190,6 +220,11 @@ test_corner_cases(Test_Context* context)
     {
         const String result = format_string(context->arena, "{base:16");
         ASSERT_STRINGS_ARE_EQUAL(result, "{base:16");
+    }
+
+    {
+        const String result = format_string(context->arena, "{{");
+        ASSERT_STRINGS_ARE_EQUAL(result, "{{");
     }
 }
 
