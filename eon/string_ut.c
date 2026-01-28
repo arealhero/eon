@@ -151,30 +151,51 @@ test_unsigned_integers_formatting(Test_Context* context)
 
     // NOTE(vlad): Print integers in hex.
     {
-        const String result = format_string(context->arena, "{h}", 123);
+        const String result = format_string(context->arena, "{base:16}", 123);
         ASSERT_STRINGS_ARE_EQUAL(result, "7b");
     }
 
-    // TODO(vlad): Support this?
+    {
+        const String result = format_string(context->arena,
+                                            "{base: 16, left-pad-count: 4}",
+                                            123);
+        ASSERT_STRINGS_ARE_EQUAL(result, "  7b");
+    }
+    {
+        const String result = format_string(context->arena,
+                                            "{"
+                                            "  base: 16,"
+                                            "  left-pad-count: 4,"
+                                            "  left-pad-char: 0,"
+                                            "}",
+                                            123);
+        ASSERT_STRINGS_ARE_EQUAL(result, "007b");
+    }
+
+    // TODO(vlad): Support something like this?
     // {
-    //     const String result = format_string(context->arena, "{H}", 123);
+    //     const String result = format_string(context->arena,
+    //                                         "{"
+    //                                         "    base: 16,"
+    //                                         "    uppercase-hexadecimal: true,"
+    //                                         "}", 123);
     //     ASSERT_STRINGS_ARE_EQUAL(result, "7B");
     // }
+}
 
-    // // NOTE(vlad): Print integers in hex (padded).
-    // {
-    //     const String result = format_string(context->arena, "{:h<04}", 123);
-    //     ASSERT_STRINGS_ARE_EQUAL(result, "007b");
-    // }
-
-    // {
-    //     const String result = format_string(context->arena, "{:h>04}", 123);
-    //     ASSERT_STRINGS_ARE_EQUAL(result, "7b00");
-    // }
+internal void
+test_corner_cases(Test_Context* context)
+{
+    // NOTE(vlad): Format-like string without closing brace.
+    {
+        const String result = format_string(context->arena, "{base:16");
+        ASSERT_STRINGS_ARE_EQUAL(result, "{base:16");
+    }
 }
 
 REGISTER_TESTS(
     test_string_formatting,
     test_signed_integers_formatting,
-    test_unsigned_integers_formatting
+    test_unsigned_integers_formatting,
+    test_corner_cases
 )

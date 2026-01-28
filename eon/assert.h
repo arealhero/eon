@@ -25,6 +25,7 @@ INTERNAL_exit(const String_View message)
     __builtin_trap();
 }
 #define FAIL(message) INTERNAL_exit(string_view(message))
+#define UNREACHABLE() FAIL("This should be unreachable")
 
 #if EON_DISABLE_ASSERTS
 #    define ASSERT(expression) (void)((expression))

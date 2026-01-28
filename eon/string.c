@@ -240,6 +240,240 @@ DEFINE_FORMAT_TAG_FOR_INTEGER(u16, true, 16);
 DEFINE_FORMAT_TAG_FOR_INTEGER(u32, true, 32);
 DEFINE_FORMAT_TAG_FOR_INTEGER(u64, true, 64);
 
+struct Integer_Format_Settings
+{
+    Number_Base base;
+    Size left_pad_count;
+    char left_pad_char;
+};
+typedef struct Integer_Format_Settings Integer_Format_Settings;
+
+internal Integer_Format_Settings
+parse_integer_format_settings(const String_View format)
+{
+    enum Integer_Format_Keyword_Type
+    {
+        INTEGER_FORMAT_KEYWORD_INVALID = 0,
+
+        INTEGER_FORMAT_KEYWORD_BASE,
+        INTEGER_FORMAT_KEYWORD_LEFT_PAD_COUNT,
+        INTEGER_FORMAT_KEYWORD_LEFT_PAD_CHAR,
+    };
+
+    struct Keyword
+    {
+        enum Integer_Format_Keyword_Type type;
+        String_View lexeme;
+    };
+
+    const struct Keyword keywords[] = {
+        {
+            .type = INTEGER_FORMAT_KEYWORD_BASE,
+            .lexeme = string_view("base"),
+        },
+        {
+            .type = INTEGER_FORMAT_KEYWORD_LEFT_PAD_COUNT,
+            .lexeme = string_view("left-pad-count"),
+        },
+        {
+            .type = INTEGER_FORMAT_KEYWORD_LEFT_PAD_CHAR,
+            .lexeme = string_view("left-pad-char"),
+        },
+    };
+    const Size keywords_count = size_of(keywords) / size_of(keywords[0]);
+
+    Integer_Format_Settings settings = {0};
+    settings.base = NUMBER_BASE_DECIMAL;
+    settings.left_pad_count = 0;
+    settings.left_pad_char = ' ';
+
+    Index index = 0;
+    while (index < format.length)
+    {
+        Index lexeme_start_index = index;
+
+        const char c = format.data[index];
+
+        if (c == ' ')
+        {
+            index += 1;
+            continue;
+        }
+
+        // TODO(vlad): Use 'is_letter'.
+        if ('a' <= c && c <= 'z')
+        {
+            index += 1;
+            while (index < format.length)
+            {
+                const char this_char = format.data[index];
+
+                const Bool is_valid_lexeme_symbol =
+                    ('a' <= this_char && this_char <= 'z')
+                    || (this_char == '-');
+
+                if (!is_valid_lexeme_symbol)
+                {
+                    break;
+                }
+
+                index += 1;
+            }
+
+            String_View lexeme = {0};
+            lexeme.data = format.data + lexeme_start_index;
+            lexeme.length = index - lexeme_start_index;
+
+            enum Integer_Format_Keyword_Type type = INTEGER_FORMAT_KEYWORD_INVALID;
+            for (Index keyword_index = 0;
+                 keyword_index < keywords_count;
+                 ++keyword_index)
+            {
+                const struct Keyword* this_keyword = &keywords[keyword_index];
+                if (strings_are_equal(lexeme, this_keyword->lexeme))
+                {
+                    type = this_keyword->type;
+                    break;
+                }
+            }
+
+            if (type == INTEGER_FORMAT_KEYWORD_INVALID)
+            {
+                FAIL("Invalid integer format specifier found");
+            }
+
+            if (index >= format.length)
+            {
+                FAIL("Unexpected end of format settings found");
+            }
+
+            if (format.data[index] != ':')
+            {
+                FAIL("Unexpected char found (expected ':')");
+            }
+
+            index += 1;
+
+            while (index < format.length)
+            {
+                if (format.data[index] == ' ')
+                {
+                    index += 1;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            if (index >= format.length)
+            {
+                FAIL("Unexpected end of format settings found");
+            }
+
+            switch (type)
+            {
+                case INTEGER_FORMAT_KEYWORD_INVALID:
+                {
+                    UNREACHABLE();
+                } break;
+
+                case INTEGER_FORMAT_KEYWORD_BASE:
+                {
+                    Size base = 0;
+                    while (index < format.length)
+                    {
+                        const char this_char = format.data[index];
+
+                        if ('0' <= this_char && this_char <= '9')
+                        {
+                            base = 10 * base + (this_char - '0');
+                            index += 1;
+                        }
+                        else if (this_char == ',')
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            FAIL("Unexpected char found");
+                        }
+                    }
+
+                    switch (base)
+                    {
+                        case NUMBER_BASE_BINARY:
+                        case NUMBER_BASE_DECIMAL:
+                        case NUMBER_BASE_HEXADECIMAL:
+                        {
+                            settings.base = (Number_Base) base;
+                        } break;
+
+                        default:
+                        {
+                            FAIL("Unsupported base encountered");
+                        } break;
+                    }
+                } break;
+
+                case INTEGER_FORMAT_KEYWORD_LEFT_PAD_COUNT:
+                {
+                    Size left_pad_count = 0;
+                    while (index < format.length)
+                    {
+                        const char this_char = format.data[index];
+
+                        if ('0' <= this_char && this_char <= '9')
+                        {
+                            left_pad_count = 10 * left_pad_count + (this_char - '0');
+                            index += 1;
+                        }
+                        else if (this_char == ',')
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            FAIL("Unexpected char found");
+                        }
+                    }
+
+                    settings.left_pad_count = left_pad_count;
+                } break;
+
+                case INTEGER_FORMAT_KEYWORD_LEFT_PAD_CHAR:
+                {
+                    settings.left_pad_char = format.data[index];
+                    index += 1;
+                } break;
+            }
+
+            while (index < format.length)
+            {
+                if (format.data[index] == ' ')
+                {
+                    index += 1;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            if (index < format.length && format.data[index] == ',')
+            {
+                index += 1;
+            }
+        }
+        else
+        {
+            FAIL("Unexpected char encountered while parsing format specifier");
+        }
+    }
+
+    return settings;
+}
+
 internal Size
 validate_arguments_and_calculate_total_size_in_bytes(String_View format,
                                                      Size number_of_arguments,
@@ -341,11 +575,12 @@ vformat_string_impl(Arena* const arena,
                                                                args);
 
     // FIXME(vlad): Ensure that buffer has enough space before every call to 'copy_memory' in this function.
-    char* buffer = allocate_uninitialized_array(arena, formatted_string_length, char);
+    // FIXME(vlad): Grow the buffer dynamically.
+    char* buffer = allocate_uninitialized_array(arena, 2 * formatted_string_length, char);
     Index buffer_index = 0;
 
-    Number_Base number_base = NUMBER_BASE_DECIMAL;
     Bool brace_was_opened = false;
+    Index format_specification_start_index = 0;
     for (Index i = 0;
          i < format.length;
          ++i)
@@ -357,7 +592,7 @@ vformat_string_impl(Arena* const arena,
             case '{':
             {
                 brace_was_opened = true;
-                number_base = NUMBER_BASE_DECIMAL;
+                format_specification_start_index = i + 1;
             } break;
 
             case '}':
@@ -368,12 +603,21 @@ vformat_string_impl(Arena* const arena,
                     break;
                 }
 
+                String_View format_specification = {0};
+                format_specification.data = format.data + format_specification_start_index;
+                format_specification.length = i - format_specification_start_index;
+
                 Format_Type_Info info = va_arg(args, Format_Type_Info);
 
                 switch (info.tag)
                 {
                     case TYPE_TAG_STRING_VIEW:
                     {
+                        if (format_specification.length != 0)
+                        {
+                            FAIL("Strings format specification is not yet supported");
+                        }
+
                         copy_memory(as_bytes(buffer + buffer_index),
                                     as_bytes(info.argument.string_view.data),
                                     info.argument.string_view.length);
@@ -382,6 +626,11 @@ vformat_string_impl(Arena* const arena,
 
                     case TYPE_TAG_char:
                     {
+                        if (format_specification.length != 0)
+                        {
+                            FAIL("Char format specification is not yet supported");
+                        }
+
                         buffer[buffer_index] = info.argument.char_value;
                         buffer_index += 1;
                     } break;
@@ -390,14 +639,32 @@ vformat_string_impl(Arena* const arena,
 #define HANDLE_INTEGER_CASE(Integer_Type)                               \
                     case TYPE_TAG_##Integer_Type:                       \
                     {                                                   \
+                        const Integer_Format_Settings settings = parse_integer_format_settings(format_specification); \
+                                                                        \
+                        const Size target_length = info.max_size_in_bytes; \
                         String target = {0};                            \
-                        target.data = buffer + buffer_index;            \
-                        target.length = info.max_size_in_bytes;         \
+                        target.data = allocate_array(arena, target_length, char); \
+                        target.length = target_length;                  \
+                                                                        \
                         Integer_Type##_to_string_inplace(&target,       \
                                                          info.argument.Integer_Type##_value, \
-                                                         number_base);  \
+                                                         settings.base); \
+                                                                        \
+                        if (target.length < settings.left_pad_count)    \
+                        {                                               \
+                            for (Index pad_index = 0;                   \
+                                 pad_index < settings.left_pad_count - target.length; \
+                                 ++pad_index)                           \
+                            {                                           \
+                                buffer[buffer_index] = settings.left_pad_char; \
+                                buffer_index += 1;                      \
+                            }                                           \
+                        }                                               \
+                        copy_memory(as_bytes(buffer + buffer_index),    \
+                                    as_bytes(target.data),              \
+                                    target.length);                     \
                         buffer_index += target.length;                  \
-                    } break;                                            \
+                } break;                                                \
                     REQUIRE_SEMICOLON
 
                     HANDLE_INTEGER_CASE(s8);
@@ -418,19 +685,7 @@ vformat_string_impl(Arena* const arena,
 
             default:
             {
-                if (brace_was_opened)
-                {
-                    if (c == 'h')
-                    {
-                        number_base = NUMBER_BASE_HEXADECIMAL;
-                    }
-                    else
-                    {
-                        println("Unknown character encountered: {}", c);
-                        FAIL("Unknown character encountered");
-                    }
-                }
-                else
+                if (!brace_was_opened)
                 {
                     buffer[buffer_index++] = c;
                 }
@@ -449,6 +704,12 @@ vformat_string_impl(Arena* const arena,
         // NOTE(vlad): Trailing brace.
         // FIXME(vlad): Restore optional format-like string that followed '{'.
         buffer[buffer_index++] = '{';
+
+        const Size format_specification_length = format.length - format_specification_start_index;
+        copy_memory(as_bytes(buffer + buffer_index),
+                    as_bytes(buffer + format_specification_start_index),
+                    format_specification_length);
+        buffer_index += format_specification_length;
     }
 
     String formatted_string = {0};
