@@ -17,7 +17,7 @@ internal inline void fill_memory_with_zeros(Byte* memory, const Size number_of_b
 #define fill_with_zeros(pointer, number_of_elements, Type)              \
     fill_memory_with_zeros(as_bytes(pointer), size_of(Type) * number_of_elements)
 
-typedef struct Arena
+struct Arena
 {
     String_View name;
 
@@ -25,7 +25,8 @@ typedef struct Arena
 
     Index free_memory_offset;
     Index committed_memory_offset;
-} Arena;
+};
+typedef struct Arena Arena;
 
 internal Arena* INTERNAL_arena_create(const String_View name,
                                       Size number_of_bytes_to_reserve,
