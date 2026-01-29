@@ -228,9 +228,297 @@ test_corner_cases(Test_Context* context)
     }
 }
 
+internal void
+test_integer_parsing(Test_Context* context)
+{
+    // NOTE(vlad): Basic tests.
+    {
+        {
+            s8 result;
+            ASSERT_TRUE(parse_integer(string_view("123"), &result));
+            ASSERT_EQUAL(result, 123);
+        }
+
+        {
+            s32 result;
+            ASSERT_TRUE(parse_integer(string_view("124534"), &result));
+            ASSERT_EQUAL(result, 124534);
+        }
+    }
+
+    // NOTE(vlad): Max values of signed integers.
+    {
+        {
+            const String input = format_string(context->arena, "{}", MAX_VALUE(s8));
+
+            s8 result;
+            ASSERT_TRUE(parse_integer(string_view(input), &result));
+            ASSERT_EQUAL(result, MAX_VALUE(s8));
+        }
+
+        {
+            const String input = format_string(context->arena, "{}", MAX_VALUE(s16));
+
+            s16 result;
+            ASSERT_TRUE(parse_integer(string_view(input), &result));
+            ASSERT_EQUAL(result, MAX_VALUE(s16));
+        }
+
+        {
+            const String input = format_string(context->arena, "{}", MAX_VALUE(s32));
+
+            s32 result;
+            ASSERT_TRUE(parse_integer(string_view(input), &result));
+            ASSERT_EQUAL(result, MAX_VALUE(s32));
+        }
+
+        {
+            const String input = format_string(context->arena, "{}", MAX_VALUE(s64));
+
+            s64 result;
+            ASSERT_TRUE(parse_integer(string_view(input), &result));
+            ASSERT_EQUAL(result, MAX_VALUE(s64));
+        }
+    }
+
+    // // TODO(vlad): Min values of signed integers.
+
+    // {
+    //     const String input = format_string(context->arena, "{}", MIN_VALUE(s8));
+
+    //     s8 result;
+    //     ASSERT_TRUE(parse_integer(string_view(input), &result));
+    //     ASSERT_EQUAL(result, MIN_VALUE(s8));
+    // }
+
+    // {
+    //     const String input = format_string(context->arena, "{}", MIN_VALUE(s16));
+
+    //     s16 result;
+    //     ASSERT_TRUE(parse_integer(string_view(input), &result));
+    //     ASSERT_EQUAL(result, MIN_VALUE(s16));
+    // }
+
+    // {
+    //     const String input = format_string(context->arena, "{}", MIN_VALUE(s32));
+
+    //     s32 result;
+    //     ASSERT_TRUE(parse_integer(string_view(input), &result));
+    //     ASSERT_EQUAL(result, MIN_VALUE(s32));
+    // }
+
+    // {
+    //     const String input = format_string(context->arena, "{}", MIN_VALUE(s64));
+
+    //     s64 result;
+    //     ASSERT_TRUE(parse_integer(string_view(input), &result));
+    //     ASSERT_EQUAL(result, MIN_VALUE(s64));
+    // }
+
+    // NOTE(vlad): Max values of unsigned integers.
+    {
+        {
+            const String input = format_string(context->arena, "{}", MAX_VALUE(u8));
+
+            u8 result;
+            ASSERT_TRUE(parse_integer(string_view(input), &result));
+            ASSERT_EQUAL(result, MAX_VALUE(u8));
+        }
+
+        {
+            const String input = format_string(context->arena, "{}", MAX_VALUE(u16));
+
+            u16 result;
+            ASSERT_TRUE(parse_integer(string_view(input), &result));
+            ASSERT_EQUAL(result, MAX_VALUE(u16));
+        }
+
+        {
+            const String input = format_string(context->arena, "{}", MAX_VALUE(u32));
+
+            u32 result;
+            ASSERT_TRUE(parse_integer(string_view(input), &result));
+            ASSERT_EQUAL(result, MAX_VALUE(u32));
+        }
+
+        {
+            const String input = format_string(context->arena, "{}", MAX_VALUE(u64));
+
+            u64 result;
+            ASSERT_TRUE(parse_integer(string_view(input), &result));
+            ASSERT_EQUAL(result, MAX_VALUE(u64));
+        }
+    }
+
+    // NOTE(vlad): Min values of unsigned integers.
+    {
+        {
+            const String input = format_string(context->arena, "{}", MIN_VALUE(u8));
+
+            u8 result;
+            ASSERT_TRUE(parse_integer(string_view(input), &result));
+            ASSERT_EQUAL(result, MIN_VALUE(u8));
+        }
+
+        {
+            const String input = format_string(context->arena, "{}", MIN_VALUE(u16));
+
+            u16 result;
+            ASSERT_TRUE(parse_integer(string_view(input), &result));
+            ASSERT_EQUAL(result, MIN_VALUE(u16));
+        }
+
+        {
+            const String input = format_string(context->arena, "{}", MIN_VALUE(u32));
+
+            u32 result;
+            ASSERT_TRUE(parse_integer(string_view(input), &result));
+            ASSERT_EQUAL(result, MIN_VALUE(u32));
+        }
+
+        {
+            const String input = format_string(context->arena, "{}", MIN_VALUE(u64));
+
+            u64 result;
+            ASSERT_TRUE(parse_integer(string_view(input), &result));
+            ASSERT_EQUAL(result, MIN_VALUE(u64));
+        }
+    }
+
+    // NOTE(vlad): Testing signed integer overflows.
+    {
+        {
+            const String input = format_string(context->arena,
+                                               "{}{}",
+                                               MAX_VALUE(s8) / 10,
+                                               (MAX_VALUE(s8) % 10) + 1);
+
+            s8 result;
+            ASSERT_FALSE(parse_integer(string_view(input), &result));
+        }
+
+        {
+            const String input = format_string(context->arena,
+                                               "{}{}",
+                                               MAX_VALUE(s16) / 10,
+                                               (MAX_VALUE(s16) % 10) + 1);
+
+            s16 result;
+            ASSERT_FALSE(parse_integer(string_view(input), &result));
+        }
+
+        {
+            const String input = format_string(context->arena,
+                                               "{}{}",
+                                               MAX_VALUE(s32) / 10,
+                                               (MAX_VALUE(s32) % 10) + 1);
+
+            s32 result;
+            ASSERT_FALSE(parse_integer(string_view(input), &result));
+        }
+
+        {
+            const String input = format_string(context->arena,
+                                               "{}{}",
+                                               MAX_VALUE(s64) / 10,
+                                               (MAX_VALUE(s64) % 10) + 1);
+
+            s64 result;
+            ASSERT_FALSE(parse_integer(string_view(input), &result));
+        }
+    }
+
+    // TODO(vlad): Test signed integer underflows.
+
+    // NOTE(vlad): Testing unsigned integer overflows.
+    {
+        {
+            const String input = format_string(context->arena,
+                                               "{}{}",
+                                               MAX_VALUE(u8) / 10,
+                                               (MAX_VALUE(u8) % 10) + 1);
+
+            u8 result;
+            ASSERT_FALSE(parse_integer(string_view(input), &result));
+        }
+
+        {
+            const String input = format_string(context->arena,
+                                               "{}{}",
+                                               MAX_VALUE(u16) / 10,
+                                               (MAX_VALUE(u16) % 10) + 1);
+
+            u16 result;
+            ASSERT_FALSE(parse_integer(string_view(input), &result));
+        }
+
+        {
+            const String input = format_string(context->arena,
+                                               "{}{}",
+                                               MAX_VALUE(u32) / 10,
+                                               (MAX_VALUE(u32) % 10) + 1);
+
+            u32 result;
+            ASSERT_FALSE(parse_integer(string_view(input), &result));
+        }
+
+        {
+            const String input = format_string(context->arena,
+                                               "{}{}",
+                                               MAX_VALUE(u64) / 10,
+                                               (MAX_VALUE(u64) % 10) + 1);
+
+            u64 result;
+            ASSERT_FALSE(parse_integer(string_view(input), &result));
+        }
+    }
+
+    // NOTE(vlad): Testing unsigned integer underflows.
+    {
+        {
+            u8 result;
+            ASSERT_FALSE(parse_integer(string_view("-1"), &result));
+        }
+
+        {
+            u16 result;
+            ASSERT_FALSE(parse_integer(string_view("-1"), &result));
+        }
+
+        {
+            u32 result;
+            ASSERT_FALSE(parse_integer(string_view("-1"), &result));
+        }
+
+        {
+            u64 result;
+            ASSERT_FALSE(parse_integer(string_view("-1"), &result));
+        }
+    }
+
+    // NOTE(vlad): Testing various failure cases.
+    {
+        {
+            s8 result;
+            ASSERT_FALSE(parse_integer(string_view("abc"), &result));
+        }
+
+        {
+            s8 result;
+            ASSERT_FALSE(parse_integer(string_view("--1"), &result));
+        }
+
+        {
+            s8 result;
+            ASSERT_FALSE(parse_integer(string_view("-1-"), &result));
+        }
+    }
+}
+
 REGISTER_TESTS(
     test_string_formatting,
     test_signed_integers_formatting,
     test_unsigned_integers_formatting,
-    test_corner_cases
+    test_corner_cases,
+    test_integer_parsing
 )

@@ -51,6 +51,7 @@ enum Number_Base
 };
 typedef enum Number_Base Number_Base;
 
+// TODO(vlad): Make these functions internal and use _Generic-based macro instead.
 #define DECLARE_NUMBER_TO_STRING_INPLACE_FUNCTION(Integer_Type)         \
     internal void Integer_Type##_to_string_inplace(String* string,      \
                                                    Integer_Type number, \
@@ -67,6 +68,37 @@ DECLARE_NUMBER_TO_STRING_INPLACE_FUNCTION(u32);
 DECLARE_NUMBER_TO_STRING_INPLACE_FUNCTION(u64);
 
 #undef DECLARE_TO_STRING_INPLACE_FUNCTION_FOR_INTEGER
+
+// TODO(vlad): Make these functions internal and use _Generic-based macro instead.
+#define DECLARE_STRING_TO_NUMBER_FUNCTION(Integer_Type)                 \
+    maybe_unused internal Bool INTERNAL_parse_##Integer_Type(const String_View string, \
+                                                             Integer_Type* out_integer)
+
+DECLARE_STRING_TO_NUMBER_FUNCTION(s8);
+DECLARE_STRING_TO_NUMBER_FUNCTION(s16);
+DECLARE_STRING_TO_NUMBER_FUNCTION(s32);
+DECLARE_STRING_TO_NUMBER_FUNCTION(s64);
+
+DECLARE_STRING_TO_NUMBER_FUNCTION(u8);
+DECLARE_STRING_TO_NUMBER_FUNCTION(u16);
+DECLARE_STRING_TO_NUMBER_FUNCTION(u32);
+DECLARE_STRING_TO_NUMBER_FUNCTION(u64);
+
+#undef DECLARE_STRING_TO_NUMBER_FUNCTION
+
+#define DECLARE_OVERLOAD(Integer_Type) Integer_Type*: INTERNAL_parse_##Integer_Type
+#define parse_integer(string, out_integer)      \
+    _Generic((out_integer),                     \
+                 DECLARE_OVERLOAD(s8),          \
+                 DECLARE_OVERLOAD(s16),         \
+                 DECLARE_OVERLOAD(s32),         \
+                 DECLARE_OVERLOAD(s64),         \
+                                                \
+                 DECLARE_OVERLOAD(u8),          \
+                 DECLARE_OVERLOAD(u16),         \
+                 DECLARE_OVERLOAD(u32),         \
+                 DECLARE_OVERLOAD(u64)          \
+             )(string, out_integer)
 
 enum Format_Type_Tag
 {

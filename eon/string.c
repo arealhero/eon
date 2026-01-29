@@ -125,6 +125,7 @@ reverse_string(String string)
     }
 }
 
+// TODO(vlad): Change 'NUMBER' to 'INTEGER' here.
 #define NUMBER_TO_STRING_ALPHABET "fedcba9876543210123456789abcdef"
 #define DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(Integer_Type, is_signed, width_in_bits) \
     internal void                                                       \
@@ -166,6 +167,52 @@ DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(u8, true, 8);
 DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(u16, true, 16);
 DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(u32, true, 32);
 DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(u64, true, 64);
+
+#define DEFINE_PARSE_INTEGER_FUNCTION(Integer_Type, is_signed)          \
+    internal Bool                                                       \
+    INTERNAL_parse_##Integer_Type(const String_View string,             \
+                                  Integer_Type* out_integer)            \
+    {                                                                   \
+        Integer_Type result = 0;                                        \
+        for (Index i = 0;                                               \
+             i < string.length;                                         \
+             ++i)                                                       \
+        {                                                               \
+            const char c = string.data[i];                              \
+            const Bool is_digit = '0' <= c && c <= '9';                 \
+            if (!is_digit)                                              \
+            {                                                           \
+                return false;                                           \
+            }                                                           \
+                                                                        \
+            const Integer_Type next_digit = (Integer_Type)(c - '0');    \
+            /* TODO(vlad): Check underflows for signed integers. */     \
+            if (result > MAX_VALUE(Integer_Type) / 10)                  \
+            {                                                           \
+                return false;                                           \
+            }                                                           \
+            else if (result == MAX_VALUE(Integer_Type) / 10             \
+                     && next_digit > MAX_VALUE(Integer_Type) % 10)      \
+            {                                                           \
+                return false;                                           \
+            }                                                           \
+                                                                        \
+            result = 10 * result + next_digit;                          \
+        }                                                               \
+        *out_integer = result;                                          \
+        return true;                                                    \
+    }                                                                   \
+    REQUIRE_SEMICOLON
+
+DEFINE_PARSE_INTEGER_FUNCTION(s8, true);
+DEFINE_PARSE_INTEGER_FUNCTION(s16, true);
+DEFINE_PARSE_INTEGER_FUNCTION(s32, true);
+DEFINE_PARSE_INTEGER_FUNCTION(s64, true);
+
+DEFINE_PARSE_INTEGER_FUNCTION(u8, false);
+DEFINE_PARSE_INTEGER_FUNCTION(u16, false);
+DEFINE_PARSE_INTEGER_FUNCTION(u32, false);
+DEFINE_PARSE_INTEGER_FUNCTION(u64, false);
 
 internal inline Format_Type_Info
 INTERNAL_format_tag_string(const String string)
