@@ -214,7 +214,7 @@ test_unsigned_integers_formatting(Test_Context* context)
 }
 
 internal void
-test_corner_cases(Test_Context* context)
+test_formatting_corner_cases(Test_Context* context)
 {
     // NOTE(vlad): Format-like string without closing brace.
     {
@@ -587,6 +587,6 @@ REGISTER_TESTS(
     test_string_formatting,
     test_signed_integers_formatting,
     test_unsigned_integers_formatting,
-    test_corner_cases,
+    test_formatting_corner_cases,
     test_integer_parsing
 )
