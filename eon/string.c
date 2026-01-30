@@ -174,7 +174,30 @@ DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(u64, true, 64);
                                   Integer_Type* out_integer)            \
     {                                                                   \
         Integer_Type result = 0;                                        \
-        for (Index i = 0;                                               \
+        Integer_Type sign = 1;                                          \
+        Index i = 0;                                                    \
+                                                                        \
+        if (i < string.length)                                          \
+        {                                                               \
+            const char c = string.data[i];                              \
+            if (c == '+')                                               \
+            {                                                           \
+                sign = 1;                                               \
+                i += 1;                                                 \
+            }                                                           \
+            else if (is_signed && c == '-')                             \
+            {                                                           \
+                sign = (Integer_Type)(-1);                              \
+                i += 1;                                                 \
+            }                                                           \
+        }                                                               \
+                                                                        \
+        if (i >= string.length)                                         \
+        {                                                               \
+            return false;                                               \
+        }                                                               \
+                                                                        \
+        for (;                                                          \
              i < string.length;                                         \
              ++i)                                                       \
         {                                                               \
@@ -186,20 +209,41 @@ DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(u64, true, 64);
             }                                                           \
                                                                         \
             const Integer_Type next_digit = (Integer_Type)(c - '0');    \
-            /* TODO(vlad): Check underflows for signed integers. */     \
-            if (result > MAX_VALUE(Integer_Type) / 10)                  \
+                                                                        \
+            if (sign == (Integer_Type)1)                                \
             {                                                           \
-                return false;                                           \
+                if (result > MAX_VALUE(Integer_Type) / 10)              \
+                {                                                       \
+                    return false;                                       \
+                }                                                       \
+                                                                        \
+                if (result == MAX_VALUE(Integer_Type) / 10              \
+                    && next_digit > MAX_VALUE(Integer_Type) % 10)       \
+                {                                                       \
+                    return false;                                       \
+                }                                                       \
             }                                                           \
-            else if (result == MAX_VALUE(Integer_Type) / 10             \
-                     && next_digit > MAX_VALUE(Integer_Type) % 10)      \
+            else if (is_signed && sign == (Integer_Type)(-1))           \
             {                                                           \
-                return false;                                           \
+                if (result > ABS(MIN_VALUE(Integer_Type) / 10))         \
+                {                                                       \
+                    return false;                                       \
+                }                                                       \
+                                                                        \
+                if (result == ABS(MIN_VALUE(Integer_Type) / 10)         \
+                    && next_digit > ABS(MIN_VALUE(Integer_Type) % 10))  \
+                {                                                       \
+                    return false;                                       \
+                }                                                       \
+            }                                                           \
+            else                                                        \
+            {                                                           \
+                UNREACHABLE();                                          \
             }                                                           \
                                                                         \
             result = 10 * result + next_digit;                          \
         }                                                               \
-        *out_integer = result;                                          \
+        *out_integer = sign * result;                                   \
         return true;                                                    \
     }                                                                   \
     REQUIRE_SEMICOLON
