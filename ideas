@@ -10,7 +10,7 @@
      - if yes then what about input/output streams with global buffers?
      - а если буферизация включается/выключается на этапе компиляции?
 
-4. pure functions first-class support (with help of the 3rd point)
+4. pure functions first-class support (with help of the 3rd idea)
    - should this be opt-in or opt-out? I mean, what keyword should we introduce: 'pure' vs 'impure'?
    - например, 'sin()' в C не является чистой функцией, потому что её результат зависит от
      IEEE rounding mode. если мы компилируем обычную программу, мы в теории можем проверить, что этот rounding mode
@@ -29,6 +29,13 @@
 7. think about C's 'volatile' replacement
 
 8. 'unused' keyword & its enforcement (unlike [[maybe_unused]] in c++, there must be no 'maybe')
+
+   OK, this should fork well for variables, but what about functions that can be used but not right now? E.g. if I
+   '#import' some module that provides 20 functions and use only one of them, should we really trigger the 'function is
+   unused' error for other 19?
+
+   On the other hand, this can be circumvented by declaring exported functions as 'export' or something.
+   But this could become very verbose.
 
 9. lexem aliases??? like 'use and = &&;'
    - looks extremely cursed
