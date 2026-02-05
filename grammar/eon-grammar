@@ -65,7 +65,7 @@ optional_call_expression_tail: EPS
 
 // FIXME(vlad): Forbid assignment expressions here?
 optional_arguments: EPS | optional_argument optional_arguments_tail;
-optional_argument: expression; // TODO(vlad): Support named arguments like 'foo(a: 10, b: 20)' or something.
+optional_argument: expression; // TODO(vlad): Support named arguments like 'foo(a = 10, b = 20)' or something.
 optional_arguments_tail: EPS | "," optional_argument optional_arguments_tail;
 
 primary_expression: number | string_literal | identifier | "(" expression ")";
