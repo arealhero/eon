@@ -79,4 +79,5 @@ compile_and_run_test eon/memory_ut.c
 compile_and_run_test eon/string_ut.c
 compile_and_run_test eon_lexer_ut.c
 compile_and_run_test eon_parser_ut.c
+compile_and_run_test eon_interpreter_ut.c
 compile_and_run_test eon/sanitizers/asan_ut.c -fsanitize=address -fsanitize-recover=address

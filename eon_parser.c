@@ -131,12 +131,12 @@ parser_get_and_consume_token_with_type(Parser* parser,
         return false;
     }
 
-    if (parser_try_to_consume_token_with_type(parser, expected_type))
+    if (!parser_try_to_consume_token_with_type(parser, expected_type))
     {
-        return true;
+        return false;
     }
 
-    return false;
+    return true;
 }
 
 internal void
