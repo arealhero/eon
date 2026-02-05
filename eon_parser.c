@@ -634,8 +634,12 @@ parse_return_statement(Arena* parser_arena, Parser* parser, Ast_Return_Statement
         return false;
     }
 
-    if (parser_try_to_consume_token_with_type(parser, TOKEN_SEMICOLON))
+    // TODO(vlad): Use 'parser_try_to_consume_token_with_type'? Note that this function
+    //             emits an error if token type is not equal to the given one. We don't want
+    //             to do that here.
+    if (parser->current_token.type == TOKEN_SEMICOLON)
     {
+        parser_consume_token(parser);
         statement->is_empty = true;
         return true;
     }

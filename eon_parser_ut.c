@@ -16,6 +16,7 @@ test_function_definitions_parsing(Test_Context* context)
 
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 1);
 
@@ -726,6 +727,7 @@ test_return_statement_parsing(Test_Context* context)
 
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 1);
 
