@@ -1026,6 +1026,245 @@ test_expressions(Test_Context* context)
         parser_destroy(&parser);
         lexer_destroy(&lexer);
     }
+
+    // NOTE(vlad): Testing function call without arguments.
+    {
+        const String_View input = string_view("foo: () -> Int32 = { return 123; }\n"
+                                              "bar: () -> void = {"
+                                              "    var := foo();"
+                                              "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
+
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
+
+        ASSERT_EQUAL(ast.function_definitions_count, 2);
+
+        {
+            const Ast_Function_Definition* function_definition = &ast.function_definitions[0];
+            ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
+
+            const Ast_Type* function_type = function_definition->type;
+            ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+
+            const Ast_Function_Arguments* arguments = &function_type->arguments;
+            ASSERT_EQUAL(arguments->arguments_count, 0);
+
+            const Ast_Type* return_type = function_type->return_type;
+            ASSERT_EQUAL(return_type->type, AST_TYPE_INT_32);
+
+            ASSERT_EQUAL(function_definition->statements.statements_count, 1);
+
+            const Ast_Statement* statement = &function_definition->statements.statements[0];
+            ASSERT_EQUAL(statement->type, AST_STATEMENT_RETURN);
+            ASSERT_FALSE(statement->return_statement.is_empty);
+            ASSERT_EQUAL(statement->return_statement.expression.type, AST_EXPRESSION_NUMBER);
+            ASSERT_STRINGS_ARE_EQUAL(statement->return_statement.expression.number.token.lexeme,
+                                     "123");
+        }
+
+        {
+            const Ast_Function_Definition* function_definition = &ast.function_definitions[1];
+            ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "bar");
+
+            const Ast_Type* function_type = function_definition->type;
+            ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+
+            const Ast_Function_Arguments* arguments = &function_type->arguments;
+            ASSERT_EQUAL(arguments->arguments_count, 0);
+
+            const Ast_Type* return_type = function_type->return_type;
+            ASSERT_EQUAL(return_type->type, AST_TYPE_VOID);
+
+            ASSERT_EQUAL(function_definition->statements.statements_count, 1);
+
+            const Ast_Statement* statement = &function_definition->statements.statements[0];
+            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+
+            const Ast_Variable_Definition* definition = &statement->variable_definition;
+            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
+            ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+            ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
+            ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_CALL);
+
+            const Ast_Call* call = &definition->initial_value.call;
+            const Ast_Expression* called_expression = call->called_expression;
+            ASSERT_EQUAL(called_expression->type, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_STRINGS_ARE_EQUAL(called_expression->identifier.token.lexeme, "foo");
+            ASSERT_EQUAL(call->arguments_count, 0);
+        }
+
+        parser_destroy(&parser);
+        lexer_destroy(&lexer);
+    }
+
+    // NOTE(vlad): Testing function call with simple arguments.
+    {
+        const String_View input = string_view("foo: (first: Int32, second: Int32) -> Int32 = { return first + second; }\n"
+                                              "bar: () -> void = {"
+                                              "    var := foo(10, 20);"
+                                              "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
+
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
+
+        ASSERT_EQUAL(ast.function_definitions_count, 2);
+
+        {
+            const Ast_Function_Definition* function_definition = &ast.function_definitions[1];
+            ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "bar");
+
+            const Ast_Type* function_type = function_definition->type;
+            ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+
+            const Ast_Function_Arguments* arguments = &function_type->arguments;
+            ASSERT_EQUAL(arguments->arguments_count, 0);
+
+            const Ast_Type* return_type = function_type->return_type;
+            ASSERT_EQUAL(return_type->type, AST_TYPE_VOID);
+
+            ASSERT_EQUAL(function_definition->statements.statements_count, 1);
+
+            const Ast_Statement* statement = &function_definition->statements.statements[0];
+            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+
+            const Ast_Variable_Definition* definition = &statement->variable_definition;
+            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
+            ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+            ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
+            ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_CALL);
+
+            const Ast_Call* call = &definition->initial_value.call;
+            const Ast_Expression* called_expression = call->called_expression;
+            ASSERT_EQUAL(called_expression->type, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_STRINGS_ARE_EQUAL(called_expression->identifier.token.lexeme, "foo");
+            ASSERT_EQUAL(call->arguments_count, 2);
+
+            {
+                const Ast_Expression* first_argument = call->arguments[0];
+                ASSERT_EQUAL(first_argument->type, AST_EXPRESSION_NUMBER);
+                ASSERT_STRINGS_ARE_EQUAL(first_argument->number.token.lexeme, "10");
+            }
+
+            {
+                const Ast_Expression* second_argument = call->arguments[1];
+                ASSERT_EQUAL(second_argument->type, AST_EXPRESSION_NUMBER);
+                ASSERT_STRINGS_ARE_EQUAL(second_argument->number.token.lexeme, "20");
+            }
+        }
+
+        parser_destroy(&parser);
+        lexer_destroy(&lexer);
+    }
+
+    // NOTE(vlad): Testing function call with non-trivial arguments.
+    {
+        const String_View input = string_view("foo: () -> void = {"
+                                              "    var := bar(10 + something * 30, baz(10, 20));"
+                                              "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
+
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
+
+        ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+        {
+            const Ast_Function_Definition* function_definition = &ast.function_definitions[0];
+            ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
+
+            const Ast_Type* function_type = function_definition->type;
+            ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+
+            const Ast_Function_Arguments* arguments = &function_type->arguments;
+            ASSERT_EQUAL(arguments->arguments_count, 0);
+
+            const Ast_Type* return_type = function_type->return_type;
+            ASSERT_EQUAL(return_type->type, AST_TYPE_VOID);
+
+            ASSERT_EQUAL(function_definition->statements.statements_count, 1);
+
+            const Ast_Statement* statement = &function_definition->statements.statements[0];
+            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+
+            const Ast_Variable_Definition* definition = &statement->variable_definition;
+            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
+            ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+            ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
+            ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_CALL);
+
+            const Ast_Call* call = &definition->initial_value.call;
+            const Ast_Expression* called_expression = call->called_expression;
+            ASSERT_EQUAL(called_expression->type, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_STRINGS_ARE_EQUAL(called_expression->identifier.token.lexeme, "bar");
+            ASSERT_EQUAL(call->arguments_count, 2);
+
+            {
+                const Ast_Expression* first_argument = call->arguments[0];
+                ASSERT_EQUAL(first_argument->type, AST_EXPRESSION_ADD);
+
+                ASSERT_STRINGS_ARE_EQUAL(first_argument->binary_expression.operator.lexeme, "+");
+
+                {
+                    const Ast_Expression* lhs = first_argument->binary_expression.lhs;
+                    ASSERT_EQUAL(lhs->type, AST_EXPRESSION_NUMBER);
+                    ASSERT_STRINGS_ARE_EQUAL(lhs->number.token.lexeme, "10");
+                }
+
+                {
+                    const Ast_Expression* rhs = first_argument->binary_expression.rhs;
+                    ASSERT_EQUAL(rhs->type, AST_EXPRESSION_MULTIPLY);
+                    ASSERT_STRINGS_ARE_EQUAL(rhs->binary_expression.operator.lexeme, "*");
+
+                    ASSERT_EQUAL(rhs->binary_expression.lhs->type, AST_EXPRESSION_IDENTIFIER);
+                    ASSERT_STRINGS_ARE_EQUAL(rhs->binary_expression.lhs->identifier.token.lexeme, "something");
+
+                    ASSERT_EQUAL(rhs->binary_expression.rhs->type, AST_EXPRESSION_NUMBER);
+                    ASSERT_STRINGS_ARE_EQUAL(rhs->binary_expression.rhs->number.token.lexeme, "30");
+                }
+            }
+
+            {
+                const Ast_Expression* second_argument = call->arguments[1];
+                ASSERT_EQUAL(second_argument->type, AST_EXPRESSION_CALL);
+
+                const Ast_Call* nested_call = &second_argument->call;
+                const Ast_Expression* nested_called_expression = nested_call->called_expression;
+                ASSERT_EQUAL(nested_called_expression->type, AST_EXPRESSION_IDENTIFIER);
+                ASSERT_STRINGS_ARE_EQUAL(nested_called_expression->identifier.token.lexeme, "baz");
+
+                ASSERT_EQUAL(nested_call->arguments_count, 2);
+
+                ASSERT_EQUAL(nested_call->arguments[0]->type, AST_EXPRESSION_NUMBER);
+                ASSERT_STRINGS_ARE_EQUAL(nested_call->arguments[0]->number.token.lexeme, "10");
+
+                ASSERT_EQUAL(nested_call->arguments[1]->type, AST_EXPRESSION_NUMBER);
+                ASSERT_STRINGS_ARE_EQUAL(nested_call->arguments[1]->number.token.lexeme, "20");
+            }
+        }
+
+        parser_destroy(&parser);
+        lexer_destroy(&lexer);
+    }
 }
 
 internal void
@@ -1148,6 +1387,68 @@ test_operator_precedence(Test_Context* context)
             const Ast_Expression* rhs = definition->initial_value.binary_expression.rhs;
             ASSERT_EQUAL(rhs->type, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(rhs->number.token.lexeme, "3");
+        }
+
+        parser_destroy(&parser);
+        lexer_destroy(&lexer);
+    }
+
+    {
+        const String_View input = string_view("foo: () -> void = {"
+                                              "    var := 3 + bar();"
+                                              "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
+
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
+
+        ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &ast.function_definitions[0];
+        ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
+
+        const Ast_Type* function_type = function_definition->type;
+        ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+
+        const Ast_Function_Arguments* arguments = &function_type->arguments;
+        ASSERT_EQUAL(arguments->arguments_count, 0);
+
+        const Ast_Type* return_type = function_type->return_type;
+        ASSERT_EQUAL(return_type->type, AST_TYPE_VOID);
+
+        ASSERT_EQUAL(function_definition->statements.statements_count, 1);
+
+        const Ast_Statement* statement = &function_definition->statements.statements[0];
+        ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+
+        const Ast_Variable_Definition* definition = &statement->variable_definition;
+        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
+        ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+        ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
+        ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_ADD);
+        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme, "+");
+
+        {
+            const Ast_Expression* lhs = definition->initial_value.binary_expression.lhs;
+            ASSERT_EQUAL(lhs->type, AST_EXPRESSION_NUMBER);
+            ASSERT_STRINGS_ARE_EQUAL(lhs->number.token.lexeme, "3");
+        }
+
+        {
+            const Ast_Expression* rhs = definition->initial_value.binary_expression.rhs;
+            ASSERT_EQUAL(rhs->type, AST_EXPRESSION_CALL);
+
+            const Ast_Call* call = &rhs->call;
+            const Ast_Expression* called_expression = call->called_expression;
+            ASSERT_EQUAL(called_expression->type, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_STRINGS_ARE_EQUAL(called_expression->identifier.token.lexeme, "bar");
+            ASSERT_EQUAL(call->arguments_count, 0);
         }
 
         parser_destroy(&parser);

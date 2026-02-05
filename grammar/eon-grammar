@@ -54,10 +54,19 @@ optional_additive_expression_tail: EPS
                                  | "+" additive_expression
                                  | "-" additive_expression;
 
-multiplicative_expression: primary_expression optional_multiplicative_expression_tail;
+multiplicative_expression: call_expression optional_multiplicative_expression_tail;
 optional_multiplicative_expression_tail: EPS
                                        | "*" multiplicative_expression
                                        | "/" multiplicative_expression;
+
+call_expression: primary_expression optional_call_expression_tail;
+optional_call_expression_tail: EPS
+                             | "(" optional_arguments ")";
+
+// FIXME(vlad): Forbid assignment expressions here?
+optional_arguments: EPS | optional_argument optional_arguments_tail;
+optional_argument: expression; // TODO(vlad): Support named arguments like 'foo(a: 10, b: 20)' or something.
+optional_arguments_tail: EPS | "," optional_argument optional_arguments_tail;
 
 primary_expression: number | string_literal | identifier | "(" expression ")";
 

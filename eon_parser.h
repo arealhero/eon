@@ -109,6 +109,8 @@ enum Ast_Expression_Type
     // NOTE(vlad): Multiplicative expressions.
     AST_EXPRESSION_MULTIPLY,
     AST_EXPRESSION_DIVIDE,
+
+    AST_EXPRESSION_CALL,
 };
 typedef enum Ast_Expression_Type Ast_Expression_Type;
 
@@ -122,6 +124,16 @@ struct Ast_Binary_Expression
 };
 typedef struct Ast_Binary_Expression Ast_Binary_Expression;
 
+struct Ast_Call
+{
+    struct Ast_Expression* called_expression;
+
+    struct Ast_Expression** arguments;
+    Size arguments_count;
+    Size arguments_capacity;
+};
+typedef struct Ast_Call Ast_Call;
+
 struct Ast_Expression
 {
     Ast_Expression_Type type;
@@ -132,6 +144,8 @@ struct Ast_Expression
         Ast_Identifier identifier;
 
         Ast_Binary_Expression binary_expression;
+
+        Ast_Call call;
     };
 };
 typedef struct Ast_Expression Ast_Expression;

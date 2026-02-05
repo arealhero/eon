@@ -360,6 +360,46 @@ parse_pointer_type(Arena* parser_arena, Parser* parser, Ast_Type* type)
 internal Bool parse_expression(Arena* parser_arena, Parser* parser, Ast_Expression* expression);
 
 internal Bool
+parse_arguments(Arena* parser_arena, Parser* parser, Ast_Call* call)
+{
+    while (true)
+    {
+        Ast_Expression* argument = allocate(parser_arena, Ast_Expression);
+        if (!parse_expression(parser_arena, parser, argument))
+        {
+            return false;
+        }
+
+        if (call->arguments_count == call->arguments_capacity)
+        {
+            // XXX(vlad): We can change 'MAX(1, 2 * capacity)' to '(2 * capacity) | 1'.
+            const Size new_capacity = MAX(1, 2 * call->arguments_capacity);
+            call->arguments = reallocate(parser_arena,
+                                                  call->arguments,
+                                                  Ast_Expression*,
+                                                  call->arguments_capacity,
+                                                  new_capacity);
+            call->arguments_capacity = new_capacity;
+        }
+
+        call->arguments[call->arguments_count] = argument;
+        call->arguments_count += 1;
+
+        if (!parser_get_next_token(parser))
+        {
+            return false;
+        }
+
+        if (parser->current_token.type != TOKEN_COMMA)
+        {
+            return true;
+        }
+
+        parser_consume_token(parser);
+    }
+}
+
+internal Bool
 parse_primary_expression(Arena* parser_arena, Parser* parser, Ast_Expression* expression)
 {
     if (!parser_get_next_token(parser))
@@ -419,11 +459,64 @@ parse_primary_expression(Arena* parser_arena, Parser* parser, Ast_Expression* ex
 }
 
 internal Bool
+parse_call_expression(Arena* parser_arena, Parser* parser, Ast_Expression* expression)
+{
+    if (!parse_primary_expression(parser_arena, parser, expression))
+    {
+        return false;
+    }
+
+    if (!parser_get_next_token(parser))
+    {
+        return false;
+    }
+
+    // TODO(vlad): Test that the primary expression is callable. Although we should
+    //             probably do it after parsing.
+
+    if (parser->current_token.type != TOKEN_LEFT_PAREN)
+    {
+        return true;
+    }
+
+    parser_consume_token(parser);
+
+    Ast_Expression* called_expression = allocate(parser_arena, Ast_Expression);
+    *called_expression = *expression;
+
+    expression->type = AST_EXPRESSION_CALL;
+    expression->call = (Ast_Call){0};
+
+    Ast_Call* call = &expression->call;
+    call->called_expression = called_expression;
+
+    if (!parser_get_next_token(parser))
+    {
+        return false;
+    }
+
+    if (parser->current_token.type != TOKEN_RIGHT_PAREN)
+    {
+        if (!parse_arguments(parser_arena, parser, call))
+        {
+            return false;
+        }
+    }
+
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_RIGHT_PAREN))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+internal Bool
 parse_multiplicative_expression(Arena* parser_arena, Parser* parser, Ast_Expression* expression)
 {
     // TODO(vlad): Use 'expression' here, otherwise we would overallocate.
     Ast_Expression* lhs = allocate(parser_arena, Ast_Expression);
-    if (!parse_primary_expression(parser_arena, parser, lhs))
+    if (!parse_call_expression(parser_arena, parser, lhs))
     {
         return false;
     }
