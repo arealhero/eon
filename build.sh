@@ -45,8 +45,7 @@ compile grammar/check_grammar_soundness.c -o build/grammar/check_grammar_soundne
 
 compile eon.c -o build/eon \
         $clang_common_flags \
-        $clang_warnings \
-        -lreadline
+        $clang_warnings
 
 compile_and_run_test()
 {

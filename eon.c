@@ -1,70 +1,99 @@
-#include <stdio.h> // NOTE(vlad): This include is needed because 'readline' does not include it
-                   //             itself for some stupid reason.
-#include <stdlib.h>
-#include <readline/readline.h>
-#include <readline/history.h>
-
 #include <eon/common.h>
 #include <eon/io.h>
 #include <eon/memory.h>
 #include <eon/string.h>
 
+#include <eon/platform/filesystem.h>
+
+#include "eon_errors.h"
+#include "eon_interpreter.h"
 #include "eon_lexer.h"
-#include "eon_log.h"
 #include "eon_parser.h"
 
 int
-main(void)
+main(const int argc, const char* argv[])
 {
     init_io_state(GiB(1));
 
-    Errors errors = {0};
-    errors.errors_arena = arena_create("errors", GiB(1), MiB(1));
-
-    Arena* scratch = arena_create("scratch", GiB(1), MiB(1));
-
-    Lexer lexer = {0};
-    char* raw_input = NULL;
-    while ((raw_input = readline("> ")) != NULL)
+    if (argc != 2)
     {
-        String_View input = string_view(raw_input);
-        println("Got input: '{}'", input);
-        lexer_create(&lexer, string_view("<input>"), input);
-
-        println("Got tokens:");
-        Token token = {0};
-        while (lexer_get_next_token(&lexer, &token, &errors))
-        {
-            String_View prefix = string_view("Found token: ");
-            log_print_code_line_with_highlighting(string_view(prefix),
-                                                  input,
-                                                  token.column,
-                                                  token.lexeme.length);
-
-            println(" type = '{}', lexeme = '{}'\n",
-                    token_type_to_string(token.type),
-                    token.lexeme);
-        }
-
-        if (errors.errors_count != 0)
-        {
-            for (Index i = 0;
-                 i < errors.errors_count;
-                 ++i)
-            {
-                print_error(scratch, &errors.errors[i]);
-            }
-
-            clear_errors(&errors);
-        }
-
-        lexer_destroy(&lexer);
-
-        // TODO(vlad): Use arenas instead.
-        free((void*)input.data);
+        println("Usage: {} <file>", argv[0]);
+        return 1;
     }
 
-    return 0;
+    Arena* main_arena = arena_create("main", GiB(1), MiB(1));
+
+    const String_View filename = string_view(argv[1]);
+    Read_File_Result read_result = platform_read_entire_text_file(main_arena, filename);
+
+    if (read_result.status == READ_FILE_FAILURE)
+    {
+        println("Failed to read file '{}'", filename);
+        return 1;
+    }
+
+    const String_View code = string_view(read_result.content);
+
+    Lexer lexer = {0};
+    Parser parser = {0};
+
+    Arena* errors_arena = arena_create("errors", GiB(1), MiB(1));
+
+    lexer_create(&lexer, filename, code);
+    // TODO(vlad): Make 'parser' the first argument of this function.
+    parser_create(main_arena, errors_arena, &parser, &lexer);
+
+    Arena* scratch_arena = arena_create("scratch", GiB(1), MiB(1));
+
+    Ast ast = {0};
+    if (!parser_parse(main_arena, &parser, &ast))
+    {
+        for (Index i = 0;
+             i < parser.errors.errors_count;
+             ++i)
+        {
+            print_error(scratch_arena, &parser.errors.errors[i]);
+        }
+
+        return 1;
+    }
+
+    // TODO(vlad): Add type system.
+    Interpreter interpreter = {0};
+    interpreter_create(&interpreter);
+
+    Arena* runtime_arena = arena_create("interpreter-runtime", GiB(1), MiB(1));
+    Arena* result_arena = arena_create("interpreter-result", GiB(1), MiB(1));
+    const Run_Result result = interpreter_run(runtime_arena,
+                                              result_arena,
+                                              &interpreter,
+                                              &ast,
+                                              string_view("main"));
+
+    if (result.status == INTERPRETER_RUN_COMPILE_ERROR)
+    {
+        println("Compile error encountered: {}", result.error);
+        return 1;
+    }
+    else if (result.status == INTERPRETER_RUN_RUNTIME_ERROR)
+    {
+        println("Runtime error encountered: {}", result.error);
+        return 1;
+    }
+
+    println("Program returned: {}", result.return_value);
+
+    interpreter_destroy(&interpreter);
+    parser_destroy(&parser);
+    lexer_destroy(&lexer);
+
+    arena_destroy(result_arena);
+    arena_destroy(runtime_arena);
+    arena_destroy(scratch_arena);
+    arena_destroy(errors_arena);
+    arena_destroy(main_arena);
+
+    return !result.return_value;
 }
 
 #include <eon/io.c>
@@ -72,6 +101,6 @@ main(void)
 #include <eon/string.c>
 
 #include "eon_errors.c"
+#include "eon_interpreter.c"
 #include "eon_lexer.c"
-#include "eon_log.c"
-// #include "eon_parser.c"
+#include "eon_parser.c"
