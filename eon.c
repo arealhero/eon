@@ -64,11 +64,13 @@ main(const int argc, const char* argv[])
 
     Arena* runtime_arena = arena_create("interpreter-runtime", GiB(1), MiB(1));
     Arena* result_arena = arena_create("interpreter-result", GiB(1), MiB(1));
-    const Run_Result result = interpreter_run(runtime_arena,
-                                              result_arena,
-                                              &interpreter,
-                                              &ast,
-                                              string_view("main"));
+    Call_Info call_info = {0};
+    const Run_Result result = interpreter_execute_function(runtime_arena,
+                                                           result_arena,
+                                                           &interpreter,
+                                                           &ast,
+                                                           string_view("main"),
+                                                           &call_info);
 
     if (result.status == INTERPRETER_RUN_COMPILE_ERROR)
     {

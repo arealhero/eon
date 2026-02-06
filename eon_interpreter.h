@@ -36,6 +36,14 @@ enum Interpreter_Run_Status
 };
 typedef enum Interpreter_Run_Status Interpreter_Run_Status;
 
+struct Call_Info
+{
+    s32* arguments;
+    Size arguments_count;
+    Size arguments_capacity;
+};
+typedef struct Call_Info Call_Info;
+
 struct Run_Result
 {
     Interpreter_Run_Status status;
@@ -48,10 +56,11 @@ struct Run_Result
 typedef struct Run_Result Run_Result;
 
 internal void interpreter_create(Interpreter* interpreter);
-internal Run_Result interpreter_run(Arena* runtime_arena,
-                                    Arena* result_arena,
-                                    Interpreter* interpreter,
-                                    const Ast* ast,
-                                    const String_View name_of_the_function_to_run);
+internal Run_Result interpreter_execute_function(Arena* runtime_arena,
+                                                 Arena* result_arena,
+                                                 Interpreter* interpreter,
+                                                 const Ast* ast,
+                                                 const String_View name_of_the_function_to_run,
+                                                 const Call_Info* call_info);
 internal void interpreter_destroy(Interpreter* interpreter);
 

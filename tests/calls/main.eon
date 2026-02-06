@@ -1,0 +1,12 @@
+foo: () -> Int32 = {
+    return 10;
+}
+
+bar: (argument: Int32) -> Int32 = {
+    return 2 * argument;
+}
+
+main: () -> Int32 =
+{
+    return bar(foo()) + foo() / 2;
+}

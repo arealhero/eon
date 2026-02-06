@@ -2,7 +2,7 @@
 
 #include <eon/string.h>
 
-internal const Interpreter_Variable*
+internal Interpreter_Variable*
 find_variable(Interpreter* interpreter, const String_View variable_name)
 {
     const Interpreter_Lexical_Scope* scope = &interpreter->lexical_scope;
@@ -12,7 +12,7 @@ find_variable(Interpreter* interpreter, const String_View variable_name)
          variable_index < scope->variables_count;
          ++variable_index)
     {
-        const Interpreter_Variable* variable = &scope->variables[variable_index];
+        Interpreter_Variable* variable = &scope->variables[variable_index];
 
         if (strings_are_equal(variable->name.token.lexeme, variable_name))
         {
@@ -26,6 +26,7 @@ find_variable(Interpreter* interpreter, const String_View variable_name)
 internal Bool
 execute_expression(Arena* runtime_arena,
                    Interpreter* interpreter,
+                   const Ast* ast,
                    const Ast_Expression* expression,
                    s32* result) // TODO(vlad): Remove hardcoded 's32'.
 {
@@ -58,6 +59,54 @@ execute_expression(Arena* runtime_arena,
             return true;
         } break;
 
+        case AST_EXPRESSION_CALL:
+        {
+            const Ast_Call* call = &expression->call;
+            const Ast_Expression* called_expression = call->called_expression;
+            if (called_expression->type != AST_EXPRESSION_IDENTIFIER)
+            {
+                FAIL("Expression calling is not yet supported");
+            }
+
+            Call_Info call_info = {0};
+            call_info.arguments_count = call->arguments_count;
+            call_info.arguments_capacity = call->arguments_capacity;
+            call_info.arguments = allocate_array(runtime_arena, call_info.arguments_count, s32);
+
+            for (Index argument_index = 0;
+                 argument_index < call_info.arguments_count;
+                 ++argument_index)
+            {
+                s32 value;
+                if (!execute_expression(runtime_arena,
+                                        interpreter,
+                                        ast,
+                                        call->arguments[argument_index],
+                                        &value))
+                {
+                    FAIL("Failed to execute expression");
+                }
+
+                call_info.arguments[argument_index] = value;
+            }
+
+            const Run_Result call_result = interpreter_execute_function(runtime_arena,
+                                                                        runtime_arena,
+                                                                        interpreter,
+                                                                        ast,
+                                                                        called_expression->identifier.token.lexeme,
+                                                                        &call_info);
+
+            if (call_result.status != INTERPRETER_RUN_OK)
+            {
+                println("Function call failed: {}", call_result.error);
+                FAIL("Failed to call function");
+            }
+
+            *result = call_result.return_value;
+            return true;
+        } break;
+
         case AST_EXPRESSION_ADD:
         case AST_EXPRESSION_SUBTRACT:
         case AST_EXPRESSION_MULTIPLY:
@@ -66,13 +115,13 @@ execute_expression(Arena* runtime_arena,
             const Ast_Binary_Expression* binary_expression = &expression->binary_expression;
 
             s32 lhs;
-            if (!execute_expression(runtime_arena, interpreter, binary_expression->lhs, &lhs))
+            if (!execute_expression(runtime_arena, interpreter, ast, binary_expression->lhs, &lhs))
             {
                 return false;
             }
 
             s32 rhs;
-            if (!execute_expression(runtime_arena, interpreter, binary_expression->rhs, &rhs))
+            if (!execute_expression(runtime_arena, interpreter, ast, binary_expression->rhs, &rhs))
             {
                 return false;
             }
@@ -118,6 +167,7 @@ execute_expression(Arena* runtime_arena,
 internal void
 interpreter_add_variable_to_current_lexical_scope(Arena* runtime_arena,
                                                   Interpreter* interpreter,
+                                                  const Ast* ast,
                                                   const Ast_Variable_Definition* variable_definition)
 {
     Interpreter_Lexical_Scope* scope = &interpreter->lexical_scope;
@@ -149,6 +199,7 @@ interpreter_add_variable_to_current_lexical_scope(Arena* runtime_arena,
         {
             if (!execute_expression(runtime_arena,
                                     interpreter,
+                                    ast,
                                     &variable_definition->initial_value,
                                     &variable->value))
             {
@@ -170,11 +221,12 @@ interpreter_create(Interpreter* interpreter)
 }
 
 internal Run_Result
-interpreter_run(Arena* runtime_arena,
-                Arena* result_arena,
-                Interpreter* interpreter,
-                const Ast* ast,
-                const String_View name_of_the_function_to_run)
+interpreter_execute_function(Arena* runtime_arena,
+                             Arena* result_arena,
+                             Interpreter* interpreter,
+                             const Ast* ast,
+                             const String_View name_of_the_function_to_run,
+                             const Call_Info* call_info)
 {
     const Ast_Function_Definition* function_definition = NULL;
     for (Index function_definition_index = 0;
@@ -203,17 +255,47 @@ interpreter_run(Arena* runtime_arena,
     }
 
     const Size arguments_count = function_definition->type->arguments.arguments_count;
-    if (arguments_count != 0)
+    if (arguments_count != call_info->arguments_count)
     {
         Run_Result result = {0};
         result.status = INTERPRETER_RUN_COMPILE_ERROR;
         result.error = format_string(result_arena,
-                                     "Execution of functions with arguments is not yet supported"
-                                     " (function '{}' requires {} argument{})",
+                                     "Invalid number of arguments provided while calling function '{}'"
+                                     " (expected '{}', got '{}')",
                                      name_of_the_function_to_run,
                                      arguments_count,
-                                     (arguments_count == 1 ? "" : "s"));
+                                     call_info->arguments_count);
         return result;
+    }
+
+    for (Index argument_index = 0;
+         argument_index < arguments_count;
+         ++argument_index)
+    {
+        const Ast_Function_Argument* argument = &function_definition->type->arguments.arguments[argument_index];
+
+        if (argument->type->type != AST_TYPE_INT_32)
+        {
+            Run_Result result = {0};
+            result.status = INTERPRETER_RUN_COMPILE_ERROR;
+            result.error = format_string(result_arena,
+                                         "Function arguments with a type other than Int32"
+                                         " are not yet supported");
+            return result;
+        }
+
+        // TODO(vlad): Stop using Ast structure here.
+        Ast_Variable_Definition definition = {0};
+        definition.name = argument->name;
+        definition.type = argument->type;
+        definition.initialisation_type = AST_INITIALISATION_DEFAULT;
+        interpreter_add_variable_to_current_lexical_scope(runtime_arena,
+                                                          interpreter,
+                                                          ast,
+                                                          &definition);
+
+        Interpreter_Variable* variable = find_variable(interpreter, definition.name.token.lexeme);
+        variable->value = call_info->arguments[argument_index];
     }
 
     const Ast_Type_Type return_type = function_definition->type->return_type->type;
@@ -263,6 +345,7 @@ interpreter_run(Arena* runtime_arena,
 
                 if (!execute_expression(runtime_arena,
                                         interpreter,
+                                        ast,
                                         &return_statement->expression,
                                         &result.return_value))
                 {
@@ -277,6 +360,7 @@ interpreter_run(Arena* runtime_arena,
                 const Ast_Variable_Definition* definition = &statement->variable_definition;
                 interpreter_add_variable_to_current_lexical_scope(runtime_arena,
                                                                   interpreter,
+                                                                  ast,
                                                                   definition);
             } break;
 
