@@ -734,12 +734,10 @@ parse_optional_variable_assignment(Arena* parser_arena, Parser* parser, Ast_Vari
 internal Bool
 parse_variable_definition(Arena* parser_arena,
                           Parser* parser,
+                          Ast_Identifier* identifier,
                           Ast_Variable_Definition* definition)
 {
-    if (!parse_identifier(parser, &definition->name))
-    {
-        return false;
-    }
+    definition->name = *identifier;
 
     if (!parser_get_and_consume_token_with_type(parser, TOKEN_COLON))
     {
@@ -777,6 +775,71 @@ parse_variable_definition(Arena* parser_arena,
     }
 
     return true;
+}
+
+internal Bool
+parse_assignment(Arena* parser_arena,
+                 Parser* parser,
+                 Ast_Identifier* identifier,
+                 Ast_Assignment* assignment)
+{
+    assignment->name = *identifier;
+
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_ASSIGN))
+    {
+        return false;
+    }
+
+    if (!parse_expression(parser_arena, parser, &assignment->expression))
+    {
+        return false;
+    }
+
+    // TODO(vlad): Move the semicolon parsing to 'parse_statement' or 'parse_expression_statement'
+    //             or something more high-level.
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_SEMICOLON))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+internal Bool
+parse_variable_assignment_or_definition(Arena* parser_arena,
+                                        Parser* parser,
+                                        Ast_Statement* statement)
+{
+    Ast_Identifier identifier = {0};
+    if (!parse_identifier(parser, &identifier))
+    {
+        return false;
+    }
+
+    if (!parser_get_next_token(parser))
+    {
+        return false;
+    }
+
+    switch (parser->current_token.type)
+    {
+        case TOKEN_COLON:
+        {
+            statement->type = AST_STATEMENT_VARIABLE_DEFINITION;
+            return parse_variable_definition(parser_arena, parser, &identifier, &statement->variable_definition);
+        } break;
+
+        case TOKEN_ASSIGN:
+        {
+            statement->type = AST_STATEMENT_ASSIGNMENT;
+            return parse_assignment(parser_arena, parser, &identifier, &statement->assignment);
+        } break;
+
+        default:
+        {
+            FAIL("Failed to parse variable definition or assignment");
+        } break;
+    }
 }
 
 internal Bool
@@ -923,8 +986,7 @@ parse_statement(Arena* parser_arena, Parser* parser, Ast_Statement* statement)
     {
         case TOKEN_IDENTIFIER:
         {
-            statement->type = AST_STATEMENT_VARIABLE_DEFINITION;
-            return parse_variable_definition(parser_arena, parser, &statement->variable_definition);
+            return parse_variable_assignment_or_definition(parser_arena, parser, statement);
         } break;
 
         case TOKEN_RETURN:

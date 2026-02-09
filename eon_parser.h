@@ -172,6 +172,7 @@ enum Ast_Statement_Type
     AST_UNDEFINED = 0,
 
     AST_STATEMENT_VARIABLE_DEFINITION,
+    AST_STATEMENT_ASSIGNMENT,
     AST_STATEMENT_RETURN,
     AST_STATEMENT_IF,
 };
@@ -196,6 +197,13 @@ struct Ast_Variable_Definition
 };
 typedef struct Ast_Variable_Definition Ast_Variable_Definition;
 
+struct Ast_Assignment
+{
+    Ast_Identifier name;
+    Ast_Expression expression;
+};
+typedef struct Ast_Assignment Ast_Assignment;
+
 struct Ast_Return_Statement
 {
     Bool is_empty;
@@ -219,6 +227,7 @@ struct Ast_Statement
         Ast_Variable_Definition variable_definition;
         Ast_Return_Statement return_statement;
         Ast_If_Statement if_statement;
+        Ast_Assignment assignment;
     };
 };
 typedef struct Ast_Statement Ast_Statement;

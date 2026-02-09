@@ -30,9 +30,15 @@ function_definitions: EOF | function_definition function_definitions;
 function_definition: identifier ":" function_type "=" code_block;
 
 statements: EPS | statement statements;
-statement: variable_definition | return_statement;
+statement: variable_definition | assignment_statement | return_statement;
 
 variable_definition: identifier ":" optional_variable_type optional_variable_assignment ";";
+optional_variable_type: EPS | type;
+// TODO(vlad): Rename to 'optional_variable_initialisation' or something.
+optional_variable_assignment: EPS | "=" expression; // TODO(vlad): Support 'uninitialized' keyword or something.
+
+// TODO(vlad): Support arrays. @tag(eon-grammar)
+assignment_statement: identifier "=" expression ";";
 
 return_statement: "return" optional_expression ";";
 
@@ -47,10 +53,6 @@ pointer_type: "*" type;
 arguments_declaration: EPS | argument_declaration arguments_declaration_tail;
 argument_declaration: identifier ":" type; // TODO(vlad): Add default values support. @tag(eon-grammar)
 arguments_declaration_tail: EPS | "," argument_declaration arguments_declaration_tail;
-
-optional_variable_type: EPS | type;
-// TODO(vlad): Rename to 'optional_variable_initialisation' or something.
-optional_variable_assignment: EPS | "=" expression; // TODO(vlad): Support 'uninitialized' keyword or something.
 
 expression: comparison_expression;
 

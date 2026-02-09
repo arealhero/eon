@@ -259,26 +259,38 @@ detect_left_recursions(Arena* scratch,
             {
                 if (node_was_visited[node_index])
                 {
-                    found_errors = true;
+                    if (node_index == this_node_index)
+                    {
+                        found_errors = true;
 
-                    const Definition_Node* start_node = &nodes[this_node_index];
+                        const Definition_Node* start_node = &nodes[this_node_index];
 
-                    const Ast_Identifier* identifier = &start_node->definition->identifier;
-                    const Token* token = &identifier->token;
+                        const Ast_Identifier* identifier = &start_node->definition->identifier;
+                        const Token* token = &identifier->token;
 
-                    println("{}:{}:{}: Error: left recursion detected in {} definition",
-                            grammar_filename, token->line+1, token->column+1,
-                            token->lexeme);
-                    show_grammar_error(scratch,
-                                       grammar,
-                                       token->line,
-                                       token->column,
-                                       token->lexeme.length);
-                    // TODO(vlad): Print recursion path.
-                    // NOTE(vlad): Actually we are finding cycles in this function.
-                    //             It would make sense to print them here showing
-                    //             every relevant expression on its path.
-                    //             Also print its length.
+                        println("{}:{}:{}: Error: left recursion detected in '{}' definition: "
+                                "'{}' was already visited",
+                                grammar_filename, token->line+1, token->column+1,
+                                token->lexeme,
+                                node->definition->identifier.token.lexeme);
+                        show_grammar_error(scratch,
+                                           grammar,
+                                           token->line,
+                                           token->column,
+                                           token->lexeme.length);
+                        // TODO(vlad): Print recursion path.
+                        // NOTE(vlad): Actually we are finding cycles in this function.
+                        //             It would make sense to print them here showing
+                        //             every relevant expression on its path.
+                        //             Also print its length.
+                    }
+                    else
+                    {
+                        // NOTE(vlad): This non-terminal is reachable through multiple paths, therefore
+                        //             it's harder to parse this grammar -- we need to lookahead and determine
+                        //             what branch should we take.
+                        // TODO(vlad): Print those non-terminals and the non-terminals from which they are reachable.
+                    }
 
                     break;
                 }
