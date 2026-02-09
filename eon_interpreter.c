@@ -41,6 +41,7 @@ get_current_lexical_scope_index(Interpreter* interpreter)
         return interpreter->lexical_scopes_count - 1;
     }
 }
+
 internal Interpreter_Lexical_Scope*
 get_current_lexical_scope(Interpreter* interpreter)
 {
@@ -392,6 +393,7 @@ execute_statement(Arena* runtime_arena,
                     if (this_result.status != INTERPRETER_RUN_OK
                         || this_result.should_exit)
                     {
+                        pop_lexical_scope(interpreter);
                         return this_result;
                     }
                 }
@@ -433,6 +435,7 @@ execute_statement(Arena* runtime_arena,
                 if (this_result.status != INTERPRETER_RUN_OK
                     || this_result.should_exit)
                 {
+                    pop_lexical_scope(interpreter);
                     return this_result;
                 }
             }
