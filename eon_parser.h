@@ -153,6 +153,15 @@ struct Ast_Expression
 typedef struct Ast_Expression Ast_Expression;
 
 // NOTE(vlad): Statements.
+struct Ast_Statement;
+
+struct Ast_Statements
+{
+    struct Ast_Statement* statements;
+    Size statements_count;
+    Size statements_capacity;
+};
+typedef struct Ast_Statements Ast_Statements;
 
 enum Ast_Statement_Type
 {
@@ -190,6 +199,14 @@ struct Ast_Return_Statement
 };
 typedef struct Ast_Return_Statement Ast_Return_Statement;
 
+struct Ast_If_Statement
+{
+    Ast_Expression condition;
+    Ast_Statements if_statements;
+    Ast_Statements else_statements;
+};
+typedef struct Ast_If_Statement Ast_If_Statement;
+
 struct Ast_Statement
 {
     Ast_Statement_Type type;
@@ -197,17 +214,10 @@ struct Ast_Statement
     {
         Ast_Variable_Definition variable_definition;
         Ast_Return_Statement return_statement;
+        Ast_If_Statement if_statement;
     };
 };
 typedef struct Ast_Statement Ast_Statement;
-
-struct Ast_Statements
-{
-    Ast_Statement* statements;
-    Size statements_count;
-    Size statements_capacity;
-};
-typedef struct Ast_Statements Ast_Statements;
 
 struct Ast_Function_Definition
 {

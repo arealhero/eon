@@ -758,6 +758,200 @@ test_return_statement_parsing(Test_Context* context)
 }
 
 internal void
+test_if_statement_parsing(Test_Context* context)
+{
+    // NOTE(vlad): If without else.
+    {
+        const String_View input = string_view("foo: () -> void = {"
+                                              "    if true { return; }"
+                                              "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
+
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
+
+        ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* definition = &ast.function_definitions[0];
+        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
+
+        const Ast_Type* function_type = definition->type;
+        ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+
+        const Ast_Function_Arguments* arguments = &function_type->arguments;
+        ASSERT_EQUAL(arguments->arguments_count, 0);
+
+        const Ast_Type* return_type = function_type->return_type;
+        ASSERT_EQUAL(return_type->type, AST_TYPE_VOID);
+
+        ASSERT_EQUAL(definition->statements.statements_count, 1);
+
+        const Ast_Statement* statement = &definition->statements.statements[0];
+        ASSERT_EQUAL(statement->type, AST_STATEMENT_IF);
+        const Ast_If_Statement* if_statement = &statement->if_statement;
+        ASSERT_EQUAL(if_statement->condition.type, AST_EXPRESSION_IDENTIFIER);
+        ASSERT_EQUAL(if_statement->condition.identifier.token.type, TOKEN_TRUE);
+
+        const Ast_Statements* true_statements = &if_statement->if_statements;
+        ASSERT_EQUAL(true_statements->statements_count, 1);
+        ASSERT_EQUAL(true_statements->statements[0].type, AST_STATEMENT_RETURN);
+        ASSERT_TRUE(true_statements->statements[0].return_statement.is_empty);
+
+        const Ast_Statements* false_statements = &if_statement->else_statements;
+        ASSERT_EQUAL(false_statements->statements_count, 0);
+
+        parser_destroy(&parser);
+        lexer_destroy(&lexer);
+    }
+
+    // NOTE(vlad): If with else.
+    {
+        const String_View input = string_view("foo: () -> void = {"
+                                              "    if true { return; }"
+                                              "    else { a := 1; }"
+                                              "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
+
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
+
+        ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* definition = &ast.function_definitions[0];
+        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
+
+        const Ast_Type* function_type = definition->type;
+        ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+
+        const Ast_Function_Arguments* arguments = &function_type->arguments;
+        ASSERT_EQUAL(arguments->arguments_count, 0);
+
+        const Ast_Type* return_type = function_type->return_type;
+        ASSERT_EQUAL(return_type->type, AST_TYPE_VOID);
+
+        ASSERT_EQUAL(definition->statements.statements_count, 1);
+
+        const Ast_Statement* statement = &definition->statements.statements[0];
+        ASSERT_EQUAL(statement->type, AST_STATEMENT_IF);
+        const Ast_If_Statement* if_statement = &statement->if_statement;
+        ASSERT_EQUAL(if_statement->condition.type, AST_EXPRESSION_IDENTIFIER);
+        ASSERT_EQUAL(if_statement->condition.identifier.token.type, TOKEN_TRUE);
+
+        const Ast_Statements* true_statements = &if_statement->if_statements;
+        ASSERT_EQUAL(true_statements->statements_count, 1);
+        ASSERT_EQUAL(true_statements->statements[0].type, AST_STATEMENT_RETURN);
+        ASSERT_TRUE(true_statements->statements[0].return_statement.is_empty);
+
+        const Ast_Statements* false_statements = &if_statement->else_statements;
+        ASSERT_EQUAL(false_statements->statements_count, 1);
+        ASSERT_EQUAL(false_statements->statements[0].type, AST_STATEMENT_VARIABLE_DEFINITION);
+
+        const Ast_Variable_Definition* variable_definition = &false_statements->statements[0].variable_definition;
+
+        ASSERT_STRINGS_ARE_EQUAL(variable_definition->name.token.lexeme, "a");
+        ASSERT_EQUAL(variable_definition->type->type, AST_TYPE_DEDUCED);
+        ASSERT_EQUAL(variable_definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
+        ASSERT_EQUAL(variable_definition->initial_value.type, AST_EXPRESSION_NUMBER);
+        ASSERT_STRINGS_ARE_EQUAL(variable_definition->initial_value.number.token.lexeme, "1");
+
+        parser_destroy(&parser);
+        lexer_destroy(&lexer);
+    }
+
+    // NOTE(vlad): Testing chained if statements.
+    {
+        const String_View input = string_view("foo: () -> void = {"
+                                              "    if 1 { return 1; }"
+                                              "    else if 2 { return 2; }"
+                                              "    else { return 3; }"
+                                              "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
+
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
+
+        ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* definition = &ast.function_definitions[0];
+        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
+
+        const Ast_Type* function_type = definition->type;
+        ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+
+        const Ast_Function_Arguments* arguments = &function_type->arguments;
+        ASSERT_EQUAL(arguments->arguments_count, 0);
+
+        const Ast_Type* return_type = function_type->return_type;
+        ASSERT_EQUAL(return_type->type, AST_TYPE_VOID);
+
+        ASSERT_EQUAL(definition->statements.statements_count, 1);
+
+        const Ast_Statement* statement = &definition->statements.statements[0];
+        ASSERT_EQUAL(statement->type, AST_STATEMENT_IF);
+
+        const Ast_If_Statement* if_statement = &statement->if_statement;
+        ASSERT_EQUAL(if_statement->condition.type, AST_EXPRESSION_NUMBER);
+        ASSERT_STRINGS_ARE_EQUAL(if_statement->condition.number.token.lexeme, "1");
+
+        const Ast_Statements* true_statements = &if_statement->if_statements;
+        ASSERT_EQUAL(true_statements->statements_count, 1);
+        ASSERT_EQUAL(true_statements->statements[0].type, AST_STATEMENT_RETURN);
+
+        const Ast_Return_Statement* first_return = &true_statements->statements[0].return_statement;
+        ASSERT_FALSE(first_return->is_empty);
+        ASSERT_EQUAL(first_return->expression.type, AST_EXPRESSION_NUMBER);
+        ASSERT_STRINGS_ARE_EQUAL(first_return->expression.number.token.lexeme, "1");
+
+        const Ast_Statements* false_statements = &if_statement->else_statements;
+        ASSERT_EQUAL(false_statements->statements_count, 1);
+        ASSERT_EQUAL(false_statements->statements[0].type, AST_STATEMENT_IF);
+
+        const Ast_If_Statement* else_if_statement = &false_statements->statements[0].if_statement;
+        ASSERT_EQUAL(else_if_statement->condition.type, AST_EXPRESSION_NUMBER);
+        ASSERT_STRINGS_ARE_EQUAL(else_if_statement->condition.number.token.lexeme, "2");
+
+        const Ast_Statements* else_if_true_statements = &else_if_statement->if_statements;
+        ASSERT_EQUAL(else_if_true_statements->statements_count, 1);
+        ASSERT_EQUAL(else_if_true_statements->statements[0].type, AST_STATEMENT_RETURN);
+
+        const Ast_Return_Statement* second_return = &else_if_true_statements->statements[0].return_statement;
+        ASSERT_FALSE(second_return->is_empty);
+        ASSERT_EQUAL(second_return->expression.type, AST_EXPRESSION_NUMBER);
+        ASSERT_STRINGS_ARE_EQUAL(second_return->expression.number.token.lexeme, "2");
+
+        const Ast_Statements* else_if_false_statements = &else_if_statement->else_statements;
+        ASSERT_EQUAL(else_if_false_statements->statements_count, 1);
+        ASSERT_EQUAL(else_if_false_statements->statements[0].type, AST_STATEMENT_RETURN);
+
+        const Ast_Return_Statement* third_return = &else_if_false_statements->statements[0].return_statement;
+        ASSERT_FALSE(third_return->is_empty);
+        ASSERT_EQUAL(third_return->expression.type, AST_EXPRESSION_NUMBER);
+        ASSERT_STRINGS_ARE_EQUAL(third_return->expression.number.token.lexeme, "3");
+
+        parser_destroy(&parser);
+        lexer_destroy(&lexer);
+    }
+}
+
+internal void
 test_expressions(Test_Context* context)
 {
     {
@@ -1502,6 +1696,7 @@ REGISTER_TESTS(
     test_function_definitions_parsing,
     test_variable_definitions_parsing,
     test_return_statement_parsing,
+    test_if_statement_parsing,
     test_expressions,
     test_operator_precedence,
     test_syntax_errors

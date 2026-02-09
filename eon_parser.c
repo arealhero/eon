@@ -431,6 +431,8 @@ parse_primary_expression(Arena* parser_arena, Parser* parser, Ast_Expression* ex
         } break;
 
         case TOKEN_IDENTIFIER:
+        case TOKEN_TRUE:
+        case TOKEN_FALSE:
         {
             expression->type = AST_EXPRESSION_IDENTIFIER;
             expression->identifier.token = parser->current_token;
@@ -639,6 +641,8 @@ parse_expression(Arena* parser_arena, Parser* parser, Ast_Expression* expression
     return parse_additive_expression(parser_arena, parser, expression);
 }
 
+internal Bool parse_statements(Arena* parser_arena, Parser* parser, Ast_Statements* statements);
+
 internal Bool
 parse_optional_variable_assignment(Arena* parser_arena, Parser* parser, Ast_Variable_Definition* definition)
 {
@@ -753,6 +757,100 @@ parse_return_statement(Arena* parser_arena, Parser* parser, Ast_Return_Statement
 }
 
 internal Bool
+parse_code_block(Arena* parser_arena, Parser* parser, Ast_Statements* statements)
+{
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_LEFT_BRACE))
+    {
+        return false;
+    }
+
+    if (!parse_statements(parser_arena, parser, statements))
+    {
+        return false;
+    }
+
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_RIGHT_BRACE))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+internal Bool
+parse_if_statement(Arena* parser_arena, Parser* parser, Ast_If_Statement* if_statement)
+{
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_IF))
+    {
+        return false;
+    }
+
+    if (!parse_expression(parser_arena, parser, &if_statement->condition))
+    {
+        return false;
+    }
+
+    if (!parse_code_block(parser_arena, parser, &if_statement->if_statements))
+    {
+        return false;
+    }
+
+    if (!parser_get_next_token(parser))
+    {
+        return false;
+    }
+
+    if (parser->current_token.type != TOKEN_ELSE)
+    {
+        return true;
+    }
+
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_ELSE))
+    {
+        return false;
+    }
+
+    if (!parser_get_next_token(parser))
+    {
+        return false;
+    }
+
+    switch (parser->current_token.type)
+    {
+        case TOKEN_IF:
+        {
+            Ast_Statements* else_statements = &if_statement->else_statements;
+            else_statements->statements = allocate(parser_arena, Ast_Statement);
+            else_statements->statements_count = 1;
+            else_statements->statements_capacity = 1;
+
+            Ast_Statement* next_branch_statement = &else_statements->statements[0];
+            next_branch_statement->type = AST_STATEMENT_IF;
+
+            if (!parse_if_statement(parser_arena, parser, &next_branch_statement->if_statement))
+            {
+                return false;
+            }
+        } break;
+
+        case TOKEN_LEFT_BRACE:
+        {
+            if (!parse_code_block(parser_arena, parser, &if_statement->else_statements))
+            {
+                return false;
+            }
+        } break;
+
+        default:
+        {
+            FAIL("Expected 'if' or code block");
+        } break;
+    }
+
+    return true;
+}
+
+internal Bool
 parse_statement(Arena* parser_arena, Parser* parser, Ast_Statement* statement)
 {
     if (!parser_get_next_token(parser))
@@ -772,6 +870,12 @@ parse_statement(Arena* parser_arena, Parser* parser, Ast_Statement* statement)
         {
             statement->type = AST_STATEMENT_RETURN;
             return parse_return_statement(parser_arena, parser, &statement->return_statement);
+        } break;
+
+        case TOKEN_IF:
+        {
+            statement->type = AST_STATEMENT_IF;
+            return parse_if_statement(parser_arena, parser, &statement->if_statement);
         } break;
 
         default:
@@ -824,12 +928,6 @@ parse_statements(Arena* parser_arena, Parser* parser, Ast_Statements* statements
 }
 
 internal Bool
-parse_function_body(Arena* parser_arena, Parser* parser, Ast_Statements* statements)
-{
-    return parse_statements(parser_arena, parser, statements);
-}
-
-internal Bool
 parse_function_definition(Arena* parser_arena,
                           Parser* parser,
                           Ast_Function_Definition* function_definition)
@@ -855,17 +953,7 @@ parse_function_definition(Arena* parser_arena,
         return false;
     }
 
-    if (!parser_get_and_consume_token_with_type(parser, TOKEN_LEFT_BRACE))
-    {
-        return false;
-    }
-
-    if (!parse_function_body(parser_arena, parser, &function_definition->statements))
-    {
-        return false;
-    }
-
-    if (!parser_get_and_consume_token_with_type(parser, TOKEN_RIGHT_BRACE))
+    if (!parse_code_block(parser_arena, parser, &function_definition->statements))
     {
         return false;
     }

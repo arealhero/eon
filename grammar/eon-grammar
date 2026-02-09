@@ -22,11 +22,12 @@ identifier_body: letter | digit | "_";
 
 // NOTE(vlad): Parser.
 
+code_block: "{" statements "}";
+
 program: function_definitions;
 
 function_definitions: EOF | function_definition function_definitions;
-function_definition: identifier ":" function_type "=" "{" function_body "}";
-function_body: statements;
+function_definition: identifier ":" function_type "=" code_block;
 
 statements: EPS | statement statements;
 statement: variable_definition | return_statement;
@@ -34,6 +35,10 @@ statement: variable_definition | return_statement;
 variable_definition: identifier ":" optional_variable_type optional_variable_assignment ";";
 
 return_statement: "return" optional_expression ";";
+
+if_statement: "if" expression code_block optional_else_statement;
+optional_else_statement: EPS | "else" if_statement_or_code_block;
+if_statement_or_code_block: if_statement | code_block;
 
 function_type: "(" arguments_declaration ")" "->" type;
 type: function_type | pointer_type | identifier; // TODO(vlad): Add support for arrays, qualifiers, etc. @tag(eon-grammar)
