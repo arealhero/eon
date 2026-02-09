@@ -214,6 +214,104 @@ interpreter_add_variable_to_current_lexical_scope(Arena* runtime_arena,
     }
 }
 
+internal Run_Result
+execute_statement(Arena* runtime_arena,
+                  Arena* result_arena,
+                  Interpreter* interpreter,
+                  const Ast* ast,
+                  const Ast_Statement* statement)
+{
+    switch (statement->type)
+    {
+        case AST_STATEMENT_RETURN:
+        {
+            const Ast_Return_Statement* return_statement = &statement->return_statement;
+
+            if (return_statement->is_empty)
+            {
+                Run_Result result = {0};
+                result.status = INTERPRETER_RUN_COMPILE_ERROR;
+                result.error = format_string(result_arena,
+                                             "Empty return statements are not supported yet");
+                return result;
+            }
+
+            Run_Result result = {0};
+            result.status = INTERPRETER_RUN_OK;
+            result.should_exit = true;
+
+            if (!execute_expression(runtime_arena,
+                                    interpreter,
+                                    ast,
+                                    &return_statement->expression,
+                                    &result.return_value))
+            {
+                FAIL("Failed to execute return statement's expression");
+            }
+
+            return result;
+        } break;
+
+        case AST_STATEMENT_VARIABLE_DEFINITION:
+        {
+            const Ast_Variable_Definition* definition = &statement->variable_definition;
+            interpreter_add_variable_to_current_lexical_scope(runtime_arena,
+                                                              interpreter,
+                                                              ast,
+                                                              definition);
+        } break;
+
+        case AST_STATEMENT_IF:
+        {
+            const Ast_If_Statement* if_statement = &statement->if_statement;
+
+            s32 result;
+            if (!execute_expression(runtime_arena,
+                                    interpreter,
+                                    ast,
+                                    &if_statement->condition,
+                                    &result))
+            {
+                FAIL("Failed to execute if statement's expression");
+            }
+
+            const Ast_Statements* statements = result
+                ? &if_statement->if_statements
+                : &if_statement->else_statements;
+
+            for (Index statement_index = 0;
+                 statement_index < statements->statements_count;
+                 ++statement_index)
+            {
+                const Ast_Statement* this_statement = &statements->statements[statement_index];
+                const Run_Result this_result = execute_statement(runtime_arena,
+                                                                 result_arena,
+                                                                 interpreter,
+                                                                 ast,
+                                                                 this_statement);
+                if (this_result.status != INTERPRETER_RUN_OK
+                    || this_result.should_exit)
+                {
+                    return this_result;
+                }
+            }
+        } break;
+
+        default:
+        {
+            Run_Result result = {0};
+            result.status = INTERPRETER_RUN_COMPILE_ERROR;
+            result.error = format_string(result_arena,
+                                         "Unsupported statement encountered");
+            FAIL("Unsupported statement encountered");
+            return result;
+        } break;
+    }
+
+    Run_Result result = {0};
+    return result;
+}
+
 internal void
 interpreter_create(Interpreter* interpreter)
 {
@@ -324,55 +422,10 @@ interpreter_execute_function(Arena* runtime_arena,
          ++statement_index)
     {
         const Ast_Statement* statement = &function_definition->statements.statements[statement_index];
-
-        switch (statement->type)
+        const Run_Result this_result = execute_statement(runtime_arena, result_arena, interpreter, ast, statement);
+        if (this_result.status != INTERPRETER_RUN_OK || this_result.should_exit)
         {
-            case AST_STATEMENT_RETURN:
-            {
-                const Ast_Return_Statement* return_statement = &statement->return_statement;
-
-                if (return_statement->is_empty)
-                {
-                    Run_Result result = {0};
-                    result.status = INTERPRETER_RUN_COMPILE_ERROR;
-                    result.error = format_string(result_arena,
-                                                 "Empty return statements are not supported yet");
-                    return result;
-                }
-
-                Run_Result result = {0};
-                result.status = INTERPRETER_RUN_OK;
-
-                if (!execute_expression(runtime_arena,
-                                        interpreter,
-                                        ast,
-                                        &return_statement->expression,
-                                        &result.return_value))
-                {
-                    FAIL("Failed to execute return statement's expression");
-                }
-
-                return result;
-            } break;
-
-            case AST_STATEMENT_VARIABLE_DEFINITION:
-            {
-                const Ast_Variable_Definition* definition = &statement->variable_definition;
-                interpreter_add_variable_to_current_lexical_scope(runtime_arena,
-                                                                  interpreter,
-                                                                  ast,
-                                                                  definition);
-            } break;
-
-            default:
-            {
-                Run_Result result = {0};
-                result.status = INTERPRETER_RUN_COMPILE_ERROR;
-                result.error = format_string(result_arena,
-                                             "Unsupported statement encountered");
-                FAIL("Unsupported statement encountered");
-                return result;
-            } break;
+            return this_result;
         }
     }
 

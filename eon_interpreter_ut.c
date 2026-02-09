@@ -243,6 +243,40 @@ test_simple_programs(Test_Context* context)
         parser_destroy(&parser);
         lexer_destroy(&lexer);
     }
+
+    {
+        const String_View input = string_view("main: () -> Int32 = {"
+                                              "    if 1 { return 1; }"
+                                              "    else { return 2; }"
+                                              "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
+
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
+
+        Interpreter interpreter = {0};
+        interpreter_create(&interpreter);
+
+        Call_Info call_info = {0};
+        const Run_Result result = interpreter_execute_function(context->arena,
+                                                               context->arena,
+                                                               &interpreter,
+                                                               &ast,
+                                                               string_view("main"),
+                                                               &call_info);
+        ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
+        ASSERT_EQUAL(result.return_value, 1);
+
+        interpreter_destroy(&interpreter);
+        parser_destroy(&parser);
+        lexer_destroy(&lexer);
+    }
 }
 
 internal void

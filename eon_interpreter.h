@@ -47,6 +47,7 @@ typedef struct Call_Info Call_Info;
 struct Run_Result
 {
     Interpreter_Run_Status status;
+    Bool should_exit;
     union
     {
         String error;
