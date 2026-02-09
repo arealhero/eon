@@ -2,21 +2,62 @@
 
 #include <eon/string.h>
 
+internal void
+push_empty_lexical_scope(Interpreter* interpreter,
+                         Interpreter_Lexical_Scope* parent_scope)
+{
+    if (interpreter->lexical_scopes_count == interpreter->lexical_scopes_capacity)
+    {
+        // XXX(vlad): We can change 'MAX(1, 2 * capacity)' to '(2 * capacity) | 1'.
+        const Size new_capacity = MAX(1, 2 * interpreter->lexical_scopes_capacity);
+        interpreter->lexical_scopes = reallocate(interpreter->lexical_scopes_arena,
+                                                 interpreter->lexical_scopes,
+                                                 Interpreter_Lexical_Scope,
+                                                 interpreter->lexical_scopes_capacity,
+                                                 new_capacity);
+        interpreter->lexical_scopes_capacity = new_capacity;
+    }
+
+    Interpreter_Lexical_Scope* lexical_scope = &interpreter->lexical_scopes[interpreter->lexical_scopes_count++];
+    lexical_scope->parent_scope = parent_scope;
+}
+
+internal void
+pop_lexical_scope(Interpreter* interpreter)
+{
+    interpreter->lexical_scopes_count -= 1;
+}
+
+internal Interpreter_Lexical_Scope*
+get_current_lexical_scope(Interpreter* interpreter)
+{
+    if (interpreter->lexical_scopes_count == 0)
+    {
+        return &interpreter->global_lexical_scope;
+    }
+    else
+    {
+        return &interpreter->lexical_scopes[interpreter->lexical_scopes_count - 1];
+    }
+}
+
 internal Interpreter_Variable*
 find_variable(Interpreter* interpreter, const String_View variable_name)
 {
-    const Interpreter_Lexical_Scope* scope = &interpreter->lexical_scope;
-
-    // TODO(vlad): Support nested lexical scopes.
-    for (Index variable_index = 0;
-         variable_index < scope->variables_count;
-         ++variable_index)
+    for (const Interpreter_Lexical_Scope* scope = get_current_lexical_scope(interpreter);
+         scope != NULL;
+         scope = scope->parent_scope)
     {
-        Interpreter_Variable* variable = &scope->variables[variable_index];
-
-        if (strings_are_equal(variable->name.token.lexeme, variable_name))
+        for (Index variable_index = 0;
+             variable_index < scope->variables_count;
+             ++variable_index)
         {
-            return variable;
+            Interpreter_Variable* variable = &scope->variables[variable_index];
+
+            if (strings_are_equal(variable->name.token.lexeme, variable_name))
+            {
+                return variable;
+            }
         }
     }
 
@@ -90,12 +131,16 @@ execute_expression(Arena* runtime_arena,
                 call_info.arguments[argument_index] = value;
             }
 
+            push_empty_lexical_scope(interpreter, &interpreter->global_lexical_scope);
+
             const Run_Result call_result = interpreter_execute_function(runtime_arena,
                                                                         runtime_arena,
                                                                         interpreter,
                                                                         ast,
                                                                         called_expression->identifier.token.lexeme,
                                                                         &call_info);
+
+            pop_lexical_scope(interpreter);
 
             if (call_result.status != INTERPRETER_RUN_OK)
             {
@@ -182,7 +227,7 @@ interpreter_add_variable_to_current_lexical_scope(Arena* runtime_arena,
                                                   const Ast* ast,
                                                   const Ast_Variable_Definition* variable_definition)
 {
-    Interpreter_Lexical_Scope* scope = &interpreter->lexical_scope;
+    Interpreter_Lexical_Scope* scope = get_current_lexical_scope(interpreter);
 
     if (scope->variables_count == scope->variables_capacity)
     {
@@ -261,6 +306,7 @@ execute_statement(Arena* runtime_arena,
                 FAIL("Failed to execute return statement's expression");
             }
 
+
             return result;
         } break;
 
@@ -325,9 +371,10 @@ execute_statement(Arena* runtime_arena,
 }
 
 internal void
-interpreter_create(Interpreter* interpreter)
+interpreter_create(Interpreter* interpreter, Arena* lexical_scopes_arena)
 {
-    interpreter->lexical_scope = (Interpreter_Lexical_Scope){0};
+    interpreter->lexical_scopes_arena = lexical_scopes_arena;
+    interpreter->global_lexical_scope = (Interpreter_Lexical_Scope){0};
 }
 
 internal Run_Result

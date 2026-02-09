@@ -58,9 +58,11 @@ main(const int argc, const char* argv[])
         return 1;
     }
 
+    Arena* scopes_arena = arena_create("interpreter-lexical-scopes", GiB(1), MiB(1));
+
     // TODO(vlad): Add type system.
     Interpreter interpreter = {0};
-    interpreter_create(&interpreter);
+    interpreter_create(&interpreter, scopes_arena);
 
     Arena* runtime_arena = arena_create("interpreter-runtime", GiB(1), MiB(1));
     Arena* result_arena = arena_create("interpreter-result", GiB(1), MiB(1));
@@ -91,6 +93,7 @@ main(const int argc, const char* argv[])
 
     arena_destroy(result_arena);
     arena_destroy(runtime_arena);
+    arena_destroy(scopes_arena);
     arena_destroy(scratch_arena);
     arena_destroy(errors_arena);
     arena_destroy(main_arena);

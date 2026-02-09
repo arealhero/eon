@@ -16,6 +16,8 @@ typedef struct Interpreter_Variable Interpreter_Variable;
 
 struct Interpreter_Lexical_Scope
 {
+    struct Interpreter_Lexical_Scope* parent_scope;
+
     Interpreter_Variable* variables;
     Size variables_count;
     Size variables_capacity;
@@ -24,7 +26,13 @@ typedef struct Interpreter_Lexical_Scope Interpreter_Lexical_Scope;
 
 struct Interpreter
 {
-    Interpreter_Lexical_Scope lexical_scope;
+    Arena* lexical_scopes_arena;
+
+    Interpreter_Lexical_Scope global_lexical_scope;
+
+    Interpreter_Lexical_Scope* lexical_scopes;
+    Size lexical_scopes_count;
+    Size lexical_scopes_capacity;
 };
 typedef struct Interpreter Interpreter;
 
@@ -56,7 +64,7 @@ struct Run_Result
 };
 typedef struct Run_Result Run_Result;
 
-internal void interpreter_create(Interpreter* interpreter);
+internal void interpreter_create(Interpreter* interpreter, Arena* lexical_scopes_arena);
 internal Run_Result interpreter_execute_function(Arena* runtime_arena,
                                                  Arena* result_arena,
                                                  Interpreter* interpreter,
