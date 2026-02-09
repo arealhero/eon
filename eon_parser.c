@@ -902,6 +902,27 @@ parse_code_block(Arena* parser_arena, Parser* parser, Ast_Statements* statements
 }
 
 internal Bool
+parse_while_statement(Arena* parser_arena, Parser* parser, Ast_While_Statement* while_statement)
+{
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_WHILE))
+    {
+        return false;
+    }
+
+    if (!parse_expression(parser_arena, parser, &while_statement->condition))
+    {
+        return false;
+    }
+
+    if (!parse_code_block(parser_arena, parser, &while_statement->statements))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+internal Bool
 parse_if_statement(Arena* parser_arena, Parser* parser, Ast_If_Statement* if_statement)
 {
     if (!parser_get_and_consume_token_with_type(parser, TOKEN_IF))
@@ -993,6 +1014,12 @@ parse_statement(Arena* parser_arena, Parser* parser, Ast_Statement* statement)
         {
             statement->type = AST_STATEMENT_RETURN;
             return parse_return_statement(parser_arena, parser, &statement->return_statement);
+        } break;
+
+        case TOKEN_WHILE:
+        {
+            statement->type = AST_STATEMENT_WHILE;
+            return parse_while_statement(parser_arena, parser, &statement->while_statement);
         } break;
 
         case TOKEN_IF:

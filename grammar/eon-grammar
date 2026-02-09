@@ -30,7 +30,7 @@ function_definitions: EOF | function_definition function_definitions;
 function_definition: identifier ":" function_type "=" code_block;
 
 statements: EPS | statement statements;
-statement: variable_definition | assignment_statement | return_statement;
+statement: variable_definition | assignment_statement | while_statement | return_statement;
 
 variable_definition: identifier ":" optional_variable_type optional_variable_assignment ";";
 optional_variable_type: EPS | type;
@@ -39,6 +39,8 @@ optional_variable_assignment: EPS | "=" expression; // TODO(vlad): Support 'unin
 
 // TODO(vlad): Support arrays. @tag(eon-grammar)
 assignment_statement: identifier "=" expression ";";
+
+while_statement: "while" expression code_block;
 
 return_statement: "return" optional_expression ";";
 

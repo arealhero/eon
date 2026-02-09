@@ -1,0 +1,21 @@
+fibonacci: (n: Int32) -> Int32 =
+{
+    prev := 0;
+    cur := 1;
+
+    while n != 0
+    {
+        sum := prev + cur;
+        prev = cur;
+        cur = sum;
+
+        n = n - 1;
+    }
+
+    return prev;
+}
+
+main: () -> Int32 =
+{
+    return fibonacci(12); // NOTE(vlad): 144
+}

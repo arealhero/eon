@@ -1783,6 +1783,92 @@ test_assignments(Test_Context* context)
 }
 
 internal void
+test_while_statements(Test_Context* context)
+{
+    {
+        const String_View input = string_view("foo: () -> void = {"
+                                              "    var := 10;"
+                                              "    while var != 0"
+                                              "    {"
+                                              "        var = var - 1;"
+                                              "    }"
+                                              "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
+
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
+
+        ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &ast.function_definitions[0];
+        ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
+
+        const Ast_Type* function_type = function_definition->type;
+        ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+
+        const Ast_Function_Arguments* arguments = &function_type->arguments;
+        ASSERT_EQUAL(arguments->arguments_count, 0);
+
+        const Ast_Type* return_type = function_type->return_type;
+        ASSERT_EQUAL(return_type->type, AST_TYPE_VOID);
+
+        ASSERT_EQUAL(function_definition->statements.statements_count, 2);
+
+        {
+            const Ast_Statement* statement = &function_definition->statements.statements[0];
+            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+
+            const Ast_Variable_Definition* definition = &statement->variable_definition;
+            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
+            ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+            ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
+            ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_NUMBER);
+            ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.number.token.lexeme, "10");
+        }
+
+        {
+            const Ast_Statement* statement = &function_definition->statements.statements[1];
+            ASSERT_EQUAL(statement->type, AST_STATEMENT_WHILE);
+
+            const Ast_While_Statement* while_statement = &statement->while_statement;
+
+            const Ast_Expression* condition = &while_statement->condition;
+            ASSERT_EQUAL(condition->type, AST_EXPRESSION_NOT_EQUAL);
+            ASSERT_STRINGS_ARE_EQUAL(condition->binary_expression.operator.lexeme, "!=");
+
+            ASSERT_EQUAL(condition->binary_expression.lhs->type, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_STRINGS_ARE_EQUAL(condition->binary_expression.lhs->identifier.token.lexeme, "var");
+
+            ASSERT_EQUAL(condition->binary_expression.rhs->type, AST_EXPRESSION_NUMBER);
+            ASSERT_STRINGS_ARE_EQUAL(condition->binary_expression.rhs->number.token.lexeme, "0");
+
+            ASSERT_EQUAL(while_statement->statements.statements_count, 1);
+
+            const Ast_Statement* inner_statement = &while_statement->statements.statements[0];
+            ASSERT_EQUAL(inner_statement->type, AST_STATEMENT_ASSIGNMENT);
+
+            const Ast_Assignment* assignment = &inner_statement->assignment;
+            ASSERT_STRINGS_ARE_EQUAL(assignment->name.token.lexeme, "var");
+            ASSERT_EQUAL(assignment->expression.type, AST_EXPRESSION_SUBTRACT);
+            ASSERT_EQUAL(assignment->expression.binary_expression.lhs->type, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_STRINGS_ARE_EQUAL(assignment->expression.binary_expression.lhs->identifier.token.lexeme, "var");
+
+            ASSERT_EQUAL(assignment->expression.binary_expression.rhs->type, AST_EXPRESSION_NUMBER);
+            ASSERT_STRINGS_ARE_EQUAL(assignment->expression.binary_expression.rhs->number.token.lexeme, "1");
+        }
+
+        parser_destroy(&parser);
+        lexer_destroy(&lexer);
+    }
+}
+
+internal void
 test_syntax_errors(Test_Context* context)
 {
     {
@@ -1832,6 +1918,7 @@ REGISTER_TESTS(
     test_expressions,
     test_operator_precedence,
     test_assignments,
+    test_while_statements,
     test_syntax_errors
 )
 

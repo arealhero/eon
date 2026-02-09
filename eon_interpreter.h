@@ -16,7 +16,7 @@ typedef struct Interpreter_Variable Interpreter_Variable;
 
 struct Interpreter_Lexical_Scope
 {
-    struct Interpreter_Lexical_Scope* parent_scope;
+    Index parent_scope_index;
 
     Interpreter_Variable* variables;
     Size variables_count;
@@ -24,11 +24,10 @@ struct Interpreter_Lexical_Scope
 };
 typedef struct Interpreter_Lexical_Scope Interpreter_Lexical_Scope;
 
+enum { INTERPRETER_GLOBAL_LEXICAL_SCOPE_INDEX = 1, };
 struct Interpreter
 {
     Arena* lexical_scopes_arena;
-
-    Interpreter_Lexical_Scope global_lexical_scope;
 
     Interpreter_Lexical_Scope* lexical_scopes;
     Size lexical_scopes_count;

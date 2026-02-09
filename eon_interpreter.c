@@ -4,7 +4,7 @@
 
 internal void
 push_empty_lexical_scope(Interpreter* interpreter,
-                         Interpreter_Lexical_Scope* parent_scope)
+                         const Index parent_scope_index)
 {
     if (interpreter->lexical_scopes_count == interpreter->lexical_scopes_capacity)
     {
@@ -19,7 +19,8 @@ push_empty_lexical_scope(Interpreter* interpreter,
     }
 
     Interpreter_Lexical_Scope* lexical_scope = &interpreter->lexical_scopes[interpreter->lexical_scopes_count++];
-    lexical_scope->parent_scope = parent_scope;
+    *lexical_scope = (Interpreter_Lexical_Scope) {0};
+    lexical_scope->parent_scope_index = parent_scope_index;
 }
 
 internal void
@@ -28,25 +29,30 @@ pop_lexical_scope(Interpreter* interpreter)
     interpreter->lexical_scopes_count -= 1;
 }
 
-internal Interpreter_Lexical_Scope*
-get_current_lexical_scope(Interpreter* interpreter)
+internal Index
+get_current_lexical_scope_index(Interpreter* interpreter)
 {
-    if (interpreter->lexical_scopes_count == 0)
+    if (interpreter->lexical_scopes_count == 2)
     {
-        return &interpreter->global_lexical_scope;
+        return INTERPRETER_GLOBAL_LEXICAL_SCOPE_INDEX;
     }
     else
     {
-        return &interpreter->lexical_scopes[interpreter->lexical_scopes_count - 1];
+        return interpreter->lexical_scopes_count - 1;
     }
+}
+internal Interpreter_Lexical_Scope*
+get_current_lexical_scope(Interpreter* interpreter)
+{
+    return &interpreter->lexical_scopes[get_current_lexical_scope_index(interpreter)];
 }
 
 internal Interpreter_Variable*
 find_variable(Interpreter* interpreter, const String_View variable_name)
 {
     for (const Interpreter_Lexical_Scope* scope = get_current_lexical_scope(interpreter);
-         scope != NULL;
-         scope = scope->parent_scope)
+         scope->parent_scope_index != -1;
+         scope = &interpreter->lexical_scopes[scope->parent_scope_index])
     {
         for (Index variable_index = 0;
              variable_index < scope->variables_count;
@@ -131,7 +137,7 @@ execute_expression(Arena* runtime_arena,
                 call_info.arguments[argument_index] = value;
             }
 
-            push_empty_lexical_scope(interpreter, &interpreter->global_lexical_scope);
+            push_empty_lexical_scope(interpreter, INTERPRETER_GLOBAL_LEXICAL_SCOPE_INDEX);
 
             const Run_Result call_result = interpreter_execute_function(runtime_arena,
                                                                         runtime_arena,
@@ -350,6 +356,50 @@ execute_statement(Arena* runtime_arena,
             set_new_value_for_the_variable(interpreter, &assignment->name, value);
         } break;
 
+        case AST_STATEMENT_WHILE:
+        {
+            const Ast_While_Statement* while_statement = &statement->while_statement;
+
+            while (true)
+            {
+                s32 condition_value;
+                if (!execute_expression(runtime_arena,
+                                        interpreter,
+                                        ast,
+                                        &while_statement->condition,
+                                        &condition_value))
+                {
+                    FAIL("Failed to execute while loop's condition expression");
+                }
+
+                if (!condition_value)
+                {
+                    break;
+                }
+
+                push_empty_lexical_scope(interpreter, get_current_lexical_scope_index(interpreter));
+
+                for (Index statement_index = 0;
+                     statement_index < while_statement->statements.statements_count;
+                     ++statement_index)
+                {
+                    const Ast_Statement* this_statement = &while_statement->statements.statements[statement_index];
+                    const Run_Result this_result = execute_statement(runtime_arena,
+                                                                     result_arena,
+                                                                     interpreter,
+                                                                     ast,
+                                                                     this_statement);
+                    if (this_result.status != INTERPRETER_RUN_OK
+                        || this_result.should_exit)
+                    {
+                        return this_result;
+                    }
+                }
+
+                pop_lexical_scope(interpreter);
+            }
+        } break;
+
         case AST_STATEMENT_IF:
         {
             const Ast_If_Statement* if_statement = &statement->if_statement;
@@ -368,7 +418,7 @@ execute_statement(Arena* runtime_arena,
                 ? &if_statement->if_statements
                 : &if_statement->else_statements;
 
-            push_empty_lexical_scope(interpreter, get_current_lexical_scope(interpreter));
+            push_empty_lexical_scope(interpreter, get_current_lexical_scope_index(interpreter));
 
             for (Index statement_index = 0;
                  statement_index < statements->statements_count;
@@ -409,7 +459,10 @@ internal void
 interpreter_create(Interpreter* interpreter, Arena* lexical_scopes_arena)
 {
     interpreter->lexical_scopes_arena = lexical_scopes_arena;
-    interpreter->global_lexical_scope = (Interpreter_Lexical_Scope){0};
+    interpreter->lexical_scopes = allocate_array(interpreter->lexical_scopes_arena, 2, Interpreter_Lexical_Scope);
+    interpreter->lexical_scopes_count = 2;
+    interpreter->lexical_scopes_capacity = 2;
+    interpreter->lexical_scopes[0].parent_scope_index = -1;
 }
 
 internal Run_Result

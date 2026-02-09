@@ -174,6 +174,7 @@ enum Ast_Statement_Type
     AST_STATEMENT_VARIABLE_DEFINITION,
     AST_STATEMENT_ASSIGNMENT,
     AST_STATEMENT_RETURN,
+    AST_STATEMENT_WHILE,
     AST_STATEMENT_IF,
 };
 typedef enum Ast_Statement_Type Ast_Statement_Type;
@@ -219,6 +220,13 @@ struct Ast_If_Statement
 };
 typedef struct Ast_If_Statement Ast_If_Statement;
 
+struct Ast_While_Statement
+{
+    Ast_Expression condition;
+    Ast_Statements statements;
+};
+typedef struct Ast_While_Statement Ast_While_Statement;
+
 struct Ast_Statement
 {
     Ast_Statement_Type type;
@@ -227,6 +235,7 @@ struct Ast_Statement
         Ast_Variable_Definition variable_definition;
         Ast_Return_Statement return_statement;
         Ast_If_Statement if_statement;
+        Ast_While_Statement while_statement;
         Ast_Assignment assignment;
     };
 };
