@@ -112,6 +112,10 @@ enum Ast_Expression_Type
     AST_EXPRESSION_MULTIPLY,
     AST_EXPRESSION_DIVIDE,
 
+    // NOTE(vlad): Comparisons.
+    AST_EXPRESSION_EQUAL,
+    AST_EXPRESSION_NOT_EQUAL,
+
     AST_EXPRESSION_CALL,
 };
 typedef enum Ast_Expression_Type Ast_Expression_Type;

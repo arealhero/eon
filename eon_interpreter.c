@@ -111,6 +111,8 @@ execute_expression(Arena* runtime_arena,
         case AST_EXPRESSION_SUBTRACT:
         case AST_EXPRESSION_MULTIPLY:
         case AST_EXPRESSION_DIVIDE:
+        case AST_EXPRESSION_EQUAL:
+        case AST_EXPRESSION_NOT_EQUAL:
         {
             const Ast_Binary_Expression* binary_expression = &expression->binary_expression;
 
@@ -146,6 +148,16 @@ execute_expression(Arena* runtime_arena,
                 case AST_EXPRESSION_DIVIDE:
                 {
                     *result = lhs / rhs;
+                } break;
+
+                case AST_EXPRESSION_EQUAL:
+                {
+                    *result = lhs == rhs;
+                } break;
+
+                case AST_EXPRESSION_NOT_EQUAL:
+                {
+                    *result = lhs != rhs;
                 } break;
 
                 default:

@@ -636,9 +636,70 @@ parse_additive_expression(Arena* parser_arena, Parser* parser, Ast_Expression* e
 }
 
 internal Bool
+parse_comparison_expression(Arena* parser_arena, Parser* parser, Ast_Expression* expression)
+{
+    // TODO(vlad): Use 'expression' here, otherwise we would overallocate.
+    Ast_Expression* lhs = allocate(parser_arena, Ast_Expression);
+    if (!parse_additive_expression(parser_arena, parser, lhs))
+    {
+        return false;
+    }
+
+    if (!parser_get_next_token(parser))
+    {
+        return false;
+    }
+
+    switch (parser->current_token.type)
+    {
+        case TOKEN_EQUAL:
+        {
+            const Token operator = parser->current_token;
+            parser_consume_token(parser);
+
+            Ast_Expression* rhs = allocate(parser_arena, Ast_Expression);
+            if (!parse_comparison_expression(parser_arena, parser, rhs))
+            {
+                return false;
+            }
+
+            expression->type = AST_EXPRESSION_EQUAL;
+            expression->binary_expression.operator = operator;
+            expression->binary_expression.lhs = lhs;
+            expression->binary_expression.rhs = rhs;
+            return true;
+        } break;
+
+        case TOKEN_NOT_EQUAL:
+        {
+            const Token operator = parser->current_token;
+            parser_consume_token(parser);
+
+            Ast_Expression* rhs = allocate(parser_arena, Ast_Expression);
+            if (!parse_comparison_expression(parser_arena, parser, rhs))
+            {
+                return false;
+            }
+
+            expression->type = AST_EXPRESSION_NOT_EQUAL;
+            expression->binary_expression.operator = operator;
+            expression->binary_expression.lhs = lhs;
+            expression->binary_expression.rhs = rhs;
+            return true;
+        } break;
+
+        default:
+        {
+            *expression = *lhs;
+            return true;
+        }
+    }
+}
+
+internal Bool
 parse_expression(Arena* parser_arena, Parser* parser, Ast_Expression* expression)
 {
-    return parse_additive_expression(parser_arena, parser, expression);
+    return parse_comparison_expression(parser_arena, parser, expression);
 }
 
 internal Bool parse_statements(Arena* parser_arena, Parser* parser, Ast_Statements* statements);

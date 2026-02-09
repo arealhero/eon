@@ -52,7 +52,12 @@ optional_variable_type: EPS | type;
 // TODO(vlad): Rename to 'optional_variable_initialisation' or something.
 optional_variable_assignment: EPS | "=" expression; // TODO(vlad): Support 'uninitialized' keyword or something.
 
-expression: additive_expression;
+expression: comparison_expression;
+
+comparison_expression: additive_expression optional_comparison_expression_tail;
+optional_comparison_expression_tail: EPS
+                                   | "==" comparison_expression
+                                   | "!=" comparison_expression;
 
 additive_expression: multiplicative_expression optional_additive_expression_tail;
 optional_additive_expression_tail: EPS
