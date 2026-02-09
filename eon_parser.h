@@ -93,6 +93,8 @@ struct Ast_Type
 };
 typedef struct Ast_Type Ast_Type;
 
+// NOTE(vlad): Expressions.
+
 enum Ast_Expression_Type
 {
     AST_EXPRESSION_UNDEFINED = 0,
@@ -150,6 +152,18 @@ struct Ast_Expression
 };
 typedef struct Ast_Expression Ast_Expression;
 
+// NOTE(vlad): Statements.
+
+enum Ast_Statement_Type
+{
+    AST_UNDEFINED = 0,
+
+    AST_STATEMENT_VARIABLE_DEFINITION,
+    AST_STATEMENT_RETURN,
+    AST_STATEMENT_IF,
+};
+typedef enum Ast_Statement_Type Ast_Statement_Type;
+
 enum Ast_Initialisation_Type
 {
     AST_INITIALISATION_UNDEFINED = 0,
@@ -168,15 +182,6 @@ struct Ast_Variable_Definition
     Ast_Expression initial_value;
 };
 typedef struct Ast_Variable_Definition Ast_Variable_Definition;
-
-enum Ast_Statement_Type
-{
-    AST_UNDEFINED = 0,
-
-    AST_STATEMENT_VARIABLE_DEFINITION,
-    AST_STATEMENT_RETURN,
-};
-typedef enum Ast_Statement_Type Ast_Statement_Type;
 
 struct Ast_Return_Statement
 {
