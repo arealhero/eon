@@ -18,7 +18,7 @@ main(const int argc, const char* argv[])
     if (argc != 2)
     {
         println("Usage: {} <file>", argv[0]);
-        return 1;
+        return EXIT_FAILURE;
     }
 
     Arena* main_arena = arena_create("main", GiB(1), MiB(1));
@@ -29,7 +29,7 @@ main(const int argc, const char* argv[])
     if (read_result.status == READ_FILE_FAILURE)
     {
         println("Failed to read file '{}'", filename);
-        return 1;
+        return EXIT_FAILURE;
     }
 
     const String_View code = string_view(read_result.content);
@@ -55,7 +55,7 @@ main(const int argc, const char* argv[])
             print_error(scratch_arena, &parser.errors.errors[i]);
         }
 
-        return 1;
+        return EXIT_FAILURE;
     }
 
     Arena* scopes_arena = arena_create("interpreter-lexical-scopes", GiB(1), MiB(1));
@@ -77,12 +77,12 @@ main(const int argc, const char* argv[])
     if (result.status == INTERPRETER_RUN_COMPILE_ERROR)
     {
         println("Compile error encountered: {}", result.error);
-        return 1;
+        return EXIT_FAILURE;
     }
     else if (result.status == INTERPRETER_RUN_RUNTIME_ERROR)
     {
         println("Runtime error encountered: {}", result.error);
-        return 1;
+        return EXIT_FAILURE;
     }
 
     println("Program returned: {}", result.return_value);
@@ -98,7 +98,7 @@ main(const int argc, const char* argv[])
     arena_destroy(errors_arena);
     arena_destroy(main_arena);
 
-    return !result.return_value;
+    return result.return_value;
 }
 
 #include <eon/io.c>

@@ -38,7 +38,7 @@ internal Bool
 platform_commit_memory(Byte* pointer, Size number_of_bytes)
 {
     const int result = mprotect(pointer, (USize)number_of_bytes, PROT_READ|PROT_WRITE);
-    return (result == 0) ? 1 : 0;
+    return result == 0;
 }
 
 internal Bool
@@ -55,17 +55,17 @@ platform_decommit_memory(Byte* pointer, Size number_of_bytes)
     int result = posix_madvise(pointer, (USize)number_of_bytes, POSIX_MADV_DONTNEED);
     if (result != 0)
     {
-        return 0;
+        return false;
     }
 
     result = mprotect(pointer, (USize)number_of_bytes, PROT_NONE);
     if (result != 0)
     {
         // TODO(vlad): Ignore 'ENOTSUP'.
-        return 0;
+        return false;
     }
 
-    return 1;
+    return true;
 }
 
 internal Bool

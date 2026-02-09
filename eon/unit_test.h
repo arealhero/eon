@@ -120,6 +120,13 @@ main(const int argc, const char* argv[])
 
     arena_destroy(test_arena);
     arena_destroy(permanent_arena);
+
+    if (registry.failed_tests_count != 0)
+    {
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }
 
 #include <eon/io.c>

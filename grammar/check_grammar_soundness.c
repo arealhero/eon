@@ -19,7 +19,7 @@ main(int argc, const char* argv[])
     if (argc != 2)
     {
         println("Usage: {} <grammar-file>", argv[0]);
-        return 1;
+        return EXIT_FAILURE;
     }
 
     // TODO(vlad): Allocate more memory, otherwise we wouldn't be able to read files with size > 1 GiB.
@@ -31,7 +31,7 @@ main(int argc, const char* argv[])
     if (read_result.status == READ_FILE_FAILURE)
     {
         println("Failed to read file '{}'", grammar_filename);
-        return 1;
+        return EXIT_FAILURE;
     }
 
     const String_View grammar = string_view(read_result.content);
@@ -39,7 +39,12 @@ main(int argc, const char* argv[])
 
     arena_destroy(arena);
 
-    return !result;
+    if (!result)
+    {
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }
 
 struct Identifiers_Array
