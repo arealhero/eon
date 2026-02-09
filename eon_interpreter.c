@@ -337,6 +337,8 @@ execute_statement(Arena* runtime_arena,
                 ? &if_statement->if_statements
                 : &if_statement->else_statements;
 
+            push_empty_lexical_scope(interpreter, get_current_lexical_scope(interpreter));
+
             for (Index statement_index = 0;
                  statement_index < statements->statements_count;
                  ++statement_index)
@@ -353,6 +355,8 @@ execute_statement(Arena* runtime_arena,
                     return this_result;
                 }
             }
+
+            pop_lexical_scope(interpreter);
         } break;
 
         default:
