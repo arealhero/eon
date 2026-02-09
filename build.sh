@@ -47,7 +47,7 @@ compile eon.c -o build/eon \
         $clang_common_flags \
         $clang_warnings
 
-compile_and_run_test()
+compile_and_run_unit_test()
 {
     test_filename="$1"
     test_dir=$(dirname "$test_filename")
@@ -74,9 +74,9 @@ compile_and_run_test()
     "./build/tests/$test_dir/$test_name" --hide-stats
 }
 
-compile_and_run_test eon/memory_ut.c
-compile_and_run_test eon/string_ut.c
-compile_and_run_test eon_lexer_ut.c
-compile_and_run_test eon_parser_ut.c
-compile_and_run_test eon_interpreter_ut.c
-compile_and_run_test eon/sanitizers/asan_ut.c -fsanitize=address -fsanitize-recover=address
+compile_and_run_unit_test eon/memory_ut.c
+compile_and_run_unit_test eon/string_ut.c
+compile_and_run_unit_test eon_lexer_ut.c
+compile_and_run_unit_test eon_parser_ut.c
+compile_and_run_unit_test eon_interpreter_ut.c
+compile_and_run_unit_test eon/sanitizers/asan_ut.c -fsanitize=address -fsanitize-recover=address
