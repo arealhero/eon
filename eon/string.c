@@ -4,6 +4,17 @@
 
 #include <stdarg.h>
 
+internal char*
+to_c_string(Arena* arena, const String_View string_view)
+{
+    char* c_string = allocate_uninitialized_array(arena, string_view.length + 1, char);
+    copy_memory(as_bytes(c_string),
+                as_bytes(string_view.data),
+                string_view.length);
+    c_string[string_view.length] = '\0';
+    return c_string;
+}
+
 internal Size
 c_string_length(const char* c_string)
 {

@@ -80,3 +80,29 @@ compile_and_run_unit_test eon_lexer_ut.c
 compile_and_run_unit_test eon_parser_ut.c
 compile_and_run_unit_test eon_interpreter_ut.c
 compile_and_run_unit_test eon/sanitizers/asan_ut.c -fsanitize=address -fsanitize-recover=address
+
+mkdir -p build/tests
+compile tests/run_test.c -o build/tests/run_test \
+        $clang_common_flags \
+        $clang_warnings
+
+run_test()
+{
+    test_directory="$1"
+    test_name=$(basename "$test_directory")
+    eon_executable="build/eon"
+
+    echo
+    echo "Running test '$test_name'"
+    "build/tests/run_test" "$eon_executable" "$test_directory"
+}
+
+echo
+echo " === Running interpreter tests ==="
+
+run_test tests/calls
+# run_test tests/empty-file
+run_test tests/empty-main-with-return
+run_test tests/factorial
+run_test tests/fibonacci
+run_test tests/fibonacci-without-recursion

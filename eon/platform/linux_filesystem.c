@@ -4,7 +4,7 @@
 
 #include <fcntl.h> // NOTE(vlad): For 'open'.
 #include <sys/stat.h> // NOTE(vlad): For 'fstat'.
-#include <unistd.h> // NOTE(vlad0): For 'read' and 'close'.
+#include <unistd.h> // NOTE(vlad0): For 'read', 'close', and 'access'.
 
 internal Read_File_Result
 platform_read_entire_text_file(Arena* arena, const String_View filename)
@@ -60,4 +60,38 @@ platform_read_entire_text_file(Arena* arena, const String_View filename)
     close(fd);
 
     return result;
+}
+
+internal File_Info
+platform_get_file_info(Arena* scratch_arena, const String_View filename)
+{
+    char* zero_terminated_filename = allocate_uninitialized_array(scratch_arena, filename.length + 1, char);
+    copy_memory(as_bytes(zero_terminated_filename),
+                as_bytes(filename.data),
+                filename.length);
+    zero_terminated_filename[filename.length] = '\0';
+
+    File_Info info = {0};
+
+    if (access(zero_terminated_filename, F_OK) == 0)
+    {
+        info.exists = true;
+    }
+
+    if (access(zero_terminated_filename, R_OK) == 0)
+    {
+        info.readable = true;
+    }
+
+    if (access(zero_terminated_filename, W_OK) == 0)
+    {
+        info.writeable = true;
+    }
+
+    if (access(zero_terminated_filename, X_OK) == 0)
+    {
+        info.executable = true;
+    }
+
+    return info;
 }

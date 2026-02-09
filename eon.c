@@ -4,6 +4,7 @@
 #include <eon/string.h>
 
 #include <eon/platform/filesystem.h>
+#include <eon/platform/time.h>
 
 #include "eon_errors.h"
 #include "eon_interpreter.h"
@@ -21,9 +22,14 @@ main(const int argc, const char* argv[])
         return EXIT_FAILURE;
     }
 
+    const Timestamp start_timestamp = platform_get_current_monotonic_timestamp();
+
     Arena* main_arena = arena_create("main", GiB(1), MiB(1));
 
     const String_View filename = string_view(argv[1]);
+
+    const Timestamp read_start_timestamp = platform_get_current_monotonic_timestamp();
+
     Read_File_Result read_result = platform_read_entire_text_file(main_arena, filename);
 
     if (read_result.status == READ_FILE_FAILURE)
@@ -31,6 +37,9 @@ main(const int argc, const char* argv[])
         println("Failed to read file '{}'", filename);
         return EXIT_FAILURE;
     }
+
+    const Timestamp read_end_timestamp = platform_get_current_monotonic_timestamp();
+    println("File {} read in {} mcs", filename, read_end_timestamp - read_start_timestamp);
 
     const String_View code = string_view(read_result.content);
 
@@ -45,6 +54,8 @@ main(const int argc, const char* argv[])
 
     Arena* scratch_arena = arena_create("scratch", GiB(1), MiB(1));
 
+    const Timestamp parse_start_timestamp = platform_get_current_monotonic_timestamp();
+
     Ast ast = {0};
     if (!parser_parse(main_arena, &parser, &ast))
     {
@@ -58,6 +69,11 @@ main(const int argc, const char* argv[])
         return EXIT_FAILURE;
     }
 
+    const Timestamp parse_end_timestamp = platform_get_current_monotonic_timestamp();
+    println("File {} parsed in {} mcs",
+            filename,
+            parse_end_timestamp - parse_start_timestamp);
+
     Arena* scopes_arena = arena_create("interpreter-lexical-scopes", GiB(1), MiB(1));
 
     // TODO(vlad): Add type system.
@@ -67,12 +83,18 @@ main(const int argc, const char* argv[])
     Arena* runtime_arena = arena_create("interpreter-runtime", GiB(1), MiB(1));
     Arena* result_arena = arena_create("interpreter-result", GiB(1), MiB(1));
     Call_Info call_info = {0};
+
+    const Timestamp interpret_start_timestamp = platform_get_current_monotonic_timestamp();
     const Run_Result result = interpreter_execute_function(runtime_arena,
                                                            result_arena,
                                                            &interpreter,
                                                            &ast,
                                                            string_view("main"),
                                                            &call_info);
+    const Timestamp interpret_end_timestamp = platform_get_current_monotonic_timestamp();
+    println("File {} interpreted in {} mcs",
+            filename,
+            interpret_end_timestamp - interpret_start_timestamp);
 
     if (result.status == INTERPRETER_RUN_COMPILE_ERROR)
     {
@@ -85,7 +107,8 @@ main(const int argc, const char* argv[])
         return EXIT_FAILURE;
     }
 
-    println("Program returned: {}", result.return_value);
+    const Timestamp end_timestamp = platform_get_current_monotonic_timestamp();
+    println("Program execution took {} msc", end_timestamp - start_timestamp);
 
     interpreter_destroy(&interpreter);
     parser_destroy(&parser);

@@ -19,6 +19,8 @@ struct String
 };
 typedef struct String String;
 
+maybe_unused internal char* to_c_string(struct Arena* arena, const String_View string_view);
+
 // NOTE(vlad): We cannot move these functions to 'string.c' because they must be visible
 //             from the 'string_view()'s call site.
 internal inline String_View INTERNAL_string_view_passthrough(const String_View string_view);
@@ -98,7 +100,7 @@ DECLARE_STRING_TO_NUMBER_FUNCTION(u64);
                  DECLARE_OVERLOAD(u16),         \
                  DECLARE_OVERLOAD(u32),         \
                  DECLARE_OVERLOAD(u64)          \
-             )(string, out_integer)
+             )(string_view(string), out_integer)
 
 enum Format_Type_Tag
 {

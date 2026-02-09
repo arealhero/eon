@@ -21,7 +21,17 @@ struct Read_File_Result
 };
 typedef struct Read_File_Result Read_File_Result;
 
-internal Read_File_Result platform_read_entire_text_file(Arena* arena, const String_View filename);
+struct File_Info
+{
+    Bool exists;
+    Bool readable;
+    Bool writeable;
+    Bool executable;
+};
+typedef struct File_Info File_Info;
+
+maybe_unused internal Read_File_Result platform_read_entire_text_file(Arena* arena, const String_View filename);
+maybe_unused internal File_Info platform_get_file_info(Arena* scratch_arena, const String_View filename);
 
 #if OS_LINUX
 #    include "linux_filesystem.c"
