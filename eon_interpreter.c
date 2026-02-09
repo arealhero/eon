@@ -271,6 +271,21 @@ interpreter_add_variable_to_current_lexical_scope(Arena* runtime_arena,
     }
 }
 
+internal void
+set_new_value_for_the_variable(Interpreter* interpreter,
+                               const Ast_Identifier* identifier,
+                               const s32 new_value)
+{
+    Interpreter_Variable* variable = find_variable(interpreter, identifier->token.lexeme);
+
+    if (variable == NULL)
+    {
+        FAIL("Variable was not found");
+    }
+
+    variable->value = new_value;
+}
+
 internal Run_Result
 execute_statement(Arena* runtime_arena,
                   Arena* result_arena,
@@ -306,7 +321,6 @@ execute_statement(Arena* runtime_arena,
                 FAIL("Failed to execute return statement's expression");
             }
 
-
             return result;
         } break;
 
@@ -317,6 +331,23 @@ execute_statement(Arena* runtime_arena,
                                                               interpreter,
                                                               ast,
                                                               definition);
+        } break;
+
+        case AST_STATEMENT_ASSIGNMENT:
+        {
+            const Ast_Assignment* assignment = &statement->assignment;
+
+            s32 value;
+            if (!execute_expression(runtime_arena,
+                                    interpreter,
+                                    ast,
+                                    &assignment->expression,
+                                    &value))
+            {
+                FAIL("Failed to execute assignment statement's expression");
+            }
+
+            set_new_value_for_the_variable(interpreter, &assignment->name, value);
         } break;
 
         case AST_STATEMENT_IF:
@@ -455,8 +486,7 @@ interpreter_execute_function(Arena* runtime_arena,
                                                           ast,
                                                           &definition);
 
-        Interpreter_Variable* variable = find_variable(interpreter, definition.name.token.lexeme);
-        variable->value = call_info->arguments[argument_index];
+        set_new_value_for_the_variable(interpreter, &definition.name, call_info->arguments[argument_index]);
     }
 
     const Ast_Type_Type return_type = function_definition->type->return_type->type;
