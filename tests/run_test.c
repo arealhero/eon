@@ -101,6 +101,8 @@ main(const int argc, const char* argv[])
 
     const Timestamp test_start_timestamp = platform_get_current_monotonic_timestamp();
 
+    Bool test_failed = false;
+
     const pid_t eon_process_id = fork();
     if (eon_process_id == 0)
     {
@@ -130,7 +132,7 @@ main(const int argc, const char* argv[])
             println("Error: invalid return code: expected {}, got {}",
                     expected_return_code,
                     return_code);
-            return EXIT_FAILURE;
+            test_failed = true;
         }
     }
 
@@ -138,6 +140,11 @@ main(const int argc, const char* argv[])
     println("Test completed in {} mcs", test_end_timestamp - test_start_timestamp);
 
     arena_destroy(scratch_arena);
+
+    if (test_failed)
+    {
+        return EXIT_FAILURE;
+    }
 
     return EXIT_SUCCESS;
 }
