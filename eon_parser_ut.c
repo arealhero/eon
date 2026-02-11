@@ -1869,6 +1869,64 @@ test_while_statements(Test_Context* context)
 }
 
 internal void
+test_call_statements(Test_Context* context)
+{
+    {
+        const String_View input = string_view("foo: () -> void = {"
+                                              "    bar(10);"
+                                              "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(context->arena, context->arena, &parser, &lexer);
+
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(parser.errors.errors_count, 0);
+
+        ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &ast.function_definitions[0];
+        ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
+
+        const Ast_Type* function_type = function_definition->type;
+        ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+
+        const Ast_Function_Arguments* arguments = &function_type->arguments;
+        ASSERT_EQUAL(arguments->arguments_count, 0);
+
+        const Ast_Type* return_type = function_type->return_type;
+        ASSERT_EQUAL(return_type->type, AST_TYPE_VOID);
+
+        ASSERT_EQUAL(function_definition->statements.statements_count, 1);
+
+        {
+            const Ast_Statement* statement = &function_definition->statements.statements[0];
+            ASSERT_EQUAL(statement->type, AST_STATEMENT_CALL);
+
+            const Ast_Call_Statement* call_statement = &statement->call_statement;
+            const Ast_Call* call = &call_statement->call;
+
+            const Ast_Expression* called_expression = call->called_expression;
+            ASSERT_EQUAL(called_expression->type, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_STRINGS_ARE_EQUAL(called_expression->identifier.token.lexeme, "bar");
+            ASSERT_EQUAL(call->arguments_count, 1);
+
+            {
+                const Ast_Expression* argument = call->arguments[0];
+                ASSERT_EQUAL(argument->type, AST_EXPRESSION_NUMBER);
+                ASSERT_STRINGS_ARE_EQUAL(argument->number.token.lexeme, "10");
+            }
+        }
+
+        parser_destroy(&parser);
+        lexer_destroy(&lexer);
+    }
+}
+
+internal void
 test_syntax_errors(Test_Context* context)
 {
     {
@@ -1919,6 +1977,7 @@ REGISTER_TESTS(
     test_operator_precedence,
     test_assignments,
     test_while_statements,
+    test_call_statements,
     test_syntax_errors
 )
 

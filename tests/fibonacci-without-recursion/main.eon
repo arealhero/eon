@@ -17,5 +17,6 @@ fibonacci: (n: Int32) -> Int32 =
 
 main: () -> Int32 =
 {
-    return fibonacci(12); // NOTE(vlad): 144
+    print(fibonacci(12)); // NOTE(vlad): 144
+    return 0;
 }

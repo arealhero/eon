@@ -806,9 +806,54 @@ parse_assignment(Arena* parser_arena,
 }
 
 internal Bool
-parse_variable_assignment_or_definition(Arena* parser_arena,
-                                        Parser* parser,
-                                        Ast_Statement* statement)
+parse_call_statement(Arena* parser_arena,
+                     Parser* parser,
+                     Ast_Identifier* identifier,
+                     Ast_Call_Statement* call_statement)
+{
+    Ast_Call* call = &call_statement->call;
+
+    call->called_expression = allocate(parser_arena, Ast_Expression);
+    call->called_expression->type = AST_EXPRESSION_IDENTIFIER;
+    call->called_expression->identifier = *identifier;
+
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_LEFT_PAREN))
+    {
+        return false;
+    }
+
+    if (!parser_get_next_token(parser))
+    {
+        return false;
+    }
+
+    if (parser->current_token.type != TOKEN_RIGHT_PAREN)
+    {
+        if (!parse_arguments(parser_arena, parser, call))
+        {
+            return false;
+        }
+    }
+
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_RIGHT_PAREN))
+    {
+        return false;
+    }
+
+    // TODO(vlad): Move the semicolon parsing to 'parse_statement' or 'parse_expression_statement'
+    //             or something more high-level.
+    if (!parser_get_and_consume_token_with_type(parser, TOKEN_SEMICOLON))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+internal Bool
+parse_variable_assignment_or_definition_or_call(Arena* parser_arena,
+                                                Parser* parser,
+                                                Ast_Statement* statement)
 {
     Ast_Identifier identifier = {0};
     if (!parse_identifier(parser, &identifier))
@@ -833,6 +878,15 @@ parse_variable_assignment_or_definition(Arena* parser_arena,
         {
             statement->type = AST_STATEMENT_ASSIGNMENT;
             return parse_assignment(parser_arena, parser, &identifier, &statement->assignment);
+        } break;
+
+        case TOKEN_LEFT_PAREN:
+        {
+            statement->type = AST_STATEMENT_CALL;
+            return parse_call_statement(parser_arena,
+                                        parser,
+                                        &identifier,
+                                        &statement->call_statement);
         } break;
 
         default:
@@ -1007,7 +1061,7 @@ parse_statement(Arena* parser_arena, Parser* parser, Ast_Statement* statement)
     {
         case TOKEN_IDENTIFIER:
         {
-            return parse_variable_assignment_or_definition(parser_arena, parser, statement);
+            return parse_variable_assignment_or_definition_or_call(parser_arena, parser, statement);
         } break;
 
         case TOKEN_RETURN:

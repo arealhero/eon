@@ -116,6 +116,29 @@ execute_expression(Arena* runtime_arena,
                 FAIL("Expression calling is not yet supported");
             }
 
+            if (strings_are_equal(called_expression->identifier.token.lexeme, string_view("print")))
+            {
+                // TODO(vlad): Remove this special handling of a 'print' function.
+                if (call->arguments_count != 1)
+                {
+                    FAIL("Invalid number of arguments provided while calling function 'print'");
+                }
+
+                s32 value;
+                if (!execute_expression(runtime_arena,
+                                        interpreter,
+                                        ast,
+                                        call->arguments[0],
+                                        &value))
+                {
+                    FAIL("Failed to execute expression");
+                }
+
+                println("{}", value);
+
+                return true;
+            }
+
             Call_Info call_info = {0};
             call_info.arguments_count = call->arguments_count;
             call_info.arguments_capacity = call->arguments_capacity;
@@ -441,6 +464,29 @@ execute_statement(Arena* runtime_arena,
             }
 
             pop_lexical_scope(interpreter);
+        } break;
+
+        case AST_STATEMENT_CALL:
+        {
+            const Ast_Call_Statement* call_statement = &statement->call_statement;
+            const Ast_Call* call_expression = &call_statement->call;
+
+            Ast_Expression expression = {0};
+            expression.type = AST_EXPRESSION_CALL;
+            expression.call = *call_expression;
+
+            s32 result;
+            if (!execute_expression(runtime_arena,
+                                    interpreter,
+                                    ast,
+                                    &expression,
+                                    &result))
+            {
+                FAIL("Failed to execute call expression");
+            }
+
+            // TODO(vlad): Emit a warning about ignored result of a non-void functions?
+            UNUSED(result);
         } break;
 
         default:

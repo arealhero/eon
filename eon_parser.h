@@ -176,6 +176,7 @@ enum Ast_Statement_Type
     AST_STATEMENT_RETURN,
     AST_STATEMENT_WHILE,
     AST_STATEMENT_IF,
+    AST_STATEMENT_CALL,
 };
 typedef enum Ast_Statement_Type Ast_Statement_Type;
 
@@ -227,6 +228,12 @@ struct Ast_While_Statement
 };
 typedef struct Ast_While_Statement Ast_While_Statement;
 
+struct Ast_Call_Statement
+{
+    Ast_Call call;
+};
+typedef struct Ast_Call_Statement Ast_Call_Statement;
+
 struct Ast_Statement
 {
     Ast_Statement_Type type;
@@ -237,6 +244,7 @@ struct Ast_Statement
         Ast_If_Statement if_statement;
         Ast_While_Statement while_statement;
         Ast_Assignment assignment;
+        Ast_Call_Statement call_statement;
     };
 };
 typedef struct Ast_Statement Ast_Statement;
