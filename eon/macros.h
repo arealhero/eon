@@ -36,7 +36,7 @@
 #define FOR_EACH_7(DO, x, ...)  DO(x) FOR_EACH_6(DO, __VA_ARGS__)
 #define FOR_EACH_8(DO, x, ...)  DO(x) FOR_EACH_7(DO, __VA_ARGS__)
 #define FOR_EACH_9(DO, x, ...)  DO(x) FOR_EACH_8(DO, __VA_ARGS__)
-#define FOR_EACH_10(DO, x, ...) DO(x) FOR_EACH_09(DO, __VA_ARGS__)
+#define FOR_EACH_10(DO, x, ...) DO(x) FOR_EACH_9(DO, __VA_ARGS__)
 #define FOR_EACH_11(DO, x, ...) DO(x) FOR_EACH_10(DO, __VA_ARGS__)
 #define FOR_EACH_12(DO, x, ...) DO(x) FOR_EACH_11(DO, __VA_ARGS__)
 #define FOR_EACH_13(DO, x, ...) DO(x) FOR_EACH_12(DO, __VA_ARGS__)
