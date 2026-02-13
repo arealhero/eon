@@ -57,50 +57,25 @@ typedef enum Number_Base Number_Base;
 #define DECLARE_NUMBER_TO_STRING_INPLACE_FUNCTION(Integer_Type)         \
     internal void Integer_Type##_to_string_inplace(String* string,      \
                                                    Integer_Type number, \
-                                                   const Number_Base base)
-
-DECLARE_NUMBER_TO_STRING_INPLACE_FUNCTION(s8);
-DECLARE_NUMBER_TO_STRING_INPLACE_FUNCTION(s16);
-DECLARE_NUMBER_TO_STRING_INPLACE_FUNCTION(s32);
-DECLARE_NUMBER_TO_STRING_INPLACE_FUNCTION(s64);
-
-DECLARE_NUMBER_TO_STRING_INPLACE_FUNCTION(u8);
-DECLARE_NUMBER_TO_STRING_INPLACE_FUNCTION(u16);
-DECLARE_NUMBER_TO_STRING_INPLACE_FUNCTION(u32);
-DECLARE_NUMBER_TO_STRING_INPLACE_FUNCTION(u64);
-
-#undef DECLARE_TO_STRING_INPLACE_FUNCTION_FOR_INTEGER
-
-// TODO(vlad): Make these functions internal and use _Generic-based macro instead.
+                                                   const Number_Base base);
 #define DECLARE_STRING_TO_NUMBER_FUNCTION(Integer_Type)                 \
     maybe_unused internal Bool INTERNAL_parse_##Integer_Type(const String_View string, \
-                                                             Integer_Type* out_integer)
+                                                             Integer_Type* out_integer);
 
-DECLARE_STRING_TO_NUMBER_FUNCTION(s8);
-DECLARE_STRING_TO_NUMBER_FUNCTION(s16);
-DECLARE_STRING_TO_NUMBER_FUNCTION(s32);
-DECLARE_STRING_TO_NUMBER_FUNCTION(s64);
+FOR_EACH_INTEGER_TYPE(DECLARE_NUMBER_TO_STRING_INPLACE_FUNCTION)
+FOR_EACH_INTEGER_TYPE(DECLARE_STRING_TO_NUMBER_FUNCTION)
 
-DECLARE_STRING_TO_NUMBER_FUNCTION(u8);
-DECLARE_STRING_TO_NUMBER_FUNCTION(u16);
-DECLARE_STRING_TO_NUMBER_FUNCTION(u32);
-DECLARE_STRING_TO_NUMBER_FUNCTION(u64);
-
+#undef DECLARE_TO_STRING_INPLACE_FUNCTION_FOR_INTEGER
 #undef DECLARE_STRING_TO_NUMBER_FUNCTION
 
-#define DECLARE_OVERLOAD(Integer_Type) Integer_Type*: INTERNAL_parse_##Integer_Type
-#define parse_integer(string, out_integer)      \
-    _Generic((out_integer),                     \
-                 DECLARE_OVERLOAD(s8),          \
-                 DECLARE_OVERLOAD(s16),         \
-                 DECLARE_OVERLOAD(s32),         \
-                 DECLARE_OVERLOAD(s64),         \
-                                                \
-                 DECLARE_OVERLOAD(u8),          \
-                 DECLARE_OVERLOAD(u16),         \
-                 DECLARE_OVERLOAD(u32),         \
-                 DECLARE_OVERLOAD(u64)          \
+#define DECLARE_PARSE_INTEGER_OVERLOAD(Integer_Type) Integer_Type*: INTERNAL_parse_##Integer_Type,
+#define parse_integer(string, out_integer)                              \
+    _Generic((out_integer),                                             \
+                 FOR_EACH_INTEGER_TYPE(DECLARE_PARSE_INTEGER_OVERLOAD)  \
+                 default: "Integer expected"                            \
              )(string_view(string), out_integer)
+// NOTE(vlad): We cannot #undef 'DECLARE_PARSE_INTEGER_OVERLOAD' macro here
+//             because it will be needed upon calling 'parse_integer'.
 
 enum Format_Type_Tag
 {
@@ -108,15 +83,9 @@ enum Format_Type_Tag
 
     TYPE_TAG_char,
 
-    TYPE_TAG_s8,
-    TYPE_TAG_s16,
-    TYPE_TAG_s32,
-    TYPE_TAG_s64,
-
-    TYPE_TAG_u8,
-    TYPE_TAG_u16,
-    TYPE_TAG_u32,
-    TYPE_TAG_u64,
+#define DECLARE_INTEGER_TYPE_TAG(Integer_Type) TYPE_TAG_##Integer_Type,
+    FOR_EACH_INTEGER_TYPE(DECLARE_INTEGER_TYPE_TAG)
+#undef DECLARE_INTEGER_TYPE_TAG
 };
 typedef enum Format_Type_Tag Format_Type_Tag;
 
@@ -131,15 +100,9 @@ struct Format_Type_Info
 
         char char_value;
 
-        s8  s8_value;
-        s16 s16_value;
-        s32 s32_value;
-        s64 s64_value;
-
-        u8  u8_value;
-        u16 u16_value;
-        u32 u32_value;
-        u64 u64_value;
+#define DECLARE_INTEGER_VALUE(Integer_Type) Integer_Type Integer_Type##_value;
+        FOR_EACH_INTEGER_TYPE(DECLARE_INTEGER_VALUE)
+#undef DECLARE_INTEGER_VALUE
     } argument;
 };
 typedef struct Format_Type_Info Format_Type_Info;
@@ -153,18 +116,8 @@ internal inline Format_Type_Info INTERNAL_format_tag_c_string(const char* string
 internal inline Format_Type_Info INTERNAL_format_tag_char(const char c);
 
 #define DECLARE_FORMAT_TAG_FOR_INTEGER(Integer_Type)                    \
-    internal inline Format_Type_Info INTERNAL_format_tag_##Integer_Type(Integer_Type number)
-
-DECLARE_FORMAT_TAG_FOR_INTEGER(s8);
-DECLARE_FORMAT_TAG_FOR_INTEGER(s16);
-DECLARE_FORMAT_TAG_FOR_INTEGER(s32);
-DECLARE_FORMAT_TAG_FOR_INTEGER(s64);
-
-DECLARE_FORMAT_TAG_FOR_INTEGER(u8);
-DECLARE_FORMAT_TAG_FOR_INTEGER(u16);
-DECLARE_FORMAT_TAG_FOR_INTEGER(u32);
-DECLARE_FORMAT_TAG_FOR_INTEGER(u64);
-
+    internal inline Format_Type_Info INTERNAL_format_tag_##Integer_Type(Integer_Type number);
+FOR_EACH_INTEGER_TYPE(DECLARE_FORMAT_TAG_FOR_INTEGER)
 #undef DECLARE_FORMAT_TAG_FOR_INTEGER
 
 internal String format_string_impl(struct Arena* const arena,
@@ -173,69 +126,22 @@ internal String format_string_impl(struct Arena* const arena,
                                    ...);
 
 #define DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(Integer_Type)      \
-    Integer_Type: INTERNAL_format_tag_##Integer_Type
+    Integer_Type: INTERNAL_format_tag_##Integer_Type,
 
-#if OS_MAC
-// NOTE(vlad): These checks are redundant because the width of 'ptrdiff_t'
-//             is the same as the width of 'size_t', but just in case I'll leave them here.
-#    if defined(__PTRDIFF_WIDTH__)
-#        define EON_SIZE_WIDTH __PTRDIFF_WIDTH__
-#    else
-#        error MacOS: Failed to determine the width of "Size".
-#    endif
-
-#    if defined(__SIZE_WIDTH__)
-#        define EON_USIZE_WIDTH __SIZE_WIDTH__
-#    else
-#        error MacOS: Failed to determine the width of "USize".
-#    endif
-
-#    if EON_SIZE_WIDTH == 32
-#        define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SIZE() Size: INTERNAL_format_tag_s32,
-#    elif EON_SIZE_WIDTH == 64
-#        define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SIZE() Size: INTERNAL_format_tag_s64,
-#    else
-#        error MacOS: Width of "Size" is neither 32 nor 64 bits. I don't know what's going on.
-#    endif
-
-#    if EON_USIZE_WIDTH == 32
-#        define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE() USize: INTERNAL_format_tag_u32,
-#    elif EON_USIZE_WIDTH == 64
-#        define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE() USize: INTERNAL_format_tag_u64,
-#    else
-#        error MacOS: Width of "USize" is neither 32 nor 64 bits. I don't know what's going on.
-#    endif
-
-#else
-#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SIZE()
-#    define OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE()
-#endif
-
-#define FORMAT_GET_TYPE_INFO(arg)                       \
-    , /* NOTE(vlad): This comma is crucial. */          \
-    _Generic(                                           \
-        (arg),                                          \
-                                                        \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(s8),       \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(s16),      \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(s32),      \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(s64),      \
-                                                        \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u8),       \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u16),      \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u32),      \
-        DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(u64),      \
-                                                        \
-        OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_SIZE()  \
-        OPTIONALLY_DECLARE_GENERIC_OVERLOAD_FOR_USIZE() \
-                                                        \
-        char: INTERNAL_format_tag_char,                 \
-                                                        \
-        char*: INTERNAL_format_tag_c_string,            \
-        const char*: INTERNAL_format_tag_c_string,      \
-                                                        \
-        String: INTERNAL_format_tag_string,             \
-        String_View: INTERNAL_format_tag_string_view    \
+#define FORMAT_GET_TYPE_INFO(arg)                                   \
+    , /* NOTE(vlad): This comma is crucial. */                      \
+    _Generic(                                                       \
+        (arg),                                                      \
+                                                                    \
+        FOR_EACH_INTEGER_TYPE(DECLARE_GENERIC_OVERLOAD_FOR_INTEGER) \
+                                                                    \
+        char: INTERNAL_format_tag_char,                             \
+                                                                    \
+        char*: INTERNAL_format_tag_c_string,                        \
+        const char*: INTERNAL_format_tag_c_string,                  \
+                                                                    \
+        String: INTERNAL_format_tag_string,                         \
+        String_View: INTERNAL_format_tag_string_view                \
     )((arg))
 
 // NOTE(vlad): We cannot #undef 'DECLARE_GENERIC_OVERLOAD_FOR_INTEGER' macro here

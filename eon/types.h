@@ -1,5 +1,6 @@
 #pragma once
 
+#include <eon/build_info.h>
 #include <eon/common.h>
 
 // NOTE(vlad): Defining unsigned integer types.
@@ -79,33 +80,31 @@ typedef double f64;
 
 // NOTE(vlad): Defining memory-related types.
 
-#if defined(__PTRDIFF_TYPE__)
-typedef __PTRDIFF_TYPE__ Size;
+#if ARCH_32BIT
+typedef s32 Size;
+typedef u32 USize;
+#elif ARCH_64BIT
+typedef s64 Size;
+typedef u64 USize;
 #else
-// TODO(vlad): Try to use __PTRDIFF_WIDTH__ and use the appropriate integer type.
-//             Something like this: 'typedef CONCATENATE(s, __PTRDIFF_WIDTH__) Size;'
-#    error Failed to define "Size": __PTRDIFF_TYPE__ is not defined.
-#endif
-
-#if defined(__SIZE_TYPE__)
-typedef __SIZE_TYPE__ USize;
-#else
-#    error Failed to define "USize": __SIZE_TYPE__ is not defined.
+#    error Failed to define "Size" and "USize": unknown target architecture bitness.
 #endif
 
 // NOTE(vlad): Integer limits.
 
-#define MAX_s8_VALUE  0x7F
-#define MAX_s16_VALUE 0x7FFF
-#define MAX_s32_VALUE 0x7FFFFFFF
-#define MAX_s64_VALUE 0x7FFFFFFFFFFFFFFF
+#define MAX_VALUE(Integer_Type)                 \
+    _Generic((Integer_Type)0,                   \
+                 s8: (s8)0x7F,                  \
+                 s16: (s16)0x7FFF,              \
+                 s32: (s32)0x7FFFFFFF,          \
+                 s64: (s64)0x7FFFFFFFFFFFFFFF,  \
+                                                \
+                 u8: (u8)0xFF,                  \
+                 u16: (u16)0xFFFF,              \
+                 u32: (u32)0xFFFFFFFF,          \
+                 u64: (u64)0xFFFFFFFFFFFFFFFF   \
+             )
 
-#define MAX_u8_VALUE  0xFF
-#define MAX_u16_VALUE 0xFFFF
-#define MAX_u32_VALUE 0xFFFFFFFF
-#define MAX_u64_VALUE 0xFFFFFFFFFFFFFFFF
-
-#define MAX_VALUE(Integer_Type) (Integer_Type)(MAX_##Integer_Type##_VALUE)
 #define MIN_VALUE(Integer_Type) (Integer_Type)~(MAX_VALUE(Integer_Type))
 
 typedef Size Index;
@@ -127,6 +126,51 @@ typedef s32 Bool;
 #define size_of(Type) (Size)(sizeof(Type))
 #define as_bytes(expression) (Byte*)(expression)
 
+#define WIDTH_IN_BITS(number)                   \
+    _Generic((number),                          \
+                 s8: 8,                         \
+                 s16: 16,                       \
+                 s32: 32,                       \
+                 s64: 64,                       \
+                                                \
+                 u8: 8,                         \
+                 u16: 16,                       \
+                 u32: 32,                       \
+                 u64: 64                        \
+             )
+
+#define IS_SIGNED(number)                       \
+    _Generic((number),                          \
+                 s8: true,                      \
+                 s16: true,                     \
+                 s32: true,                     \
+                 s64: true,                     \
+                                                \
+                 u8: false,                     \
+                 u16: false,                    \
+                 u32: false,                    \
+                 u64: false                     \
+             )
+
+#define TYPE_WIDTH_IN_BITS(Integer_Type) WIDTH_IN_BITS((Integer_Type)0)
+#define TYPE_IS_SIGNED(Integer_Type) IS_SIGNED((Integer_Type)0)
+
+#define FOR_EACH_SIGNED_INTEGER_TYPE(DO)    \
+    DO(s8)                                  \
+    DO(s16)                                 \
+    DO(s32)                                 \
+    DO(s64)
+
+#define FOR_EACH_UNSIGNED_INTEGER_TYPE(DO)  \
+    DO(u8)                                  \
+    DO(u16)                                 \
+    DO(u32)                                 \
+    DO(u64)
+
+#define FOR_EACH_INTEGER_TYPE(DO)               \
+    FOR_EACH_SIGNED_INTEGER_TYPE(DO)            \
+    FOR_EACH_UNSIGNED_INTEGER_TYPE(DO)
+
 // NOTE(vlad): Compile-time tests.
 
 #include <eon/static_assert.h>
@@ -140,3 +184,45 @@ STATIC_ASSERT(size_of(u8) == 1);
 STATIC_ASSERT(size_of(u16) == 2);
 STATIC_ASSERT(size_of(u32) == 4);
 STATIC_ASSERT(size_of(u64) == 8);
+
+STATIC_ASSERT(MAX_VALUE(Index) == MAX_VALUE(Size));
+
+STATIC_ASSERT(TYPE_WIDTH_IN_BITS(s8) == 8);
+STATIC_ASSERT(TYPE_WIDTH_IN_BITS(s16) == 16);
+STATIC_ASSERT(TYPE_WIDTH_IN_BITS(s32) == 32);
+STATIC_ASSERT(TYPE_WIDTH_IN_BITS(s64) == 64);
+
+STATIC_ASSERT(TYPE_WIDTH_IN_BITS(u8) == 8);
+STATIC_ASSERT(TYPE_WIDTH_IN_BITS(u16) == 16);
+STATIC_ASSERT(TYPE_WIDTH_IN_BITS(u32) == 32);
+STATIC_ASSERT(TYPE_WIDTH_IN_BITS(u64) == 64);
+
+STATIC_ASSERT(WIDTH_IN_BITS((s8) 123) == 8);
+STATIC_ASSERT(WIDTH_IN_BITS((s16) 123) == 16);
+STATIC_ASSERT(WIDTH_IN_BITS((s32) 123) == 32);
+STATIC_ASSERT(WIDTH_IN_BITS((s64) 123) == 64);
+
+STATIC_ASSERT(WIDTH_IN_BITS((u8) 123) == 8);
+STATIC_ASSERT(WIDTH_IN_BITS((u16) 123) == 16);
+STATIC_ASSERT(WIDTH_IN_BITS((u32) 123) == 32);
+STATIC_ASSERT(WIDTH_IN_BITS((u64) 123) == 64);
+
+STATIC_ASSERT(TYPE_IS_SIGNED(s8) == true);
+STATIC_ASSERT(TYPE_IS_SIGNED(s16) == true);
+STATIC_ASSERT(TYPE_IS_SIGNED(s32) == true);
+STATIC_ASSERT(TYPE_IS_SIGNED(s64) == true);
+
+STATIC_ASSERT(TYPE_IS_SIGNED(u8) == false);
+STATIC_ASSERT(TYPE_IS_SIGNED(u16) == false);
+STATIC_ASSERT(TYPE_IS_SIGNED(u32) == false);
+STATIC_ASSERT(TYPE_IS_SIGNED(u64) == false);
+
+STATIC_ASSERT(IS_SIGNED((s8) 123) == true);
+STATIC_ASSERT(IS_SIGNED((s16) 123) == true);
+STATIC_ASSERT(IS_SIGNED((s32) 123) == true);
+STATIC_ASSERT(IS_SIGNED((s64) 123) == true);
+
+STATIC_ASSERT(IS_SIGNED((u8) 123) == false);
+STATIC_ASSERT(IS_SIGNED((u16) 123) == false);
+STATIC_ASSERT(IS_SIGNED((u32) 123) == false);
+STATIC_ASSERT(IS_SIGNED((u64) 123) == false);

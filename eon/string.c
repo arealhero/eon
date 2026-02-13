@@ -138,7 +138,7 @@ reverse_string(String string)
 
 // TODO(vlad): Change 'NUMBER' to 'INTEGER' here.
 #define NUMBER_TO_STRING_ALPHABET "fedcba9876543210123456789abcdef"
-#define DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(Integer_Type, is_signed, width_in_bits) \
+#define DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(Integer_Type)          \
     internal void                                                       \
     Integer_Type##_to_string_inplace(String* string,                    \
                                      Integer_Type number,               \
@@ -154,10 +154,14 @@ reverse_string(String string)
             *ptr = NUMBER_TO_STRING_ALPHABET[15 + (previous_value - number * (Integer_Type)base)]; \
                                                                         \
             ptr += 1;                                                   \
-        } while (number);                                               \
+        }                                                               \
+        while (number);                                                 \
                                                                         \
         /* NOTE(vlad): Print minus sign in decimal base only (like MSVC's `itoa') */ \
-        if (is_signed && base == NUMBER_BASE_DECIMAL && previous_value < 0) { \
+        if (TYPE_IS_SIGNED(Integer_Type)                                \
+            && base == NUMBER_BASE_DECIMAL                              \
+            && previous_value < 0)                                      \
+        {                                                               \
             *ptr = '-';                                                 \
             ptr += 1;                                                   \
         }                                                               \
@@ -166,20 +170,12 @@ reverse_string(String string)
         string->length = ptr - string->data;                            \
                                                                         \
         reverse_string(*string);                                        \
-    }                                                                   \
-    REQUIRE_SEMICOLON
+    }
 
-DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(s8, true, 8);
-DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(s16, true, 16);
-DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(s32, true, 32);
-DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(s64, true, 64);
+FOR_EACH_INTEGER_TYPE(DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION)
+#undef DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION
 
-DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(u8, true, 8);
-DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(u16, true, 16);
-DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(u32, true, 32);
-DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(u64, true, 64);
-
-#define DEFINE_PARSE_INTEGER_FUNCTION(Integer_Type, is_signed)          \
+#define DEFINE_PARSE_INTEGER_FUNCTION(Integer_Type)                     \
     internal Bool                                                       \
     INTERNAL_parse_##Integer_Type(const String_View string,             \
                                   Integer_Type* out_integer)            \
@@ -196,7 +192,7 @@ DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(u64, true, 64);
                 sign = 1;                                               \
                 i += 1;                                                 \
             }                                                           \
-            else if (is_signed && c == '-')                             \
+            else if (TYPE_IS_SIGNED(Integer_Type) && c == '-')          \
             {                                                           \
                 sign = (Integer_Type)(-1);                              \
                 i += 1;                                                 \
@@ -234,7 +230,7 @@ DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(u64, true, 64);
                     return false;                                       \
                 }                                                       \
             }                                                           \
-            else if (is_signed && sign == (Integer_Type)(-1))           \
+            else if (TYPE_IS_SIGNED(Integer_Type) && sign == (Integer_Type)(-1)) \
             {                                                           \
                 if (result > ABS(MIN_VALUE(Integer_Type) / 10))         \
                 {                                                       \
@@ -256,18 +252,10 @@ DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(u64, true, 64);
         }                                                               \
         *out_integer = sign * result;                                   \
         return true;                                                    \
-    }                                                                   \
-    REQUIRE_SEMICOLON
+    }
 
-DEFINE_PARSE_INTEGER_FUNCTION(s8, true);
-DEFINE_PARSE_INTEGER_FUNCTION(s16, true);
-DEFINE_PARSE_INTEGER_FUNCTION(s32, true);
-DEFINE_PARSE_INTEGER_FUNCTION(s64, true);
-
-DEFINE_PARSE_INTEGER_FUNCTION(u8, false);
-DEFINE_PARSE_INTEGER_FUNCTION(u16, false);
-DEFINE_PARSE_INTEGER_FUNCTION(u32, false);
-DEFINE_PARSE_INTEGER_FUNCTION(u64, false);
+FOR_EACH_INTEGER_TYPE(DEFINE_PARSE_INTEGER_FUNCTION)
+#undef DEFINE_PARSE_INTEGER_FUNCTION
 
 internal inline Format_Type_Info
 INTERNAL_format_tag_string(const String string)
@@ -318,29 +306,22 @@ INTERNAL_format_tag_char(const char c)
     };
 }
 
-#define DEFINE_FORMAT_TAG_FOR_INTEGER(Integer_Type, is_sized, width_in_bits) \
+#define DEFINE_FORMAT_TAG_FOR_INTEGER(Integer_Type)                     \
     internal inline Format_Type_Info                                    \
     INTERNAL_format_tag_##Integer_Type(const Integer_Type number)       \
     {                                                                   \
         return (Format_Type_Info){                                      \
             .tag = TYPE_TAG_##Integer_Type,                             \
-            .max_size_in_bytes = width_in_bits + is_sized,              \
+            .max_size_in_bytes = WIDTH_IN_BITS(number) + IS_SIGNED(number), \
             .argument = {                                               \
                 .Integer_Type##_value = number,                         \
             },                                                          \
         };                                                              \
-    }                                                                   \
-    REQUIRE_SEMICOLON
+    }
 
-DEFINE_FORMAT_TAG_FOR_INTEGER(s8,  true, 8);
-DEFINE_FORMAT_TAG_FOR_INTEGER(s16, true, 16);
-DEFINE_FORMAT_TAG_FOR_INTEGER(s32, true, 32);
-DEFINE_FORMAT_TAG_FOR_INTEGER(s64, true, 64);
+FOR_EACH_INTEGER_TYPE(DEFINE_FORMAT_TAG_FOR_INTEGER)
 
-DEFINE_FORMAT_TAG_FOR_INTEGER(u8,  true, 8);
-DEFINE_FORMAT_TAG_FOR_INTEGER(u16, true, 16);
-DEFINE_FORMAT_TAG_FOR_INTEGER(u32, true, 32);
-DEFINE_FORMAT_TAG_FOR_INTEGER(u64, true, 64);
+#undef DEFINE_FORMAT_TAG_FOR_INTEGER
 
 struct Integer_Format_Settings
 {
@@ -766,18 +747,10 @@ vformat_string_impl(Arena* const arena,
                                     as_bytes(target.data),              \
                                     target.length);                     \
                         buffer_index += target.length;                  \
-                } break;                                                \
-                    REQUIRE_SEMICOLON
+                    } break;                                            \
 
-                    HANDLE_INTEGER_CASE(s8);
-                    HANDLE_INTEGER_CASE(s16);
-                    HANDLE_INTEGER_CASE(s32);
-                    HANDLE_INTEGER_CASE(s64);
 
-                    HANDLE_INTEGER_CASE(u8);
-                    HANDLE_INTEGER_CASE(u16);
-                    HANDLE_INTEGER_CASE(u32);
-                    HANDLE_INTEGER_CASE(u64);
+                    FOR_EACH_INTEGER_TYPE(HANDLE_INTEGER_CASE)
 #undef HANDLE_INTEGER_CASE
 
                 }
