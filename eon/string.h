@@ -83,6 +83,9 @@ enum Format_Type_Tag
 
     TYPE_TAG_char,
 
+    TYPE_TAG_f32,
+    TYPE_TAG_f64,
+
 #define DECLARE_INTEGER_TYPE_TAG(Integer_Type) TYPE_TAG_##Integer_Type,
     FOR_EACH_INTEGER_TYPE(DECLARE_INTEGER_TYPE_TAG)
 #undef DECLARE_INTEGER_TYPE_TAG
@@ -99,6 +102,8 @@ struct Format_Type_Info
         String_View string_view;
 
         char char_value;
+        f32 f32_value;
+        f64 f64_value;
 
 #define DECLARE_INTEGER_VALUE(Integer_Type) Integer_Type Integer_Type##_value;
         FOR_EACH_INTEGER_TYPE(DECLARE_INTEGER_VALUE)
@@ -114,6 +119,9 @@ internal inline Format_Type_Info INTERNAL_format_tag_string_view(const String_Vi
 internal inline Format_Type_Info INTERNAL_format_tag_c_string(const char* string);
 
 internal inline Format_Type_Info INTERNAL_format_tag_char(const char c);
+
+internal inline Format_Type_Info INTERNAL_format_tag_f32(const f32 number);
+internal inline Format_Type_Info INTERNAL_format_tag_f64(const f64 number);
 
 #define DECLARE_FORMAT_TAG_FOR_INTEGER(Integer_Type)                    \
     internal inline Format_Type_Info INTERNAL_format_tag_##Integer_Type(Integer_Type number);
@@ -139,6 +147,9 @@ internal String format_string_impl(struct Arena* const arena,
                                                                     \
         char*: INTERNAL_format_tag_c_string,                        \
         const char*: INTERNAL_format_tag_c_string,                  \
+                                                                    \
+        f32: INTERNAL_format_tag_f32,                               \
+        f64: INTERNAL_format_tag_f64,                               \
                                                                     \
         String: INTERNAL_format_tag_string,                         \
         String_View: INTERNAL_format_tag_string_view                \

@@ -229,6 +229,66 @@ test_formatting_corner_cases(Test_Context* context)
 }
 
 internal void
+test_floating_point_numbers_formatting(Test_Context* context)
+{
+    // NOTE(vlad): Testing f32 formatting.
+    {
+        {
+            const String result = format_string(context->arena, "{precision: 2}", 1.0f);
+            ASSERT_STRINGS_ARE_EQUAL(result, "1.00");
+        }
+
+        {
+            const String result = format_string(context->arena, "{precision: 1}", 1.2f);
+            ASSERT_STRINGS_ARE_EQUAL(result, "1.2");
+        }
+
+        {
+            const String result = format_string(context->arena, "{precision: 2}", 1.2f);
+            ASSERT_STRINGS_ARE_EQUAL(result, "1.20");
+        }
+
+        {
+            const String result = format_string(context->arena, "{precision: 1}", 1.45f);
+            ASSERT_STRINGS_ARE_EQUAL(result, "1.5");
+        }
+
+        {
+            const String result = format_string(context->arena, "{precision: 1}", -1.45f);
+            ASSERT_STRINGS_ARE_EQUAL(result, "-1.5");
+        }
+
+        {
+            const String result = format_string(context->arena, "{precision: 1}", -0.05f);
+            ASSERT_STRINGS_ARE_EQUAL(result, "-0.1");
+        }
+
+        {
+            const String result = format_string(context->arena, "{precision: 6}", 0.1f + 0.2f);
+            ASSERT_STRINGS_ARE_EQUAL(result, "0.300000");
+        }
+
+        {
+            const String result = format_string(context->arena, "{precision: 17}", 0.1f + 0.2f);
+            ASSERT_STRINGS_ARE_EQUAL(result, "0.30000000817692672");
+        }
+    }
+
+    // NOTE(vlad): Testing f64 formatting.
+    {
+        {
+            const String result = format_string(context->arena, "{precision: 1}", -0.05);
+            ASSERT_STRINGS_ARE_EQUAL(result, "-0.1");
+        }
+
+        {
+            const String result = format_string(context->arena, "{precision: 17}", 0.1 + 0.2);
+            ASSERT_STRINGS_ARE_EQUAL(result, "0.30000000000000004");
+        }
+    }
+}
+
+internal void
 test_integer_parsing(Test_Context* context)
 {
     // NOTE(vlad): Basic tests.
@@ -588,5 +648,6 @@ REGISTER_TESTS(
     test_signed_integers_formatting,
     test_unsigned_integers_formatting,
     test_formatting_corner_cases,
+    test_floating_point_numbers_formatting,
     test_integer_parsing
 )

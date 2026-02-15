@@ -257,6 +257,122 @@ FOR_EACH_INTEGER_TYPE(DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION)
 FOR_EACH_INTEGER_TYPE(DEFINE_PARSE_INTEGER_FUNCTION)
 #undef DEFINE_PARSE_INTEGER_FUNCTION
 
+#define DEFINE_FLOAT_TO_STRING_INPLACE_FUNCTION(Float_Type)             \
+    internal void                                                       \
+    Float_Type##_to_string_inplace(String* string, const Float_Type number, Size precision) \
+    {                                                                   \
+        u64 integer_part = (u64) (ABS(number));                         \
+                                                                        \
+        Float_Type fraction_part_float = ABS(number) - (Float_Type)integer_part; \
+        for (u32 i = 0;                                                 \
+             i < precision;                                             \
+             ++i)                                                       \
+        {                                                               \
+            fraction_part_float *= 10;                                  \
+        }                                                               \
+                                                                        \
+        u64 fraction_part = (u64) (fraction_part_float);                \
+                                                                        \
+        /* NOTE(vlad): Poor man's rounding. */                          \
+        {                                                               \
+            const u64 digit_after_fraction_part = (u64) ((fraction_part_float - (Float_Type)fraction_part) * 10); \
+            if (digit_after_fraction_part >= 5)                         \
+            {                                                           \
+                fraction_part += 1;                                     \
+            }                                                           \
+        }                                                               \
+                                                                        \
+        const Bool number_is_negative = number < 0.0f;                  \
+                                                                        \
+        Index index = 0;                                                \
+        if (number_is_negative)                                         \
+        {                                                               \
+            string->data[index++] = '-';                                \
+        }                                                               \
+                                                                        \
+        if (integer_part == 0)                                          \
+        {                                                               \
+            string->data[index++] = '0';                                \
+        }                                                               \
+        else                                                            \
+        {                                                               \
+            String string_to_reverse = {0};                             \
+            Index start_index = index;                                  \
+                                                                        \
+            while (integer_part != 0)                                   \
+            {                                                           \
+                string->data[index++] = (integer_part % 10) + '0';      \
+                integer_part /= 10;                                     \
+            }                                                           \
+                                                                        \
+            string_to_reverse.data = string->data + start_index;        \
+            string_to_reverse.length = index - start_index;             \
+                                                                        \
+            reverse_string(string_to_reverse);                          \
+        }                                                               \
+                                                                        \
+        string->data[index++] = '.';                                    \
+                                                                        \
+        if (fraction_part == 0)                                         \
+        {                                                               \
+            while (precision > 0)                                       \
+            {                                                           \
+                string->data[index++] = '0';                            \
+                precision -= 1;                                         \
+            }                                                           \
+        }                                                               \
+        else                                                            \
+        {                                                               \
+            String string_to_reverse = {0};                             \
+            Index start_index = index;                                  \
+                                                                        \
+            while (fraction_part != 0)                                  \
+            {                                                           \
+                string->data[index++] = (fraction_part % 10) + '0';     \
+                fraction_part /= 10;                                    \
+            }                                                           \
+                                                                        \
+            string_to_reverse.data = string->data + start_index;        \
+            string_to_reverse.length = index - start_index;             \
+                                                                        \
+            reverse_string(string_to_reverse);                          \
+        }                                                               \
+                                                                        \
+        string->length = index;                                         \
+    }
+FOR_EACH_FLOAT_TYPE(DEFINE_FLOAT_TO_STRING_INPLACE_FUNCTION)
+#undef DEFINE_FLOAT_TO_STRING_INPLACE_FUNCTION
+
+#define DEFINE_GET_NUMBER_LENGTH_AS_A_STRING_FUNCTION(Integer_Type)     \
+    internal inline Size                                                \
+    get_##Integer_Type##_length_as_a_string(Integer_Type number,        \
+                                            const Number_Base base)     \
+    {                                                                   \
+        if (number == 0)                                                \
+        {                                                               \
+            return 1;                                                   \
+        }                                                               \
+                                                                        \
+        Size result = 0;                                                \
+        if (TYPE_IS_SIGNED(Integer_Type)                                \
+            && number < (Integer_Type)0                                 \
+            && base == NUMBER_BASE_DECIMAL)                             \
+        {                                                               \
+            result += 1;                                                \
+        }                                                               \
+                                                                        \
+        while (number != 0)                                             \
+        {                                                               \
+            result += 1;                                                \
+            number /= (Integer_Type)base;                               \
+        }                                                               \
+                                                                        \
+        return result;                                                  \
+    }
+
+FOR_EACH_INTEGER_TYPE(DEFINE_GET_NUMBER_LENGTH_AS_A_STRING_FUNCTION)
+#undef DEFINE_GET_NUMBER_LENGTH_AS_A_STRING_FUNCTION
+
 internal inline Format_Type_Info
 INTERNAL_format_tag_string(const String string)
 {
@@ -306,6 +422,30 @@ INTERNAL_format_tag_char(const char c)
     };
 }
 
+internal inline Format_Type_Info
+INTERNAL_format_tag_f32(const f32 number)
+{
+    return (Format_Type_Info){
+        .tag = TYPE_TAG_f32,
+        .max_size_in_bytes = 100, // FIXME(vlad): Remove this hardcoded value.
+        .argument = {
+            .f32_value = number,
+        },
+    };
+}
+
+internal inline Format_Type_Info
+INTERNAL_format_tag_f64(const f64 number)
+{
+    return (Format_Type_Info){
+        .tag = TYPE_TAG_f64,
+        .max_size_in_bytes = 100, // FIXME(vlad): Remove this hardcoded value.
+        .argument = {
+            .f64_value = number,
+        },
+    };
+}
+
 #define DEFINE_FORMAT_TAG_FOR_INTEGER(Integer_Type)                     \
     internal inline Format_Type_Info                                    \
     INTERNAL_format_tag_##Integer_Type(const Integer_Type number)       \
@@ -320,7 +460,6 @@ INTERNAL_format_tag_char(const char c)
     }
 
 FOR_EACH_INTEGER_TYPE(DEFINE_FORMAT_TAG_FOR_INTEGER)
-
 #undef DEFINE_FORMAT_TAG_FOR_INTEGER
 
 struct Integer_Format_Settings
@@ -557,6 +696,227 @@ parse_integer_format_settings(const String_View format)
     return settings;
 }
 
+struct Float_Format_Settings
+{
+    Size left_pad_count;
+    Size precision;
+    char left_pad_char;
+};
+typedef struct Float_Format_Settings Float_Format_Settings;
+
+internal Float_Format_Settings
+parse_float_format_settings(const String_View format)
+{
+    enum Float_Format_Keyword_Type
+    {
+        FLOAT_FORMAT_KEYWORD_INVALID = 0,
+
+        FLOAT_FORMAT_KEYWORD_LEFT_PAD_COUNT,
+        FLOAT_FORMAT_KEYWORD_LEFT_PAD_CHAR,
+        FLOAT_FORMAT_KEYWORD_PRECISION,
+    };
+
+    struct Keyword
+    {
+        enum Float_Format_Keyword_Type type;
+        String_View lexeme;
+    };
+
+    const struct Keyword keywords[] = {
+        {
+            .type = FLOAT_FORMAT_KEYWORD_LEFT_PAD_COUNT,
+            .lexeme = string_view("left-pad-count"),
+        },
+        {
+            .type = FLOAT_FORMAT_KEYWORD_LEFT_PAD_CHAR,
+            .lexeme = string_view("left-pad-char"),
+        },
+        {
+            .type = FLOAT_FORMAT_KEYWORD_PRECISION,
+            .lexeme = string_view("precision"),
+        },
+    };
+    const Size keywords_count = size_of(keywords) / size_of(keywords[0]);
+
+    Float_Format_Settings settings = {0};
+    settings.left_pad_count = 0;
+    settings.left_pad_char = ' ';
+    settings.precision = 2;
+
+    Index index = 0;
+    while (index < format.length)
+    {
+        Index lexeme_start_index = index;
+
+        const char c = format.data[index];
+
+        if (c == ' ')
+        {
+            index += 1;
+            continue;
+        }
+
+        // TODO(vlad): Use 'is_letter'.
+        if ('a' <= c && c <= 'z')
+        {
+            index += 1;
+            while (index < format.length)
+            {
+                const char this_char = format.data[index];
+
+                const Bool is_valid_lexeme_symbol =
+                    ('a' <= this_char && this_char <= 'z')
+                    || (this_char == '-');
+
+                if (!is_valid_lexeme_symbol)
+                {
+                    break;
+                }
+
+                index += 1;
+            }
+
+            String_View lexeme = {0};
+            lexeme.data = format.data + lexeme_start_index;
+            lexeme.length = index - lexeme_start_index;
+
+            enum Float_Format_Keyword_Type type = FLOAT_FORMAT_KEYWORD_INVALID;
+            for (Index keyword_index = 0;
+                 keyword_index < keywords_count;
+                 ++keyword_index)
+            {
+                const struct Keyword* this_keyword = &keywords[keyword_index];
+                if (strings_are_equal(lexeme, this_keyword->lexeme))
+                {
+                    type = this_keyword->type;
+                    break;
+                }
+            }
+
+            if (type == FLOAT_FORMAT_KEYWORD_INVALID)
+            {
+                FAIL("Invalid integer format specifier found");
+            }
+
+            if (index >= format.length)
+            {
+                FAIL("Unexpected end of format settings found");
+            }
+
+            if (format.data[index] != ':')
+            {
+                FAIL("Unexpected char found (expected ':')");
+            }
+
+            index += 1;
+
+            while (index < format.length)
+            {
+                if (format.data[index] == ' ')
+                {
+                    index += 1;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            if (index >= format.length)
+            {
+                FAIL("Unexpected end of format settings found");
+            }
+
+            switch (type)
+            {
+                case FLOAT_FORMAT_KEYWORD_INVALID:
+                {
+                    UNREACHABLE();
+                } break;
+
+                case FLOAT_FORMAT_KEYWORD_LEFT_PAD_COUNT:
+                {
+                    Size left_pad_count = 0;
+                    while (index < format.length)
+                    {
+                        const char this_char = format.data[index];
+
+                        if ('0' <= this_char && this_char <= '9')
+                        {
+                            left_pad_count = 10 * left_pad_count + (this_char - '0');
+                            index += 1;
+                        }
+                        else if (this_char == ',')
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            FAIL("Unexpected char found");
+                        }
+                    }
+
+                    settings.left_pad_count = left_pad_count;
+                } break;
+
+                case FLOAT_FORMAT_KEYWORD_LEFT_PAD_CHAR:
+                {
+                    settings.left_pad_char = format.data[index];
+                    index += 1;
+                } break;
+
+                case FLOAT_FORMAT_KEYWORD_PRECISION:
+                {
+                    Size precision = 0;
+                    while (index < format.length)
+                    {
+                        const char this_char = format.data[index];
+
+                        if ('0' <= this_char && this_char <= '9')
+                        {
+                            precision = 10 * precision + (this_char - '0');
+                            index += 1;
+                        }
+                        else if (this_char == ',')
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            FAIL("Unexpected char found");
+                        }
+                    }
+
+                    settings.precision = precision;
+                } break;
+            }
+
+            while (index < format.length)
+            {
+                if (format.data[index] == ' ')
+                {
+                    index += 1;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            if (index < format.length && format.data[index] == ',')
+            {
+                index += 1;
+            }
+        }
+        else
+        {
+            FAIL("Unexpected char encountered while parsing format specifier");
+        }
+    }
+
+    return settings;
+}
+
 internal Size
 validate_arguments_and_calculate_total_size_in_bytes(String_View format,
                                                      Size number_of_arguments,
@@ -718,7 +1078,6 @@ vformat_string_impl(Arena* const arena,
                         buffer_index += 1;
                     } break;
 
-                    // TODO(vlad): Support other bases.
 #define HANDLE_INTEGER_CASE(Integer_Type)                               \
                     case TYPE_TAG_##Integer_Type:                       \
                     {                                                   \
@@ -749,10 +1108,41 @@ vformat_string_impl(Arena* const arena,
                         buffer_index += target.length;                  \
                     } break;                                            \
 
-
-                    FOR_EACH_INTEGER_TYPE(HANDLE_INTEGER_CASE)
+                    FOR_EACH_INTEGER_TYPE(HANDLE_INTEGER_CASE);
 #undef HANDLE_INTEGER_CASE
 
+#define HANDLE_FLOAT_CASE(Float_Type)                                   \
+                    case TYPE_TAG_##Float_Type:                         \
+                    {                                                   \
+                        const Float_Format_Settings settings = parse_float_format_settings(format_specification); \
+                                                                        \
+                        const Size target_length = info.max_size_in_bytes; \
+                        String target = {0};                            \
+                        target.data = allocate_array(arena, target_length, char); \
+                        target.length = target_length;                  \
+                                                                        \
+                        Float_Type##_to_string_inplace(&target,         \
+                                                       info.argument.Float_Type##_value, \
+                                                       settings.precision); \
+                                                                        \
+                        if (target.length < settings.left_pad_count)    \
+                        {                                               \
+                            for (Index pad_index = 0;                   \
+                                 pad_index < settings.left_pad_count - target.length; \
+                                 ++pad_index)                           \
+                            {                                           \
+                                buffer[buffer_index] = settings.left_pad_char; \
+                                buffer_index += 1;                      \
+                            }                                           \
+                        }                                               \
+                        copy_memory(as_bytes(buffer + buffer_index),    \
+                                    as_bytes(target.data),              \
+                                    target.length);                     \
+                        buffer_index += target.length;                  \
+                    } break;                                            \
+
+                    FOR_EACH_FLOAT_TYPE(HANDLE_FLOAT_CASE);
+#undef HANDLE_FLOAT_CASE
                 }
 
                 brace_was_opened = false;

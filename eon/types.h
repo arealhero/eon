@@ -171,6 +171,10 @@ typedef s32 Bool;
     FOR_EACH_SIGNED_INTEGER_TYPE(DO)            \
     FOR_EACH_UNSIGNED_INTEGER_TYPE(DO)
 
+#define FOR_EACH_FLOAT_TYPE(DO)                 \
+    DO(f32)                                     \
+    DO(f64)
+
 // NOTE(vlad): Compile-time tests.
 
 #include <eon/static_assert.h>
@@ -184,6 +188,9 @@ STATIC_ASSERT(size_of(u8) == 1);
 STATIC_ASSERT(size_of(u16) == 2);
 STATIC_ASSERT(size_of(u32) == 4);
 STATIC_ASSERT(size_of(u64) == 8);
+
+STATIC_ASSERT(size_of(f32) == 4);
+STATIC_ASSERT(size_of(f64) == 8);
 
 STATIC_ASSERT(MAX_VALUE(Index) == MAX_VALUE(Size));
 
