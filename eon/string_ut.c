@@ -234,6 +234,11 @@ test_floating_point_numbers_formatting(Test_Context* context)
     // NOTE(vlad): Testing f32 formatting.
     {
         {
+            const String result = format_string(context->arena, "{}", 1.0f);
+            ASSERT_STRINGS_ARE_EQUAL(result, "1.00");
+        }
+
+        {
             const String result = format_string(context->arena, "{precision: 2}", 1.0f);
             ASSERT_STRINGS_ARE_EQUAL(result, "1.00");
         }
