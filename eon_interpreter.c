@@ -71,18 +71,47 @@ find_variable(Interpreter* interpreter, const String_View variable_name)
     return NULL;
 }
 
+struct Interpreter_Expression_Result
+{
+    s32 s32_value;
+};
+typedef struct Interpreter_Expression_Result Interpreter_Expression_Result;
+
 internal Bool
 execute_expression(Arena* runtime_arena,
                    Interpreter* interpreter,
                    const Ast* ast,
                    const Ast_Expression* expression,
-                   s32* result) // TODO(vlad): Remove hardcoded 's32'.
+                   Interpreter_Expression_Result* result)
 {
     switch (expression->type)
     {
         case AST_EXPRESSION_NUMBER:
         {
-            if (!parse_integer(expression->number.token.lexeme, result))
+            // FIXME(vlad): Remove this ad-hoc handling.
+            const String_View lexeme = expression->number.token.lexeme;
+
+            Index fraction_start_index = -1;
+            for (Index lexeme_index = 0;
+                 lexeme_index < lexeme.length;
+                 ++lexeme_index)
+            {
+                if (lexeme.data[lexeme_index] == '.')
+                {
+                    fraction_start_index = lexeme_index;
+                    break;
+                }
+            }
+
+            String_View lexeme_to_parse = lexeme;
+            if (fraction_start_index != -1)
+            {
+                lexeme_to_parse.length = fraction_start_index;
+            }
+
+            // FIXME(vlad): Parse integer OR floating point number.
+            if (!parse_integer(lexeme_to_parse,
+                               &result->s32_value))
             {
                 FAIL("Failed to parse integer");
             }
@@ -103,7 +132,7 @@ execute_expression(Arena* runtime_arena,
                 FAIL("Variable was not found");
             }
 
-            *result = variable->value;
+            result->s32_value = variable->value;
             return true;
         } break;
 
@@ -124,17 +153,17 @@ execute_expression(Arena* runtime_arena,
                     FAIL("Invalid number of arguments provided while calling function 'print'");
                 }
 
-                s32 value;
+                Interpreter_Expression_Result argument = {0};
                 if (!execute_expression(runtime_arena,
                                         interpreter,
                                         ast,
                                         call->arguments[0],
-                                        &value))
+                                        &argument))
                 {
                     FAIL("Failed to execute expression");
                 }
 
-                println("{}", value);
+                println("{}", argument.s32_value);
 
                 return true;
             }
@@ -148,17 +177,17 @@ execute_expression(Arena* runtime_arena,
                  argument_index < call_info.arguments_count;
                  ++argument_index)
             {
-                s32 value;
+                Interpreter_Expression_Result argument = {0};
                 if (!execute_expression(runtime_arena,
                                         interpreter,
                                         ast,
                                         call->arguments[argument_index],
-                                        &value))
+                                        &argument))
                 {
                     FAIL("Failed to execute expression");
                 }
 
-                call_info.arguments[argument_index] = value;
+                call_info.arguments[argument_index] = argument.s32_value;
             }
 
             push_empty_lexical_scope(interpreter, INTERPRETER_GLOBAL_LEXICAL_SCOPE_INDEX);
@@ -178,7 +207,7 @@ execute_expression(Arena* runtime_arena,
                 FAIL("Failed to call function");
             }
 
-            *result = call_result.return_value;
+            result->s32_value = call_result.return_value;
             return true;
         } break;
 
@@ -191,13 +220,13 @@ execute_expression(Arena* runtime_arena,
         {
             const Ast_Binary_Expression* binary_expression = &expression->binary_expression;
 
-            s32 lhs;
+            Interpreter_Expression_Result lhs;
             if (!execute_expression(runtime_arena, interpreter, ast, binary_expression->lhs, &lhs))
             {
                 return false;
             }
 
-            s32 rhs;
+            Interpreter_Expression_Result rhs;
             if (!execute_expression(runtime_arena, interpreter, ast, binary_expression->rhs, &rhs))
             {
                 return false;
@@ -207,32 +236,32 @@ execute_expression(Arena* runtime_arena,
             {
                 case AST_EXPRESSION_ADD:
                 {
-                    *result = lhs + rhs;
+                    result->s32_value = lhs.s32_value + rhs.s32_value;
                 } break;
 
                 case AST_EXPRESSION_SUBTRACT:
                 {
-                    *result = lhs - rhs;
+                    result->s32_value = lhs.s32_value - rhs.s32_value;
                 } break;
 
                 case AST_EXPRESSION_MULTIPLY:
                 {
-                    *result = lhs * rhs;
+                    result->s32_value = lhs.s32_value * rhs.s32_value;
                 } break;
 
                 case AST_EXPRESSION_DIVIDE:
                 {
-                    *result = lhs / rhs;
+                    result->s32_value = lhs.s32_value / rhs.s32_value;
                 } break;
 
                 case AST_EXPRESSION_EQUAL:
                 {
-                    *result = lhs == rhs;
+                    result->s32_value = lhs.s32_value == rhs.s32_value;
                 } break;
 
                 case AST_EXPRESSION_NOT_EQUAL:
                 {
-                    *result = lhs != rhs;
+                    result->s32_value = lhs.s32_value != rhs.s32_value;
                 } break;
 
                 default:
@@ -284,14 +313,17 @@ interpreter_add_variable_to_current_lexical_scope(Arena* runtime_arena,
 
         case AST_INITIALISATION_WITH_VALUE:
         {
+            Interpreter_Expression_Result result = {0};
             if (!execute_expression(runtime_arena,
                                     interpreter,
                                     ast,
                                     &variable_definition->initial_value,
-                                    &variable->value))
+                                    &result))
             {
                 FAIL("Failed to initialise variable");
             }
+
+            variable->value = result.s32_value;
         } break;
 
         default:
@@ -342,15 +374,17 @@ execute_statement(Arena* runtime_arena,
             result.status = INTERPRETER_RUN_OK;
             result.should_exit = true;
 
+            Interpreter_Expression_Result expression_result = {0};
             if (!execute_expression(runtime_arena,
                                     interpreter,
                                     ast,
                                     &return_statement->expression,
-                                    &result.return_value))
+                                    &expression_result))
             {
                 FAIL("Failed to execute return statement's expression");
             }
 
+            result.return_value = expression_result.s32_value;
             return result;
         } break;
 
@@ -367,17 +401,19 @@ execute_statement(Arena* runtime_arena,
         {
             const Ast_Assignment* assignment = &statement->assignment;
 
-            s32 value;
+            Interpreter_Expression_Result expression_result = {0};
             if (!execute_expression(runtime_arena,
                                     interpreter,
                                     ast,
                                     &assignment->expression,
-                                    &value))
+                                    &expression_result))
             {
                 FAIL("Failed to execute assignment statement's expression");
             }
 
-            set_new_value_for_the_variable(interpreter, &assignment->name, value);
+            set_new_value_for_the_variable(interpreter,
+                                           &assignment->name,
+                                           expression_result.s32_value);
         } break;
 
         case AST_STATEMENT_WHILE:
@@ -386,16 +422,19 @@ execute_statement(Arena* runtime_arena,
 
             while (true)
             {
-                s32 condition_value;
+                Interpreter_Expression_Result condition_result = {0};
                 if (!execute_expression(runtime_arena,
                                         interpreter,
                                         ast,
                                         &while_statement->condition,
-                                        &condition_value))
+                                        &condition_result))
                 {
                     FAIL("Failed to execute while loop's condition expression");
                 }
 
+                // TODO(vlad): Test that the condition is convertible to bool.
+                //             (Or rather IS a bool.)
+                const s32 condition_value = condition_result.s32_value;
                 if (!condition_value)
                 {
                     break;
@@ -429,17 +468,17 @@ execute_statement(Arena* runtime_arena,
         {
             const Ast_If_Statement* if_statement = &statement->if_statement;
 
-            s32 result;
+            Interpreter_Expression_Result condition_result = {0};
             if (!execute_expression(runtime_arena,
                                     interpreter,
                                     ast,
                                     &if_statement->condition,
-                                    &result))
+                                    &condition_result))
             {
                 FAIL("Failed to execute if statement's expression");
             }
 
-            const Ast_Statements* statements = result
+            const Ast_Statements* statements = condition_result.s32_value
                 ? &if_statement->if_statements
                 : &if_statement->else_statements;
 
@@ -475,18 +514,18 @@ execute_statement(Arena* runtime_arena,
             expression.type = AST_EXPRESSION_CALL;
             expression.call = *call_expression;
 
-            s32 result;
+            Interpreter_Expression_Result call_expression_result = {0};
             if (!execute_expression(runtime_arena,
                                     interpreter,
                                     ast,
                                     &expression,
-                                    &result))
+                                    &call_expression_result))
             {
                 FAIL("Failed to execute call expression");
             }
 
             // TODO(vlad): Emit a warning about ignored result of a non-void functions?
-            UNUSED(result);
+            UNUSED(call_expression_result);
         } break;
 
         default:

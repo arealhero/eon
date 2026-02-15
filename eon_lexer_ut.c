@@ -268,6 +268,81 @@ test_numbers(Test_Context* context)
         lexer_destroy(&lexer);
     }
 
+    // NOTE(vlad): Testing floating-point numbers.
+    {
+        {
+            const String_View input = string_view("0.1");
+
+            Lexer lexer = {0};
+            lexer_create(&lexer, string_view("<input>"), input);
+
+            Token token = {0};
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_NUMBER);
+            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "0.1");
+            ASSERT_EQUAL(token.line, 0);
+            ASSERT_EQUAL(token.column, 0);
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_EOF);
+
+            lexer_destroy(&lexer);
+        }
+
+        {
+            const String_View input = string_view("a := 0.1;");
+
+            Lexer lexer = {0};
+            lexer_create(&lexer, string_view("<input>"), input);
+
+            Token token = {0};
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_IDENTIFIER);
+            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "a");
+            ASSERT_EQUAL(token.line, 0);
+            ASSERT_EQUAL(token.column, 0);
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_COLON);
+            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, ":");
+            ASSERT_EQUAL(token.line, 0);
+            ASSERT_EQUAL(token.column, 2);
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_ASSIGN);
+            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "=");
+            ASSERT_EQUAL(token.line, 0);
+            ASSERT_EQUAL(token.column, 3);
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_NUMBER);
+            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "0.1");
+            ASSERT_EQUAL(token.line, 0);
+            ASSERT_EQUAL(token.column, 5);
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_SEMICOLON);
+            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, ";");
+            ASSERT_EQUAL(token.line, 0);
+            ASSERT_EQUAL(token.column, 8);
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_EOF);
+
+            lexer_destroy(&lexer);
+        }
+    }
+
     // FIXME(vlad): Test errors like '123a'.
 }
 

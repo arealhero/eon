@@ -154,6 +154,41 @@ lexer_is_digit(const char c)
     return ('0' <= c && c <= '9');
 }
 
+internal inline Bool
+is_a_part_of_identifier_tail(const char c)
+{
+    return lexer_is_letter(c)
+        || lexer_is_digit(c)
+        || c == '_';
+}
+
+internal inline Bool
+is_not_a_newline(const char c)
+{
+    return c != '\n';
+}
+
+typedef Bool (*Predicate)(const char lookahead_char);
+
+internal void
+lexer_advance_while_predicate_is_true(Lexer* lexer,
+                                      const Predicate predicate)
+{
+    while (lexer->current_index < lexer->code.length)
+    {
+        const char lookahead_char = lexer_peek(lexer);
+
+        if (predicate(lookahead_char))
+        {
+            lexer_advance(lexer);
+        }
+        else
+        {
+            break;
+        }
+    }
+}
+
 internal Bool
 lexer_get_next_token(Lexer* lexer, Token* token, Errors* errors)
 {
@@ -175,21 +210,8 @@ lexer_get_next_token(Lexer* lexer, Token* token, Errors* errors)
 
         if (lexer_is_letter(current_char) || current_char == '_')
         {
-            while (lexer->current_index < lexer->code.length)
-            {
-                const char lookahead_char = lexer_peek(lexer);
-
-                if (lexer_is_letter(lookahead_char)
-                    || lexer_is_digit(lookahead_char)
-                    || lookahead_char == '_')
-                {
-                    lexer_advance(lexer);
-                }
-                else
-                {
-                    break;
-                }
-            }
+            lexer_advance_while_predicate_is_true(lexer,
+                                                  is_a_part_of_identifier_tail);
 
             lexer_create_token(lexer, token, TOKEN_IDENTIFIER);
 
@@ -210,18 +232,13 @@ lexer_get_next_token(Lexer* lexer, Token* token, Errors* errors)
 
         if (lexer_is_digit(current_char))
         {
-            while (lexer->current_index < lexer->code.length)
-            {
-                const char lookahead_char = lexer_peek(lexer);
+            lexer_advance_while_predicate_is_true(lexer, lexer_is_digit);
 
-                if (lexer_is_digit(lookahead_char))
-                {
-                    lexer_advance(lexer);
-                }
-                else
-                {
-                    break;
-                }
+            if (lexer->current_index < lexer->code.length
+                && lexer_peek(lexer) == '.')
+            {
+                lexer_advance(lexer);
+                lexer_advance_while_predicate_is_true(lexer, lexer_is_digit);
             }
 
             lexer_create_token(lexer, token, TOKEN_NUMBER);
@@ -332,20 +349,9 @@ lexer_get_next_token(Lexer* lexer, Token* token, Errors* errors)
                 if (lexer_match_and_optionally_advance(lexer, '/'))
                 {
                     // NOTE(vlad): Single line comment, skipping this line.
-                    while (lexer->current_index < lexer->code.length)
-                    {
-                        const char lookahead_char = lexer_peek(lexer);
-
-                        if (lookahead_char != '\n')
-                        {
-                            lexer_advance(lexer);
-                        }
-                        else
-                        {
-                            lexer->lexeme_start_index = lexer->current_index + 1;
-                            break;
-                        }
-                    }
+                    lexer_advance_while_predicate_is_true(lexer,
+                                                          is_not_a_newline);
+                    lexer->lexeme_start_index = lexer->current_index + 1;
                 }
                 else if (lexer_match_and_optionally_advance(lexer, '*'))
                 {

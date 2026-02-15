@@ -10,7 +10,9 @@ digit: "[0-9]";
 // TODO(vlad): Support floating-point numbers.
 number: optional_number_sign digit number_tail;
 optional_number_sign: EPS | "-" | "+";
-number_tail: EPS | digit number_tail;
+number_tail: EPS | digit number_tail | "." floating_part;
+floating_part: digit floating_part_tail;
+floating_part_tail: EPS | digit floating_part_tail;
 
 string_literal: "\"" ANY "\"";
 
