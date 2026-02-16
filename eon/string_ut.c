@@ -648,11 +648,43 @@ test_integer_parsing(Test_Context* context)
     }
 }
 
+internal void
+test_floating_point_numbers_parsing(Test_Context* context)
+{
+    // NOTE(vlad): Basic tests.
+    {
+        {
+            f32 result;
+            ASSERT_TRUE(parse_float(string_view("123"), &result));
+            ASSERT_FLOATS_ARE_EQUAL(result, 123.0f);
+        }
+
+        {
+            f32 result;
+            ASSERT_TRUE(parse_float(string_view("1.5"), &result));
+            ASSERT_FLOATS_ARE_EQUAL(result, 1.5f);
+        }
+
+        {
+            f32 result;
+            ASSERT_TRUE(parse_float(string_view("-1.234567"), &result));
+            ASSERT_FLOATS_ARE_EQUAL(result, -1.234567f);
+        }
+
+        {
+            f64 result;
+            ASSERT_TRUE(parse_float(string_view("-1.234567"), &result));
+            ASSERT_FLOATS_ARE_EQUAL(result, -1.234567);
+        }
+    }
+}
+
 REGISTER_TESTS(
     test_string_formatting,
     test_signed_integers_formatting,
     test_unsigned_integers_formatting,
     test_formatting_corner_cases,
     test_floating_point_numbers_formatting,
-    test_integer_parsing
+    test_integer_parsing,
+    test_floating_point_numbers_parsing
 )

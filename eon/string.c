@@ -343,6 +343,76 @@ FOR_EACH_INTEGER_TYPE(DEFINE_PARSE_INTEGER_FUNCTION)
 FOR_EACH_FLOAT_TYPE(DEFINE_FLOAT_TO_STRING_INPLACE_FUNCTION)
 #undef DEFINE_FLOAT_TO_STRING_INPLACE_FUNCTION
 
+#define DEFINE_PARSE_FLOAT_FUNCTION(Float_Type)                         \
+    maybe_unused internal Bool                                          \
+    INTERNAL_parse_##Float_Type(const String_View string, Float_Type* out_float) \
+    {                                                                   \
+        Index dot_index = -1;                                           \
+        for (Index i = 0;                                               \
+             i < string.length;                                         \
+             ++i)                                                       \
+        {                                                               \
+            if (string.data[i] == '.')                                  \
+            {                                                           \
+                dot_index = i;                                          \
+                break;                                                  \
+            }                                                           \
+        }                                                               \
+                                                                        \
+        if (dot_index == -1)                                            \
+        {                                                               \
+            s64 integer;                                                \
+            if (!parse_integer(string, &integer))                       \
+            {                                                           \
+                return false;                                           \
+            }                                                           \
+                                                                        \
+            *out_float = (Float_Type) integer;                          \
+            return true;                                                \
+        }                                                               \
+                                                                        \
+        String_View integer_part = {0};                                 \
+        integer_part.data = string.data;                                \
+        integer_part.length = dot_index;                                \
+                                                                        \
+        s64 integer;                                                    \
+        if (!parse_integer(integer_part, &integer))                     \
+        {                                                               \
+            return false;                                               \
+        }                                                               \
+                                                                        \
+        String_View fraction_part = {0};                                \
+        fraction_part.data = string.data + dot_index + 1;               \
+        fraction_part.length = string.length - dot_index - 1;           \
+                                                                        \
+        u64 fraction;                                                   \
+        if (!parse_integer(fraction_part, &fraction))                   \
+        {                                                               \
+            return false;                                               \
+        }                                                               \
+                                                                        \
+        u64 fraction_divisor = 1;                                       \
+        for (Index i = 0;                                               \
+             i < fraction_part.length;                                  \
+             ++i)                                                       \
+        {                                                               \
+            fraction_divisor *= 10;                                     \
+        }                                                               \
+                                                                        \
+        if (integer > 0)                                                \
+        {                                                               \
+            *out_float = (Float_Type)(integer) + (Float_Type)(fraction) / (Float_Type)(fraction_divisor); \
+        }                                                               \
+        else                                                            \
+        {                                                               \
+            *out_float = (Float_Type)(integer) - (Float_Type)(fraction) / (Float_Type)(fraction_divisor); \
+        }                                                               \
+                                                                        \
+        return true;                                                    \
+    }
+FOR_EACH_FLOAT_TYPE(DEFINE_PARSE_FLOAT_FUNCTION)
+#undef DEFINE_PARSE_FLOAT_FUNCTION
+
 #define DEFINE_GET_NUMBER_LENGTH_AS_A_STRING_FUNCTION(Integer_Type)     \
     internal inline Size                                                \
     get_##Integer_Type##_length_as_a_string(Integer_Type number,        \

@@ -187,15 +187,39 @@ registry_register_test(Arena* arena,
     }                                                                   \
     REQUIRE_SEMICOLON
 
-#define ASSERT_EQUAL(actual, expected)                                  \
-    ASSERT_EQUAL_IMPL((actual) == (expected), actual, expected, DEFAULT_COMMENT, __FILE__, __LINE__)
+#define ASSERT_EQUAL(actual, expected)          \
+    ASSERT_EQUAL_IMPL((actual) == (expected),   \
+                      actual,                   \
+                      expected,                 \
+                      DEFAULT_COMMENT,          \
+                      __FILE__,                 \
+                      __LINE__)
 
-#define ASSERT_BOOLS_ARE_EQUAL(actual, expected)                        \
-    ASSERT_EQUAL_IMPL((actual) == (expected), BOOL_TO_STRING(actual), BOOL_TO_STRING(expected), DEFAULT_COMMENT, __FILE__, __LINE__)
+#define ASSERT_BOOLS_ARE_EQUAL(actual, expected)        \
+    ASSERT_EQUAL_IMPL((actual) == (expected),           \
+                      BOOL_TO_STRING(actual),           \
+                      BOOL_TO_STRING(expected),         \
+                      DEFAULT_COMMENT,                  \
+                      __FILE__,                         \
+                      __LINE__)
 #define ASSERT_TRUE(expression) ASSERT_BOOLS_ARE_EQUAL(expression, true)
 #define ASSERT_FALSE(expression) ASSERT_BOOLS_ARE_EQUAL(expression, false)
 
 #define ASSERT_STRINGS_ARE_EQUAL(actual, expected)                      \
-    ASSERT_EQUAL_IMPL(strings_are_equal(string_view((actual)), string_view((expected))), \
-                      actual, expected, DEFAULT_COMMENT, __FILE__, __LINE__)
+    ASSERT_EQUAL_IMPL(strings_are_equal(string_view(actual),            \
+                                        string_view(expected)),         \
+                      actual,                                           \
+                      expected,                                         \
+                      DEFAULT_COMMENT,                                  \
+                      __FILE__,                                         \
+                      __LINE__)
 
+#define ASSERT_FLOATS_ARE_EQUAL_WITH_EPS(actual, expected, eps) \
+    ASSERT_EQUAL_IMPL(ABS((actual) - (expected)) <= eps,        \
+                      actual,                                   \
+                      expected,                                 \
+                      DEFAULT_COMMENT,                          \
+                      __FILE__,                                 \
+                      __LINE__)
+#define ASSERT_FLOATS_ARE_EQUAL(actual, expected)               \
+    ASSERT_FLOATS_ARE_EQUAL_WITH_EPS(actual, expected, 1e-6)

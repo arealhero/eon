@@ -68,7 +68,8 @@ FOR_EACH_INTEGER_TYPE(DECLARE_STRING_TO_NUMBER_FUNCTION)
 #undef DECLARE_TO_STRING_INPLACE_FUNCTION_FOR_INTEGER
 #undef DECLARE_STRING_TO_NUMBER_FUNCTION
 
-#define DECLARE_PARSE_INTEGER_OVERLOAD(Integer_Type) Integer_Type*: INTERNAL_parse_##Integer_Type,
+#define DECLARE_PARSE_INTEGER_OVERLOAD(Integer_Type) \
+    Integer_Type*: INTERNAL_parse_##Integer_Type,
 #define parse_integer(string, out_integer)                              \
     _Generic((out_integer),                                             \
                  FOR_EACH_INTEGER_TYPE(DECLARE_PARSE_INTEGER_OVERLOAD)  \
@@ -76,6 +77,22 @@ FOR_EACH_INTEGER_TYPE(DECLARE_STRING_TO_NUMBER_FUNCTION)
              )(string_view(string), out_integer)
 // NOTE(vlad): We cannot #undef 'DECLARE_PARSE_INTEGER_OVERLOAD' macro here
 //             because it will be needed upon calling 'parse_integer'.
+
+#define DECLARE_PARSE_FLOAT_FUNCTION(Float_Type)                        \
+    maybe_unused internal Bool INTERNAL_parse_##Float_Type(const String_View string, \
+                                                           Float_Type* out_float);
+FOR_EACH_FLOAT_TYPE(DECLARE_PARSE_FLOAT_FUNCTION)
+#undef DECLARE_PARSE_FLOAT_FUNCTION
+
+#define DECLARE_PARSE_FLOAT_OVERLOAD(Float_Type)        \
+    Float_Type*: INTERNAL_parse_##Float_Type,
+#define parse_float(string, out_float)                                  \
+    _Generic((out_float),                                               \
+                 FOR_EACH_FLOAT_TYPE(DECLARE_PARSE_FLOAT_OVERLOAD)      \
+                 default: "Float expected"                              \
+             )(string_view(string), out_float)
+// NOTE(vlad): We cannot #undef 'DECLARE_PARSE_FLOAT_OVERLOAD' macro here
+//             because it will be needed upon calling 'parse_float'.
 
 enum Format_Type_Tag
 {
