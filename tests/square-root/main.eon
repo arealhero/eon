@@ -1,0 +1,32 @@
+abs: (n: Float32) -> Float32 =
+{
+    if n >= 0.0 { return n; }
+    else { return 0.0-n; } // FIXME(vlad): Support unary minus.
+}
+
+sqrt_heron_newton: (n: Float32) -> Float32 =
+{
+    PRECISION := 0.000001; // NOTE(vlad): 1e-6
+
+    prev := n;
+    current := n / 2.0;
+
+    while abs(prev - current) >= PRECISION
+    {
+        prev = current;
+        current = (prev + n / prev) / 2.0;
+    }
+
+    return current;
+}
+
+main: () -> Int32 =
+{
+    print(sqrt_heron_newton(4.0));
+    print(sqrt_heron_newton(9.0));
+
+    print(sqrt_heron_newton(2.0));
+    print(sqrt_heron_newton(3.0));
+
+    return 0;
+}
