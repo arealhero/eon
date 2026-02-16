@@ -9,8 +9,12 @@ struct Interpreter_Variable
     Ast_Identifier name;
     Ast_Type* type;
 
-    // FIXME(vlad): Support other types.
-    s32 value;
+    // FIXME(vlad): Remove code duplication (see 'Interpreter_Expression_Result').
+    union
+    {
+        s32 s32_value;
+        f32 f32_value;
+    };
 };
 typedef struct Interpreter_Variable Interpreter_Variable;
 
@@ -43,9 +47,20 @@ enum Interpreter_Run_Status
 };
 typedef enum Interpreter_Run_Status Interpreter_Run_Status;
 
+struct Interpreter_Expression_Result
+{
+    Ast_Type_Type type;
+    union
+    {
+        s32 s32_value;
+        f32 f32_value;
+    };
+};
+typedef struct Interpreter_Expression_Result Interpreter_Expression_Result;
+
 struct Call_Info
 {
-    s32* arguments;
+    Interpreter_Expression_Result* arguments;
     Size arguments_count;
     Size arguments_capacity;
 };
@@ -58,7 +73,7 @@ struct Run_Result
     union
     {
         String error;
-        s32 return_value;
+        Interpreter_Expression_Result result;
     };
 };
 typedef struct Run_Result Run_Result;

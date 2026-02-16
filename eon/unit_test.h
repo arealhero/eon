@@ -166,12 +166,24 @@ registry_register_test(Arena* arena,
     registry->total_tests_count += 1;
 }
 
+#define MARK_UNIT_TEST_AS_FAILED_IMPL(comment, file, line) \
+    do                                                          \
+    {                                                           \
+        context->result = TEST_FAILED;                          \
+        context->failure_comment = string_view(comment);        \
+        context->failure_file = string_view(file);              \
+        context->failure_line = line;                           \
+    }                                                           \
+    while (0)
+#define MARK_UNIT_TEST_AS_FAILED(comment) MARK_UNIT_TEST_AS_FAILED_IMPL(comment, \
+                                                                        __FILE__, \
+                                                                        __LINE__)
+
 // FIXME(vlad): Do not return after the first encountered error.
 #define DEFAULT_COMMENT "Assertion failed"
 #define ASSERT_EQUAL_IMPL(expression, actual, expected, comment, file, line) \
     if (!(expression))                                                  \
     {                                                                   \
-        context->result = TEST_FAILED;                                  \
         const String failure_comment = format_string(context->arena,    \
                                                      "    {}: {}:\n"    \
                                                      "        Expected '{}', got '{}'", \
@@ -179,9 +191,7 @@ registry_register_test(Arena* arena,
                                                      #expression,       \
                                                      (expected),        \
                                                      (actual));         \
-        context->failure_comment = string_view(failure_comment);        \
-        context->failure_file = string_view(file);                      \
-        context->failure_line = line;                                   \
+        MARK_UNIT_TEST_AS_FAILED_IMPL(failure_comment, file, line);     \
         if (FAIL_ON_FAILED_ASSERTS) { FAIL("Test failed"); }            \
         return;                                                         \
     }                                                                   \

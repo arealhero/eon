@@ -40,6 +40,7 @@ enum Ast_Type_Type
     // NOTE(vlad): Reserved types.
     AST_TYPE_VOID,
     AST_TYPE_INT_32,
+    AST_TYPE_FLOAT_32,
     // TODO(vlad): Add other integers: AST_TYPE_INT_8, etc.
 
     // TODO(vlad): Add unions, arrays, etc.

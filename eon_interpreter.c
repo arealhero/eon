@@ -71,12 +71,6 @@ find_variable(Interpreter* interpreter, const String_View variable_name)
     return NULL;
 }
 
-struct Interpreter_Expression_Result
-{
-    s32 s32_value;
-};
-typedef struct Interpreter_Expression_Result Interpreter_Expression_Result;
-
 internal Bool
 execute_expression(Arena* runtime_arena,
                    Interpreter* interpreter,
@@ -103,17 +97,21 @@ execute_expression(Arena* runtime_arena,
                 }
             }
 
-            String_View lexeme_to_parse = lexeme;
-            if (fraction_start_index != -1)
+            if (fraction_start_index == -1)
             {
-                lexeme_to_parse.length = fraction_start_index;
+                result->type = AST_TYPE_INT_32;
+                if (!parse_integer(lexeme, &result->s32_value))
+                {
+                    FAIL("Failed to parse integer");
+                }
             }
-
-            // FIXME(vlad): Parse integer OR floating point number.
-            if (!parse_integer(lexeme_to_parse,
-                               &result->s32_value))
+            else
             {
-                FAIL("Failed to parse integer");
+                result->type = AST_TYPE_FLOAT_32;
+                if (!parse_float(lexeme, &result->f32_value))
+                {
+                    FAIL("Failed to parse float");
+                }
             }
 
             return true;
@@ -132,7 +130,26 @@ execute_expression(Arena* runtime_arena,
                 FAIL("Variable was not found");
             }
 
-            result->s32_value = variable->value;
+            result->type = variable->type->type;
+            switch (variable->type->type)
+            {
+                case AST_TYPE_INT_32:
+                {
+                    result->s32_value = variable->s32_value;
+                } break;
+
+                case AST_TYPE_FLOAT_32:
+                {
+                    result->f32_value = variable->f32_value;
+                } break;
+
+                default:
+                {
+                    FAIL("Variable with type other that Int32 or Float32 "
+                         "are not yet supported");
+                } break;
+            }
+
             return true;
         } break;
 
@@ -163,7 +180,23 @@ execute_expression(Arena* runtime_arena,
                     FAIL("Failed to execute expression");
                 }
 
-                println("{}", argument.s32_value);
+                switch (argument.type)
+                {
+                    case AST_TYPE_INT_32:
+                    {
+                        println("{}", argument.s32_value);
+                    } break;
+
+                    case AST_TYPE_FLOAT_32:
+                    {
+                        println("{}", argument.f32_value);
+                    } break;
+
+                    default:
+                    {
+                        FAIL("[interpreter] Unsupported type encountered");
+                    } break;
+                }
 
                 return true;
             }
@@ -171,7 +204,9 @@ execute_expression(Arena* runtime_arena,
             Call_Info call_info = {0};
             call_info.arguments_count = call->arguments_count;
             call_info.arguments_capacity = call->arguments_capacity;
-            call_info.arguments = allocate_array(runtime_arena, call_info.arguments_count, s32);
+            call_info.arguments = allocate_array(runtime_arena,
+                                                 call_info.arguments_count,
+                                                 Interpreter_Expression_Result);
 
             for (Index argument_index = 0;
                  argument_index < call_info.arguments_count;
@@ -187,7 +222,7 @@ execute_expression(Arena* runtime_arena,
                     FAIL("Failed to execute expression");
                 }
 
-                call_info.arguments[argument_index] = argument.s32_value;
+                call_info.arguments[argument_index] = argument;
             }
 
             push_empty_lexical_scope(interpreter, INTERPRETER_GLOBAL_LEXICAL_SCOPE_INDEX);
@@ -207,7 +242,7 @@ execute_expression(Arena* runtime_arena,
                 FAIL("Failed to call function");
             }
 
-            result->s32_value = call_result.return_value;
+            *result = call_result.result;
             return true;
         } break;
 
@@ -221,47 +256,132 @@ execute_expression(Arena* runtime_arena,
             const Ast_Binary_Expression* binary_expression = &expression->binary_expression;
 
             Interpreter_Expression_Result lhs;
-            if (!execute_expression(runtime_arena, interpreter, ast, binary_expression->lhs, &lhs))
+            if (!execute_expression(runtime_arena,
+                                    interpreter,
+                                    ast,
+                                    binary_expression->lhs,
+                                    &lhs))
             {
                 return false;
             }
 
             Interpreter_Expression_Result rhs;
-            if (!execute_expression(runtime_arena, interpreter, ast, binary_expression->rhs, &rhs))
+            if (!execute_expression(runtime_arena,
+                                    interpreter,
+                                    ast,
+                                    binary_expression->rhs,
+                                    &rhs))
             {
                 return false;
+            }
+
+            if (lhs.type == rhs.type)
+            {
+                result->type = lhs.type;
+            }
+            else
+            {
+                FAIL("Left and right hand sides of the expression must be the same");
             }
 
             switch (expression->type)
             {
                 case AST_EXPRESSION_ADD:
                 {
-                    result->s32_value = lhs.s32_value + rhs.s32_value;
+                    if (result->type == AST_TYPE_INT_32)
+                    {
+                        result->s32_value = lhs.s32_value + rhs.s32_value;
+                    }
+                    else if (result->type == AST_TYPE_FLOAT_32)
+                    {
+                        result->f32_value = lhs.f32_value + rhs.f32_value;
+                    }
+                    else
+                    {
+                        UNREACHABLE();
+                    }
                 } break;
 
                 case AST_EXPRESSION_SUBTRACT:
                 {
-                    result->s32_value = lhs.s32_value - rhs.s32_value;
+                    if (result->type == AST_TYPE_INT_32)
+                    {
+                        result->s32_value = lhs.s32_value - rhs.s32_value;
+                    }
+                    else if (result->type == AST_TYPE_FLOAT_32)
+                    {
+                        result->f32_value = lhs.f32_value - rhs.f32_value;
+                    }
+                    else
+                    {
+                        UNREACHABLE();
+                    }
                 } break;
 
                 case AST_EXPRESSION_MULTIPLY:
                 {
-                    result->s32_value = lhs.s32_value * rhs.s32_value;
+                    if (result->type == AST_TYPE_INT_32)
+                    {
+                        result->s32_value = lhs.s32_value * rhs.s32_value;
+                    }
+                    else if (result->type == AST_TYPE_FLOAT_32)
+                    {
+                        result->f32_value = lhs.f32_value * rhs.f32_value;
+                    }
+                    else
+                    {
+                        UNREACHABLE();
+                    }
                 } break;
 
                 case AST_EXPRESSION_DIVIDE:
                 {
-                    result->s32_value = lhs.s32_value / rhs.s32_value;
+                    if (result->type == AST_TYPE_INT_32)
+                    {
+                        result->s32_value = lhs.s32_value / rhs.s32_value;
+                    }
+                    else if (result->type == AST_TYPE_FLOAT_32)
+                    {
+                        result->f32_value = lhs.f32_value / rhs.f32_value;
+                    }
+                    else
+                    {
+                        UNREACHABLE();
+                    }
                 } break;
 
                 case AST_EXPRESSION_EQUAL:
                 {
-                    result->s32_value = lhs.s32_value == rhs.s32_value;
+                    if (result->type == AST_TYPE_INT_32)
+                    {
+                        result->s32_value = lhs.s32_value == rhs.s32_value;
+                    }
+                    else if (result->type == AST_TYPE_FLOAT_32)
+                    {
+                        FAIL("You really should not compare floats via '=='");
+                        result->f32_value = lhs.f32_value == rhs.f32_value;
+                    }
+                    else
+                    {
+                        UNREACHABLE();
+                    }
                 } break;
 
                 case AST_EXPRESSION_NOT_EQUAL:
                 {
-                    result->s32_value = lhs.s32_value != rhs.s32_value;
+                    if (result->type == AST_TYPE_INT_32)
+                    {
+                        result->s32_value = lhs.s32_value != rhs.s32_value;
+                    }
+                    else if (result->type == AST_TYPE_FLOAT_32)
+                    {
+                        FAIL("You really should not compare floats via '!='");
+                        result->f32_value = lhs.f32_value != rhs.f32_value;
+                    }
+                    else
+                    {
+                        UNREACHABLE();
+                    }
                 } break;
 
                 default:
@@ -308,7 +428,28 @@ interpreter_add_variable_to_current_lexical_scope(Arena* runtime_arena,
     {
         case AST_INITIALISATION_DEFAULT:
         {
-            variable->value = 0;
+            switch (variable->type->type)
+            {
+                case AST_TYPE_INT_32:
+                {
+                    variable->s32_value = (s32) 0;
+                } break;
+
+                case AST_TYPE_FLOAT_32:
+                {
+                    variable->f32_value = (f32) 0.0f;
+                } break;
+
+                case AST_TYPE_DEDUCED:
+                {
+                    // NOTE(vlad): Wait until the assignment.
+                } break;
+
+                default:
+                {
+                    FAIL("Types other than Int32 and Float32 are not supported yet");
+                } break;
+            }
         } break;
 
         case AST_INITIALISATION_WITH_VALUE:
@@ -323,7 +464,32 @@ interpreter_add_variable_to_current_lexical_scope(Arena* runtime_arena,
                 FAIL("Failed to initialise variable");
             }
 
-            variable->value = result.s32_value;
+            if (variable->type->type == AST_TYPE_DEDUCED)
+            {
+                variable->type->type = result.type;
+            }
+            else if (result.type != variable->type->type)
+            {
+                FAIL("Failed to initialise variable: wrong expression type");
+            }
+
+            switch (result.type)
+            {
+                case AST_TYPE_INT_32:
+                {
+                    variable->s32_value = result.s32_value;
+                } break;
+
+                case AST_TYPE_FLOAT_32:
+                {
+                    variable->f32_value = result.f32_value;
+                } break;
+
+                default:
+                {
+                    FAIL("Types other than Int32 and Float32 are not supported yet");
+                } break;
+            }
         } break;
 
         default:
@@ -336,7 +502,7 @@ interpreter_add_variable_to_current_lexical_scope(Arena* runtime_arena,
 internal void
 set_new_value_for_the_variable(Interpreter* interpreter,
                                const Ast_Identifier* identifier,
-                               const s32 new_value)
+                               const Interpreter_Expression_Result* new_value)
 {
     Interpreter_Variable* variable = find_variable(interpreter, identifier->token.lexeme);
 
@@ -345,7 +511,32 @@ set_new_value_for_the_variable(Interpreter* interpreter,
         FAIL("Variable was not found");
     }
 
-    variable->value = new_value;
+    if (variable->type->type == AST_TYPE_DEDUCED)
+    {
+        variable->type->type = new_value->type;
+    }
+    else if (variable->type->type != new_value->type)
+    {
+        FAIL("Failed to set value for variable: wrong expression type");
+    }
+
+    switch (variable->type->type)
+    {
+        case AST_TYPE_INT_32:
+        {
+            variable->s32_value = new_value->s32_value;
+        } break;
+
+        case AST_TYPE_FLOAT_32:
+        {
+            variable->f32_value = new_value->f32_value;
+        } break;
+
+        default:
+        {
+            FAIL("Types other than Int32 and Float32 are not supported yet");
+        } break;
+    }
 }
 
 internal Run_Result
@@ -384,7 +575,7 @@ execute_statement(Arena* runtime_arena,
                 FAIL("Failed to execute return statement's expression");
             }
 
-            result.return_value = expression_result.s32_value;
+            result.result = expression_result;
             return result;
         } break;
 
@@ -413,7 +604,7 @@ execute_statement(Arena* runtime_arena,
 
             set_new_value_for_the_variable(interpreter,
                                            &assignment->name,
-                                           expression_result.s32_value);
+                                           &expression_result);
         } break;
 
         case AST_STATEMENT_WHILE:
@@ -607,16 +798,6 @@ interpreter_execute_function(Arena* runtime_arena,
     {
         const Ast_Function_Argument* argument = &function_definition->type->arguments.arguments[argument_index];
 
-        if (argument->type->type != AST_TYPE_INT_32)
-        {
-            Run_Result result = {0};
-            result.status = INTERPRETER_RUN_COMPILE_ERROR;
-            result.error = format_string(result_arena,
-                                         "Function arguments with a type other than Int32"
-                                         " are not yet supported");
-            return result;
-        }
-
         // TODO(vlad): Stop using Ast structure here.
         Ast_Variable_Definition definition = {0};
         definition.name = argument->name;
@@ -627,18 +808,9 @@ interpreter_execute_function(Arena* runtime_arena,
                                                           ast,
                                                           &definition);
 
-        set_new_value_for_the_variable(interpreter, &definition.name, call_info->arguments[argument_index]);
-    }
-
-    const Ast_Type_Type return_type = function_definition->type->return_type->type;
-    if (return_type != AST_TYPE_INT_32)
-    {
-        Run_Result result = {0};
-        result.status = INTERPRETER_RUN_COMPILE_ERROR;
-        result.error = format_string(result_arena,
-                                     "Execution of functions with a return type other than Int32"
-                                     " is not yet supported");
-        return result;
+        set_new_value_for_the_variable(interpreter,
+                                       &definition.name,
+                                       &call_info->arguments[argument_index]);
     }
 
     const Size statements_count = function_definition->statements.statements_count;

@@ -121,7 +121,7 @@ main(const int argc, const char* argv[])
     arena_destroy(errors_arena);
     arena_destroy(main_arena);
 
-    return result.return_value;
+    return result.result.s32_value;
 }
 
 #include <eon/io.c>
