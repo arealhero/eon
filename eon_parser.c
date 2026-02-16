@@ -66,7 +66,7 @@ parser_get_next_token(Parser* parser)
         return true;
     }
 
-    if (!lexer_get_next_token(parser->lexer, &parser->current_token, &parser->errors))
+    if (!lexer_get_next_token(parser->lexer, &parser->current_token, parser->errors))
     {
         return false;
     }
@@ -96,13 +96,13 @@ parser_ensure_that_current_token_has_type(Parser* parser, const Token_Type expec
         error.code = parser->lexer->code;
 
         // TODO(vlad): Use scratch arena instead?
-        const String message = format_string(parser->errors.errors_arena,
+        const String message = format_string(parser->errors->errors_arena,
                                              "Expected {}, found {}",
                                              parser_token_type_to_string(expected_type),
                                              parser_token_type_to_string(parser->current_token.type));
         error.message = string_view(message);
 
-        add_error(&parser->errors, &error);
+        add_error(parser->errors, &error);
 
         return false;
     }
@@ -140,10 +140,9 @@ parser_get_and_consume_token_with_type(Parser* parser,
 }
 
 internal void
-parser_create(Arena* parser_arena, Arena* errors_arena, Parser* parser, Lexer* lexer)
+parser_create(Parser* parser, Arena* parser_arena, Lexer* lexer, Errors* errors)
 {
-    parser->errors = (Errors){0};
-    parser->errors.errors_arena = errors_arena;
+    parser->errors = errors;
 
     parser->lexer = lexer;
     parser->current_token = (Token){0};

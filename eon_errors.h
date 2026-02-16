@@ -20,6 +20,7 @@ typedef struct Error Error;
 struct Errors
 {
     Arena* errors_arena;
+    // FIXME(vlad): Add 'error_messages_arena' so that we do not reallocate 'errors' every time.
 
     Error* errors;
     Size errors_count;
@@ -27,7 +28,10 @@ struct Errors
 };
 typedef struct Errors Errors;
 
-internal void add_error(Errors* errors, Error* error);
-internal void print_error(Arena* scratch, const Error* error);
-internal void clear_errors(Errors* errors);
+// TODO(vlad): Remove 'maybe_unused' here?
+maybe_unused internal void errors_create(Errors* errors, Arena* errors_arena);
+maybe_unused internal void add_error(Errors* errors, Error* error);
+maybe_unused internal void print_error(Arena* scratch, const Error* error);
+maybe_unused internal void clear_errors(Errors* errors);
+maybe_unused internal void errors_destroy(Errors* errors);
 

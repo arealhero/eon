@@ -280,8 +280,7 @@ typedef struct Builtin_Type Builtin_Type;
 
 struct Parser
 {
-    // TODO(vlad): Remove this.
-    Errors errors;
+    Errors* errors;
 
     Lexer* lexer;
     Token current_token;
@@ -291,6 +290,6 @@ struct Parser
 };
 typedef struct Parser Parser;
 
-internal void parser_create(Arena* parser_arena, Arena* errors_arena, Parser* parser, Lexer* lexer);
+internal void parser_create(Parser* parser, Arena* parser_arena, Lexer* lexer, Errors* errors);
 internal Bool parser_parse(Arena* parser_arena, Parser* parser, Ast* ast);
 internal void parser_destroy(Parser* parser);

@@ -40,7 +40,6 @@ main(const int argc, const char* argv[])
 #endif
 
     Read_File_Result read_result = platform_read_entire_text_file(main_arena, filename);
-
     if (read_result.status == READ_FILE_FAILURE)
     {
         println("Failed to read file '{}'", filename);
@@ -59,9 +58,12 @@ main(const int argc, const char* argv[])
 
     Arena* errors_arena = arena_create("errors", GiB(1), MiB(1));
 
+    Errors errors = {0};
+    errors_create(&errors, errors_arena);
+
     lexer_create(&lexer, filename, code);
     // TODO(vlad): Make 'parser' the first argument of this function.
-    parser_create(main_arena, errors_arena, &parser, &lexer);
+    parser_create(&parser, main_arena, &lexer, &errors);
 
     Arena* scratch_arena = arena_create("scratch", GiB(1), MiB(1));
 
@@ -73,10 +75,10 @@ main(const int argc, const char* argv[])
     if (!parser_parse(main_arena, &parser, &ast))
     {
         for (Index i = 0;
-             i < parser.errors.errors_count;
+             i < errors.errors_count;
              ++i)
         {
-            print_error(scratch_arena, &parser.errors.errors[i]);
+            print_error(scratch_arena, &errors.errors[i]);
         }
 
         return EXIT_FAILURE;
@@ -134,6 +136,7 @@ main(const int argc, const char* argv[])
 
     interpreter_destroy(&interpreter);
     parser_destroy(&parser);
+    errors_destroy(&errors);
     lexer_destroy(&lexer);
 
     arena_destroy(result_arena);

@@ -3,6 +3,13 @@
 #include <eon/io.h>
 
 internal void
+errors_create(Errors* errors, Arena* errors_arena)
+{
+    *errors = (Errors) {0};
+    errors->errors_arena = errors_arena;
+}
+
+internal void
 add_error(Errors* errors, Error* error)
 {
     if (errors->errors_count == errors->errors_capacity)
@@ -102,8 +109,14 @@ print_error(Arena* scratch, const Error* error)
 maybe_unused internal void
 clear_errors(Errors* errors)
 {
-    arena_clear(errors->errors_arena);
+    // NOTE(vlad): Do not clear 'errors_arena' here: it can be used for something else.
     errors->errors = NULL;
     errors->errors_count = 0;
     errors->errors_capacity = 0;
+}
+
+internal void
+errors_destroy(Errors* errors)
+{
+    UNUSED(errors);
 }
