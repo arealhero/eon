@@ -107,3 +107,4 @@ run_test tests/factorial
 run_test tests/fibonacci
 run_test tests/fibonacci-without-recursion
 run_test tests/simple-floats-operations
+run_test tests/square-root
