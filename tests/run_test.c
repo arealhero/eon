@@ -310,7 +310,7 @@ main(const int argc, const char* argv[])
     }
 
     const Timestamp test_end_timestamp = platform_get_current_monotonic_timestamp();
-    println("Test took in {} mcs", test_end_timestamp - test_start_timestamp);
+    println("Test took {} mcs to run", test_end_timestamp - test_start_timestamp);
 
     arena_destroy(child_output_arena);
     arena_destroy(scratch_arena);
