@@ -474,7 +474,7 @@ parse_call_expression(Arena* parser_arena, Parser* parser, Ast_Expression* expre
     }
 
     // TODO(vlad): Test that the primary expression is callable. Although we should
-    //             probably do it after parsing.
+    //             probably do it after parsing (e.g. in the type system).
 
     if (parser->current_token.type != TOKEN_LEFT_PAREN)
     {
