@@ -634,6 +634,275 @@ test_type_system(Test_Context* context)
 }
 
 internal void
+test_comparisons(Test_Context* context)
+{
+    // NOTE(vlad): Testing basic cases.
+    {
+        {
+            const String_View input = string_view("main: () -> Float32 = {"
+                                                  "    return 0 == 0;"
+                                                  "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            lexer_create(&lexer, string_view("<input>"), input);
+            parser_create(context->arena, context->arena, &parser, &lexer);
+
+            Ast ast = {0};
+            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_EQUAL(parser.errors.errors_count, 0);
+
+            Interpreter interpreter = {0};
+            interpreter_create(&interpreter, context->arena);
+
+            Call_Info call_info = {0};
+            const Run_Result result = interpreter_execute_function(context->arena,
+                                                                   context->arena,
+                                                                   &interpreter,
+                                                                   &ast,
+                                                                   string_view("main"),
+                                                                   &call_info);
+            if (!assert_that_there_are_no_errors(context, &result))
+            {
+                return;
+            }
+            ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+            ASSERT_FLOATS_ARE_EQUAL(result.result.s32_value, 1);
+
+            interpreter_destroy(&interpreter);
+            parser_destroy(&parser);
+            lexer_destroy(&lexer);
+        }
+
+        {
+            const String_View input = string_view("main: () -> Float32 = {"
+                                                  "    return 0 != 0;"
+                                                  "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            lexer_create(&lexer, string_view("<input>"), input);
+            parser_create(context->arena, context->arena, &parser, &lexer);
+
+            Ast ast = {0};
+            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_EQUAL(parser.errors.errors_count, 0);
+
+            Interpreter interpreter = {0};
+            interpreter_create(&interpreter, context->arena);
+
+            Call_Info call_info = {0};
+            const Run_Result result = interpreter_execute_function(context->arena,
+                                                                   context->arena,
+                                                                   &interpreter,
+                                                                   &ast,
+                                                                   string_view("main"),
+                                                                   &call_info);
+            if (!assert_that_there_are_no_errors(context, &result))
+            {
+                return;
+            }
+            ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+            ASSERT_FLOATS_ARE_EQUAL(result.result.s32_value, 0);
+
+            interpreter_destroy(&interpreter);
+            parser_destroy(&parser);
+            lexer_destroy(&lexer);
+        }
+
+        {
+            const String_View input = string_view("main: () -> Float32 = {"
+                                                  "    return 0 > 0;"
+                                                  "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            lexer_create(&lexer, string_view("<input>"), input);
+            parser_create(context->arena, context->arena, &parser, &lexer);
+
+            Ast ast = {0};
+            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_EQUAL(parser.errors.errors_count, 0);
+
+            Interpreter interpreter = {0};
+            interpreter_create(&interpreter, context->arena);
+
+            Call_Info call_info = {0};
+            const Run_Result result = interpreter_execute_function(context->arena,
+                                                                   context->arena,
+                                                                   &interpreter,
+                                                                   &ast,
+                                                                   string_view("main"),
+                                                                   &call_info);
+            if (!assert_that_there_are_no_errors(context, &result))
+            {
+                return;
+            }
+            ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+            ASSERT_FLOATS_ARE_EQUAL(result.result.s32_value, 0);
+
+            interpreter_destroy(&interpreter);
+            parser_destroy(&parser);
+            lexer_destroy(&lexer);
+        }
+
+        {
+            const String_View input = string_view("main: () -> Float32 = {"
+                                                  "    return 0 >= 0;"
+                                                  "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            lexer_create(&lexer, string_view("<input>"), input);
+            parser_create(context->arena, context->arena, &parser, &lexer);
+
+            Ast ast = {0};
+            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_EQUAL(parser.errors.errors_count, 0);
+
+            Interpreter interpreter = {0};
+            interpreter_create(&interpreter, context->arena);
+
+            Call_Info call_info = {0};
+            const Run_Result result = interpreter_execute_function(context->arena,
+                                                                   context->arena,
+                                                                   &interpreter,
+                                                                   &ast,
+                                                                   string_view("main"),
+                                                                   &call_info);
+            if (!assert_that_there_are_no_errors(context, &result))
+            {
+                return;
+            }
+            ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+            ASSERT_FLOATS_ARE_EQUAL(result.result.s32_value, 1);
+
+            interpreter_destroy(&interpreter);
+            parser_destroy(&parser);
+            lexer_destroy(&lexer);
+        }
+
+        {
+            const String_View input = string_view("main: () -> Float32 = {"
+                                                  "    return 0 < 0;"
+                                                  "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            lexer_create(&lexer, string_view("<input>"), input);
+            parser_create(context->arena, context->arena, &parser, &lexer);
+
+            Ast ast = {0};
+            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_EQUAL(parser.errors.errors_count, 0);
+
+            Interpreter interpreter = {0};
+            interpreter_create(&interpreter, context->arena);
+
+            Call_Info call_info = {0};
+            const Run_Result result = interpreter_execute_function(context->arena,
+                                                                   context->arena,
+                                                                   &interpreter,
+                                                                   &ast,
+                                                                   string_view("main"),
+                                                                   &call_info);
+            if (!assert_that_there_are_no_errors(context, &result))
+            {
+                return;
+            }
+            ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+            ASSERT_FLOATS_ARE_EQUAL(result.result.s32_value, 0);
+
+            interpreter_destroy(&interpreter);
+            parser_destroy(&parser);
+            lexer_destroy(&lexer);
+        }
+
+        {
+            const String_View input = string_view("main: () -> Float32 = {"
+                                                  "    return 0 <= 0;"
+                                                  "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            lexer_create(&lexer, string_view("<input>"), input);
+            parser_create(context->arena, context->arena, &parser, &lexer);
+
+            Ast ast = {0};
+            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_EQUAL(parser.errors.errors_count, 0);
+
+            Interpreter interpreter = {0};
+            interpreter_create(&interpreter, context->arena);
+
+            Call_Info call_info = {0};
+            const Run_Result result = interpreter_execute_function(context->arena,
+                                                                   context->arena,
+                                                                   &interpreter,
+                                                                   &ast,
+                                                                   string_view("main"),
+                                                                   &call_info);
+            if (!assert_that_there_are_no_errors(context, &result))
+            {
+                return;
+            }
+            ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+            ASSERT_FLOATS_ARE_EQUAL(result.result.s32_value, 1);
+
+            interpreter_destroy(&interpreter);
+            parser_destroy(&parser);
+            lexer_destroy(&lexer);
+        }
+    }
+
+    // NOTE(vlad): Testing various other cases.
+    {
+        {
+            const String_View input = string_view("main: () -> Float32 = {"
+                                                  "    return 0 != 1;"
+                                                  "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            lexer_create(&lexer, string_view("<input>"), input);
+            parser_create(context->arena, context->arena, &parser, &lexer);
+
+            Ast ast = {0};
+            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_EQUAL(parser.errors.errors_count, 0);
+
+            Interpreter interpreter = {0};
+            interpreter_create(&interpreter, context->arena);
+
+            Call_Info call_info = {0};
+            const Run_Result result = interpreter_execute_function(context->arena,
+                                                                   context->arena,
+                                                                   &interpreter,
+                                                                   &ast,
+                                                                   string_view("main"),
+                                                                   &call_info);
+            if (!assert_that_there_are_no_errors(context, &result))
+            {
+                return;
+            }
+            ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+            ASSERT_FLOATS_ARE_EQUAL(result.result.s32_value, 1);
+
+            interpreter_destroy(&interpreter);
+            parser_destroy(&parser);
+            lexer_destroy(&lexer);
+        }
+    }
+}
+
+internal void
 test_compile_time_errors(Test_Context* context)
 {
     // TODO(vlad): Test that there are only one function definition. Maybe we should test this
@@ -674,6 +943,7 @@ test_compile_time_errors(Test_Context* context)
 REGISTER_TESTS(
     test_simple_programs,
     test_type_system,
+    test_comparisons,
     test_compile_time_errors
 )
 

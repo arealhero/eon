@@ -252,6 +252,10 @@ execute_expression(Arena* runtime_arena,
         case AST_EXPRESSION_DIVIDE:
         case AST_EXPRESSION_EQUAL:
         case AST_EXPRESSION_NOT_EQUAL:
+        case AST_EXPRESSION_LESS:
+        case AST_EXPRESSION_LESS_OR_EQUAL:
+        case AST_EXPRESSION_GREATER:
+        case AST_EXPRESSION_GREATER_OR_EQUAL:
         {
             const Ast_Binary_Expression* binary_expression = &expression->binary_expression;
 
@@ -275,11 +279,7 @@ execute_expression(Arena* runtime_arena,
                 return false;
             }
 
-            if (lhs.type == rhs.type)
-            {
-                result->type = lhs.type;
-            }
-            else
+            if (lhs.type != rhs.type)
             {
                 FAIL("Left and right hand sides of the expression must be the same");
             }
@@ -288,6 +288,8 @@ execute_expression(Arena* runtime_arena,
             {
                 case AST_EXPRESSION_ADD:
                 {
+                    result->type = lhs.type;
+
                     if (result->type == AST_TYPE_INT_32)
                     {
                         result->s32_value = lhs.s32_value + rhs.s32_value;
@@ -304,6 +306,8 @@ execute_expression(Arena* runtime_arena,
 
                 case AST_EXPRESSION_SUBTRACT:
                 {
+                    result->type = lhs.type;
+
                     if (result->type == AST_TYPE_INT_32)
                     {
                         result->s32_value = lhs.s32_value - rhs.s32_value;
@@ -320,6 +324,8 @@ execute_expression(Arena* runtime_arena,
 
                 case AST_EXPRESSION_MULTIPLY:
                 {
+                    result->type = lhs.type;
+
                     if (result->type == AST_TYPE_INT_32)
                     {
                         result->s32_value = lhs.s32_value * rhs.s32_value;
@@ -336,6 +342,8 @@ execute_expression(Arena* runtime_arena,
 
                 case AST_EXPRESSION_DIVIDE:
                 {
+                    result->type = lhs.type;
+
                     if (result->type == AST_TYPE_INT_32)
                     {
                         result->s32_value = lhs.s32_value / rhs.s32_value;
@@ -350,16 +358,18 @@ execute_expression(Arena* runtime_arena,
                     }
                 } break;
 
+                // FIXME(vlad): Use Bool as a resulting type for comparison expressions.
                 case AST_EXPRESSION_EQUAL:
                 {
-                    if (result->type == AST_TYPE_INT_32)
+                    result->type = AST_TYPE_INT_32;
+
+                    if (lhs.type == AST_TYPE_INT_32)
                     {
                         result->s32_value = lhs.s32_value == rhs.s32_value;
                     }
-                    else if (result->type == AST_TYPE_FLOAT_32)
+                    else if (lhs.type == AST_TYPE_FLOAT_32)
                     {
                         FAIL("You really should not compare floats via '=='");
-                        result->f32_value = lhs.f32_value == rhs.f32_value;
                     }
                     else
                     {
@@ -369,14 +379,87 @@ execute_expression(Arena* runtime_arena,
 
                 case AST_EXPRESSION_NOT_EQUAL:
                 {
-                    if (result->type == AST_TYPE_INT_32)
+                    result->type = AST_TYPE_INT_32;
+
+                    if (lhs.type == AST_TYPE_INT_32)
                     {
                         result->s32_value = lhs.s32_value != rhs.s32_value;
                     }
-                    else if (result->type == AST_TYPE_FLOAT_32)
+                    else if (lhs.type == AST_TYPE_FLOAT_32)
                     {
                         FAIL("You really should not compare floats via '!='");
-                        result->f32_value = lhs.f32_value != rhs.f32_value;
+                    }
+                    else
+                    {
+                        UNREACHABLE();
+                    }
+                } break;
+
+                case AST_EXPRESSION_LESS:
+                {
+                    result->type = AST_TYPE_INT_32;
+
+                    if (lhs.type == AST_TYPE_INT_32)
+                    {
+                        result->s32_value = lhs.s32_value < rhs.s32_value;
+                    }
+                    else if (lhs.type == AST_TYPE_FLOAT_32)
+                    {
+                        result->s32_value = lhs.f32_value < rhs.f32_value;
+                    }
+                    else
+                    {
+                        UNREACHABLE();
+                    }
+                } break;
+
+                case AST_EXPRESSION_LESS_OR_EQUAL:
+                {
+                    result->type = AST_TYPE_INT_32;
+
+                    if (lhs.type == AST_TYPE_INT_32)
+                    {
+                        result->s32_value = lhs.s32_value <= rhs.s32_value;
+                    }
+                    else if (lhs.type == AST_TYPE_FLOAT_32)
+                    {
+                        result->s32_value = lhs.f32_value <= rhs.f32_value;
+                    }
+                    else
+                    {
+                        UNREACHABLE();
+                    }
+                } break;
+
+                case AST_EXPRESSION_GREATER:
+                {
+                    result->type = AST_TYPE_INT_32;
+
+                    if (lhs.type == AST_TYPE_INT_32)
+                    {
+                        result->s32_value = lhs.s32_value > rhs.s32_value;
+                    }
+                    else if (lhs.type == AST_TYPE_FLOAT_32)
+                    {
+                        result->s32_value = lhs.f32_value > rhs.f32_value;
+                    }
+                    else
+                    {
+                        UNREACHABLE();
+                    }
+                } break;
+
+                case AST_EXPRESSION_GREATER_OR_EQUAL:
+                {
+                    result->type = AST_TYPE_INT_32;
+
+                    if (lhs.type == AST_TYPE_INT_32)
+                    {
+                        result->s32_value = lhs.s32_value >= rhs.s32_value;
+                    }
+                    else if (lhs.type == AST_TYPE_FLOAT_32)
+                    {
+                        result->s32_value = lhs.f32_value >= rhs.f32_value;
                     }
                     else
                     {

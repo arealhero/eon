@@ -70,7 +70,11 @@ expression: comparison_expression;
 comparison_expression: additive_expression optional_comparison_expression_tail;
 optional_comparison_expression_tail: EPS
                                    | "==" comparison_expression
-                                   | "!=" comparison_expression;
+                                   | "!=" comparison_expression
+                                   | "<" comparison_expression
+                                   | "<=" comparison_expression
+                                   | ">" comparison_expression
+                                   | ">=" comparison_expression;
 
 additive_expression: multiplicative_expression optional_additive_expression_tail;
 optional_additive_expression_tail: EPS

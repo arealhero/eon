@@ -689,6 +689,78 @@ parse_comparison_expression(Arena* parser_arena, Parser* parser, Ast_Expression*
             return true;
         } break;
 
+        case TOKEN_LESS:
+        {
+            const Token operator = parser->current_token;
+            parser_consume_token(parser);
+
+            Ast_Expression* rhs = allocate(parser_arena, Ast_Expression);
+            if (!parse_comparison_expression(parser_arena, parser, rhs))
+            {
+                return false;
+            }
+
+            expression->type = AST_EXPRESSION_LESS;
+            expression->binary_expression.operator = operator;
+            expression->binary_expression.lhs = lhs;
+            expression->binary_expression.rhs = rhs;
+            return true;
+        } break;
+
+        case TOKEN_LESS_OR_EQUAL:
+        {
+            const Token operator = parser->current_token;
+            parser_consume_token(parser);
+
+            Ast_Expression* rhs = allocate(parser_arena, Ast_Expression);
+            if (!parse_comparison_expression(parser_arena, parser, rhs))
+            {
+                return false;
+            }
+
+            expression->type = AST_EXPRESSION_LESS_OR_EQUAL;
+            expression->binary_expression.operator = operator;
+            expression->binary_expression.lhs = lhs;
+            expression->binary_expression.rhs = rhs;
+            return true;
+        } break;
+
+        case TOKEN_GREATER:
+        {
+            const Token operator = parser->current_token;
+            parser_consume_token(parser);
+
+            Ast_Expression* rhs = allocate(parser_arena, Ast_Expression);
+            if (!parse_comparison_expression(parser_arena, parser, rhs))
+            {
+                return false;
+            }
+
+            expression->type = AST_EXPRESSION_GREATER;
+            expression->binary_expression.operator = operator;
+            expression->binary_expression.lhs = lhs;
+            expression->binary_expression.rhs = rhs;
+            return true;
+        } break;
+
+        case TOKEN_GREATER_OR_EQUAL:
+        {
+            const Token operator = parser->current_token;
+            parser_consume_token(parser);
+
+            Ast_Expression* rhs = allocate(parser_arena, Ast_Expression);
+            if (!parse_comparison_expression(parser_arena, parser, rhs))
+            {
+                return false;
+            }
+
+            expression->type = AST_EXPRESSION_GREATER_OR_EQUAL;
+            expression->binary_expression.operator = operator;
+            expression->binary_expression.lhs = lhs;
+            expression->binary_expression.rhs = rhs;
+            return true;
+        } break;
+
         default:
         {
             *expression = *lhs;
