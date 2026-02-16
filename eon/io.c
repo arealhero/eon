@@ -9,10 +9,6 @@
 
 #define STDOUT_BUFFER_SIZE KiB(4)
 
-#define STDIN_FD  0
-#define STDOUT_FD 1
-#define STDERR_FD 2
-
 internal void
 deinit_io_state(void)
 {

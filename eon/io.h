@@ -4,6 +4,11 @@
 #include <eon/memory.h>
 #include <eon/string.h>
 
+// TODO(vlad): Support Windows.
+#define STDIN_FD  0
+#define STDOUT_FD 1
+#define STDERR_FD 2
+
 enum IO_Bufferization_Policy
 {
     IO_FLUSH_ON_NEWLINE = 0,
