@@ -667,6 +667,12 @@ test_floating_point_numbers_parsing(Test_Context* context)
 
         {
             f32 result;
+            ASSERT_TRUE(parse_float(string_view("0.2"), &result));
+            ASSERT_FLOATS_ARE_EQUAL(result, 0.2f);
+        }
+
+        {
+            f32 result;
             ASSERT_TRUE(parse_float(string_view("-1.234567"), &result));
             ASSERT_FLOATS_ARE_EQUAL(result, -1.234567f);
         }

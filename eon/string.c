@@ -399,7 +399,7 @@ FOR_EACH_FLOAT_TYPE(DEFINE_FLOAT_TO_STRING_INPLACE_FUNCTION)
             fraction_divisor *= 10;                                     \
         }                                                               \
                                                                         \
-        if (integer > 0)                                                \
+        if (integer >= 0)                                               \
         {                                                               \
             *out_float = (Float_Type)(integer) + (Float_Type)(fraction) / (Float_Type)(fraction_divisor); \
         }                                                               \
