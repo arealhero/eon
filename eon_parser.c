@@ -376,10 +376,10 @@ parse_arguments(Arena* parser_arena, Parser* parser, Ast_Call* call)
             // XXX(vlad): We can change 'MAX(1, 2 * capacity)' to '(2 * capacity) | 1'.
             const Size new_capacity = MAX(1, 2 * call->arguments_capacity);
             call->arguments = reallocate(parser_arena,
-                                                  call->arguments,
-                                                  Ast_Expression*,
-                                                  call->arguments_capacity,
-                                                  new_capacity);
+                                         call->arguments,
+                                         Ast_Expression*,
+                                         call->arguments_capacity,
+                                         new_capacity);
             call->arguments_capacity = new_capacity;
         }
 
