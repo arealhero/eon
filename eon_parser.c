@@ -249,7 +249,7 @@ parse_type(Arena* parser_arena,
 
         case TOKEN_WILDCARD:
         {
-            type->type = AST_TYPE_DEDUCED;
+            type->type = AST_TYPE_UNSPECIFIED;
             parser_consume_token(parser);
             return true;
         } break;
@@ -853,7 +853,7 @@ parse_variable_definition(Arena* parser_arena,
     else
     {
         // FIXME(vlad): Move to 'parse_optional_type()' or something.
-        definition->type->type = AST_TYPE_DEDUCED;
+        definition->type->type = AST_TYPE_UNSPECIFIED;
         definition->type->qualifiers = AST_QUALIFIER_NONE;
     }
 

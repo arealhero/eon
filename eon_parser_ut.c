@@ -806,7 +806,7 @@ test_variable_definitions_parsing(Test_Context* context)
         clear_errors(&errors);
     }
 
-    // NOTE(vlad): Variable with deduced type.
+    // NOTE(vlad): Variable with inferred type.
     {
         const String_View input = string_view("foo: () -> void = {"
                                               "    variable := 123;"
@@ -845,7 +845,7 @@ test_variable_definitions_parsing(Test_Context* context)
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "variable");
-        ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+        ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
         ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
         ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
         ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_NUMBER);
@@ -898,7 +898,7 @@ test_variable_definitions_parsing(Test_Context* context)
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var1");
-            ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+            ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
             ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
             ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
             ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_NUMBER);
@@ -1017,7 +1017,7 @@ test_variable_definitions_parsing(Test_Context* context)
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var1");
-            ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+            ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
             ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
             ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
             ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_NUMBER);
@@ -1030,7 +1030,7 @@ test_variable_definitions_parsing(Test_Context* context)
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var2");
-            ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+            ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
             ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
             ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
             ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_IDENTIFIER);
@@ -1331,7 +1331,7 @@ test_variable_definitions_parsing(Test_Context* context)
             const Ast_Statement* statement = &definition->statements.statements[0];
             ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
             ASSERT_STRINGS_ARE_EQUAL(statement->variable_definition.name.token.lexeme, "variable");
-            ASSERT_EQUAL(statement->variable_definition.type->type, AST_TYPE_DEDUCED);
+            ASSERT_EQUAL(statement->variable_definition.type->type, AST_TYPE_UNSPECIFIED);
             ASSERT_EQUAL(statement->variable_definition.type->qualifiers, AST_QUALIFIER_MUTABLE);
             ASSERT_EQUAL(statement->variable_definition.initialisation_type, AST_INITIALISATION_WITH_VALUE);
             ASSERT_EQUAL(statement->variable_definition.initial_value.type, AST_EXPRESSION_NUMBER);
@@ -1556,7 +1556,7 @@ test_if_statement_parsing(Test_Context* context)
         const Ast_Variable_Definition* variable_definition = &false_statements->statements[0].variable_definition;
 
         ASSERT_STRINGS_ARE_EQUAL(variable_definition->name.token.lexeme, "a");
-        ASSERT_EQUAL(variable_definition->type->type, AST_TYPE_DEDUCED);
+        ASSERT_EQUAL(variable_definition->type->type, AST_TYPE_UNSPECIFIED);
         ASSERT_EQUAL(variable_definition->type->qualifiers, AST_QUALIFIER_NONE);
         ASSERT_EQUAL(variable_definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
         ASSERT_EQUAL(variable_definition->initial_value.type, AST_EXPRESSION_NUMBER);
@@ -1699,7 +1699,7 @@ test_expressions(Test_Context* context)
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var1");
-            ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+            ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
             ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
             ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
             ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_NUMBER);
@@ -1712,7 +1712,7 @@ test_expressions(Test_Context* context)
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var2");
-            ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+            ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
             ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
             ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
             ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_IDENTIFIER);
@@ -1765,7 +1765,7 @@ test_expressions(Test_Context* context)
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-        ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+        ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
         ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
         ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
         ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_ADD);
@@ -1819,7 +1819,7 @@ test_expressions(Test_Context* context)
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-        ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+        ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
         ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
         ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
         ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_SUBTRACT);
@@ -1873,7 +1873,7 @@ test_expressions(Test_Context* context)
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-        ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+        ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
         ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
         ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
         ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_MULTIPLY);
@@ -1927,7 +1927,7 @@ test_expressions(Test_Context* context)
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-        ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+        ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
         ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
         ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
 
@@ -2018,7 +2018,7 @@ test_expressions(Test_Context* context)
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+            ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
             ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
             ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
             ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_CALL);
@@ -2077,7 +2077,7 @@ test_expressions(Test_Context* context)
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+            ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
             ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
             ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
             ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_CALL);
@@ -2147,7 +2147,7 @@ test_expressions(Test_Context* context)
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+            ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
             ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
             ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
             ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_CALL);
@@ -2248,7 +2248,7 @@ test_expressions(Test_Context* context)
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+            ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
             ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
             ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
             ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_EQUAL);
@@ -2307,7 +2307,7 @@ test_expressions(Test_Context* context)
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+            ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
             ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
             ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
             ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_NOT_EQUAL);
@@ -2366,7 +2366,7 @@ test_expressions(Test_Context* context)
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+            ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
             ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
             ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
             ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_LESS);
@@ -2425,7 +2425,7 @@ test_expressions(Test_Context* context)
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+            ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
             ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
             ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
             ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_LESS_OR_EQUAL);
@@ -2484,7 +2484,7 @@ test_expressions(Test_Context* context)
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+            ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
             ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
             ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
             ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_GREATER);
@@ -2543,7 +2543,7 @@ test_expressions(Test_Context* context)
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+            ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
             ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
             ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
             ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_GREATER_OR_EQUAL);
@@ -2610,7 +2610,7 @@ test_operator_precedence(Test_Context* context)
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-        ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+        ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
         ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
         ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
         ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_ADD);
@@ -2676,7 +2676,7 @@ test_operator_precedence(Test_Context* context)
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-        ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+        ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
         ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
         ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
 
@@ -2743,7 +2743,7 @@ test_operator_precedence(Test_Context* context)
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-        ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+        ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
         ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
         ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
         ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_ADD);
@@ -2819,7 +2819,7 @@ test_assignments(Test_Context* context)
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+            ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
             ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
             ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
             ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_NUMBER);
@@ -2882,7 +2882,7 @@ test_assignments(Test_Context* context)
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+            ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
             ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
             ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
             ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_NUMBER);
@@ -2967,7 +2967,7 @@ test_while_statements(Test_Context* context)
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->type, AST_TYPE_DEDUCED);
+            ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
             ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
             ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
             ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_NUMBER);

@@ -523,7 +523,7 @@ interpreter_add_variable_to_current_lexical_scope(Arena* runtime_arena,
                     variable->f32_value = (f32) 0.0f;
                 } break;
 
-                case AST_TYPE_DEDUCED:
+                case AST_TYPE_UNSPECIFIED:
                 {
                     // NOTE(vlad): Wait until the assignment.
                 } break;
@@ -547,7 +547,7 @@ interpreter_add_variable_to_current_lexical_scope(Arena* runtime_arena,
                 FAIL("Failed to initialise variable");
             }
 
-            if (variable->type->type == AST_TYPE_DEDUCED)
+            if (variable->type->type == AST_TYPE_UNSPECIFIED)
             {
                 variable->type->type = result.type;
             }
@@ -588,7 +588,7 @@ internal void
 set_value_for_the_variable(Interpreter_Variable* variable,
                            const Interpreter_Expression_Result* value)
 {
-    if (variable->type->type == AST_TYPE_DEDUCED)
+    if (variable->type->type == AST_TYPE_UNSPECIFIED)
     {
         variable->type->type = value->type;
     }
