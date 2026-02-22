@@ -351,7 +351,318 @@ test_function_definitions_parsing(Test_Context* context)
 
     // NOTE(vlad): Testing mutable arguments and return types.
     {
-        // FIXME(vlad): Add mutable arguments tests.
+        {
+            const String_View input = string_view("foo: (first: mutable Int32, second: Some_Type) -> void = {}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            lexer_create(&lexer, string_view("<input>"), input);
+            parser_create(&parser, context->arena, &lexer, &errors);
+
+            Ast ast = {0};
+            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_EQUAL(errors.errors_count, 0);
+
+            ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* definition = &ast.function_definitions[0];
+            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
+
+            const Ast_Type* function_type = definition->type;
+            ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+            ASSERT_EQUAL(function_type->qualifiers, AST_QUALIFIER_NONE);
+
+            const Ast_Function_Arguments* arguments = &function_type->arguments;
+            ASSERT_EQUAL(arguments->arguments_count, 2);
+
+            {
+                const Ast_Function_Argument* first_argument = &arguments->arguments[0];
+                ASSERT_STRINGS_ARE_EQUAL(first_argument->name.token.lexeme, "first");
+
+                const Ast_Type* first_argument_type = first_argument->type;
+                ASSERT_EQUAL(first_argument_type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(first_argument_type->qualifiers, AST_QUALIFIER_MUTABLE);
+            }
+
+            {
+                const Ast_Function_Argument* second_argument = &arguments->arguments[1];
+                ASSERT_STRINGS_ARE_EQUAL(second_argument->name.token.lexeme, "second");
+
+                const Ast_Type* second_argument_type = second_argument->type;
+                ASSERT_EQUAL(second_argument_type->type, AST_TYPE_USER_DEFINED);
+                ASSERT_EQUAL(second_argument_type->qualifiers, AST_QUALIFIER_NONE);
+                ASSERT_STRINGS_ARE_EQUAL(second_argument_type->name.token.lexeme, "Some_Type");
+            }
+
+            const Ast_Type* return_type = function_type->return_type;
+            ASSERT_EQUAL(return_type->type, AST_TYPE_VOID);
+            ASSERT_EQUAL(return_type->qualifiers, AST_QUALIFIER_NONE);
+
+            parser_destroy(&parser);
+            lexer_destroy(&lexer);
+
+            clear_errors(&errors);
+        }
+
+        {
+            const String_View input = string_view("foo: (first: Int32, second: mutable Some_Type) -> void = {}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            lexer_create(&lexer, string_view("<input>"), input);
+            parser_create(&parser, context->arena, &lexer, &errors);
+
+            Ast ast = {0};
+            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_EQUAL(errors.errors_count, 0);
+
+            ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* definition = &ast.function_definitions[0];
+            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
+
+            const Ast_Type* function_type = definition->type;
+            ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+            ASSERT_EQUAL(function_type->qualifiers, AST_QUALIFIER_NONE);
+
+            const Ast_Function_Arguments* arguments = &function_type->arguments;
+            ASSERT_EQUAL(arguments->arguments_count, 2);
+
+            {
+                const Ast_Function_Argument* first_argument = &arguments->arguments[0];
+                ASSERT_STRINGS_ARE_EQUAL(first_argument->name.token.lexeme, "first");
+
+                const Ast_Type* first_argument_type = first_argument->type;
+                ASSERT_EQUAL(first_argument_type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(first_argument_type->qualifiers, AST_QUALIFIER_NONE);
+            }
+
+            {
+                const Ast_Function_Argument* second_argument = &arguments->arguments[1];
+                ASSERT_STRINGS_ARE_EQUAL(second_argument->name.token.lexeme, "second");
+
+                const Ast_Type* second_argument_type = second_argument->type;
+                ASSERT_EQUAL(second_argument_type->type, AST_TYPE_USER_DEFINED);
+                ASSERT_EQUAL(second_argument_type->qualifiers, AST_QUALIFIER_MUTABLE);
+                ASSERT_STRINGS_ARE_EQUAL(second_argument_type->name.token.lexeme, "Some_Type");
+            }
+
+            const Ast_Type* return_type = function_type->return_type;
+            ASSERT_EQUAL(return_type->type, AST_TYPE_VOID);
+            ASSERT_EQUAL(return_type->qualifiers, AST_QUALIFIER_NONE);
+
+            parser_destroy(&parser);
+            lexer_destroy(&lexer);
+
+            clear_errors(&errors);
+        }
+
+        {
+            const String_View input = string_view("foo: (first: mutable Int32, second: mutable Some_Type) -> void = {}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            lexer_create(&lexer, string_view("<input>"), input);
+            parser_create(&parser, context->arena, &lexer, &errors);
+
+            Ast ast = {0};
+            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_EQUAL(errors.errors_count, 0);
+
+            ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* definition = &ast.function_definitions[0];
+            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
+
+            const Ast_Type* function_type = definition->type;
+            ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+            ASSERT_EQUAL(function_type->qualifiers, AST_QUALIFIER_NONE);
+
+            const Ast_Function_Arguments* arguments = &function_type->arguments;
+            ASSERT_EQUAL(arguments->arguments_count, 2);
+
+            {
+                const Ast_Function_Argument* first_argument = &arguments->arguments[0];
+                ASSERT_STRINGS_ARE_EQUAL(first_argument->name.token.lexeme, "first");
+
+                const Ast_Type* first_argument_type = first_argument->type;
+                ASSERT_EQUAL(first_argument_type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(first_argument_type->qualifiers, AST_QUALIFIER_MUTABLE);
+            }
+
+            {
+                const Ast_Function_Argument* second_argument = &arguments->arguments[1];
+                ASSERT_STRINGS_ARE_EQUAL(second_argument->name.token.lexeme, "second");
+
+                const Ast_Type* second_argument_type = second_argument->type;
+                ASSERT_EQUAL(second_argument_type->type, AST_TYPE_USER_DEFINED);
+                ASSERT_EQUAL(second_argument_type->qualifiers, AST_QUALIFIER_MUTABLE);
+                ASSERT_STRINGS_ARE_EQUAL(second_argument_type->name.token.lexeme, "Some_Type");
+            }
+
+            const Ast_Type* return_type = function_type->return_type;
+            ASSERT_EQUAL(return_type->type, AST_TYPE_VOID);
+            ASSERT_EQUAL(return_type->qualifiers, AST_QUALIFIER_NONE);
+
+            parser_destroy(&parser);
+            lexer_destroy(&lexer);
+
+            clear_errors(&errors);
+        }
+
+        {
+            const String_View input = string_view("foo: () -> mutable Float32 = {}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            lexer_create(&lexer, string_view("<input>"), input);
+            parser_create(&parser, context->arena, &lexer, &errors);
+
+            Ast ast = {0};
+            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_EQUAL(errors.errors_count, 0);
+
+            ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* definition = &ast.function_definitions[0];
+            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
+
+            const Ast_Type* function_type = definition->type;
+            ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+            ASSERT_EQUAL(function_type->qualifiers, AST_QUALIFIER_NONE);
+
+            const Ast_Function_Arguments* arguments = &function_type->arguments;
+            ASSERT_EQUAL(arguments->arguments_count, 0);
+
+            const Ast_Type* return_type = function_type->return_type;
+            ASSERT_EQUAL(return_type->type, AST_TYPE_FLOAT_32);
+            ASSERT_EQUAL(return_type->qualifiers, AST_QUALIFIER_MUTABLE);
+            ASSERT_STRINGS_ARE_EQUAL(return_type->name.token.lexeme, "Float32");
+
+            parser_destroy(&parser);
+            lexer_destroy(&lexer);
+
+            clear_errors(&errors);
+        }
+
+        {
+            const String_View input = string_view("foo: () -> mutable * Float32 = {}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            lexer_create(&lexer, string_view("<input>"), input);
+            parser_create(&parser, context->arena, &lexer, &errors);
+
+            Ast ast = {0};
+            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_EQUAL(errors.errors_count, 0);
+
+            ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* definition = &ast.function_definitions[0];
+            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
+
+            const Ast_Type* function_type = definition->type;
+            ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+            ASSERT_EQUAL(function_type->qualifiers, AST_QUALIFIER_NONE);
+
+            const Ast_Function_Arguments* arguments = &function_type->arguments;
+            ASSERT_EQUAL(arguments->arguments_count, 0);
+
+            const Ast_Type* return_type = function_type->return_type;
+            ASSERT_EQUAL(return_type->type, AST_TYPE_POINTER);
+            ASSERT_EQUAL(return_type->qualifiers, AST_QUALIFIER_MUTABLE);
+            ASSERT_EQUAL(return_type->pointed_to->type, AST_TYPE_FLOAT_32);
+            ASSERT_EQUAL(return_type->pointed_to->qualifiers, AST_QUALIFIER_NONE);
+            ASSERT_STRINGS_ARE_EQUAL(return_type->pointed_to->name.token.lexeme, "Float32");
+
+            parser_destroy(&parser);
+            lexer_destroy(&lexer);
+
+            clear_errors(&errors);
+        }
+
+        {
+            const String_View input = string_view("foo: () -> * mutable Float32 = {}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            lexer_create(&lexer, string_view("<input>"), input);
+            parser_create(&parser, context->arena, &lexer, &errors);
+
+            Ast ast = {0};
+            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_EQUAL(errors.errors_count, 0);
+
+            ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* definition = &ast.function_definitions[0];
+            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
+
+            const Ast_Type* function_type = definition->type;
+            ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+            ASSERT_EQUAL(function_type->qualifiers, AST_QUALIFIER_NONE);
+
+            const Ast_Function_Arguments* arguments = &function_type->arguments;
+            ASSERT_EQUAL(arguments->arguments_count, 0);
+
+            const Ast_Type* return_type = function_type->return_type;
+            ASSERT_EQUAL(return_type->type, AST_TYPE_POINTER);
+            ASSERT_EQUAL(return_type->qualifiers, AST_QUALIFIER_NONE);
+            ASSERT_EQUAL(return_type->pointed_to->type, AST_TYPE_FLOAT_32);
+            ASSERT_EQUAL(return_type->pointed_to->qualifiers, AST_QUALIFIER_MUTABLE);
+            ASSERT_STRINGS_ARE_EQUAL(return_type->pointed_to->name.token.lexeme, "Float32");
+
+            parser_destroy(&parser);
+            lexer_destroy(&lexer);
+
+            clear_errors(&errors);
+        }
+
+        {
+            const String_View input = string_view("foo: () -> mutable * mutable Float32 = {}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            lexer_create(&lexer, string_view("<input>"), input);
+            parser_create(&parser, context->arena, &lexer, &errors);
+
+            Ast ast = {0};
+            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_EQUAL(errors.errors_count, 0);
+
+            ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* definition = &ast.function_definitions[0];
+            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
+
+            const Ast_Type* function_type = definition->type;
+            ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+            ASSERT_EQUAL(function_type->qualifiers, AST_QUALIFIER_NONE);
+
+            const Ast_Function_Arguments* arguments = &function_type->arguments;
+            ASSERT_EQUAL(arguments->arguments_count, 0);
+
+            const Ast_Type* return_type = function_type->return_type;
+            ASSERT_EQUAL(return_type->type, AST_TYPE_POINTER);
+            ASSERT_EQUAL(return_type->qualifiers, AST_QUALIFIER_MUTABLE);
+            ASSERT_EQUAL(return_type->pointed_to->type, AST_TYPE_FLOAT_32);
+            ASSERT_EQUAL(return_type->pointed_to->qualifiers, AST_QUALIFIER_MUTABLE);
+            ASSERT_STRINGS_ARE_EQUAL(return_type->pointed_to->name.token.lexeme, "Float32");
+
+            parser_destroy(&parser);
+            lexer_destroy(&lexer);
+
+            clear_errors(&errors);
+        }
+
         {
             const String_View input = string_view("foo: () -> mutable * () -> void = {}");
 
