@@ -101,7 +101,7 @@ echo
 echo " === Running interpreter tests ==="
 
 run_test tests/calls
-# run_test tests/empty-file
+run_test tests/empty-file
 run_test tests/empty-main-with-return
 run_test tests/factorial
 run_test tests/fibonacci
