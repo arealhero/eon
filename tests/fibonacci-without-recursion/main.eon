@@ -1,7 +1,7 @@
-fibonacci: (n: Int32) -> Int32 =
+fibonacci: (n: mutable Int32) -> Int32 =
 {
-    prev := 0;
-    cur := 1;
+    prev: mutable _ = 0;
+    cur: mutable _ = 1;
 
     while n != 0
     {

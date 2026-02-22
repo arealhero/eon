@@ -483,7 +483,7 @@ execute_expression(Arena* runtime_arena,
     }
 }
 
-internal void
+internal Interpreter_Variable*
 interpreter_add_variable_to_current_lexical_scope(Arena* runtime_arena,
                                                   Interpreter* interpreter,
                                                   const Ast* ast,
@@ -580,6 +580,40 @@ interpreter_add_variable_to_current_lexical_scope(Arena* runtime_arena,
             FAIL("Unknown initialisation type");
         } break;
     }
+
+    return variable;
+}
+
+internal void
+set_value_for_the_variable(Interpreter_Variable* variable,
+                           const Interpreter_Expression_Result* value)
+{
+    if (variable->type->type == AST_TYPE_DEDUCED)
+    {
+        variable->type->type = value->type;
+    }
+    else if (variable->type->type != value->type)
+    {
+        FAIL("Failed to set value for variable: wrong expression type");
+    }
+
+    switch (variable->type->type)
+    {
+        case AST_TYPE_INT_32:
+        {
+            variable->s32_value = value->s32_value;
+        } break;
+
+        case AST_TYPE_FLOAT_32:
+        {
+            variable->f32_value = value->f32_value;
+        } break;
+
+        default:
+        {
+            FAIL("Types other than Int32 and Float32 are not supported yet");
+        } break;
+    }
 }
 
 internal void
@@ -594,32 +628,13 @@ set_new_value_for_the_variable(Interpreter* interpreter,
         FAIL("Variable was not found");
     }
 
-    if (variable->type->type == AST_TYPE_DEDUCED)
+    // TODO(vlad): Change this to '!(qualifiers & AST_QUALIFIER_MUTABLE)'.
+    if (variable->type->qualifiers != AST_QUALIFIER_MUTABLE)
     {
-        variable->type->type = new_value->type;
-    }
-    else if (variable->type->type != new_value->type)
-    {
-        FAIL("Failed to set value for variable: wrong expression type");
+        FAIL("Variable is constant");
     }
 
-    switch (variable->type->type)
-    {
-        case AST_TYPE_INT_32:
-        {
-            variable->s32_value = new_value->s32_value;
-        } break;
-
-        case AST_TYPE_FLOAT_32:
-        {
-            variable->f32_value = new_value->f32_value;
-        } break;
-
-        default:
-        {
-            FAIL("Types other than Int32 and Float32 are not supported yet");
-        } break;
-    }
+    set_value_for_the_variable(variable, new_value);
 }
 
 internal Run_Result
@@ -886,14 +901,12 @@ interpreter_execute_function(Arena* runtime_arena,
         definition.name = argument->name;
         definition.type = argument->type;
         definition.initialisation_type = AST_INITIALISATION_DEFAULT;
-        interpreter_add_variable_to_current_lexical_scope(runtime_arena,
-                                                          interpreter,
-                                                          ast,
-                                                          &definition);
 
-        set_new_value_for_the_variable(interpreter,
-                                       &definition.name,
-                                       &call_info->arguments[argument_index]);
+        Interpreter_Variable* variable = interpreter_add_variable_to_current_lexical_scope(runtime_arena,
+                                                                                           interpreter,
+                                                                                           ast,
+                                                                                           &definition);
+        set_value_for_the_variable(variable, &call_info->arguments[argument_index]);
     }
 
     const Size statements_count = function_definition->statements.statements_count;

@@ -6,6 +6,7 @@ START: program;
 
 letter: "[a-zA-Z]";
 digit: "[0-9]";
+wildcard: "_";
 
 // TODO(vlad): Support floating-point numbers.
 number: optional_number_sign digit number_tail;
@@ -58,7 +59,10 @@ optional_else_statement: EPS | "else" if_statement_or_code_block;
 if_statement_or_code_block: if_statement | code_block;
 
 function_type: "(" arguments_declaration ")" "->" type;
-type: function_type | pointer_type | identifier; // TODO(vlad): Add support for arrays, qualifiers, etc. @tag(eon-grammar)
+type: optional_type_qualifiers type_tail;
+optional_type_qualifiers: EPS | "mutable";
+type_tail: explicitly_inferred_type | function_type | pointer_type | identifier; // TODO(vlad): Add support for arrays, etc. @tag(eon-grammar)
+explicitly_inferred_type: wildcard;
 pointer_type: "*" type;
 
 arguments_declaration: EPS | argument_declaration arguments_declaration_tail;

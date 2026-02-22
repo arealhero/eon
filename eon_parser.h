@@ -65,8 +65,16 @@ struct Ast_Function_Arguments
 };
 typedef struct Ast_Function_Arguments Ast_Function_Arguments;
 
+enum Ast_Qualifiers
+{
+    AST_QUALIFIER_NONE    = 0,
+    AST_QUALIFIER_MUTABLE = 1 << 0,
+};
+typedef enum Ast_Qualifiers Ast_Qualifiers;
+
 struct Ast_Type
 {
+    Ast_Qualifiers qualifiers;
     Ast_Type_Type type;
     union
     {

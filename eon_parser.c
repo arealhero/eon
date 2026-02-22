@@ -51,6 +51,9 @@ parser_token_type_to_string(const Token_Type type)
         ADD_TOKEN(TOKEN_FALSE, "false");
         ADD_TOKEN(TOKEN_ARROW, "->");
         ADD_TOKEN(TOKEN_RETURN, "return");
+        ADD_TOKEN(TOKEN_WILDCARD, "wildcard (_)");
+
+        ADD_TOKEN(TOKEN_MUTABLE, "mutable");
 
         ADD_TOKEN(TOKEN_EOF, "end of file");
     }
@@ -199,6 +202,17 @@ parse_type(Arena* parser_arena,
         return false;
     }
 
+    if (parser->current_token.type == TOKEN_MUTABLE)
+    {
+        type->qualifiers = AST_QUALIFIER_MUTABLE;
+        parser_consume_token(parser);
+
+        if (!parser_get_next_token(parser))
+        {
+            return false;
+        }
+    }
+
     // TODO(vlad): Change to 'parser_try_to_consume_token_with_type'?
     switch (parser->current_token.type)
     {
@@ -230,6 +244,13 @@ parse_type(Arena* parser_arena,
                 }
             }
 
+            return true;
+        } break;
+
+        case TOKEN_WILDCARD:
+        {
+            type->type = AST_TYPE_DEDUCED;
+            parser_consume_token(parser);
             return true;
         } break;
 
@@ -831,7 +852,9 @@ parse_variable_definition(Arena* parser_arena,
     }
     else
     {
+        // FIXME(vlad): Move to 'parse_optional_type()' or something.
         definition->type->type = AST_TYPE_DEDUCED;
+        definition->type->qualifiers = AST_QUALIFIER_NONE;
     }
 
     if (!parse_optional_variable_assignment(parser_arena, parser, definition))

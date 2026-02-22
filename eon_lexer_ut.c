@@ -564,6 +564,50 @@ test_keywords_and_digraphs(Test_Context* context)
 
         lexer_destroy(&lexer);
     }
+
+    {
+        const String_View input = string_view("mutable");
+
+        Lexer lexer = {0};
+        lexer_create(&lexer, string_view("<input>"), input);
+
+        Token token = {0};
+
+        ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(token.type, TOKEN_MUTABLE);
+        ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "mutable");
+        ASSERT_EQUAL(token.line, 0);
+        ASSERT_EQUAL(token.column, 0);
+
+        ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(token.type, TOKEN_EOF);
+
+        lexer_destroy(&lexer);
+    }
+
+    {
+        const String_View input = string_view("_");
+
+        Lexer lexer = {0};
+        lexer_create(&lexer, string_view("<input>"), input);
+
+        Token token = {0};
+
+        ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(token.type, TOKEN_WILDCARD);
+        ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "_");
+        ASSERT_EQUAL(token.line, 0);
+        ASSERT_EQUAL(token.column, 0);
+
+        ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(token.type, TOKEN_EOF);
+
+        lexer_destroy(&lexer);
+    }
 }
 
 internal void

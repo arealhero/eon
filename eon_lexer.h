@@ -30,6 +30,10 @@ enum Token_Type
     TOKEN_FOR, TOKEN_IF, TOKEN_ELSE, TOKEN_WHILE,
     TOKEN_TRUE, TOKEN_FALSE,
     TOKEN_ARROW, TOKEN_RETURN,
+    TOKEN_WILDCARD,
+
+    // NOTE(vlad): Type qualifiers.
+    TOKEN_MUTABLE,
 
     TOKEN_EOF,
 };

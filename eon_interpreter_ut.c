@@ -447,8 +447,8 @@ test_simple_programs(Test_Context* context)
 
     {
         const String_View input = string_view("main: () -> Int32 = {"
-                                              "    first := 10;"
-                                              "    second := 20;"
+                                              "    first: mutable _ = 10;"
+                                              "    second: mutable _ = 20;"
                                               "    first = 1;"
                                               "    second = 2;"
                                               "    return first + second;"
@@ -487,7 +487,7 @@ test_simple_programs(Test_Context* context)
 
     {
         const String_View input = string_view("main: () -> Int32 = {"
-                                              "    var := 10;"
+                                              "    var: mutable _ = 10;"
                                               "    while var != 0"
                                               "    {"
                                               "        var = var - 1;"

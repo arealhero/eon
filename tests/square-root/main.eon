@@ -8,8 +8,8 @@ sqrt_heron_newton: (n: Float32) -> Float32 =
 {
     PRECISION := 0.000001; // NOTE(vlad): 1e-6
 
-    prev := n;
-    current := n / 2.0;
+    prev: mutable _ = n;
+    current: mutable _ = n / 2.0;
 
     while abs(prev - current) >= PRECISION
     {

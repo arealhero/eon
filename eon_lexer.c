@@ -51,6 +51,9 @@ token_type_to_string(const Token_Type type)
         ADD_TOKEN(TOKEN_FALSE);
         ADD_TOKEN(TOKEN_ARROW);
         ADD_TOKEN(TOKEN_RETURN);
+        ADD_TOKEN(TOKEN_WILDCARD);
+
+        ADD_TOKEN(TOKEN_MUTABLE);
 
         ADD_TOKEN(TOKEN_EOF);
     }
@@ -77,6 +80,8 @@ lexer_create(Lexer* lexer, const String_View filename, const String_View code)
         { .type = TOKEN_FALSE, .lexeme = string_view("false"), },
         { .type = TOKEN_ARROW, .lexeme = string_view("->"), },
         { .type = TOKEN_RETURN, .lexeme = string_view("return"), },
+        { .type = TOKEN_MUTABLE, .lexeme = string_view("mutable"), },
+        { .type = TOKEN_WILDCARD, .lexeme = string_view("_"), },
     };
 
     lexer->keywords_count = size_of(keywords) / size_of(keywords[0]);
