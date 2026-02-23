@@ -15,6 +15,7 @@
 #include "eon_interpreter.h"
 #include "eon_lexer.h"
 #include "eon_parser.h"
+#include "eon_semantics.h"
 
 int
 main(const int argc, const char* argv[])
@@ -91,6 +92,25 @@ main(const int argc, const char* argv[])
             parse_end_timestamp - parse_start_timestamp);
 #endif
 
+    Arena* semantics_scopes_arena = arena_create("semantics-lexical-scopes", GiB(1), MiB(1));
+
+#if LOG_TIMINGS
+    const Timestamp semantic_analysis_start_timestamp = platform_get_current_monotonic_timestamp();
+#endif
+
+    if (!create_lexical_scopes_and_infer_types(semantics_scopes_arena, &ast))
+    {
+        println("Failed to semantically analyse file {}", filename);
+        return EXIT_FAILURE;
+    }
+
+#if LOG_TIMINGS
+    const Timestamp semantic_analysis_end_timestamp = platform_get_current_monotonic_timestamp();
+    println("File {} semantically analysed in {} mcs",
+            filename,
+            semantic_analysis_end_timestamp - semantic_analysis_start_timestamp);
+#endif
+
     Arena* scopes_arena = arena_create("interpreter-lexical-scopes", GiB(1), MiB(1));
 
     // TODO(vlad): Add type system.
@@ -142,6 +162,7 @@ main(const int argc, const char* argv[])
     arena_destroy(result_arena);
     arena_destroy(runtime_arena);
     arena_destroy(scopes_arena);
+    arena_destroy(semantics_scopes_arena);
     arena_destroy(scratch_arena);
     arena_destroy(errors_arena);
     arena_destroy(main_arena);
@@ -157,3 +178,4 @@ main(const int argc, const char* argv[])
 #include "eon_interpreter.c"
 #include "eon_lexer.c"
 #include "eon_parser.c"
+#include "eon_semantics.c"

@@ -261,6 +261,13 @@ get_inferred_type(Ast* ast,
 
             if (variable == NULL)
             {
+                // TODO(vlad): Remove this ad-hoc handling of the 'print' function.
+                if (strings_are_equal(expression->identifier.token.lexeme, string_view("print")))
+                {
+                    result.type = AST_TYPE_FUNCTION;
+                    return result;
+                }
+
                 const Ast_Function_Definition* function = find_function(ast, expression->identifier.token.lexeme);
                 if (function == NULL)
                 {
@@ -564,26 +571,36 @@ analyse_lexical_scope_and_infer_types_in_statements(Arena* lexical_scopes_arena,
                     FAIL("Failed to call expression: its type is not callable");
                 }
 
-                const Ast_Function_Arguments* expected_arguments = &called_expression_type.arguments;
-                if (expected_arguments->arguments_count != call->arguments_count)
+                if (call->called_expression->type == AST_EXPRESSION_IDENTIFIER
+                    && strings_are_equal(call->called_expression->identifier.token.lexeme,
+                                         string_view("print")))
                 {
-                    FAIL("Failed to call expression: wrong number of arguments provided");
+                    // NOTE(vlad): Ignore type checks for 'print' function.
+                    // TODO(vlad): Add these checks when we will support function overloading.
                 }
-
-                for (Index argument_index = 0;
-                     argument_index < expected_arguments->arguments_count;
-                     ++argument_index)
+                else
                 {
-                    const Ast_Variable_Definition* expected_argument = &expected_arguments->arguments[argument_index];
-                    const Ast_Expression* actual_argument = call->arguments[argument_index];
-
-                    const Ast_Type actual_argument_type = get_inferred_type(ast,
-                                                                            current_scope_index,
-                                                                            actual_argument);
-
-                    if (!types_are_equal(expected_argument->type, &actual_argument_type))
+                    const Ast_Function_Arguments* expected_arguments = &called_expression_type.arguments;
+                    if (expected_arguments->arguments_count != call->arguments_count)
                     {
-                        FAIL("Failed to call expression: argument of a wrong type provided");
+                        FAIL("Failed to call expression: wrong number of arguments provided");
+                    }
+
+                    for (Index argument_index = 0;
+                         argument_index < expected_arguments->arguments_count;
+                         ++argument_index)
+                    {
+                        const Ast_Variable_Definition* expected_argument = &expected_arguments->arguments[argument_index];
+                        const Ast_Expression* actual_argument = call->arguments[argument_index];
+
+                        const Ast_Type actual_argument_type = get_inferred_type(ast,
+                                                                                current_scope_index,
+                                                                                actual_argument);
+
+                        if (!types_are_equal(expected_argument->type, &actual_argument_type))
+                        {
+                            FAIL("Failed to call expression: argument of a wrong type provided");
+                        }
                     }
                 }
             } break;

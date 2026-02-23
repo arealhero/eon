@@ -49,7 +49,7 @@ get_current_lexical_scope(Interpreter* interpreter)
 }
 
 internal Interpreter_Variable*
-find_variable(Interpreter* interpreter, const String_View variable_name)
+interpreter_find_variable(Interpreter* interpreter, const String_View variable_name)
 {
     for (const Interpreter_Lexical_Scope* scope = get_current_lexical_scope(interpreter);
          scope->parent_scope_index != -1;
@@ -122,8 +122,8 @@ execute_expression(Arena* runtime_arena,
             const Ast_Identifier* identifier = &expression->identifier;
 
             // TODO(vlad): Support other entities like functions, types (?) and so on.
-            const Interpreter_Variable* variable = find_variable(interpreter,
-                                                                 identifier->token.lexeme);
+            const Interpreter_Variable* variable = interpreter_find_variable(interpreter,
+                                                                             identifier->token.lexeme);
 
             if (variable == NULL)
             {
@@ -621,7 +621,7 @@ set_new_value_for_the_variable(Interpreter* interpreter,
                                const Ast_Identifier* identifier,
                                const Interpreter_Expression_Result* new_value)
 {
-    Interpreter_Variable* variable = find_variable(interpreter, identifier->token.lexeme);
+    Interpreter_Variable* variable = interpreter_find_variable(interpreter, identifier->token.lexeme);
 
     if (variable == NULL)
     {

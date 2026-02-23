@@ -1,6 +1,7 @@
 #include <eon/unit_test.h>
 
 #include "eon_interpreter.h"
+#include "eon_semantics.h"
 
 internal Bool
 assert_that_there_are_no_errors(Test_Context* context,
@@ -45,6 +46,8 @@ test_simple_programs(Test_Context* context)
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
+        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
+
         Interpreter interpreter = {0};
         interpreter_create(&interpreter, context->arena);
 
@@ -80,6 +83,8 @@ test_simple_programs(Test_Context* context)
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
+
+        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
 
         Interpreter interpreter = {0};
         interpreter_create(&interpreter, context->arena);
@@ -117,6 +122,8 @@ test_simple_programs(Test_Context* context)
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
+        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
+
         Interpreter interpreter = {0};
         interpreter_create(&interpreter, context->arena);
 
@@ -153,6 +160,8 @@ test_simple_programs(Test_Context* context)
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
+
+        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
 
         Interpreter interpreter = {0};
         interpreter_create(&interpreter, context->arena);
@@ -192,6 +201,8 @@ test_simple_programs(Test_Context* context)
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
+        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
+
         Interpreter interpreter = {0};
         interpreter_create(&interpreter, context->arena);
 
@@ -229,6 +240,8 @@ test_simple_programs(Test_Context* context)
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
+        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
+
         Interpreter interpreter = {0};
         interpreter_create(&interpreter, context->arena);
 
@@ -265,6 +278,8 @@ test_simple_programs(Test_Context* context)
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
+        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
+
         Interpreter interpreter = {0};
         interpreter_create(&interpreter, context->arena);
 
@@ -295,7 +310,7 @@ test_simple_programs(Test_Context* context)
 
     {
         const String_View input = string_view("main: () -> Int32 = {"
-                                              "    if 1 { return 1; }"
+                                              "    if 2 + 2 == 4 { return 1; }"
                                               "    else { return 2; }"
                                               "}");
 
@@ -308,6 +323,8 @@ test_simple_programs(Test_Context* context)
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
+
+        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
 
         Interpreter interpreter = {0};
         interpreter_create(&interpreter, context->arena);
@@ -346,6 +363,8 @@ test_simple_programs(Test_Context* context)
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
+        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
+
         Interpreter interpreter = {0};
         interpreter_create(&interpreter, context->arena);
 
@@ -383,6 +402,8 @@ test_simple_programs(Test_Context* context)
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
+        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
+
         Interpreter interpreter = {0};
         interpreter_create(&interpreter, context->arena);
 
@@ -408,7 +429,7 @@ test_simple_programs(Test_Context* context)
     {
         const String_View input = string_view("main: () -> Int32 = {"
                                               "    a := 10;"
-                                              "    if 1 {"
+                                              "    if 2 + 2 == 4 {"
                                               "        a := 20;"
                                               "        return a;"
                                               "    }"
@@ -423,6 +444,8 @@ test_simple_programs(Test_Context* context)
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
+
+        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
 
         Interpreter interpreter = {0};
         interpreter_create(&interpreter, context->arena);
@@ -464,6 +487,8 @@ test_simple_programs(Test_Context* context)
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
+        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
+
         Interpreter interpreter = {0};
         interpreter_create(&interpreter, context->arena);
 
@@ -504,6 +529,8 @@ test_simple_programs(Test_Context* context)
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
+
+        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
 
         Interpreter interpreter = {0};
         interpreter_create(&interpreter, context->arena);
@@ -549,6 +576,8 @@ test_simple_programs(Test_Context* context)
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
+
+        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
 
         Interpreter interpreter = {0};
         interpreter_create(&interpreter, context->arena);
@@ -600,6 +629,8 @@ test_type_system(Test_Context* context)
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
+        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
+
         Interpreter interpreter = {0};
         interpreter_create(&interpreter, context->arena);
 
@@ -638,6 +669,8 @@ test_type_system(Test_Context* context)
         Ast ast = {0};
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
+
+        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
 
         Interpreter interpreter = {0};
         interpreter_create(&interpreter, context->arena);
@@ -680,8 +713,8 @@ test_comparisons(Test_Context* context)
     // NOTE(vlad): Testing basic cases.
     {
         {
-            const String_View input = string_view("main: () -> Float32 = {"
-                                                  "    return 0 == 0;"
+            const String_View input = string_view("main: () -> Int32 = {"
+                                                  "    if 0 == 0 { return 1; } else { return 0; }"
                                                   "}");
 
             Lexer lexer = {0};
@@ -693,6 +726,8 @@ test_comparisons(Test_Context* context)
             Ast ast = {0};
             ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
+
+            ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
 
             Interpreter interpreter = {0};
             interpreter_create(&interpreter, context->arena);
@@ -719,8 +754,8 @@ test_comparisons(Test_Context* context)
         }
 
         {
-            const String_View input = string_view("main: () -> Float32 = {"
-                                                  "    return 0 != 0;"
+            const String_View input = string_view("main: () -> Int32 = {"
+                                                  "    if 0 != 0 { return 1; } else { return 0; }"
                                                   "}");
 
             Lexer lexer = {0};
@@ -732,6 +767,8 @@ test_comparisons(Test_Context* context)
             Ast ast = {0};
             ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
+
+            ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
 
             Interpreter interpreter = {0};
             interpreter_create(&interpreter, context->arena);
@@ -758,8 +795,8 @@ test_comparisons(Test_Context* context)
         }
 
         {
-            const String_View input = string_view("main: () -> Float32 = {"
-                                                  "    return 0 > 0;"
+            const String_View input = string_view("main: () -> Int32 = {"
+                                                  "    if 0 > 0 { return 1; } else { return 0; }"
                                                   "}");
 
             Lexer lexer = {0};
@@ -771,6 +808,8 @@ test_comparisons(Test_Context* context)
             Ast ast = {0};
             ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
+
+            ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
 
             Interpreter interpreter = {0};
             interpreter_create(&interpreter, context->arena);
@@ -797,8 +836,8 @@ test_comparisons(Test_Context* context)
         }
 
         {
-            const String_View input = string_view("main: () -> Float32 = {"
-                                                  "    return 0 >= 0;"
+            const String_View input = string_view("main: () -> Int32 = {"
+                                                  "    if 0 >= 0 { return 1; } else { return 0; }"
                                                   "}");
 
             Lexer lexer = {0};
@@ -810,6 +849,8 @@ test_comparisons(Test_Context* context)
             Ast ast = {0};
             ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
+
+            ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
 
             Interpreter interpreter = {0};
             interpreter_create(&interpreter, context->arena);
@@ -836,8 +877,8 @@ test_comparisons(Test_Context* context)
         }
 
         {
-            const String_View input = string_view("main: () -> Float32 = {"
-                                                  "    return 0 < 0;"
+            const String_View input = string_view("main: () -> Int32 = {"
+                                                  "    if 0 < 0 { return 1; } else { return 0; }"
                                                   "}");
 
             Lexer lexer = {0};
@@ -849,6 +890,8 @@ test_comparisons(Test_Context* context)
             Ast ast = {0};
             ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
+
+            ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
 
             Interpreter interpreter = {0};
             interpreter_create(&interpreter, context->arena);
@@ -875,8 +918,8 @@ test_comparisons(Test_Context* context)
         }
 
         {
-            const String_View input = string_view("main: () -> Float32 = {"
-                                                  "    return 0 <= 0;"
+            const String_View input = string_view("main: () -> Int32 = {"
+                                                  "    if 0 <= 0 { return 1; } else { return 0; }"
                                                   "}");
 
             Lexer lexer = {0};
@@ -888,6 +931,8 @@ test_comparisons(Test_Context* context)
             Ast ast = {0};
             ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
+
+            ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
 
             Interpreter interpreter = {0};
             interpreter_create(&interpreter, context->arena);
@@ -917,8 +962,8 @@ test_comparisons(Test_Context* context)
     // NOTE(vlad): Testing various other cases.
     {
         {
-            const String_View input = string_view("main: () -> Float32 = {"
-                                                  "    return 0 != 1;"
+            const String_View input = string_view("main: () -> Int32 = {"
+                                                  "    if 0 != 1 { return 1; } else { return 0; }"
                                                   "}");
 
             Lexer lexer = {0};
@@ -930,6 +975,8 @@ test_comparisons(Test_Context* context)
             Ast ast = {0};
             ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
+
+            ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
 
             Interpreter interpreter = {0};
             interpreter_create(&interpreter, context->arena);
@@ -979,6 +1026,8 @@ test_compile_time_errors(Test_Context* context)
         ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
+        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
+
         Interpreter interpreter = {0};
         interpreter_create(&interpreter, context->arena);
 
@@ -1007,7 +1056,8 @@ REGISTER_TESTS(
     test_compile_time_errors
 )
 
-#include "eon_interpreter.c"
 #include "eon_errors.c"
+#include "eon_interpreter.c"
 #include "eon_lexer.c"
 #include "eon_parser.c"
+#include "eon_semantics.c"
