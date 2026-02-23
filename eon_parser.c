@@ -266,7 +266,7 @@ parse_type(Arena* parser_arena,
 internal Bool
 parse_argument_declaration(Arena* parser_arena,
                            Parser* parser,
-                           Ast_Function_Argument* argument)
+                           Ast_Variable_Definition* argument)
 {
     if (!parse_identifier(parser, &argument->name))
     {
@@ -279,6 +279,7 @@ parse_argument_declaration(Arena* parser_arena,
     }
 
     argument->type = allocate(parser_arena, Ast_Type);
+    argument->initialisation_type = AST_INITIALISATION_ARGUMENT;
     return parse_type(parser_arena, parser, argument->type);
 }
 
@@ -289,7 +290,7 @@ parse_arguments_declaration(Arena* parser_arena,
 {
     while (true)
     {
-        Ast_Function_Argument argument = {0};
+        Ast_Variable_Definition argument = {0};
         if (!parse_argument_declaration(parser_arena, parser, &argument))
         {
             return false;
@@ -301,7 +302,7 @@ parse_arguments_declaration(Arena* parser_arena,
             const Size new_capacity = MAX(1, 2 * arguments->arguments_capacity);
             arguments->arguments = reallocate(parser_arena,
                                               arguments->arguments,
-                                              Ast_Function_Argument,
+                                              Ast_Variable_Definition,
                                               arguments->arguments_capacity,
                                               new_capacity);
             arguments->arguments_capacity = new_capacity;

@@ -7,6 +7,7 @@
 #include "eon_lexer.h"
 #include "eon_errors.h"
 
+// FIXME(vlad): Move AST-related structs to 'eon_ast.h'.
 struct Ast_Identifier
 {
     Token token;
@@ -31,6 +32,7 @@ enum Ast_Type_Type
     AST_TYPE_UNDEFINED = 0,
 
     AST_TYPE_UNSPECIFIED,
+
     AST_TYPE_USER_DEFINED,
 
     AST_TYPE_FUNCTION,
@@ -39,6 +41,7 @@ enum Ast_Type_Type
 
     // NOTE(vlad): Reserved types.
     AST_TYPE_VOID,
+    AST_TYPE_BOOL, // TODO(vlad): Add Bool32.
     AST_TYPE_INT_32,
     AST_TYPE_FLOAT_32,
     // TODO(vlad): Add other integers: AST_TYPE_INT_8, etc.
@@ -50,16 +53,9 @@ typedef enum Ast_Type_Type Ast_Type_Type;
 
 struct Ast_Type;
 
-struct Ast_Function_Argument
-{
-    Ast_Identifier name;
-    struct Ast_Type* type;
-};
-typedef struct Ast_Function_Argument Ast_Function_Argument;
-
 struct Ast_Function_Arguments
 {
-    Ast_Function_Argument* arguments;
+    struct Ast_Variable_Definition* arguments;
     Size arguments_count;
     Size arguments_capacity;
 };
@@ -74,6 +70,8 @@ typedef enum Ast_Qualifiers Ast_Qualifiers;
 
 struct Ast_Type
 {
+    // TODO(vlad): Add 'lexical_scope_index'?
+
     Ast_Qualifiers qualifiers;
     Ast_Type_Type type;
     union
@@ -99,6 +97,8 @@ struct Ast_Type
 
         // NOTE(vlad): Trivial types (VOID, INT_32, etc) have no data.
     };
+
+    // TODO(vlad): Add optional inference information.
 };
 typedef struct Ast_Type Ast_Type;
 
@@ -169,11 +169,30 @@ struct Ast_Expression
 };
 typedef struct Ast_Expression Ast_Expression;
 
+// NOTE(vlad): Lexical scopes; will be filled in during semantic analysis.
+enum { LAST_LEXICAL_SCOPE_INDEX = 0, };
+
+struct Ast_Variable_Definition;
+
+struct Lexical_Scope
+{
+    Index parent_scope_index;
+
+    struct Ast_Variable_Definition** variables;
+    Size variables_count;
+    Size variables_capacity;
+
+    Ast_Type required_return_type;
+};
+typedef struct Lexical_Scope Lexical_Scope;
+
 // NOTE(vlad): Statements.
 struct Ast_Statement;
 
 struct Ast_Statements
 {
+    Index lexical_scope_index;
+
     struct Ast_Statement* statements;
     Size statements_count;
     Size statements_capacity;
@@ -199,6 +218,9 @@ enum Ast_Initialisation_Type
 
     AST_INITIALISATION_DEFAULT,
     AST_INITIALISATION_WITH_VALUE,
+
+    // XXX(vlad): Can we do better than this?
+    AST_INITIALISATION_ARGUMENT,
 };
 typedef enum Ast_Initialisation_Type Ast_Initialisation_Type;
 
@@ -237,7 +259,7 @@ typedef struct Ast_If_Statement Ast_If_Statement;
 struct Ast_While_Statement
 {
     Ast_Expression condition;
-    Ast_Statements statements;
+    Ast_Statements statements; // TODO(vlad): Rename to 'body'?
 };
 typedef struct Ast_While_Statement Ast_While_Statement;
 
@@ -276,6 +298,10 @@ struct Ast
     Ast_Function_Definition* function_definitions;
     Size function_definitions_count;
     Size function_definitions_capacity;
+
+    Lexical_Scope* lexical_scopes;
+    Size lexical_scopes_count;
+    Size lexical_scopes_capacity;
 };
 typedef struct Ast Ast;
 
@@ -288,11 +314,15 @@ typedef struct Builtin_Type Builtin_Type;
 
 struct Parser
 {
+    // TODO(vlad): Move this to AST.
     Errors* errors;
 
     Lexer* lexer;
     Token current_token;
 
+    // TODO(vlad): Move this to AST and point variables' type here instead of creating a new type every time.
+    //             Also create something like 'unresolved_types' to be able to iterate over them and resolve
+    //             them in 'eon_semantics.h'.
     Builtin_Type* builtin_types;
     Size builtin_types_count;
 };

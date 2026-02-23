@@ -205,6 +205,14 @@ registry_register_test(Arena* arena,
                       __FILE__,                 \
                       __LINE__)
 
+#define ASSERT_NOT_EQUAL(actual, expected)      \
+    ASSERT_EQUAL_IMPL((actual) != (expected),   \
+                      actual,                   \
+                      expected,                 \
+                      DEFAULT_COMMENT,          \
+                      __FILE__,                 \
+                      __LINE__)
+
 #define ASSERT_BOOLS_ARE_EQUAL(actual, expected)        \
     ASSERT_EQUAL_IMPL((actual) == (expected),           \
                       BOOL_TO_STRING(actual),           \

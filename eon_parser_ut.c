@@ -104,12 +104,14 @@ test_function_definitions_parsing(Test_Context* context)
         const Ast_Function_Arguments* arguments = &function_type->arguments;
         ASSERT_EQUAL(arguments->arguments_count, 1);
 
-        const Ast_Function_Argument* argument = &arguments->arguments[0];
+        const Ast_Variable_Definition* argument = &arguments->arguments[0];
         ASSERT_STRINGS_ARE_EQUAL(argument->name.token.lexeme, "argument");
 
         const Ast_Type* argument_type = argument->type;
         ASSERT_EQUAL(argument_type->type, AST_TYPE_INT_32);
         ASSERT_EQUAL(argument_type->qualifiers, AST_QUALIFIER_NONE);
+
+        ASSERT_EQUAL(argument->initialisation_type, AST_INITIALISATION_ARGUMENT);
 
         const Ast_Type* return_type = function_type->return_type;
         ASSERT_EQUAL(return_type->type, AST_TYPE_VOID);
@@ -225,22 +227,26 @@ test_function_definitions_parsing(Test_Context* context)
         ASSERT_EQUAL(arguments->arguments_count, 2);
 
         {
-            const Ast_Function_Argument* first_argument = &arguments->arguments[0];
+            const Ast_Variable_Definition* first_argument = &arguments->arguments[0];
             ASSERT_STRINGS_ARE_EQUAL(first_argument->name.token.lexeme, "first");
 
             const Ast_Type* first_argument_type = first_argument->type;
             ASSERT_EQUAL(first_argument_type->type, AST_TYPE_INT_32);
             ASSERT_EQUAL(first_argument_type->qualifiers, AST_QUALIFIER_NONE);
+
+            ASSERT_EQUAL(first_argument->initialisation_type, AST_INITIALISATION_ARGUMENT);
         }
 
         {
-            const Ast_Function_Argument* second_argument = &arguments->arguments[1];
+            const Ast_Variable_Definition* second_argument = &arguments->arguments[1];
             ASSERT_STRINGS_ARE_EQUAL(second_argument->name.token.lexeme, "second");
 
             const Ast_Type* second_argument_type = second_argument->type;
             ASSERT_EQUAL(second_argument_type->type, AST_TYPE_USER_DEFINED);
             ASSERT_EQUAL(second_argument_type->qualifiers, AST_QUALIFIER_NONE);
             ASSERT_STRINGS_ARE_EQUAL(second_argument_type->name.token.lexeme, "Some_Type");
+
+            ASSERT_EQUAL(second_argument->initialisation_type, AST_INITIALISATION_ARGUMENT);
         }
 
         const Ast_Type* return_type = function_type->return_type;
@@ -377,22 +383,26 @@ test_function_definitions_parsing(Test_Context* context)
             ASSERT_EQUAL(arguments->arguments_count, 2);
 
             {
-                const Ast_Function_Argument* first_argument = &arguments->arguments[0];
+                const Ast_Variable_Definition* first_argument = &arguments->arguments[0];
                 ASSERT_STRINGS_ARE_EQUAL(first_argument->name.token.lexeme, "first");
 
                 const Ast_Type* first_argument_type = first_argument->type;
                 ASSERT_EQUAL(first_argument_type->type, AST_TYPE_INT_32);
                 ASSERT_EQUAL(first_argument_type->qualifiers, AST_QUALIFIER_MUTABLE);
+
+                ASSERT_EQUAL(first_argument->initialisation_type, AST_INITIALISATION_ARGUMENT);
             }
 
             {
-                const Ast_Function_Argument* second_argument = &arguments->arguments[1];
+                const Ast_Variable_Definition* second_argument = &arguments->arguments[1];
                 ASSERT_STRINGS_ARE_EQUAL(second_argument->name.token.lexeme, "second");
 
                 const Ast_Type* second_argument_type = second_argument->type;
                 ASSERT_EQUAL(second_argument_type->type, AST_TYPE_USER_DEFINED);
                 ASSERT_EQUAL(second_argument_type->qualifiers, AST_QUALIFIER_NONE);
                 ASSERT_STRINGS_ARE_EQUAL(second_argument_type->name.token.lexeme, "Some_Type");
+
+                ASSERT_EQUAL(second_argument->initialisation_type, AST_INITIALISATION_ARGUMENT);
             }
 
             const Ast_Type* return_type = function_type->return_type;
@@ -431,22 +441,26 @@ test_function_definitions_parsing(Test_Context* context)
             ASSERT_EQUAL(arguments->arguments_count, 2);
 
             {
-                const Ast_Function_Argument* first_argument = &arguments->arguments[0];
+                const Ast_Variable_Definition* first_argument = &arguments->arguments[0];
                 ASSERT_STRINGS_ARE_EQUAL(first_argument->name.token.lexeme, "first");
 
                 const Ast_Type* first_argument_type = first_argument->type;
                 ASSERT_EQUAL(first_argument_type->type, AST_TYPE_INT_32);
                 ASSERT_EQUAL(first_argument_type->qualifiers, AST_QUALIFIER_NONE);
+
+                ASSERT_EQUAL(first_argument->initialisation_type, AST_INITIALISATION_ARGUMENT);
             }
 
             {
-                const Ast_Function_Argument* second_argument = &arguments->arguments[1];
+                const Ast_Variable_Definition* second_argument = &arguments->arguments[1];
                 ASSERT_STRINGS_ARE_EQUAL(second_argument->name.token.lexeme, "second");
 
                 const Ast_Type* second_argument_type = second_argument->type;
                 ASSERT_EQUAL(second_argument_type->type, AST_TYPE_USER_DEFINED);
                 ASSERT_EQUAL(second_argument_type->qualifiers, AST_QUALIFIER_MUTABLE);
                 ASSERT_STRINGS_ARE_EQUAL(second_argument_type->name.token.lexeme, "Some_Type");
+
+                ASSERT_EQUAL(second_argument->initialisation_type, AST_INITIALISATION_ARGUMENT);
             }
 
             const Ast_Type* return_type = function_type->return_type;
@@ -485,22 +499,26 @@ test_function_definitions_parsing(Test_Context* context)
             ASSERT_EQUAL(arguments->arguments_count, 2);
 
             {
-                const Ast_Function_Argument* first_argument = &arguments->arguments[0];
+                const Ast_Variable_Definition* first_argument = &arguments->arguments[0];
                 ASSERT_STRINGS_ARE_EQUAL(first_argument->name.token.lexeme, "first");
 
                 const Ast_Type* first_argument_type = first_argument->type;
                 ASSERT_EQUAL(first_argument_type->type, AST_TYPE_INT_32);
                 ASSERT_EQUAL(first_argument_type->qualifiers, AST_QUALIFIER_MUTABLE);
+
+                ASSERT_EQUAL(first_argument->initialisation_type, AST_INITIALISATION_ARGUMENT);
             }
 
             {
-                const Ast_Function_Argument* second_argument = &arguments->arguments[1];
+                const Ast_Variable_Definition* second_argument = &arguments->arguments[1];
                 ASSERT_STRINGS_ARE_EQUAL(second_argument->name.token.lexeme, "second");
 
                 const Ast_Type* second_argument_type = second_argument->type;
                 ASSERT_EQUAL(second_argument_type->type, AST_TYPE_USER_DEFINED);
                 ASSERT_EQUAL(second_argument_type->qualifiers, AST_QUALIFIER_MUTABLE);
                 ASSERT_STRINGS_ARE_EQUAL(second_argument_type->name.token.lexeme, "Some_Type");
+
+                ASSERT_EQUAL(second_argument->initialisation_type, AST_INITIALISATION_ARGUMENT);
             }
 
             const Ast_Type* return_type = function_type->return_type;

@@ -894,18 +894,14 @@ interpreter_execute_function(Arena* runtime_arena,
          argument_index < arguments_count;
          ++argument_index)
     {
-        const Ast_Function_Argument* argument = &function_definition->type->arguments.arguments[argument_index];
+        Ast_Variable_Definition argument = function_definition->type->arguments.arguments[argument_index];
 
-        // TODO(vlad): Stop using Ast structure here.
-        Ast_Variable_Definition definition = {0};
-        definition.name = argument->name;
-        definition.type = argument->type;
-        definition.initialisation_type = AST_INITIALISATION_DEFAULT;
-
+        // TODO(vlad): Remove this and pass argument directly.
+        argument.initialisation_type = AST_INITIALISATION_DEFAULT;
         Interpreter_Variable* variable = interpreter_add_variable_to_current_lexical_scope(runtime_arena,
                                                                                            interpreter,
                                                                                            ast,
-                                                                                           &definition);
+                                                                                           &argument);
         set_value_for_the_variable(variable, &call_info->arguments[argument_index]);
     }
 
