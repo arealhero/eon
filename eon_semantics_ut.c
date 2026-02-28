@@ -569,6 +569,132 @@ test_type_inference(Test_Context* context)
 
             clear_errors(&errors);
         }
+
+        {
+            const String_View input = string_view("foo: () -> void = {"
+                                                  "    a := -10;"
+                                                  "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            lexer_create(&lexer, string_view("<input>"), input);
+            parser_create(&parser, context->arena, &lexer, &errors);
+
+            Ast ast = {0};
+            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_EQUAL(errors.errors_count, 0);
+
+            ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* function_definition = &ast.function_definitions[0];
+            ASSERT_EQUAL(function_definition->statements.lexical_scope_index, LAST_LEXICAL_SCOPE_INDEX);
+
+            ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
+
+            const Index function_scope_index = function_definition->statements.lexical_scope_index;
+            ASSERT_NOT_EQUAL(function_scope_index, LAST_LEXICAL_SCOPE_INDEX);
+
+            const Lexical_Scope* scope = &ast.lexical_scopes[function_scope_index];
+            ASSERT_EQUAL(scope->parent_scope_index, GLOBAL_SCOPE_INDEX);
+            ASSERT_EQUAL(scope->variables_count, 1);
+
+            {
+                const Ast_Variable_Definition* variable = scope->variables[0];
+                ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
+            }
+
+            parser_destroy(&parser);
+            lexer_destroy(&lexer);
+
+            clear_errors(&errors);
+        }
+
+        {
+            const String_View input = string_view("foo: () -> void = {"
+                                                  "    a := -(10 + 3);"
+                                                  "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            lexer_create(&lexer, string_view("<input>"), input);
+            parser_create(&parser, context->arena, &lexer, &errors);
+
+            Ast ast = {0};
+            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_EQUAL(errors.errors_count, 0);
+
+            ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* function_definition = &ast.function_definitions[0];
+            ASSERT_EQUAL(function_definition->statements.lexical_scope_index, LAST_LEXICAL_SCOPE_INDEX);
+
+            ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
+
+            const Index function_scope_index = function_definition->statements.lexical_scope_index;
+            ASSERT_NOT_EQUAL(function_scope_index, LAST_LEXICAL_SCOPE_INDEX);
+
+            const Lexical_Scope* scope = &ast.lexical_scopes[function_scope_index];
+            ASSERT_EQUAL(scope->parent_scope_index, GLOBAL_SCOPE_INDEX);
+            ASSERT_EQUAL(scope->variables_count, 1);
+
+            {
+                const Ast_Variable_Definition* variable = scope->variables[0];
+                ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
+            }
+
+            parser_destroy(&parser);
+            lexer_destroy(&lexer);
+
+            clear_errors(&errors);
+        }
+
+        {
+            const String_View input = string_view("foo: () -> void = {"
+                                                  "    a := -10 + 3;"
+                                                  "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            lexer_create(&lexer, string_view("<input>"), input);
+            parser_create(&parser, context->arena, &lexer, &errors);
+
+            Ast ast = {0};
+            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_EQUAL(errors.errors_count, 0);
+
+            ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* function_definition = &ast.function_definitions[0];
+            ASSERT_EQUAL(function_definition->statements.lexical_scope_index, LAST_LEXICAL_SCOPE_INDEX);
+
+            ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
+
+            const Index function_scope_index = function_definition->statements.lexical_scope_index;
+            ASSERT_NOT_EQUAL(function_scope_index, LAST_LEXICAL_SCOPE_INDEX);
+
+            const Lexical_Scope* scope = &ast.lexical_scopes[function_scope_index];
+            ASSERT_EQUAL(scope->parent_scope_index, GLOBAL_SCOPE_INDEX);
+            ASSERT_EQUAL(scope->variables_count, 1);
+
+            {
+                const Ast_Variable_Definition* variable = scope->variables[0];
+                ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
+            }
+
+            parser_destroy(&parser);
+            lexer_destroy(&lexer);
+
+            clear_errors(&errors);
+        }
     }
 
     // NOTE(vlad): Testing type inference in call statements and expressions.

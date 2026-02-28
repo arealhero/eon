@@ -536,11 +536,44 @@ parse_call_expression(Arena* parser_arena, Parser* parser, Ast_Expression* expre
 }
 
 internal Bool
+parse_unary_expression(Arena* parser_arena, Parser* parser, Ast_Expression* expression)
+{
+    if (!parser_get_next_token(parser))
+    {
+        return false;
+    }
+
+    if (parser->current_token.type == TOKEN_MINUS)
+    {
+        const Token operator = parser->current_token;
+        parser_consume_token(parser);
+
+        Ast_Expression* operand = allocate(parser_arena, Ast_Expression);
+        if (!parse_unary_expression(parser_arena, parser, operand))
+        {
+            return false;
+        }
+
+        expression->type = AST_EXPRESSION_NEGATE;
+        expression->unary_expression.operator = operator;
+        expression->unary_expression.operand = operand;
+        return true;
+    }
+
+    if (!parse_call_expression(parser_arena, parser, expression))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+internal Bool
 parse_multiplicative_expression(Arena* parser_arena, Parser* parser, Ast_Expression* expression)
 {
     // TODO(vlad): Use 'expression' here, otherwise we would overallocate.
     Ast_Expression* lhs = allocate(parser_arena, Ast_Expression);
-    if (!parse_call_expression(parser_arena, parser, lhs))
+    if (!parse_unary_expression(parser_arena, parser, lhs))
     {
         return false;
     }

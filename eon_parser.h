@@ -129,11 +129,21 @@ enum Ast_Expression_Type
     AST_EXPRESSION_GREATER,
     AST_EXPRESSION_GREATER_OR_EQUAL,
 
+    // NOTE(vlad): Unary expressions.
+    AST_EXPRESSION_NEGATE,
+
     AST_EXPRESSION_CALL,
 };
 typedef enum Ast_Expression_Type Ast_Expression_Type;
 
 struct Ast_Expression;
+
+struct Ast_Unary_Expression
+{
+    Token operator;
+    struct Ast_Expression* operand;
+};
+typedef struct Ast_Unary_Expression Ast_Unary_Expression;
 
 struct Ast_Binary_Expression
 {
@@ -162,6 +172,7 @@ struct Ast_Expression
         Ast_String_Literal string_literal;
         Ast_Identifier identifier;
 
+        Ast_Unary_Expression unary_expression;
         Ast_Binary_Expression binary_expression;
 
         Ast_Call call;

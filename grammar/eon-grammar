@@ -85,10 +85,13 @@ optional_additive_expression_tail: EPS
                                  | "+" additive_expression
                                  | "-" additive_expression;
 
-multiplicative_expression: call_expression optional_multiplicative_expression_tail;
+multiplicative_expression: unary_expression optional_multiplicative_expression_tail;
 optional_multiplicative_expression_tail: EPS
                                        | "*" multiplicative_expression
                                        | "/" multiplicative_expression;
+
+unary_expression: optional_unary_expression_head call_expression ;
+optional_unary_expression_head: EPS | "-" unary_expression;
 
 call_expression: primary_expression optional_call_expression_tail;
 optional_call_expression_tail: EPS

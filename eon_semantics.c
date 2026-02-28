@@ -330,6 +330,17 @@ get_inferred_type(Ast* ast,
             result.type = AST_TYPE_BOOL;
         } break;
 
+        case AST_EXPRESSION_NEGATE:
+        {
+            const Ast_Unary_Expression* unary_expression = &expression->unary_expression;
+
+            const Ast_Type operand_type = get_inferred_type(ast, current_scope_index, unary_expression->operand);
+
+            // TODO(vlad): Test that the operand type can be negated.
+
+            result = operand_type;
+        } break;
+
         case AST_EXPRESSION_CALL:
         {
             // TODO(vlad): Remove code duplication (see 'AST_STATEMENT_CALL' below).

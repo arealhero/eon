@@ -2582,6 +2582,65 @@ test_expressions(Test_Context* context)
             clear_errors(&errors);
         }
     }
+
+    // NOTE(vlad): Testing unary expressions.
+    {
+        {
+            const String_View input = string_view("foo: () -> void = {"
+                                                  "    var := -1;"
+                                                  "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            lexer_create(&lexer, string_view("<input>"), input);
+            parser_create(&parser, context->arena, &lexer, &errors);
+
+            Ast ast = {0};
+            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_EQUAL(errors.errors_count, 0);
+
+            ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* function_definition = &ast.function_definitions[0];
+            ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
+
+            const Ast_Type* function_type = function_definition->type;
+            ASSERT_EQUAL(function_type->type, AST_TYPE_FUNCTION);
+            ASSERT_EQUAL(function_type->qualifiers, AST_QUALIFIER_NONE);
+
+            const Ast_Function_Arguments* arguments = &function_type->arguments;
+            ASSERT_EQUAL(arguments->arguments_count, 0);
+
+            const Ast_Type* return_type = function_type->return_type;
+            ASSERT_EQUAL(return_type->type, AST_TYPE_VOID);
+            ASSERT_EQUAL(return_type->qualifiers, AST_QUALIFIER_NONE);
+
+            ASSERT_EQUAL(function_definition->statements.statements_count, 1);
+
+            const Ast_Statement* statement = &function_definition->statements.statements[0];
+            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+
+            const Ast_Variable_Definition* definition = &statement->variable_definition;
+            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
+            ASSERT_EQUAL(definition->type->type, AST_TYPE_UNSPECIFIED);
+            ASSERT_EQUAL(definition->type->qualifiers, AST_QUALIFIER_NONE);
+            ASSERT_EQUAL(definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
+            ASSERT_EQUAL(definition->initial_value.type, AST_EXPRESSION_NEGATE);
+
+            const Ast_Unary_Expression* unary_expression = &definition->initial_value.unary_expression;
+
+            ASSERT_STRINGS_ARE_EQUAL(unary_expression->operator.lexeme, "-");
+
+            ASSERT_EQUAL(unary_expression->operand->type, AST_EXPRESSION_NUMBER);
+            ASSERT_STRINGS_ARE_EQUAL(unary_expression->operand->number.token.lexeme, "1");
+
+            parser_destroy(&parser);
+            lexer_destroy(&lexer);
+
+            clear_errors(&errors);
+        }
+    }
 }
 
 internal void

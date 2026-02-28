@@ -476,6 +476,38 @@ execute_expression(Arena* runtime_arena,
             return true;
         } break;
 
+        case AST_EXPRESSION_NEGATE:
+        {
+            const Ast_Unary_Expression* unary_expression = &expression->unary_expression;
+
+            Interpreter_Expression_Result operand_result;
+            if (!execute_expression(runtime_arena,
+                                    interpreter,
+                                    ast,
+                                    unary_expression->operand,
+                                    &operand_result))
+            {
+                return false;
+            }
+
+            result->type = operand_result.type;
+
+            if (result->type == AST_TYPE_INT_32)
+            {
+                result->s32_value = -operand_result.s32_value;
+            }
+            else if (result->type == AST_TYPE_FLOAT_32)
+            {
+                result->f32_value = -operand_result.f32_value;
+            }
+            else
+            {
+                UNREACHABLE();
+            }
+
+            return true;
+        } break;
+
         default:
         {
             return false;
