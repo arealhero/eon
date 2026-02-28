@@ -641,7 +641,7 @@ test_simple_programs(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_FLOATS_ARE_EQUAL(result.result.s32_value, -10);
+            ASSERT_EQUAL(result.result.s32_value, -10);
 
             interpreter_destroy(&interpreter);
             parser_destroy(&parser);
@@ -683,7 +683,7 @@ test_simple_programs(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_FLOATS_ARE_EQUAL(result.result.s32_value, -13);
+            ASSERT_EQUAL(result.result.s32_value, -13);
 
             interpreter_destroy(&interpreter);
             parser_destroy(&parser);
@@ -725,7 +725,7 @@ test_simple_programs(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_FLOATS_ARE_EQUAL(result.result.s32_value, -7);
+            ASSERT_EQUAL(result.result.s32_value, -7);
 
             interpreter_destroy(&interpreter);
             parser_destroy(&parser);
@@ -767,7 +767,7 @@ test_simple_programs(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_FLOATS_ARE_EQUAL(result.result.s32_value, 10);
+            ASSERT_EQUAL(result.result.s32_value, 10);
 
             interpreter_destroy(&interpreter);
             parser_destroy(&parser);
@@ -915,7 +915,7 @@ test_comparisons(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_FLOATS_ARE_EQUAL(result.result.s32_value, 1);
+            ASSERT_EQUAL(result.result.s32_value, 1);
 
             interpreter_destroy(&interpreter);
             parser_destroy(&parser);
@@ -956,7 +956,7 @@ test_comparisons(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_FLOATS_ARE_EQUAL(result.result.s32_value, 0);
+            ASSERT_EQUAL(result.result.s32_value, 0);
 
             interpreter_destroy(&interpreter);
             parser_destroy(&parser);
@@ -997,7 +997,7 @@ test_comparisons(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_FLOATS_ARE_EQUAL(result.result.s32_value, 0);
+            ASSERT_EQUAL(result.result.s32_value, 0);
 
             interpreter_destroy(&interpreter);
             parser_destroy(&parser);
@@ -1038,7 +1038,7 @@ test_comparisons(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_FLOATS_ARE_EQUAL(result.result.s32_value, 1);
+            ASSERT_EQUAL(result.result.s32_value, 1);
 
             interpreter_destroy(&interpreter);
             parser_destroy(&parser);
@@ -1079,7 +1079,7 @@ test_comparisons(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_FLOATS_ARE_EQUAL(result.result.s32_value, 0);
+            ASSERT_EQUAL(result.result.s32_value, 0);
 
             interpreter_destroy(&interpreter);
             parser_destroy(&parser);
@@ -1120,7 +1120,7 @@ test_comparisons(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_FLOATS_ARE_EQUAL(result.result.s32_value, 1);
+            ASSERT_EQUAL(result.result.s32_value, 1);
 
             interpreter_destroy(&interpreter);
             parser_destroy(&parser);
@@ -1164,7 +1164,7 @@ test_comparisons(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_FLOATS_ARE_EQUAL(result.result.s32_value, 1);
+            ASSERT_EQUAL(result.result.s32_value, 1);
 
             interpreter_destroy(&interpreter);
             parser_destroy(&parser);
