@@ -484,6 +484,137 @@ test_identifiers(Test_Context* context)
 
         lexer_destroy(&lexer);
     }
+
+    // NOTE(vlad): Testing arrays.
+    {
+        {
+            const String_View input = string_view("arr: [] Int32;");
+
+            Lexer lexer = {0};
+            lexer_create(&lexer, string_view("<input>"), input);
+
+            Token token = {0};
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_IDENTIFIER);
+            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "arr");
+            ASSERT_EQUAL(token.line, 0);
+            ASSERT_EQUAL(token.column, 0);
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_COLON);
+            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, ":");
+            ASSERT_EQUAL(token.line, 0);
+            ASSERT_EQUAL(token.column, 3);
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_LEFT_BRACKET);
+            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "[");
+            ASSERT_EQUAL(token.line, 0);
+            ASSERT_EQUAL(token.column, 5);
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_RIGHT_BRACKET);
+            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "]");
+            ASSERT_EQUAL(token.line, 0);
+            ASSERT_EQUAL(token.column, 6);
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_IDENTIFIER);
+            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "Int32");
+            ASSERT_EQUAL(token.line, 0);
+            ASSERT_EQUAL(token.column, 8);
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_SEMICOLON);
+            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, ";");
+            ASSERT_EQUAL(token.line, 0);
+            ASSERT_EQUAL(token.column, 13);
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_EOF);
+
+            lexer_destroy(&lexer);
+        }
+
+        {
+            const String_View input = string_view("arr: [] [] Int32;");
+
+            Lexer lexer = {0};
+            lexer_create(&lexer, string_view("<input>"), input);
+
+            Token token = {0};
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_IDENTIFIER);
+            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "arr");
+            ASSERT_EQUAL(token.line, 0);
+            ASSERT_EQUAL(token.column, 0);
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_COLON);
+            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, ":");
+            ASSERT_EQUAL(token.line, 0);
+            ASSERT_EQUAL(token.column, 3);
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_LEFT_BRACKET);
+            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "[");
+            ASSERT_EQUAL(token.line, 0);
+            ASSERT_EQUAL(token.column, 5);
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_RIGHT_BRACKET);
+            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "]");
+            ASSERT_EQUAL(token.line, 0);
+            ASSERT_EQUAL(token.column, 6);
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_LEFT_BRACKET);
+            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "[");
+            ASSERT_EQUAL(token.line, 0);
+            ASSERT_EQUAL(token.column, 8);
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_RIGHT_BRACKET);
+            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "]");
+            ASSERT_EQUAL(token.line, 0);
+            ASSERT_EQUAL(token.column, 9);
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_IDENTIFIER);
+            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "Int32");
+            ASSERT_EQUAL(token.line, 0);
+            ASSERT_EQUAL(token.column, 11);
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_SEMICOLON);
+            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, ";");
+            ASSERT_EQUAL(token.line, 0);
+            ASSERT_EQUAL(token.column, 16);
+
+            ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(token.type, TOKEN_EOF);
+
+            lexer_destroy(&lexer);
+        }
+    }
 }
 
 internal void
