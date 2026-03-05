@@ -17,6 +17,7 @@ enum Token_Type
     TOKEN_COLON, TOKEN_SEMICOLON,
 
     TOKEN_NOT,
+    TOKEN_AMPERSAND,
 
     TOKEN_ASSIGN,
 

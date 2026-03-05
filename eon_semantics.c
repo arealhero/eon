@@ -118,6 +118,141 @@ find_function(Ast* ast, const String_View name)
 }
 
 internal Bool
+type_is_fully_inferred(const Ast_Type* type)
+{
+    switch (type->type)
+    {
+        case AST_TYPE_UNDEFINED:
+        {
+            FAIL("Type is undefined");
+        } break;
+
+        case AST_TYPE_UNSPECIFIED:
+        {
+            return false;
+        } break;
+
+        // NOTE(vlad): Trivial types.
+        case AST_TYPE_VOID:
+        case AST_TYPE_BOOL:
+        case AST_TYPE_INT_32:
+        case AST_TYPE_FLOAT_32:
+        {
+            return true;
+        } break;
+
+        case AST_TYPE_USER_DEFINED:
+        {
+            FAIL("User-defined types are not supported yet");
+        } break;
+
+        case AST_TYPE_FUNCTION:
+        {
+            const Ast_Function_Arguments* arguments = &type->arguments;
+
+            for (Index argument_index = 0;
+                 argument_index < arguments->arguments_count;
+                 ++argument_index)
+            {
+                const Ast_Variable_Definition* argument = &arguments->arguments[argument_index];
+                if (!type_is_fully_inferred(argument->type))
+                {
+                    return false;
+                }
+            }
+
+            return type_is_fully_inferred(type->return_type);
+        } break;
+
+        case AST_TYPE_POINTER:
+        {
+            return type_is_fully_inferred(type->pointed_to);
+        } break;
+    }
+}
+
+internal Bool
+fully_infer_type_from_another_type_with_constness_info(Ast_Type* type_to_infer,
+                                                       const Ast_Type* other_type,
+                                                       const Bool type_must_be_constant)
+{
+    ASSERT(type_to_infer->type != AST_TYPE_UNDEFINED);
+
+    if (!type_is_fully_inferred(other_type))
+    {
+        FAIL("Failed to infer type from another type: other type is not fully inferred");
+    }
+
+    const Ast_Qualifiers qualifiers = type_to_infer->qualifiers;
+
+    if (type_must_be_constant && qualifiers == AST_QUALIFIER_MUTABLE)
+    {
+        FAIL("Failed to infer type from another type: type must be constant");
+    }
+
+    if (type_to_infer->type == AST_TYPE_UNSPECIFIED)
+    {
+
+        *type_to_infer = *other_type;
+        type_to_infer->qualifiers = qualifiers;
+
+        // FIXME(vlad): Recursively remove mutable qualifier from pointers.
+
+        return true;
+    }
+
+    if (type_to_infer->type != other_type->type)
+    {
+        FAIL("Failed to fully infer type: types are not compatible");
+    }
+
+    switch (type_to_infer->type)
+    {
+        case AST_TYPE_UNDEFINED:
+        case AST_TYPE_UNSPECIFIED:
+        {
+            UNREACHABLE();
+        } break;
+
+        // NOTE(vlad): Trivial types.
+        case AST_TYPE_VOID:
+        case AST_TYPE_BOOL:
+        case AST_TYPE_INT_32:
+        case AST_TYPE_FLOAT_32:
+        {
+            return true;
+        } break;
+
+        case AST_TYPE_USER_DEFINED:
+        {
+            FAIL("User-defined types are not supported yet");
+        } break;
+
+        case AST_TYPE_FUNCTION:
+        {
+            FAIL("Function types cannot be fully inferred from another type yet");
+        } break;
+
+        case AST_TYPE_POINTER:
+        {
+            const Bool pointed_type_must_be_contant = other_type->pointed_to->qualifiers == AST_QUALIFIER_NONE;
+
+            return fully_infer_type_from_another_type_with_constness_info(type_to_infer->pointed_to,
+                                                                          other_type->pointed_to,
+                                                                          pointed_type_must_be_contant);
+        } break;
+    }
+}
+
+internal Bool
+fully_infer_type_from_another_type(Ast_Type* type_to_infer, const Ast_Type* other_type)
+{
+    return fully_infer_type_from_another_type_with_constness_info(type_to_infer,
+                                                                  other_type,
+                                                                  false);
+}
+
+internal Bool
 types_are_equal(const Ast_Type* lhs, const Ast_Type* rhs)
 {
     if (lhs->type == AST_TYPE_UNSPECIFIED || rhs->type == AST_TYPE_UNSPECIFIED)
@@ -167,7 +302,10 @@ types_are_equal(const Ast_Type* lhs, const Ast_Type* rhs)
                  argument_index < lhs_arguments->arguments_count;
                  ++argument_index)
             {
-                if (!types_are_equal(lhs->return_type, rhs->return_type))
+                const Ast_Variable_Definition* lhs_argument = &lhs_arguments->arguments[argument_index];
+                const Ast_Variable_Definition* rhs_argument = &rhs_arguments->arguments[argument_index];
+
+                if (!types_are_equal(lhs_argument->type, rhs_argument->type))
                 {
                     return false;
                 }
@@ -207,7 +345,8 @@ find_required_return_type(Ast* ast,
 // TODO(vlad): Change the return type to 'Ast_Type*' or something. Probably better to use indices as they won't
 //             be invalidated after reallocations.
 internal Ast_Type
-get_inferred_type(Ast* ast,
+get_inferred_type(Arena* types_arena,
+                  Ast* ast,
                   const Index current_scope_index,
                   const Ast_Expression* expression)
 {
@@ -295,8 +434,14 @@ get_inferred_type(Ast* ast,
         {
             const Ast_Binary_Expression* binary_expression = &expression->binary_expression;
 
-            const Ast_Type lhs_type = get_inferred_type(ast, current_scope_index, binary_expression->lhs);
-            const Ast_Type rhs_type = get_inferred_type(ast, current_scope_index, binary_expression->rhs);
+            const Ast_Type lhs_type = get_inferred_type(types_arena,
+                                                        ast,
+                                                        current_scope_index,
+                                                        binary_expression->lhs);
+            const Ast_Type rhs_type = get_inferred_type(types_arena,
+                                                        ast,
+                                                        current_scope_index,
+                                                        binary_expression->rhs);
 
             if (!types_are_equal(&lhs_type, &rhs_type))
             {
@@ -317,8 +462,14 @@ get_inferred_type(Ast* ast,
         {
             const Ast_Binary_Expression* binary_expression = &expression->binary_expression;
 
-            const Ast_Type lhs_type = get_inferred_type(ast, current_scope_index, binary_expression->lhs);
-            const Ast_Type rhs_type = get_inferred_type(ast, current_scope_index, binary_expression->rhs);
+            const Ast_Type lhs_type = get_inferred_type(types_arena,
+                                                        ast,
+                                                        current_scope_index,
+                                                        binary_expression->lhs);
+            const Ast_Type rhs_type = get_inferred_type(types_arena,
+                                                        ast,
+                                                        current_scope_index,
+                                                        binary_expression->rhs);
 
             if (!types_are_equal(&lhs_type, &rhs_type))
             {
@@ -334,11 +485,46 @@ get_inferred_type(Ast* ast,
         {
             const Ast_Unary_Expression* unary_expression = &expression->unary_expression;
 
-            const Ast_Type operand_type = get_inferred_type(ast, current_scope_index, unary_expression->operand);
+            const Ast_Type operand_type = get_inferred_type(types_arena,
+                                                            ast,
+                                                            current_scope_index,
+                                                            unary_expression->operand);
 
             // TODO(vlad): Test that the operand type can be negated.
 
             result = operand_type;
+        } break;
+
+        case AST_EXPRESSION_DEREFERENCE:
+        {
+            const Ast_Unary_Expression* unary_expression = &expression->unary_expression;
+
+            const Ast_Type operand_type = get_inferred_type(types_arena,
+                                                            ast,
+                                                            current_scope_index,
+                                                            unary_expression->operand);
+            if (operand_type.type != AST_TYPE_POINTER)
+            {
+                FAIL("Dereferenced expression must have a pointer type");
+            }
+
+            result = *operand_type.pointed_to;
+        } break;
+
+        case AST_EXPRESSION_ADDRESS_OF:
+        {
+            const Ast_Unary_Expression* unary_expression = &expression->unary_expression;
+
+            const Ast_Type operand_type = get_inferred_type(types_arena,
+                                                            ast,
+                                                            current_scope_index,
+                                                            unary_expression->operand);
+
+            // FIXME(vlad): Test that we are not trying to get an address of a temp value.
+
+            result.type = AST_TYPE_POINTER;
+            result.pointed_to = allocate(types_arena, Ast_Type);
+            *result.pointed_to = operand_type;
         } break;
 
         case AST_EXPRESSION_CALL:
@@ -346,7 +532,8 @@ get_inferred_type(Ast* ast,
             // TODO(vlad): Remove code duplication (see 'AST_STATEMENT_CALL' below).
             const Ast_Call* call = &expression->call;
 
-            const Ast_Type called_expression_type = get_inferred_type(ast,
+            const Ast_Type called_expression_type = get_inferred_type(types_arena,
+                                                                      ast,
                                                                       current_scope_index,
                                                                       call->called_expression);
 
@@ -368,7 +555,8 @@ get_inferred_type(Ast* ast,
                 const Ast_Variable_Definition* expected_argument = &expected_arguments->arguments[argument_index];
                 const Ast_Expression* actual_argument = call->arguments[argument_index];
 
-                const Ast_Type actual_argument_type = get_inferred_type(ast,
+                const Ast_Type actual_argument_type = get_inferred_type(types_arena,
+                                                                        ast,
                                                                         current_scope_index,
                                                                         actual_argument);
 
@@ -391,6 +579,8 @@ analyse_lexical_scope_and_infer_types_in_statements(Arena* lexical_scopes_arena,
                                                     Ast_Statements* statements,
                                                     const Index current_scope_index)
 {
+    Arena* types_arena = lexical_scopes_arena; // FIXME(vlad): Use types arena.
+
     statements->lexical_scope_index = current_scope_index;
 
     for (Index statement_index = 0;
@@ -409,29 +599,40 @@ analyse_lexical_scope_and_infer_types_in_statements(Arena* lexical_scopes_arena,
             case AST_STATEMENT_VARIABLE_DEFINITION:
             {
                 Ast_Variable_Definition* definition = &statement->variable_definition;
-                if (definition->type->type == AST_TYPE_UNSPECIFIED)
-                {
-                    ASSERT(definition->initialisation_type == AST_INITIALISATION_WITH_VALUE);
 
-                    const Ast_Qualifiers qualifiers = definition->type->qualifiers;
-                    *definition->type = get_inferred_type(ast, current_scope_index, &definition->initial_value);
-                    definition->type->qualifiers = qualifiers;
-                }
-                else
+                ASSERT(definition->initialisation_type != AST_INITIALISATION_UNDEFINED);
+                ASSERT(definition->initialisation_type != AST_INITIALISATION_ARGUMENT);
+
+                switch (definition->initialisation_type)
                 {
-                    if (definition->initialisation_type == AST_INITIALISATION_WITH_VALUE)
+                    case AST_INITIALISATION_WITH_VALUE:
                     {
-                        const Ast_Type initial_value_type = get_inferred_type(ast,
+                        const Ast_Type initial_value_type = get_inferred_type(types_arena,
+                                                                              ast,
                                                                               current_scope_index,
                                                                               &definition->initial_value);
 
-                        if (!types_are_equal(definition->type, &initial_value_type))
+                        if (!fully_infer_type_from_another_type(definition->type, &initial_value_type))
                         {
                             FAIL("Failed to initialise variable: wrong initial value type");
                         }
-                    }
+                    } break;
 
-                    // NOTE(vlad): All types are considered default-initialisable.
+                    case AST_INITIALISATION_DEFAULT:
+                    {
+                        if (!type_is_fully_inferred(definition->type))
+                        {
+                            FAIL("Variable with default initialisation must have a fully specified type");
+                        }
+
+                        // NOTE(vlad): All types are considered default-initialisable.
+                    } break;
+
+                    case AST_INITIALISATION_UNDEFINED:
+                    case AST_INITIALISATION_ARGUMENT:
+                    {
+                        UNREACHABLE();
+                    } break;
                 }
 
                 if (!add_variable_to_lexical_scope(lexical_scopes_arena,
@@ -451,7 +652,8 @@ analyse_lexical_scope_and_infer_types_in_statements(Arena* lexical_scopes_arena,
                                                                   current_scope_index,
                                                                   assignment->name.token.lexeme);
 
-                Ast_Type expression_type = get_inferred_type(ast,
+                Ast_Type expression_type = get_inferred_type(types_arena,
+                                                             ast,
                                                              current_scope_index,
                                                              &assignment->expression);
 
@@ -478,7 +680,10 @@ analyse_lexical_scope_and_infer_types_in_statements(Arena* lexical_scopes_arena,
                 }
                 else
                 {
-                    return_expression_type = get_inferred_type(ast, current_scope_index, &return_statement->expression);
+                    return_expression_type = get_inferred_type(types_arena,
+                                                               ast,
+                                                               current_scope_index,
+                                                               &return_statement->expression);
                 }
 
                 if (!types_are_equal(required_return_type, &return_expression_type))
@@ -492,7 +697,10 @@ analyse_lexical_scope_and_infer_types_in_statements(Arena* lexical_scopes_arena,
                 Ast_While_Statement* while_statement = &statement->while_statement;
 
                 const Ast_Expression* condition = &while_statement->condition;
-                const Ast_Type condition_type = get_inferred_type(ast, current_scope_index, condition);
+                const Ast_Type condition_type = get_inferred_type(types_arena,
+                                                                  ast,
+                                                                  current_scope_index,
+                                                                  condition);
 
                 if (condition_type.type != AST_TYPE_BOOL)
                 {
@@ -521,7 +729,10 @@ analyse_lexical_scope_and_infer_types_in_statements(Arena* lexical_scopes_arena,
                 Ast_If_Statement* if_statement = &statement->if_statement;
 
                 const Ast_Expression* condition = &if_statement->condition;
-                const Ast_Type condition_type = get_inferred_type(ast, current_scope_index, condition);
+                const Ast_Type condition_type = get_inferred_type(types_arena,
+                                                                  ast,
+                                                                  current_scope_index,
+                                                                  condition);
                 if (condition_type.type != AST_TYPE_BOOL)
                 {
                     FAIL("Condition type of the if statement must be boolean");
@@ -573,7 +784,8 @@ analyse_lexical_scope_and_infer_types_in_statements(Arena* lexical_scopes_arena,
                 Ast_Call_Statement* call_statement = &statement->call_statement;
                 Ast_Call* call = &call_statement->call;
 
-                const Ast_Type called_expression_type = get_inferred_type(ast,
+                const Ast_Type called_expression_type = get_inferred_type(types_arena,
+                                                                          ast,
                                                                           current_scope_index,
                                                                           call->called_expression);
 
@@ -604,7 +816,8 @@ analyse_lexical_scope_and_infer_types_in_statements(Arena* lexical_scopes_arena,
                         const Ast_Variable_Definition* expected_argument = &expected_arguments->arguments[argument_index];
                         const Ast_Expression* actual_argument = call->arguments[argument_index];
 
-                        const Ast_Type actual_argument_type = get_inferred_type(ast,
+                        const Ast_Type actual_argument_type = get_inferred_type(types_arena,
+                                                                                ast,
                                                                                 current_scope_index,
                                                                                 actual_argument);
 

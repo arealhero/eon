@@ -344,6 +344,28 @@ test_numbers(Test_Context* context)
     }
 
     // FIXME(vlad): Test errors like '123a'.
+
+    {
+        const String_View input = string_view("&");
+
+        Lexer lexer = {0};
+        lexer_create(&lexer, string_view("<input>"), input);
+
+        Token token = {0};
+
+        ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(token.type, TOKEN_AMPERSAND);
+        ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "&");
+        ASSERT_EQUAL(token.line, 0);
+        ASSERT_EQUAL(token.column, 0);
+
+        ASSERT_TRUE(lexer_get_next_token(&lexer, &token, &errors));
+        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(token.type, TOKEN_EOF);
+
+        lexer_destroy(&lexer);
+    }
 }
 
 internal void

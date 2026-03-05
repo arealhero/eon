@@ -29,6 +29,7 @@ token_type_to_string(const Token_Type type)
         ADD_TOKEN(TOKEN_SEMICOLON);
 
         ADD_TOKEN(TOKEN_NOT);
+        ADD_TOKEN(TOKEN_AMPERSAND);
 
         ADD_TOKEN(TOKEN_ASSIGN);
 
@@ -263,6 +264,7 @@ lexer_get_next_token(Lexer* lexer, Token* token, Errors* errors)
             case ',': { lexer_create_token(lexer, token, TOKEN_COMMA); return true; } break;
             case '+': { lexer_create_token(lexer, token, TOKEN_PLUS); return true; } break;
             case '*': { lexer_create_token(lexer, token, TOKEN_STAR); return true; } break;
+            case '&': { lexer_create_token(lexer, token, TOKEN_AMPERSAND); return true; } break;
 
             case '!':
             {

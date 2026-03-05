@@ -131,6 +131,8 @@ enum Ast_Expression_Type
 
     // NOTE(vlad): Unary expressions.
     AST_EXPRESSION_NEGATE,
+    AST_EXPRESSION_DEREFERENCE,
+    AST_EXPRESSION_ADDRESS_OF,
 
     AST_EXPRESSION_CALL,
 };
@@ -330,6 +332,7 @@ struct Parser
 
     Lexer* lexer;
     Token current_token;
+    Token lookahead_token;
 
     // TODO(vlad): Move this to AST and point variables' type here instead of creating a new type every time.
     //             Also create something like 'unresolved_types' to be able to iterate over them and resolve

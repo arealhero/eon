@@ -80,6 +80,11 @@ execute_expression(Arena* runtime_arena,
 {
     switch (expression->type)
     {
+        case AST_EXPRESSION_UNDEFINED:
+        {
+            UNREACHABLE();
+        } break;
+
         case AST_EXPRESSION_NUMBER:
         {
             // FIXME(vlad): Remove this ad-hoc handling.
@@ -117,6 +122,11 @@ execute_expression(Arena* runtime_arena,
             return true;
         } break;
 
+        case AST_EXPRESSION_STRING_LITERAL:
+        {
+            FAIL("String literals are not supported yet");
+        } break;
+
         case AST_EXPRESSION_IDENTIFIER:
         {
             const Ast_Identifier* identifier = &expression->identifier;
@@ -150,99 +160,6 @@ execute_expression(Arena* runtime_arena,
                 } break;
             }
 
-            return true;
-        } break;
-
-        case AST_EXPRESSION_CALL:
-        {
-            const Ast_Call* call = &expression->call;
-            const Ast_Expression* called_expression = call->called_expression;
-            if (called_expression->type != AST_EXPRESSION_IDENTIFIER)
-            {
-                FAIL("Expression calling is not yet supported");
-            }
-
-            if (strings_are_equal(called_expression->identifier.token.lexeme, string_view("print")))
-            {
-                // TODO(vlad): Remove this special handling of a 'print' function.
-                if (call->arguments_count != 1)
-                {
-                    FAIL("Invalid number of arguments provided while calling function 'print'");
-                }
-
-                Interpreter_Expression_Result argument = {0};
-                if (!execute_expression(runtime_arena,
-                                        interpreter,
-                                        ast,
-                                        call->arguments[0],
-                                        &argument))
-                {
-                    FAIL("Failed to execute expression");
-                }
-
-                switch (argument.type)
-                {
-                    case AST_TYPE_INT_32:
-                    {
-                        println("{}", argument.s32_value);
-                    } break;
-
-                    case AST_TYPE_FLOAT_32:
-                    {
-                        println("{}", argument.f32_value);
-                    } break;
-
-                    default:
-                    {
-                        FAIL("[interpreter] Unsupported type encountered");
-                    } break;
-                }
-
-                return true;
-            }
-
-            Call_Info call_info = {0};
-            call_info.arguments_count = call->arguments_count;
-            call_info.arguments_capacity = call->arguments_capacity;
-            call_info.arguments = allocate_array(runtime_arena,
-                                                 call_info.arguments_count,
-                                                 Interpreter_Expression_Result);
-
-            for (Index argument_index = 0;
-                 argument_index < call_info.arguments_count;
-                 ++argument_index)
-            {
-                Interpreter_Expression_Result argument = {0};
-                if (!execute_expression(runtime_arena,
-                                        interpreter,
-                                        ast,
-                                        call->arguments[argument_index],
-                                        &argument))
-                {
-                    FAIL("Failed to execute expression");
-                }
-
-                call_info.arguments[argument_index] = argument;
-            }
-
-            push_empty_lexical_scope(interpreter, INTERPRETER_GLOBAL_LEXICAL_SCOPE_INDEX);
-
-            const Run_Result call_result = interpreter_execute_function(runtime_arena,
-                                                                        runtime_arena,
-                                                                        interpreter,
-                                                                        ast,
-                                                                        called_expression->identifier.token.lexeme,
-                                                                        &call_info);
-
-            pop_lexical_scope(interpreter);
-
-            if (call_result.status != INTERPRETER_RUN_OK)
-            {
-                println("Function call failed: {}", call_result.error);
-                FAIL("Failed to call function");
-            }
-
-            *result = call_result.result;
             return true;
         } break;
 
@@ -508,9 +425,107 @@ execute_expression(Arena* runtime_arena,
             return true;
         } break;
 
-        default:
+        case AST_EXPRESSION_DEREFERENCE:
         {
-            return false;
+            FAIL("Dereference expressions are not supported yet");
+        } break;
+
+        case AST_EXPRESSION_ADDRESS_OF:
+        {
+            FAIL("Address-of expressions are not supported yet");
+        } break;
+
+        case AST_EXPRESSION_CALL:
+        {
+            const Ast_Call* call = &expression->call;
+            const Ast_Expression* called_expression = call->called_expression;
+            if (called_expression->type != AST_EXPRESSION_IDENTIFIER)
+            {
+                FAIL("Expression calling is not yet supported");
+            }
+
+            if (strings_are_equal(called_expression->identifier.token.lexeme, string_view("print")))
+            {
+                // TODO(vlad): Remove this special handling of a 'print' function.
+                if (call->arguments_count != 1)
+                {
+                    FAIL("Invalid number of arguments provided while calling function 'print'");
+                }
+
+                Interpreter_Expression_Result argument = {0};
+                if (!execute_expression(runtime_arena,
+                                        interpreter,
+                                        ast,
+                                        call->arguments[0],
+                                        &argument))
+                {
+                    FAIL("Failed to execute expression");
+                }
+
+                switch (argument.type)
+                {
+                    case AST_TYPE_INT_32:
+                    {
+                        println("{}", argument.s32_value);
+                    } break;
+
+                    case AST_TYPE_FLOAT_32:
+                    {
+                        println("{}", argument.f32_value);
+                    } break;
+
+                    default:
+                    {
+                        FAIL("[interpreter] Unsupported type encountered");
+                    } break;
+                }
+
+                return true;
+            }
+
+            Call_Info call_info = {0};
+            call_info.arguments_count = call->arguments_count;
+            call_info.arguments_capacity = call->arguments_capacity;
+            call_info.arguments = allocate_array(runtime_arena,
+                                                 call_info.arguments_count,
+                                                 Interpreter_Expression_Result);
+
+            for (Index argument_index = 0;
+                 argument_index < call_info.arguments_count;
+                 ++argument_index)
+            {
+                Interpreter_Expression_Result argument = {0};
+                if (!execute_expression(runtime_arena,
+                                        interpreter,
+                                        ast,
+                                        call->arguments[argument_index],
+                                        &argument))
+                {
+                    FAIL("Failed to execute expression");
+                }
+
+                call_info.arguments[argument_index] = argument;
+            }
+
+            push_empty_lexical_scope(interpreter, INTERPRETER_GLOBAL_LEXICAL_SCOPE_INDEX);
+
+            const Run_Result call_result = interpreter_execute_function(runtime_arena,
+                                                                        runtime_arena,
+                                                                        interpreter,
+                                                                        ast,
+                                                                        called_expression->identifier.token.lexeme,
+                                                                        &call_info);
+
+            pop_lexical_scope(interpreter);
+
+            if (call_result.status != INTERPRETER_RUN_OK)
+            {
+                println("Function call failed: {}", call_result.error);
+                FAIL("Failed to call function");
+            }
+
+            *result = call_result.result;
+            return true;
         } break;
     }
 }

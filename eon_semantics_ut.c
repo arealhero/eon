@@ -897,6 +897,268 @@ test_type_inference(Test_Context* context)
 }
 
 internal void
+test_pointers(Test_Context* context)
+{
+    Errors errors = {0};
+    errors_create(&errors, context->arena);
+
+    {
+        const String_View input = string_view("foo: (argument: Int32) -> void = {"
+                                              "    a := argument&;"
+                                              "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(&parser, context->arena, &lexer, &errors);
+
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(errors.errors_count, 0);
+
+        ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &ast.function_definitions[0];
+        ASSERT_EQUAL(function_definition->statements.lexical_scope_index, LAST_LEXICAL_SCOPE_INDEX);
+
+        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
+
+        const Index function_scope_index = function_definition->statements.lexical_scope_index;
+        ASSERT_NOT_EQUAL(function_scope_index, LAST_LEXICAL_SCOPE_INDEX);
+
+        const Lexical_Scope* scope = &ast.lexical_scopes[function_scope_index];
+        ASSERT_EQUAL(scope->parent_scope_index, GLOBAL_SCOPE_INDEX);
+        ASSERT_EQUAL(scope->variables_count, 2);
+
+        {
+            const Ast_Variable_Definition* variable = scope->variables[0];
+            ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "argument");
+            ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
+        }
+
+        {
+            const Ast_Variable_Definition* variable = scope->variables[1];
+            ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
+            ASSERT_EQUAL(variable->type->type, AST_TYPE_POINTER);
+            ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
+            ASSERT_EQUAL(variable->type->pointed_to->type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(variable->type->pointed_to->qualifiers, AST_QUALIFIER_NONE);
+        }
+
+        parser_destroy(&parser);
+        lexer_destroy(&lexer);
+
+        clear_errors(&errors);
+    }
+
+    {
+        const String_View input = string_view("foo: (argument: Int32) -> void = {"
+                                              "    a: mutable _ = argument&;"
+                                              "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(&parser, context->arena, &lexer, &errors);
+
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(errors.errors_count, 0);
+
+        ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &ast.function_definitions[0];
+        ASSERT_EQUAL(function_definition->statements.lexical_scope_index, LAST_LEXICAL_SCOPE_INDEX);
+
+        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
+
+        const Index function_scope_index = function_definition->statements.lexical_scope_index;
+        ASSERT_NOT_EQUAL(function_scope_index, LAST_LEXICAL_SCOPE_INDEX);
+
+        const Lexical_Scope* scope = &ast.lexical_scopes[function_scope_index];
+        ASSERT_EQUAL(scope->parent_scope_index, GLOBAL_SCOPE_INDEX);
+        ASSERT_EQUAL(scope->variables_count, 2);
+
+        {
+            const Ast_Variable_Definition* variable = scope->variables[0];
+            ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "argument");
+            ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
+        }
+
+        {
+            const Ast_Variable_Definition* variable = scope->variables[1];
+            ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
+            ASSERT_EQUAL(variable->type->type, AST_TYPE_POINTER);
+            ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_MUTABLE);
+            ASSERT_EQUAL(variable->type->pointed_to->type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(variable->type->pointed_to->qualifiers, AST_QUALIFIER_NONE);
+        }
+
+        parser_destroy(&parser);
+        lexer_destroy(&lexer);
+
+        clear_errors(&errors);
+    }
+
+    {
+        const String_View input = string_view("foo: (argument: mutable Int32) -> void = {"
+                                              "    a: * mutable _ = argument&;"
+                                              "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(&parser, context->arena, &lexer, &errors);
+
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(errors.errors_count, 0);
+
+        ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &ast.function_definitions[0];
+        ASSERT_EQUAL(function_definition->statements.lexical_scope_index, LAST_LEXICAL_SCOPE_INDEX);
+
+        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
+
+        const Index function_scope_index = function_definition->statements.lexical_scope_index;
+        ASSERT_NOT_EQUAL(function_scope_index, LAST_LEXICAL_SCOPE_INDEX);
+
+        const Lexical_Scope* scope = &ast.lexical_scopes[function_scope_index];
+        ASSERT_EQUAL(scope->parent_scope_index, GLOBAL_SCOPE_INDEX);
+        ASSERT_EQUAL(scope->variables_count, 2);
+
+        {
+            const Ast_Variable_Definition* variable = scope->variables[0];
+            ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "argument");
+            ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_MUTABLE);
+        }
+
+        {
+            const Ast_Variable_Definition* variable = scope->variables[1];
+            ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
+            ASSERT_EQUAL(variable->type->type, AST_TYPE_POINTER);
+            ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
+            ASSERT_EQUAL(variable->type->pointed_to->type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(variable->type->pointed_to->qualifiers, AST_QUALIFIER_MUTABLE);
+        }
+
+        parser_destroy(&parser);
+        lexer_destroy(&lexer);
+
+        clear_errors(&errors);
+    }
+
+    {
+        const String_View input = string_view("foo: (argument: mutable Int32) -> void = {"
+                                              "    a: mutable _ = argument&;"
+                                              "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(&parser, context->arena, &lexer, &errors);
+
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(errors.errors_count, 0);
+
+        ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &ast.function_definitions[0];
+        ASSERT_EQUAL(function_definition->statements.lexical_scope_index, LAST_LEXICAL_SCOPE_INDEX);
+
+        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
+
+        const Index function_scope_index = function_definition->statements.lexical_scope_index;
+        ASSERT_NOT_EQUAL(function_scope_index, LAST_LEXICAL_SCOPE_INDEX);
+
+        const Lexical_Scope* scope = &ast.lexical_scopes[function_scope_index];
+        ASSERT_EQUAL(scope->parent_scope_index, GLOBAL_SCOPE_INDEX);
+        ASSERT_EQUAL(scope->variables_count, 2);
+
+        {
+            const Ast_Variable_Definition* variable = scope->variables[0];
+            ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "argument");
+            ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_MUTABLE);
+        }
+
+        {
+            const Ast_Variable_Definition* variable = scope->variables[1];
+            ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
+            ASSERT_EQUAL(variable->type->type, AST_TYPE_POINTER);
+            ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_MUTABLE);
+            ASSERT_EQUAL(variable->type->pointed_to->type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(variable->type->pointed_to->qualifiers, AST_QUALIFIER_MUTABLE); // FIXME(vlad): Should this be AST_QUALIFIER_NONE?
+        }
+
+        parser_destroy(&parser);
+        lexer_destroy(&lexer);
+
+        clear_errors(&errors);
+    }
+
+    {
+        const String_View input = string_view("foo: (argument: mutable Int32) -> void = {"
+                                              "    a: mutable * _ = argument&;"
+                                              "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        lexer_create(&lexer, string_view("<input>"), input);
+        parser_create(&parser, context->arena, &lexer, &errors);
+
+        Ast ast = {0};
+        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_EQUAL(errors.errors_count, 0);
+
+        ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &ast.function_definitions[0];
+        ASSERT_EQUAL(function_definition->statements.lexical_scope_index, LAST_LEXICAL_SCOPE_INDEX);
+
+        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
+
+        const Index function_scope_index = function_definition->statements.lexical_scope_index;
+        ASSERT_NOT_EQUAL(function_scope_index, LAST_LEXICAL_SCOPE_INDEX);
+
+        const Lexical_Scope* scope = &ast.lexical_scopes[function_scope_index];
+        ASSERT_EQUAL(scope->parent_scope_index, GLOBAL_SCOPE_INDEX);
+        ASSERT_EQUAL(scope->variables_count, 2);
+
+        {
+            const Ast_Variable_Definition* variable = scope->variables[0];
+            ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "argument");
+            ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_MUTABLE);
+        }
+
+        {
+            const Ast_Variable_Definition* variable = scope->variables[1];
+            ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
+            ASSERT_EQUAL(variable->type->type, AST_TYPE_POINTER);
+            ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_MUTABLE);
+            ASSERT_EQUAL(variable->type->pointed_to->type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(variable->type->pointed_to->qualifiers, AST_QUALIFIER_NONE);
+        }
+
+        parser_destroy(&parser);
+        lexer_destroy(&lexer);
+
+        clear_errors(&errors);
+    }
+}
+
+internal void
 test_lexical_scopes(Test_Context* context)
 {
     Errors errors = {0};
@@ -1256,6 +1518,7 @@ test_lexical_scopes(Test_Context* context)
 
 REGISTER_TESTS(
     test_type_inference,
+    test_pointers,
     test_lexical_scopes
 )
 

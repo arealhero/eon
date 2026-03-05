@@ -85,13 +85,18 @@ optional_additive_expression_tail: EPS
                                  | "+" additive_expression
                                  | "-" additive_expression;
 
-multiplicative_expression: unary_expression optional_multiplicative_expression_tail;
+multiplicative_expression: prefix_unary_expression optional_multiplicative_expression_tail;
 optional_multiplicative_expression_tail: EPS
                                        | "*" multiplicative_expression
                                        | "/" multiplicative_expression;
 
-unary_expression: optional_unary_expression_head call_expression ;
-optional_unary_expression_head: EPS | "-" unary_expression;
+prefix_unary_expression: optional_prefix_unary_expression_head postfix_unary_expression;
+optional_prefix_unary_expression_head: EPS | "-" prefix_unary_expression;
+
+postfix_unary_expression: call_expression optional_postfix_unary_expression_tail;
+optional_postfix_unary_expression_tail: EPS
+                                      | "*" postfix_unary_expression
+                                      | "&" postfix_unary_expression;
 
 call_expression: primary_expression optional_call_expression_tail;
 optional_call_expression_tail: EPS
