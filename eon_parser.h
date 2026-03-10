@@ -214,7 +214,7 @@ typedef struct Ast_Statements Ast_Statements;
 
 enum Ast_Statement_Type
 {
-    AST_UNDEFINED = 0,
+    AST_UNDEFINED = 0, // FIXME(vlad): Rename to AST_STATEMENT_UNDEFINED
 
     AST_STATEMENT_VARIABLE_DEFINITION,
     AST_STATEMENT_ASSIGNMENT,
