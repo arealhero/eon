@@ -1594,6 +1594,53 @@ test_return_statements(Test_Context* context)
             clear_errors(&errors);
         }
     }
+
+    // NOTE(vlad): Testing dead code elimination.
+    {
+        {
+            const String_View input = string_view("foo: () -> Int32 = {"
+                                                  "    return 0;"
+                                                  "    a := 10;"
+                                                  "    return a;"
+                                                  "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            lexer_create(&lexer, string_view("<input>"), input);
+            parser_create(&parser, context->arena, &lexer, &errors);
+
+            Ast ast = {0};
+            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_EQUAL(errors.errors_count, 0);
+
+            ASSERT_EQUAL(ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* function_definition = &ast.function_definitions[0];
+            ASSERT_EQUAL(function_definition->statements.statements_count, 3);
+
+            ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
+            ASSERT_EQUAL(errors.errors_count, 0);
+
+            ASSERT_EQUAL(function_definition->statements.statements_count, 1);
+
+            {
+                const Ast_Statement* statement = &function_definition->statements.statements[0];
+                ASSERT_EQUAL(statement->type, AST_STATEMENT_RETURN);
+
+                const Ast_Return_Statement* return_statement = &statement->return_statement;
+                ASSERT_FALSE(return_statement->is_empty);
+
+                ASSERT_EQUAL(return_statement->expression.type, AST_EXPRESSION_NUMBER);
+                ASSERT_STRINGS_ARE_EQUAL(return_statement->expression.number.token.lexeme, "0");
+            }
+
+            parser_destroy(&parser);
+            lexer_destroy(&lexer);
+
+            clear_errors(&errors);
+        }
+    }
 }
 
 // FIXME(vlad): Test errors:
@@ -1605,6 +1652,7 @@ test_return_statements(Test_Context* context)
 //                6. foo: () -> Int32 = { return 2.0; } // Invalid return type.
 //                7. a := 10; a := 10; // Redefinition of variable.
 //                8. a: mutable _ = 10; a = 10.0;
+//                9. Every control path of a non-void function must return.
 //                etc.
 
 REGISTER_TESTS(

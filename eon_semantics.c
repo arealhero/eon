@@ -833,6 +833,24 @@ analyse_lexical_scope_and_infer_types_in_statements(Arena* lexical_scopes_arena,
                 //             is marked as 'noreturn' or something.
             } break;
         }
+
+        if (statements->every_path_returns)
+        {
+            // NOTE(vlad): Dropping other statements (if any).
+            //
+            //             E.g. this code:
+            //
+            //                 main: () -> Int32 = { return 0; a := 10; return a; }
+            //
+            //             is equivalent to this:
+            //
+            //                 main: () -> Int32 = { return 0; }
+            //
+
+            statements->statements_count = statement_index + 1;
+
+            // TODO(vlad): Emit a warning about the dead code.
+        }
     }
 
     return true;
@@ -925,6 +943,7 @@ create_lexical_scopes_and_infer_types(Arena* lexical_scopes_arena, Ast* ast)
         //                         return 0;
         //                     }
         //                 }
+        //
     }
 
     return true;
