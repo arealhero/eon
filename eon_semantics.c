@@ -850,6 +850,7 @@ analyse_lexical_scope_and_infer_types_in_statements(Arena* lexical_scopes_arena,
             statements->statements_count = statement_index + 1;
 
             // TODO(vlad): Emit a warning about the dead code.
+            // TODO(vlad): Eliminate dead code only when the optimizations are enabled?
         }
     }
 
