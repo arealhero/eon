@@ -725,6 +725,10 @@ analyse_lexical_scope_and_infer_types_in_statements(Arena* lexical_scopes_arena,
                     }
                 }
 
+                // TODO(vlad): Make sure that statements are actually reachable.
+                //             (That is, conditions are not equivalent to false.)
+                //
+                //             Probably should do it after compiling AST to IR.
                 statements->every_path_returns = body->every_path_returns;
             } break;
 
@@ -776,6 +780,10 @@ analyse_lexical_scope_and_infer_types_in_statements(Arena* lexical_scopes_arena,
                     }
                 }
 
+                // TODO(vlad): Make sure that statements are actually reachable.
+                //             (That is, conditions are not equivalent to false.)
+                //
+                //             Probably should do it after compiling AST to IR.
                 statements->every_path_returns = if_statements->every_path_returns
                                                  && else_statements->every_path_returns;
             } break;
