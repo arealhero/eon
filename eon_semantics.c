@@ -690,6 +690,8 @@ analyse_lexical_scope_and_infer_types_in_statements(Arena* lexical_scopes_arena,
                 {
                     FAIL("Return statement expression type does not match the required return type");
                 }
+
+                statements->every_path_returns = true;
             } break;
 
             case AST_STATEMENT_WHILE:
@@ -722,6 +724,8 @@ analyse_lexical_scope_and_infer_types_in_statements(Arena* lexical_scopes_arena,
                         return false;
                     }
                 }
+
+                statements->every_path_returns = body->every_path_returns;
             } break;
 
             case AST_STATEMENT_IF:
@@ -738,45 +742,42 @@ analyse_lexical_scope_and_infer_types_in_statements(Arena* lexical_scopes_arena,
                     FAIL("Condition type of the if statement must be boolean");
                 }
 
+                Ast_Statements* if_statements = &if_statement->if_statements;
+                if (if_statements->statements_count != 0)
                 {
-                    Ast_Statements* if_statements = &if_statement->if_statements;
+                    const Index if_statements_scope_index
+                        = create_new_lexical_scope_with_parent(lexical_scopes_arena,
+                                                               ast,
+                                                               current_scope_index);
 
-                    if (if_statements->statements_count != 0)
+                    if (!analyse_lexical_scope_and_infer_types_in_statements(lexical_scopes_arena,
+                                                                             ast,
+                                                                             if_statements,
+                                                                             if_statements_scope_index))
                     {
-                        const Index if_statements_scope_index
-                            = create_new_lexical_scope_with_parent(lexical_scopes_arena,
-                                                                   ast,
-                                                                   current_scope_index);
-
-                        if (!analyse_lexical_scope_and_infer_types_in_statements(lexical_scopes_arena,
-                                                                                 ast,
-                                                                                 if_statements,
-                                                                                 if_statements_scope_index))
-                        {
-                            return false;
-                        }
+                        return false;
                     }
                 }
 
+                Ast_Statements* else_statements = &if_statement->else_statements;
+                if (else_statements->statements_count != 0)
                 {
-                    Ast_Statements* else_statements = &if_statement->else_statements;
+                    const Index else_statements_scope_index
+                        = create_new_lexical_scope_with_parent(lexical_scopes_arena,
+                                                               ast,
+                                                               current_scope_index);
 
-                    if (else_statements->statements_count != 0)
+                    if (!analyse_lexical_scope_and_infer_types_in_statements(lexical_scopes_arena,
+                                                                             ast,
+                                                                             else_statements,
+                                                                             else_statements_scope_index))
                     {
-                        const Index else_statements_scope_index
-                            = create_new_lexical_scope_with_parent(lexical_scopes_arena,
-                                                                   ast,
-                                                                   current_scope_index);
-
-                        if (!analyse_lexical_scope_and_infer_types_in_statements(lexical_scopes_arena,
-                                                                                 ast,
-                                                                                 else_statements,
-                                                                                 else_statements_scope_index))
-                        {
-                            return false;
-                        }
+                        return false;
                     }
                 }
+
+                statements->every_path_returns = if_statements->every_path_returns
+                                                 && else_statements->every_path_returns;
             } break;
 
             case AST_STATEMENT_CALL:
@@ -827,11 +828,12 @@ analyse_lexical_scope_and_infer_types_in_statements(Arena* lexical_scopes_arena,
                         }
                     }
                 }
+
+                // TODO(vlad): Set 'statements->every_path_returns' to true if the called function
+                //             is marked as 'noreturn' or something.
             } break;
         }
     }
-
-    // TODO(vlad): Ensure that the non-void functions have a return value.
 
     return true;
 }
@@ -884,10 +886,8 @@ create_lexical_scopes_and_infer_types(Arena* lexical_scopes_arena, Ast* ast)
             }
         }
 
-        {
-            Lexical_Scope* scope = &ast->lexical_scopes[function_scope_index];
-            scope->required_return_type = *function_definition->type->return_type;
-        }
+        Lexical_Scope* scope = &ast->lexical_scopes[function_scope_index];
+        scope->required_return_type = *function_definition->type->return_type;
 
         Ast_Statements* statements = &function_definition->statements;
         if (!analyse_lexical_scope_and_infer_types_in_statements(lexical_scopes_arena,
@@ -897,6 +897,34 @@ create_lexical_scopes_and_infer_types(Arena* lexical_scopes_arena, Ast* ast)
         {
             return false;
         }
+
+        if (!statements->every_path_returns && scope->required_return_type.type != AST_TYPE_VOID)
+        {
+            FAIL("Every path of a non-void function should return");
+        }
+
+        // TODO(vlad): Test that these return statements are actually reachable.
+        //             Maybe we should do it after compiling AST to IR.
+        //
+        //             E.g. this is (probably) OK:
+        //
+        //                 get_value: () -> Int32 = { return 1; }
+        //                 main: () -> Int32 = {
+        //                     value := get_value();
+        //                     if value == 1 {
+        //                         return 0;
+        //                     }
+        //                 }
+        //
+        //             and this is definitely not:
+        //
+        //                 get_value: () -> Int32 = { return 1; }
+        //                 main: () -> Int32 = {
+        //                     value := get_value();
+        //                     if value == 2 {
+        //                         return 0;
+        //                     }
+        //                 }
     }
 
     return true;

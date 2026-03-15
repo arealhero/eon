@@ -205,6 +205,7 @@ struct Ast_Statement;
 struct Ast_Statements
 {
     Index lexical_scope_index;
+    Bool every_path_returns;
 
     struct Ast_Statement* statements;
     Size statements_count;
