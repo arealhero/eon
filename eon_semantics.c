@@ -591,7 +591,7 @@ analyse_lexical_scope_and_infer_types_in_statements(Arena* lexical_scopes_arena,
 
         switch (statement->type)
         {
-            case AST_UNDEFINED:
+            case AST_STATEMENT_UNDEFINED:
             {
                 UNREACHABLE();
             } break;

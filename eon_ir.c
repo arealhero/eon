@@ -242,7 +242,7 @@ convert_function_definition_to_ir(IR* ir, const Ast_Function_Definition* functio
 
         switch (statement->type)
         {
-            case AST_UNDEFINED:
+            case AST_STATEMENT_UNDEFINED:
             {
                 UNREACHABLE();
             } break;
