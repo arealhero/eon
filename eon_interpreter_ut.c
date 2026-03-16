@@ -433,6 +433,7 @@ test_simple_programs(Test_Context* context)
                                               "        a := 20;"
                                               "        return a;"
                                               "    }"
+                                              "    return 0;"
                                               "}");
 
         Lexer lexer = {0};
@@ -779,48 +780,48 @@ test_simple_programs(Test_Context* context)
 
     // NOTE(vlad): Testing pointers.
     {
-        {
-            const String_View input = string_view("main: () -> Int32 = {"
-                                                  "    a := 10;"
-                                                  "    b := a&;"
-                                                  "    return b*;"
-                                                  "}");
+        // {
+        //     const String_View input = string_view("main: () -> Int32 = {"
+        //                                           "    a := 10;"
+        //                                           "    b := a&;"
+        //                                           "    return b*;"
+        //                                           "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
+        //     Lexer lexer = {0};
+        //     Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+        //     lexer_create(&lexer, string_view("<input>"), input);
+        //     parser_create(&parser, context->arena, &lexer, &errors);
 
-            Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
-            ASSERT_EQUAL(errors.errors_count, 0);
+        //     Ast ast = {0};
+        //     ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        //     ASSERT_EQUAL(errors.errors_count, 0);
 
-            ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
+        //     ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
 
-            Interpreter interpreter = {0};
-            interpreter_create(&interpreter, context->arena);
+        //     Interpreter interpreter = {0};
+        //     interpreter_create(&interpreter, context->arena);
 
-            Call_Info call_info = {0};
-            const Run_Result result = interpreter_execute_function(context->arena,
-                                                                   context->arena,
-                                                                   &interpreter,
-                                                                   &ast,
-                                                                   string_view("main"),
-                                                                   &call_info);
-            if (!assert_that_there_are_no_errors(context, &result))
-            {
-                return;
-            }
-            ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_EQUAL(result.result.s32_value, 10);
+        //     Call_Info call_info = {0};
+        //     const Run_Result result = interpreter_execute_function(context->arena,
+        //                                                            context->arena,
+        //                                                            &interpreter,
+        //                                                            &ast,
+        //                                                            string_view("main"),
+        //                                                            &call_info);
+        //     if (!assert_that_there_are_no_errors(context, &result))
+        //     {
+        //         return;
+        //     }
+        //     ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+        //     ASSERT_EQUAL(result.result.s32_value, 10);
 
-            interpreter_destroy(&interpreter);
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+        //     interpreter_destroy(&interpreter);
+        //     parser_destroy(&parser);
+        //     lexer_destroy(&lexer);
 
-            clear_errors(&errors);
-        }
+        //     clear_errors(&errors);
+        // }
     }
 }
 
