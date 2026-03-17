@@ -290,6 +290,44 @@ test_floating_point_numbers_formatting(Test_Context* context)
             const String result = format_string(context->arena, "{precision: 17}", 0.1 + 0.2);
             ASSERT_STRINGS_ARE_EQUAL(result, "0.30000000000000004");
         }
+
+        {
+            const String result = format_string(context->arena, "{precision: 6}", 0.63486);
+            ASSERT_STRINGS_ARE_EQUAL(result, "0.634860");
+        }
+
+        {
+            const String result = format_string(context->arena, "{precision: 6}", -0.529565257);
+            ASSERT_STRINGS_ARE_EQUAL(result, "-0.529565");
+        }
+    }
+
+    // NOTE(vlad): Testing rounding.
+    {
+        {
+            const String result = format_string(context->arena, "{precision: 6}", -4.9999989999999991);
+            ASSERT_STRINGS_ARE_EQUAL(result, "-4.999999");
+        }
+
+        {
+            const String result = format_string(context->arena, "{precision: 1}", 4.95);
+            ASSERT_STRINGS_ARE_EQUAL(result, "5.0");
+        }
+
+        {
+            const String result = format_string(context->arena, "{precision: 1}", -4.95);
+            ASSERT_STRINGS_ARE_EQUAL(result, "-5.0");
+        }
+
+        {
+            const String result = format_string(context->arena, "{precision: 6}", -4.9999999999999991);
+            ASSERT_STRINGS_ARE_EQUAL(result, "-5.000000");
+        }
+
+        {
+            const String result = format_string(context->arena, "{precision: 6}", 2.0799999999999992);
+            ASSERT_STRINGS_ARE_EQUAL(result, "2.080000");
+        }
     }
 }
 

@@ -264,11 +264,13 @@ FOR_EACH_INTEGER_TYPE(DEFINE_PARSE_INTEGER_FUNCTION)
         u64 integer_part = (u64) (ABS(number));                         \
                                                                         \
         Float_Type fraction_part_float = ABS(number) - (Float_Type)integer_part; \
+        u64 max_fraction = 0;                                           \
         for (u32 i = 0;                                                 \
              i < precision;                                             \
              ++i)                                                       \
         {                                                               \
             fraction_part_float *= 10;                                  \
+            max_fraction = 10 * max_fraction + 9;                       \
         }                                                               \
                                                                         \
         u64 fraction_part = (u64) (fraction_part_float);                \
@@ -278,7 +280,15 @@ FOR_EACH_INTEGER_TYPE(DEFINE_PARSE_INTEGER_FUNCTION)
             const u64 digit_after_fraction_part = (u64) ((fraction_part_float - (Float_Type)fraction_part) * 10); \
             if (digit_after_fraction_part >= 5)                         \
             {                                                           \
-                fraction_part += 1;                                     \
+                if (fraction_part == max_fraction)                      \
+                {                                                       \
+                    integer_part += 1;                                  \
+                    fraction_part = 0;                                  \
+                }                                                       \
+                else                                                    \
+                {                                                       \
+                    fraction_part += 1;                                 \
+                }                                                       \
             }                                                           \
         }                                                               \
                                                                         \
@@ -326,10 +336,11 @@ FOR_EACH_INTEGER_TYPE(DEFINE_PARSE_INTEGER_FUNCTION)
             String string_to_reverse = {0};                             \
             Index start_index = index;                                  \
                                                                         \
-            while (fraction_part != 0)                                  \
+            while (precision > 0)                                       \
             {                                                           \
                 string->data[index++] = (fraction_part % 10) + '0';     \
                 fraction_part /= 10;                                    \
+                precision -= 1;                                         \
             }                                                           \
                                                                         \
             string_to_reverse.data = string->data + start_index;        \
