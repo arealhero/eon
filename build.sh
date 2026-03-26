@@ -4,6 +4,11 @@ mkdir -p build
 
 set -e
 
+# NOTE(vlad): https://stackoverflow.com/a/70209891
+if [ $(uname) = "Darwin" ]; then
+    export MallocNanoZone=0
+fi
+
 clang_warnings="
   -pedantic
   -Wall
