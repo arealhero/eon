@@ -4,7 +4,9 @@
 
 #include <fcntl.h> // NOTE(vlad): For 'open'.
 #include <sys/stat.h> // NOTE(vlad): For 'fstat'.
-#include <unistd.h> // NOTE(vlad0): For 'read', 'close', and 'access'.
+#include <sys/types.h>
+#include <sys/uio.h>
+#include <unistd.h> // NOTE(vlad0): For 'read', 'write', 'close', and 'access'.
 
 internal Read_File_Result
 platform_read_entire_text_file(Arena* arena, const String_View filename)
@@ -85,4 +87,29 @@ platform_get_file_info(Arena* scratch_arena, const String_View filename)
     }
 
     return info;
+}
+
+internal void
+platform_write_string_to_file(Arena* scratch_arena,
+                              const String_View filename,
+                              const String_View content)
+{
+    const char* zero_terminated_filename = to_c_string(scratch_arena, filename);
+    const int fd = open(zero_terminated_filename,
+                        O_WRONLY | O_CREAT,
+                        S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    if (fd == -1)
+    {
+        FAIL("Failed to open file");
+    }
+
+    const Size written_bytes = write(fd, content.data, (USize)content.length);
+    if (written_bytes == -1)
+    {
+        FAIL("Failed to write to a file");
+    }
+
+    ASSERT(written_bytes == content.length);
+
+    close(fd);
 }
