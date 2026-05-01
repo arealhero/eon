@@ -60,7 +60,7 @@ test_simple_programs(Test_Context* context)
                                                                string_view("main"),
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
-        ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+        ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
         ASSERT_EQUAL(result.result.int32, 0);
 
         interpreter_destroy(&interpreter);
@@ -98,7 +98,7 @@ test_simple_programs(Test_Context* context)
                                                                string_view("main"),
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
-        ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+        ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
         ASSERT_EQUAL(result.result.int32, 1);
 
         interpreter_destroy(&interpreter);
@@ -136,7 +136,7 @@ test_simple_programs(Test_Context* context)
                                                                string_view("main"),
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
-        ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+        ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
         ASSERT_EQUAL(result.result.int32, 6);
 
         interpreter_destroy(&interpreter);
@@ -175,7 +175,7 @@ test_simple_programs(Test_Context* context)
                                                                string_view("main"),
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
-        ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+        ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
         ASSERT_EQUAL(result.result.int32, 25);
 
         interpreter_destroy(&interpreter);
@@ -215,7 +215,7 @@ test_simple_programs(Test_Context* context)
                                                                string_view("main"),
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
-        ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+        ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
         ASSERT_EQUAL(result.result.int32, 20);
 
         interpreter_destroy(&interpreter);
@@ -254,7 +254,7 @@ test_simple_programs(Test_Context* context)
                                                                string_view("main"),
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
-        ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+        ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
         ASSERT_EQUAL(result.result.int32, 10);
 
         interpreter_destroy(&interpreter);
@@ -288,7 +288,7 @@ test_simple_programs(Test_Context* context)
         call_info.arguments = allocate_array(context->arena,
                                              1,
                                              Interpreter_Expression_Result);
-        call_info.arguments[0].type = AST_TYPE_INT_32;
+        call_info.arguments[0].type = AST_TYPE_INT32;
         call_info.arguments[0].int32 = 123;
         call_info.arguments_count = 1;
         call_info.arguments_capacity = 1;
@@ -299,7 +299,7 @@ test_simple_programs(Test_Context* context)
                                                                string_view("main"),
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
-        ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+        ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
         ASSERT_EQUAL(result.result.int32, 123);
 
         interpreter_destroy(&interpreter);
@@ -338,7 +338,7 @@ test_simple_programs(Test_Context* context)
                                                                string_view("main"),
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
-        ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+        ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
         ASSERT_EQUAL(result.result.int32, 1);
 
         interpreter_destroy(&interpreter);
@@ -377,7 +377,7 @@ test_simple_programs(Test_Context* context)
                                                                string_view("main"),
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
-        ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+        ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
         ASSERT_EQUAL(result.result.int32, 1);
 
         interpreter_destroy(&interpreter);
@@ -416,7 +416,7 @@ test_simple_programs(Test_Context* context)
                                                                string_view("main"),
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
-        ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+        ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
         ASSERT_EQUAL(result.result.int32, 2);
 
         interpreter_destroy(&interpreter);
@@ -460,7 +460,7 @@ test_simple_programs(Test_Context* context)
                                                                string_view("main"),
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
-        ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+        ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
         ASSERT_EQUAL(result.result.int32, 20);
 
         interpreter_destroy(&interpreter);
@@ -502,7 +502,7 @@ test_simple_programs(Test_Context* context)
                                                                string_view("main"),
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
-        ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+        ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
         ASSERT_EQUAL(result.result.int32, 3);
 
         interpreter_destroy(&interpreter);
@@ -551,7 +551,7 @@ test_simple_programs(Test_Context* context)
         }
 
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
-        ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+        ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
         ASSERT_EQUAL(result.result.int32, 0);
 
         interpreter_destroy(&interpreter);
@@ -598,7 +598,7 @@ test_simple_programs(Test_Context* context)
         }
 
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
-        ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+        ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
         ASSERT_EQUAL(result.result.int32, 0);
 
         interpreter_destroy(&interpreter);
@@ -642,7 +642,7 @@ test_simple_programs(Test_Context* context)
             {
                 return;
             }
-            ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
             ASSERT_EQUAL(result.result.int32, -10);
 
             interpreter_destroy(&interpreter);
@@ -684,7 +684,7 @@ test_simple_programs(Test_Context* context)
             {
                 return;
             }
-            ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
             ASSERT_EQUAL(result.result.int32, -13);
 
             interpreter_destroy(&interpreter);
@@ -726,7 +726,7 @@ test_simple_programs(Test_Context* context)
             {
                 return;
             }
-            ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
             ASSERT_EQUAL(result.result.int32, -7);
 
             interpreter_destroy(&interpreter);
@@ -768,7 +768,7 @@ test_simple_programs(Test_Context* context)
             {
                 return;
             }
-            ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
             ASSERT_EQUAL(result.result.int32, 10);
 
             interpreter_destroy(&interpreter);
@@ -814,7 +814,7 @@ test_simple_programs(Test_Context* context)
         //     {
         //         return;
         //     }
-        //     ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+        //     ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
         //     ASSERT_EQUAL(result.result.int32, 10);
 
         //     interpreter_destroy(&interpreter);
@@ -867,7 +867,7 @@ test_operator_precedence(Test_Context* context)
             {
                 return;
             }
-            ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
             ASSERT_EQUAL(result.result.int32, -10);
 
             interpreter_destroy(&interpreter);
@@ -911,7 +911,7 @@ test_operator_precedence(Test_Context* context)
             {
                 return;
             }
-            ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
             ASSERT_EQUAL(result.result.int32, 1);
 
             interpreter_destroy(&interpreter);
@@ -961,7 +961,7 @@ test_type_system(Test_Context* context)
         {
             return;
         }
-        ASSERT_EQUAL(result.result.type, AST_TYPE_FLOAT_32);
+        ASSERT_EQUAL(result.result.type, AST_TYPE_FLOAT32);
         ASSERT_FLOATS_ARE_EQUAL(result.result.float32, 1.2f);
 
         interpreter_destroy(&interpreter);
@@ -995,7 +995,7 @@ test_type_system(Test_Context* context)
         call_info.arguments = allocate_array(context->arena,
                                              1,
                                              Interpreter_Expression_Result);
-        call_info.arguments[0].type = AST_TYPE_FLOAT_32;
+        call_info.arguments[0].type = AST_TYPE_FLOAT32;
         call_info.arguments[0].float32 = 0.1f;
         call_info.arguments_count = 1;
         call_info.arguments_capacity = 1;
@@ -1009,7 +1009,7 @@ test_type_system(Test_Context* context)
         {
             return;
         }
-        ASSERT_EQUAL(result.result.type, AST_TYPE_FLOAT_32);
+        ASSERT_EQUAL(result.result.type, AST_TYPE_FLOAT32);
         ASSERT_FLOATS_ARE_EQUAL(result.result.float32, 0.3f);
 
         interpreter_destroy(&interpreter);
@@ -1059,7 +1059,7 @@ test_comparisons(Test_Context* context)
             {
                 return;
             }
-            ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
             ASSERT_EQUAL(result.result.int32, 1);
 
             interpreter_destroy(&interpreter);
@@ -1100,7 +1100,7 @@ test_comparisons(Test_Context* context)
             {
                 return;
             }
-            ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
             ASSERT_EQUAL(result.result.int32, 0);
 
             interpreter_destroy(&interpreter);
@@ -1141,7 +1141,7 @@ test_comparisons(Test_Context* context)
             {
                 return;
             }
-            ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
             ASSERT_EQUAL(result.result.int32, 0);
 
             interpreter_destroy(&interpreter);
@@ -1182,7 +1182,7 @@ test_comparisons(Test_Context* context)
             {
                 return;
             }
-            ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
             ASSERT_EQUAL(result.result.int32, 1);
 
             interpreter_destroy(&interpreter);
@@ -1223,7 +1223,7 @@ test_comparisons(Test_Context* context)
             {
                 return;
             }
-            ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
             ASSERT_EQUAL(result.result.int32, 0);
 
             interpreter_destroy(&interpreter);
@@ -1264,7 +1264,7 @@ test_comparisons(Test_Context* context)
             {
                 return;
             }
-            ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
             ASSERT_EQUAL(result.result.int32, 1);
 
             interpreter_destroy(&interpreter);
@@ -1308,7 +1308,7 @@ test_comparisons(Test_Context* context)
             {
                 return;
             }
-            ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(result.result.type, AST_TYPE_INT32);
             ASSERT_EQUAL(result.result.int32, 1);
 
             interpreter_destroy(&interpreter);

@@ -172,8 +172,8 @@ create_parser(Parser* parser, Arena* parser_arena, Lexer* lexer, Errors* errors)
 
     const Builtin_Type builtin_types[] = {
         { .lexeme = string_view("void"), .type = AST_TYPE_VOID, },
-        { .lexeme = string_view("Int32"), .type = AST_TYPE_INT_32, },
-        { .lexeme = string_view("Float32"), .type = AST_TYPE_FLOAT_32, },
+        { .lexeme = string_view("Int32"), .type = AST_TYPE_INT32, },
+        { .lexeme = string_view("Float32"), .type = AST_TYPE_FLOAT32, },
     };
     const Size builtin_types_count = size_of(builtin_types) / size_of(builtin_types[0]);
 

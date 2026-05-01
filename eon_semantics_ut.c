@@ -46,7 +46,7 @@ test_type_inference(Test_Context* context)
             {
                 const Ast_Variable_Definition* variable = scope->variables[0];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
@@ -88,7 +88,7 @@ test_type_inference(Test_Context* context)
             {
                 const Ast_Variable_Definition* variable = scope->variables[0];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_FLOAT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_FLOAT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
@@ -134,14 +134,14 @@ test_type_inference(Test_Context* context)
             {
                 const Ast_Variable_Definition* variable = scope->variables[0];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
             {
                 const Ast_Variable_Definition* variable = scope->variables[1];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "b");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
@@ -184,14 +184,14 @@ test_type_inference(Test_Context* context)
             {
                 const Ast_Variable_Definition* variable = scope->variables[0];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
             {
                 const Ast_Variable_Definition* variable = scope->variables[1];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "b");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_MUTABLE);
             }
 
@@ -234,14 +234,14 @@ test_type_inference(Test_Context* context)
             {
                 const Ast_Variable_Definition* variable = scope->variables[0];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_MUTABLE);
             }
 
             {
                 const Ast_Variable_Definition* variable = scope->variables[1];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "b");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
@@ -286,14 +286,14 @@ test_type_inference(Test_Context* context)
             {
                 const Ast_Variable_Definition* variable = scope->variables[0];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "argument");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
             {
                 const Ast_Variable_Definition* variable = scope->variables[1];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
@@ -335,14 +335,14 @@ test_type_inference(Test_Context* context)
             {
                 const Ast_Variable_Definition* variable = scope->variables[0];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "argument");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_MUTABLE);
             }
 
             {
                 const Ast_Variable_Definition* variable = scope->variables[1];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
@@ -384,14 +384,14 @@ test_type_inference(Test_Context* context)
             {
                 const Ast_Variable_Definition* variable = scope->variables[0];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "argument");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
             {
                 const Ast_Variable_Definition* variable = scope->variables[1];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
@@ -560,7 +560,7 @@ test_type_inference(Test_Context* context)
             {
                 const Ast_Variable_Definition* variable = scope->variables[0];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_MUTABLE);
             }
 
@@ -602,7 +602,7 @@ test_type_inference(Test_Context* context)
             {
                 const Ast_Variable_Definition* variable = scope->variables[0];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
@@ -644,7 +644,7 @@ test_type_inference(Test_Context* context)
             {
                 const Ast_Variable_Definition* variable = scope->variables[0];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
@@ -686,7 +686,7 @@ test_type_inference(Test_Context* context)
             {
                 const Ast_Variable_Definition* variable = scope->variables[0];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
@@ -811,7 +811,7 @@ test_type_inference(Test_Context* context)
                 {
                     const Ast_Variable_Definition* variable = scope->variables[0];
                     ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "argument");
-                    ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                    ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                     ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
                 }
             }
@@ -866,7 +866,7 @@ test_type_inference(Test_Context* context)
                 {
                     const Ast_Variable_Definition* variable = scope->variables[0];
                     ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
-                    ASSERT_EQUAL(variable->type->type, AST_TYPE_FLOAT_32);
+                    ASSERT_EQUAL(variable->type->type, AST_TYPE_FLOAT32);
                     ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
                 }
             }
@@ -883,7 +883,7 @@ test_type_inference(Test_Context* context)
                 {
                     const Ast_Variable_Definition* variable = scope->variables[0];
                     ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "argument");
-                    ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                    ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                     ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
                 }
             }
@@ -934,7 +934,7 @@ test_pointers(Test_Context* context)
         {
             const Ast_Variable_Definition* variable = scope->variables[0];
             ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "argument");
-            ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
             ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
         }
 
@@ -943,7 +943,7 @@ test_pointers(Test_Context* context)
             ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
             ASSERT_EQUAL(variable->type->type, AST_TYPE_POINTER);
             ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
-            ASSERT_EQUAL(variable->type->pointed_to->type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(variable->type->pointed_to->type, AST_TYPE_INT32);
             ASSERT_EQUAL(variable->type->pointed_to->qualifiers, AST_QUALIFIER_NONE);
         }
 
@@ -985,7 +985,7 @@ test_pointers(Test_Context* context)
         {
             const Ast_Variable_Definition* variable = scope->variables[0];
             ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "argument");
-            ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
             ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
         }
 
@@ -994,7 +994,7 @@ test_pointers(Test_Context* context)
             ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
             ASSERT_EQUAL(variable->type->type, AST_TYPE_POINTER);
             ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_MUTABLE);
-            ASSERT_EQUAL(variable->type->pointed_to->type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(variable->type->pointed_to->type, AST_TYPE_INT32);
             ASSERT_EQUAL(variable->type->pointed_to->qualifiers, AST_QUALIFIER_NONE);
         }
 
@@ -1036,7 +1036,7 @@ test_pointers(Test_Context* context)
         {
             const Ast_Variable_Definition* variable = scope->variables[0];
             ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "argument");
-            ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
             ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_MUTABLE);
         }
 
@@ -1045,7 +1045,7 @@ test_pointers(Test_Context* context)
             ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
             ASSERT_EQUAL(variable->type->type, AST_TYPE_POINTER);
             ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
-            ASSERT_EQUAL(variable->type->pointed_to->type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(variable->type->pointed_to->type, AST_TYPE_INT32);
             ASSERT_EQUAL(variable->type->pointed_to->qualifiers, AST_QUALIFIER_MUTABLE);
         }
 
@@ -1087,7 +1087,7 @@ test_pointers(Test_Context* context)
         {
             const Ast_Variable_Definition* variable = scope->variables[0];
             ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "argument");
-            ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
             ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_MUTABLE);
         }
 
@@ -1096,7 +1096,7 @@ test_pointers(Test_Context* context)
             ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
             ASSERT_EQUAL(variable->type->type, AST_TYPE_POINTER);
             ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_MUTABLE);
-            ASSERT_EQUAL(variable->type->pointed_to->type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(variable->type->pointed_to->type, AST_TYPE_INT32);
             ASSERT_EQUAL(variable->type->pointed_to->qualifiers, AST_QUALIFIER_MUTABLE); // FIXME(vlad): Should this be AST_QUALIFIER_NONE?
         }
 
@@ -1138,7 +1138,7 @@ test_pointers(Test_Context* context)
         {
             const Ast_Variable_Definition* variable = scope->variables[0];
             ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "argument");
-            ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
             ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_MUTABLE);
         }
 
@@ -1147,7 +1147,7 @@ test_pointers(Test_Context* context)
             ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
             ASSERT_EQUAL(variable->type->type, AST_TYPE_POINTER);
             ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_MUTABLE);
-            ASSERT_EQUAL(variable->type->pointed_to->type, AST_TYPE_INT_32);
+            ASSERT_EQUAL(variable->type->pointed_to->type, AST_TYPE_INT32);
             ASSERT_EQUAL(variable->type->pointed_to->qualifiers, AST_QUALIFIER_NONE);
         }
 
@@ -1201,7 +1201,7 @@ test_lexical_scopes(Test_Context* context)
             {
                 const Ast_Variable_Definition* variable = scope->variables[0];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
@@ -1223,7 +1223,7 @@ test_lexical_scopes(Test_Context* context)
 
                     const Ast_Variable_Definition* variable = if_scope->variables[0];
                     ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
-                    ASSERT_EQUAL(variable->type->type, AST_TYPE_FLOAT_32);
+                    ASSERT_EQUAL(variable->type->type, AST_TYPE_FLOAT32);
                     ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
                 }
 
@@ -1275,7 +1275,7 @@ test_lexical_scopes(Test_Context* context)
             {
                 const Ast_Variable_Definition* variable = scope->variables[0];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
@@ -1302,7 +1302,7 @@ test_lexical_scopes(Test_Context* context)
 
                     const Ast_Variable_Definition* variable = else_scope->variables[0];
                     ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
-                    ASSERT_EQUAL(variable->type->type, AST_TYPE_FLOAT_32);
+                    ASSERT_EQUAL(variable->type->type, AST_TYPE_FLOAT32);
                     ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
                 }
             }
@@ -1351,7 +1351,7 @@ test_lexical_scopes(Test_Context* context)
             {
                 const Ast_Variable_Definition* variable = scope->variables[0];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
@@ -1371,7 +1371,7 @@ test_lexical_scopes(Test_Context* context)
 
                 const Ast_Variable_Definition* variable = while_scope->variables[0];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_FLOAT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_FLOAT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
@@ -1416,7 +1416,7 @@ test_lexical_scopes(Test_Context* context)
             {
                 const Ast_Variable_Definition* variable = scope->variables[0];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
@@ -1473,7 +1473,7 @@ test_lexical_scopes(Test_Context* context)
             {
                 const Ast_Variable_Definition* variable = scope->variables[0];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
@@ -1493,7 +1493,7 @@ test_lexical_scopes(Test_Context* context)
 
                 const Ast_Variable_Definition* variable = while_scope->variables[0];
                 ASSERT_STRINGS_ARE_EQUAL(variable->name.token.lexeme, "a");
-                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT_32);
+                ASSERT_EQUAL(variable->type->type, AST_TYPE_INT32);
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 

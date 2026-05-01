@@ -135,8 +135,8 @@ type_is_fully_inferred(const Ast_Type* type)
         // NOTE(vlad): Trivial types.
         case AST_TYPE_VOID:
         case AST_TYPE_BOOL:
-        case AST_TYPE_INT_32:
-        case AST_TYPE_FLOAT_32:
+        case AST_TYPE_INT32:
+        case AST_TYPE_FLOAT32:
         {
             return true;
         } break;
@@ -217,8 +217,8 @@ fully_infer_type_from_another_type_with_constness_info(Ast_Type* type_to_infer,
         // NOTE(vlad): Trivial types.
         case AST_TYPE_VOID:
         case AST_TYPE_BOOL:
-        case AST_TYPE_INT_32:
-        case AST_TYPE_FLOAT_32:
+        case AST_TYPE_INT32:
+        case AST_TYPE_FLOAT32:
         {
             return true;
         } break;
@@ -277,8 +277,8 @@ types_are_equal(const Ast_Type* lhs, const Ast_Type* rhs)
         // NOTE(vlad): Trivial types.
         case AST_TYPE_VOID:
         case AST_TYPE_BOOL:
-        case AST_TYPE_INT_32:
-        case AST_TYPE_FLOAT_32:
+        case AST_TYPE_INT32:
+        case AST_TYPE_FLOAT32:
         {
             return true;
         } break;
@@ -379,11 +379,11 @@ get_inferred_type(Arena* types_arena,
 
             if (fraction_start_index == -1)
             {
-                result.type = AST_TYPE_INT_32;
+                result.type = AST_TYPE_INT32;
             }
             else
             {
-                result.type = AST_TYPE_FLOAT_32;
+                result.type = AST_TYPE_FLOAT32;
             }
         } break;
 
