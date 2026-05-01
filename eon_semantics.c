@@ -244,7 +244,7 @@ fully_infer_type_from_another_type_with_constness_info(Ast_Type* type_to_infer,
     }
 }
 
-internal Bool
+internal inline Bool
 fully_infer_type_from_another_type(Ast_Type* type_to_infer, const Ast_Type* other_type)
 {
     return fully_infer_type_from_another_type_with_constness_info(type_to_infer,

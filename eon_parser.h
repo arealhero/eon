@@ -231,7 +231,7 @@ enum Ast_Initialisation_Type
     AST_INITIALISATION_UNDEFINED = 0,
 
     AST_INITIALISATION_DEFAULT,
-    AST_INITIALISATION_WITH_VALUE,
+    AST_INITIALISATION_WITH_VALUE, // TODO(vlad): Rename to 'WITH_EXPRESSION'?
 
     // XXX(vlad): Can we do better than this?
     AST_INITIALISATION_ARGUMENT,
@@ -244,7 +244,7 @@ struct Ast_Variable_Definition
     Ast_Type* type;
 
     Ast_Initialisation_Type initialisation_type;
-    Ast_Expression initial_value;
+    Ast_Expression initial_value; // TODO(vlad): Rename to 'initialising_expression' or something?
 };
 typedef struct Ast_Variable_Definition Ast_Variable_Definition;
 
@@ -265,8 +265,8 @@ typedef struct Ast_Return_Statement Ast_Return_Statement;
 struct Ast_If_Statement
 {
     Ast_Expression condition;
-    Ast_Statements if_statements;
-    Ast_Statements else_statements;
+    Ast_Statements if_statements; // TODO(vlad): Rename to 'if_branch'?
+    Ast_Statements else_statements; // TODO(vlad): Rename to 'else_branch'?
 };
 typedef struct Ast_If_Statement Ast_If_Statement;
 

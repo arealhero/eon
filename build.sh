@@ -86,6 +86,8 @@ compile_and_run_unit_test eon_ir_ut.c
 compile_and_run_unit_test eon_lexer_ut.c
 compile_and_run_unit_test eon_parser_ut.c
 compile_and_run_unit_test eon_semantics_ut.c
+compile_and_run_unit_test eon_tac_ut.c
+
 compile_and_run_unit_test eon/sanitizers/asan_ut.c -fsanitize=address -fsanitize-recover=address
 
 mkdir -p build/tests

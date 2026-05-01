@@ -265,7 +265,6 @@ main(const int argc, const char* argv[])
     const String child_stderr = read_from_fd_until_done(child_output_arena,
                                                         stderr_pipe[0]);
 
-    // NOTE(vlad): Parent process.
     int status;
     waitpid(eon_process_id, &status, 0);
 
