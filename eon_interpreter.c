@@ -105,7 +105,7 @@ execute_expression(Arena* runtime_arena,
             if (fraction_start_index == -1)
             {
                 result->type = AST_TYPE_INT_32;
-                if (!parse_integer(lexeme, &result->s32_value))
+                if (!parse_integer(lexeme, &result->int32))
                 {
                     FAIL("Failed to parse integer");
                 }
@@ -113,7 +113,7 @@ execute_expression(Arena* runtime_arena,
             else
             {
                 result->type = AST_TYPE_FLOAT_32;
-                if (!parse_float(lexeme, &result->f32_value))
+                if (!parse_float(lexeme, &result->float32))
                 {
                     FAIL("Failed to parse float");
                 }
@@ -145,12 +145,12 @@ execute_expression(Arena* runtime_arena,
             {
                 case AST_TYPE_INT_32:
                 {
-                    result->s32_value = variable->int32;
+                    result->int32 = variable->int32;
                 } break;
 
                 case AST_TYPE_FLOAT_32:
                 {
-                    result->f32_value = variable->float32;
+                    result->float32 = variable->float32;
                 } break;
 
                 default:
@@ -209,11 +209,11 @@ execute_expression(Arena* runtime_arena,
 
                     if (result->type == AST_TYPE_INT_32)
                     {
-                        result->s32_value = lhs.s32_value + rhs.s32_value;
+                        result->int32 = lhs.int32 + rhs.int32;
                     }
                     else if (result->type == AST_TYPE_FLOAT_32)
                     {
-                        result->f32_value = lhs.f32_value + rhs.f32_value;
+                        result->float32 = lhs.float32 + rhs.float32;
                     }
                     else
                     {
@@ -227,11 +227,11 @@ execute_expression(Arena* runtime_arena,
 
                     if (result->type == AST_TYPE_INT_32)
                     {
-                        result->s32_value = lhs.s32_value - rhs.s32_value;
+                        result->int32 = lhs.int32 - rhs.int32;
                     }
                     else if (result->type == AST_TYPE_FLOAT_32)
                     {
-                        result->f32_value = lhs.f32_value - rhs.f32_value;
+                        result->float32 = lhs.float32 - rhs.float32;
                     }
                     else
                     {
@@ -245,11 +245,11 @@ execute_expression(Arena* runtime_arena,
 
                     if (result->type == AST_TYPE_INT_32)
                     {
-                        result->s32_value = lhs.s32_value * rhs.s32_value;
+                        result->int32 = lhs.int32 * rhs.int32;
                     }
                     else if (result->type == AST_TYPE_FLOAT_32)
                     {
-                        result->f32_value = lhs.f32_value * rhs.f32_value;
+                        result->float32 = lhs.float32 * rhs.float32;
                     }
                     else
                     {
@@ -263,11 +263,11 @@ execute_expression(Arena* runtime_arena,
 
                     if (result->type == AST_TYPE_INT_32)
                     {
-                        result->s32_value = lhs.s32_value / rhs.s32_value;
+                        result->int32 = lhs.int32 / rhs.int32;
                     }
                     else if (result->type == AST_TYPE_FLOAT_32)
                     {
-                        result->f32_value = lhs.f32_value / rhs.f32_value;
+                        result->float32 = lhs.float32 / rhs.float32;
                     }
                     else
                     {
@@ -282,7 +282,7 @@ execute_expression(Arena* runtime_arena,
 
                     if (lhs.type == AST_TYPE_INT_32)
                     {
-                        result->s32_value = lhs.s32_value == rhs.s32_value;
+                        result->int32 = lhs.int32 == rhs.int32;
                     }
                     else if (lhs.type == AST_TYPE_FLOAT_32)
                     {
@@ -300,7 +300,7 @@ execute_expression(Arena* runtime_arena,
 
                     if (lhs.type == AST_TYPE_INT_32)
                     {
-                        result->s32_value = lhs.s32_value != rhs.s32_value;
+                        result->int32 = lhs.int32 != rhs.int32;
                     }
                     else if (lhs.type == AST_TYPE_FLOAT_32)
                     {
@@ -318,11 +318,11 @@ execute_expression(Arena* runtime_arena,
 
                     if (lhs.type == AST_TYPE_INT_32)
                     {
-                        result->s32_value = lhs.s32_value < rhs.s32_value;
+                        result->int32 = lhs.int32 < rhs.int32;
                     }
                     else if (lhs.type == AST_TYPE_FLOAT_32)
                     {
-                        result->s32_value = lhs.f32_value < rhs.f32_value;
+                        result->int32 = lhs.float32 < rhs.float32;
                     }
                     else
                     {
@@ -336,11 +336,11 @@ execute_expression(Arena* runtime_arena,
 
                     if (lhs.type == AST_TYPE_INT_32)
                     {
-                        result->s32_value = lhs.s32_value <= rhs.s32_value;
+                        result->int32 = lhs.int32 <= rhs.int32;
                     }
                     else if (lhs.type == AST_TYPE_FLOAT_32)
                     {
-                        result->s32_value = lhs.f32_value <= rhs.f32_value;
+                        result->int32 = lhs.float32 <= rhs.float32;
                     }
                     else
                     {
@@ -354,11 +354,11 @@ execute_expression(Arena* runtime_arena,
 
                     if (lhs.type == AST_TYPE_INT_32)
                     {
-                        result->s32_value = lhs.s32_value > rhs.s32_value;
+                        result->int32 = lhs.int32 > rhs.int32;
                     }
                     else if (lhs.type == AST_TYPE_FLOAT_32)
                     {
-                        result->s32_value = lhs.f32_value > rhs.f32_value;
+                        result->int32 = lhs.float32 > rhs.float32;
                     }
                     else
                     {
@@ -372,11 +372,11 @@ execute_expression(Arena* runtime_arena,
 
                     if (lhs.type == AST_TYPE_INT_32)
                     {
-                        result->s32_value = lhs.s32_value >= rhs.s32_value;
+                        result->int32 = lhs.int32 >= rhs.int32;
                     }
                     else if (lhs.type == AST_TYPE_FLOAT_32)
                     {
-                        result->s32_value = lhs.f32_value >= rhs.f32_value;
+                        result->int32 = lhs.float32 >= rhs.float32;
                     }
                     else
                     {
@@ -411,11 +411,11 @@ execute_expression(Arena* runtime_arena,
 
             if (result->type == AST_TYPE_INT_32)
             {
-                result->s32_value = -operand_result.s32_value;
+                result->int32 = -operand_result.int32;
             }
             else if (result->type == AST_TYPE_FLOAT_32)
             {
-                result->f32_value = -operand_result.f32_value;
+                result->float32 = -operand_result.float32;
             }
             else
             {
@@ -466,12 +466,12 @@ execute_expression(Arena* runtime_arena,
                 {
                     case AST_TYPE_INT_32:
                     {
-                        println("{}", argument.s32_value);
+                        println("{}", argument.int32);
                     } break;
 
                     case AST_TYPE_FLOAT_32:
                     {
-                        println("{}", argument.f32_value);
+                        println("{}", argument.float32);
                     } break;
 
                     default:
@@ -607,12 +607,12 @@ interpreter_add_variable_to_current_lexical_scope(Arena* runtime_arena,
             {
                 case AST_TYPE_INT_32:
                 {
-                    variable->int32 = result.s32_value;
+                    variable->int32 = result.int32;
                 } break;
 
                 case AST_TYPE_FLOAT_32:
                 {
-                    variable->float32 = result.f32_value;
+                    variable->float32 = result.float32;
                 } break;
 
                 default:
@@ -648,12 +648,12 @@ set_value_for_the_variable(Interpreter_Variable* variable,
     {
         case AST_TYPE_INT_32:
         {
-            variable->int32 = value->s32_value;
+            variable->int32 = value->int32;
         } break;
 
         case AST_TYPE_FLOAT_32:
         {
-            variable->float32 = value->f32_value;
+            variable->float32 = value->float32;
         } break;
 
         default:
@@ -770,7 +770,7 @@ execute_statement(Arena* runtime_arena,
 
                 // TODO(vlad): Test that the condition is convertible to bool.
                 //             (Or rather IS a bool.)
-                const s32 condition_value = condition_result.s32_value;
+                const s32 condition_value = condition_result.int32;
                 if (!condition_value)
                 {
                     break;
@@ -814,7 +814,7 @@ execute_statement(Arena* runtime_arena,
                 FAIL("Failed to execute if statement's expression");
             }
 
-            const Ast_Statements* statements = condition_result.s32_value
+            const Ast_Statements* statements = condition_result.int32
                 ? &if_statement->if_statements
                 : &if_statement->else_statements;
 

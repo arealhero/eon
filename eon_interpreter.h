@@ -52,8 +52,8 @@ struct Interpreter_Expression_Result
     Ast_Type_Type type;
     union
     {
-        s32 s32_value;
-        f32 f32_value;
+        s32 int32;
+        f32 float32;
     };
 };
 typedef struct Interpreter_Expression_Result Interpreter_Expression_Result;

@@ -61,7 +61,7 @@ test_simple_programs(Test_Context* context)
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
         ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-        ASSERT_EQUAL(result.result.s32_value, 0);
+        ASSERT_EQUAL(result.result.int32, 0);
 
         interpreter_destroy(&interpreter);
         destroy_parser(&parser);
@@ -99,7 +99,7 @@ test_simple_programs(Test_Context* context)
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
         ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-        ASSERT_EQUAL(result.result.s32_value, 1);
+        ASSERT_EQUAL(result.result.int32, 1);
 
         interpreter_destroy(&interpreter);
         destroy_parser(&parser);
@@ -137,7 +137,7 @@ test_simple_programs(Test_Context* context)
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
         ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-        ASSERT_EQUAL(result.result.s32_value, 6);
+        ASSERT_EQUAL(result.result.int32, 6);
 
         interpreter_destroy(&interpreter);
         destroy_parser(&parser);
@@ -176,7 +176,7 @@ test_simple_programs(Test_Context* context)
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
         ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-        ASSERT_EQUAL(result.result.s32_value, 25);
+        ASSERT_EQUAL(result.result.int32, 25);
 
         interpreter_destroy(&interpreter);
         destroy_parser(&parser);
@@ -216,7 +216,7 @@ test_simple_programs(Test_Context* context)
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
         ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-        ASSERT_EQUAL(result.result.s32_value, 20);
+        ASSERT_EQUAL(result.result.int32, 20);
 
         interpreter_destroy(&interpreter);
         destroy_parser(&parser);
@@ -255,7 +255,7 @@ test_simple_programs(Test_Context* context)
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
         ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-        ASSERT_EQUAL(result.result.s32_value, 10);
+        ASSERT_EQUAL(result.result.int32, 10);
 
         interpreter_destroy(&interpreter);
         destroy_parser(&parser);
@@ -289,7 +289,7 @@ test_simple_programs(Test_Context* context)
                                              1,
                                              Interpreter_Expression_Result);
         call_info.arguments[0].type = AST_TYPE_INT_32;
-        call_info.arguments[0].s32_value = 123;
+        call_info.arguments[0].int32 = 123;
         call_info.arguments_count = 1;
         call_info.arguments_capacity = 1;
         const Run_Result result = interpreter_execute_function(context->arena,
@@ -300,7 +300,7 @@ test_simple_programs(Test_Context* context)
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
         ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-        ASSERT_EQUAL(result.result.s32_value, 123);
+        ASSERT_EQUAL(result.result.int32, 123);
 
         interpreter_destroy(&interpreter);
         destroy_parser(&parser);
@@ -339,7 +339,7 @@ test_simple_programs(Test_Context* context)
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
         ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-        ASSERT_EQUAL(result.result.s32_value, 1);
+        ASSERT_EQUAL(result.result.int32, 1);
 
         interpreter_destroy(&interpreter);
         destroy_parser(&parser);
@@ -378,7 +378,7 @@ test_simple_programs(Test_Context* context)
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
         ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-        ASSERT_EQUAL(result.result.s32_value, 1);
+        ASSERT_EQUAL(result.result.int32, 1);
 
         interpreter_destroy(&interpreter);
         destroy_parser(&parser);
@@ -417,7 +417,7 @@ test_simple_programs(Test_Context* context)
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
         ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-        ASSERT_EQUAL(result.result.s32_value, 2);
+        ASSERT_EQUAL(result.result.int32, 2);
 
         interpreter_destroy(&interpreter);
         destroy_parser(&parser);
@@ -461,7 +461,7 @@ test_simple_programs(Test_Context* context)
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
         ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-        ASSERT_EQUAL(result.result.s32_value, 20);
+        ASSERT_EQUAL(result.result.int32, 20);
 
         interpreter_destroy(&interpreter);
         destroy_parser(&parser);
@@ -503,7 +503,7 @@ test_simple_programs(Test_Context* context)
                                                                &call_info);
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
         ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-        ASSERT_EQUAL(result.result.s32_value, 3);
+        ASSERT_EQUAL(result.result.int32, 3);
 
         interpreter_destroy(&interpreter);
         destroy_parser(&parser);
@@ -552,7 +552,7 @@ test_simple_programs(Test_Context* context)
 
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
         ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-        ASSERT_EQUAL(result.result.s32_value, 0);
+        ASSERT_EQUAL(result.result.int32, 0);
 
         interpreter_destroy(&interpreter);
         destroy_parser(&parser);
@@ -599,7 +599,7 @@ test_simple_programs(Test_Context* context)
 
         ASSERT_EQUAL(result.status, INTERPRETER_RUN_OK);
         ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-        ASSERT_EQUAL(result.result.s32_value, 0);
+        ASSERT_EQUAL(result.result.int32, 0);
 
         interpreter_destroy(&interpreter);
         destroy_parser(&parser);
@@ -643,7 +643,7 @@ test_simple_programs(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_EQUAL(result.result.s32_value, -10);
+            ASSERT_EQUAL(result.result.int32, -10);
 
             interpreter_destroy(&interpreter);
             destroy_parser(&parser);
@@ -685,7 +685,7 @@ test_simple_programs(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_EQUAL(result.result.s32_value, -13);
+            ASSERT_EQUAL(result.result.int32, -13);
 
             interpreter_destroy(&interpreter);
             destroy_parser(&parser);
@@ -727,7 +727,7 @@ test_simple_programs(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_EQUAL(result.result.s32_value, -7);
+            ASSERT_EQUAL(result.result.int32, -7);
 
             interpreter_destroy(&interpreter);
             destroy_parser(&parser);
@@ -769,7 +769,7 @@ test_simple_programs(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_EQUAL(result.result.s32_value, 10);
+            ASSERT_EQUAL(result.result.int32, 10);
 
             interpreter_destroy(&interpreter);
             destroy_parser(&parser);
@@ -815,7 +815,7 @@ test_simple_programs(Test_Context* context)
         //         return;
         //     }
         //     ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-        //     ASSERT_EQUAL(result.result.s32_value, 10);
+        //     ASSERT_EQUAL(result.result.int32, 10);
 
         //     interpreter_destroy(&interpreter);
         //     destroy_parser(&parser);
@@ -868,7 +868,7 @@ test_operator_precedence(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_EQUAL(result.result.s32_value, -10);
+            ASSERT_EQUAL(result.result.int32, -10);
 
             interpreter_destroy(&interpreter);
             destroy_parser(&parser);
@@ -912,7 +912,7 @@ test_operator_precedence(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_EQUAL(result.result.s32_value, 1);
+            ASSERT_EQUAL(result.result.int32, 1);
 
             interpreter_destroy(&interpreter);
             destroy_parser(&parser);
@@ -962,7 +962,7 @@ test_type_system(Test_Context* context)
             return;
         }
         ASSERT_EQUAL(result.result.type, AST_TYPE_FLOAT_32);
-        ASSERT_FLOATS_ARE_EQUAL(result.result.f32_value, 1.2f);
+        ASSERT_FLOATS_ARE_EQUAL(result.result.float32, 1.2f);
 
         interpreter_destroy(&interpreter);
         destroy_parser(&parser);
@@ -996,7 +996,7 @@ test_type_system(Test_Context* context)
                                              1,
                                              Interpreter_Expression_Result);
         call_info.arguments[0].type = AST_TYPE_FLOAT_32;
-        call_info.arguments[0].f32_value = 0.1f;
+        call_info.arguments[0].float32 = 0.1f;
         call_info.arguments_count = 1;
         call_info.arguments_capacity = 1;
         const Run_Result result = interpreter_execute_function(context->arena,
@@ -1010,7 +1010,7 @@ test_type_system(Test_Context* context)
             return;
         }
         ASSERT_EQUAL(result.result.type, AST_TYPE_FLOAT_32);
-        ASSERT_FLOATS_ARE_EQUAL(result.result.f32_value, 0.3f);
+        ASSERT_FLOATS_ARE_EQUAL(result.result.float32, 0.3f);
 
         interpreter_destroy(&interpreter);
         destroy_parser(&parser);
@@ -1060,7 +1060,7 @@ test_comparisons(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_EQUAL(result.result.s32_value, 1);
+            ASSERT_EQUAL(result.result.int32, 1);
 
             interpreter_destroy(&interpreter);
             destroy_parser(&parser);
@@ -1101,7 +1101,7 @@ test_comparisons(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_EQUAL(result.result.s32_value, 0);
+            ASSERT_EQUAL(result.result.int32, 0);
 
             interpreter_destroy(&interpreter);
             destroy_parser(&parser);
@@ -1142,7 +1142,7 @@ test_comparisons(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_EQUAL(result.result.s32_value, 0);
+            ASSERT_EQUAL(result.result.int32, 0);
 
             interpreter_destroy(&interpreter);
             destroy_parser(&parser);
@@ -1183,7 +1183,7 @@ test_comparisons(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_EQUAL(result.result.s32_value, 1);
+            ASSERT_EQUAL(result.result.int32, 1);
 
             interpreter_destroy(&interpreter);
             destroy_parser(&parser);
@@ -1224,7 +1224,7 @@ test_comparisons(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_EQUAL(result.result.s32_value, 0);
+            ASSERT_EQUAL(result.result.int32, 0);
 
             interpreter_destroy(&interpreter);
             destroy_parser(&parser);
@@ -1265,7 +1265,7 @@ test_comparisons(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_EQUAL(result.result.s32_value, 1);
+            ASSERT_EQUAL(result.result.int32, 1);
 
             interpreter_destroy(&interpreter);
             destroy_parser(&parser);
@@ -1309,7 +1309,7 @@ test_comparisons(Test_Context* context)
                 return;
             }
             ASSERT_EQUAL(result.result.type, AST_TYPE_INT_32);
-            ASSERT_EQUAL(result.result.s32_value, 1);
+            ASSERT_EQUAL(result.result.int32, 1);
 
             interpreter_destroy(&interpreter);
             destroy_parser(&parser);
