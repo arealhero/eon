@@ -1,0 +1,25 @@
+# Warnings
+-pedantic
+-Wall
+-Wextra
+-Werror
+-Wconversion
+-Wshadow
+
+-Wno-variadic-macro-arguments-omitted
+
+-Wno-error=unused-function
+-Wno-error=unused-variable
+-Wno-error=unused-parameter
+
+# NOTE(vlad): clangd does not understand unity builds.
+-Wno-undefined-literal
+
+# Common flags
+-std=gnu11
+-O0
+-ggdb
+-I.
+-fsanitize=address
+-fno-omit-frame-pointer
+-ferror-limit=0
