@@ -1,7 +1,6 @@
 #pragma once
 
 #include <eon/build_info.h>
-#include <eon/common.h>
 
 // NOTE(vlad): Defining unsigned integer types.
 
