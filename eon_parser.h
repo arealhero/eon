@@ -9,7 +9,6 @@
 
 #include "eon_ast.h"
 
-// FIXME(vlad): Move AST-related structs to 'eon_ast.h'.
 struct Builtin_Type
 {
     String_View lexeme;
@@ -19,7 +18,7 @@ typedef struct Builtin_Type Builtin_Type;
 
 struct Parser
 {
-    // TODO(vlad): Move this to AST.
+    // TODO(vlad): Move this to AST?
     Errors* errors;
 
     Lexer* lexer;
