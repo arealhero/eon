@@ -11,12 +11,7 @@ platform_read_entire_text_file(Arena* arena, const String_View filename)
 {
     Read_File_Result result = {0};
 
-    char* zero_terminated_filename = allocate_uninitialized_array(arena, filename.length + 1, char);
-    copy_memory(as_bytes(zero_terminated_filename),
-                as_bytes(filename.data),
-                filename.length);
-    zero_terminated_filename[filename.length] = '\0';
-
+    const char* zero_terminated_filename = to_c_string(arena, filename);
     const int fd = open(zero_terminated_filename, O_RDONLY);
     if (fd == -1)
     {
@@ -65,11 +60,7 @@ platform_read_entire_text_file(Arena* arena, const String_View filename)
 internal File_Info
 platform_get_file_info(Arena* scratch_arena, const String_View filename)
 {
-    char* zero_terminated_filename = allocate_uninitialized_array(scratch_arena, filename.length + 1, char);
-    copy_memory(as_bytes(zero_terminated_filename),
-                as_bytes(filename.data),
-                filename.length);
-    zero_terminated_filename[filename.length] = '\0';
+    const char* zero_terminated_filename = to_c_string(scratch_arena, filename);
 
     File_Info info = {0};
 
