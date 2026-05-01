@@ -10,7 +10,7 @@ internal void
 test_type_inference(Test_Context* context)
 {
     Errors errors = {0};
-    errors_create(&errors, context->arena);
+    create_errors(&errors, context->arena);
 
     // NOTE(vlad): Testing type inference for literals.
     {
@@ -22,11 +22,11 @@ test_type_inference(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -50,8 +50,8 @@ test_type_inference(Test_Context* context)
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -64,11 +64,11 @@ test_type_inference(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -92,8 +92,8 @@ test_type_inference(Test_Context* context)
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -110,11 +110,11 @@ test_type_inference(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -145,8 +145,8 @@ test_type_inference(Test_Context* context)
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -160,11 +160,11 @@ test_type_inference(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -195,8 +195,8 @@ test_type_inference(Test_Context* context)
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_MUTABLE);
             }
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -210,11 +210,11 @@ test_type_inference(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -245,8 +245,8 @@ test_type_inference(Test_Context* context)
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -262,11 +262,11 @@ test_type_inference(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -297,8 +297,8 @@ test_type_inference(Test_Context* context)
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -311,11 +311,11 @@ test_type_inference(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -346,8 +346,8 @@ test_type_inference(Test_Context* context)
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -360,11 +360,11 @@ test_type_inference(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -395,8 +395,8 @@ test_type_inference(Test_Context* context)
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -412,11 +412,11 @@ test_type_inference(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -426,8 +426,8 @@ test_type_inference(Test_Context* context)
 
             ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -440,11 +440,11 @@ test_type_inference(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -454,8 +454,8 @@ test_type_inference(Test_Context* context)
 
             ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -472,11 +472,11 @@ test_type_inference(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -486,8 +486,8 @@ test_type_inference(Test_Context* context)
 
             ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -504,11 +504,11 @@ test_type_inference(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -518,8 +518,8 @@ test_type_inference(Test_Context* context)
 
             ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -536,11 +536,11 @@ test_type_inference(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -564,8 +564,8 @@ test_type_inference(Test_Context* context)
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_MUTABLE);
             }
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -578,11 +578,11 @@ test_type_inference(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -606,8 +606,8 @@ test_type_inference(Test_Context* context)
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -620,11 +620,11 @@ test_type_inference(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -648,8 +648,8 @@ test_type_inference(Test_Context* context)
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -662,11 +662,11 @@ test_type_inference(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -690,8 +690,8 @@ test_type_inference(Test_Context* context)
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -708,11 +708,11 @@ test_type_inference(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 2);
@@ -751,8 +751,8 @@ test_type_inference(Test_Context* context)
                 ASSERT_EQUAL(scope->variables_count, 0);
             }
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -766,11 +766,11 @@ test_type_inference(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 2);
@@ -816,8 +816,8 @@ test_type_inference(Test_Context* context)
                 }
             }
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -831,11 +831,11 @@ test_type_inference(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 2);
@@ -888,8 +888,8 @@ test_type_inference(Test_Context* context)
                 }
             }
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -900,7 +900,7 @@ internal void
 test_pointers(Test_Context* context)
 {
     Errors errors = {0};
-    errors_create(&errors, context->arena);
+    create_errors(&errors, context->arena);
 
     {
         const String_View input = string_view("foo: (argument: Int32) -> void = {"
@@ -910,11 +910,11 @@ test_pointers(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -947,8 +947,8 @@ test_pointers(Test_Context* context)
             ASSERT_EQUAL(variable->type->pointed_to->qualifiers, AST_QUALIFIER_NONE);
         }
 
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }
@@ -961,11 +961,11 @@ test_pointers(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -998,8 +998,8 @@ test_pointers(Test_Context* context)
             ASSERT_EQUAL(variable->type->pointed_to->qualifiers, AST_QUALIFIER_NONE);
         }
 
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }
@@ -1012,11 +1012,11 @@ test_pointers(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -1049,8 +1049,8 @@ test_pointers(Test_Context* context)
             ASSERT_EQUAL(variable->type->pointed_to->qualifiers, AST_QUALIFIER_MUTABLE);
         }
 
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }
@@ -1063,11 +1063,11 @@ test_pointers(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -1100,8 +1100,8 @@ test_pointers(Test_Context* context)
             ASSERT_EQUAL(variable->type->pointed_to->qualifiers, AST_QUALIFIER_MUTABLE); // FIXME(vlad): Should this be AST_QUALIFIER_NONE?
         }
 
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }
@@ -1114,11 +1114,11 @@ test_pointers(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -1151,8 +1151,8 @@ test_pointers(Test_Context* context)
             ASSERT_EQUAL(variable->type->pointed_to->qualifiers, AST_QUALIFIER_NONE);
         }
 
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }
@@ -1162,7 +1162,7 @@ internal void
 test_lexical_scopes(Test_Context* context)
 {
     Errors errors = {0};
-    errors_create(&errors, context->arena);
+    create_errors(&errors, context->arena);
 
     // NOTE(vlad): Testing if statements.
     {
@@ -1177,11 +1177,11 @@ test_lexical_scopes(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -1233,8 +1233,8 @@ test_lexical_scopes(Test_Context* context)
                 }
             }
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -1251,11 +1251,11 @@ test_lexical_scopes(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -1307,8 +1307,8 @@ test_lexical_scopes(Test_Context* context)
                 }
             }
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -1327,11 +1327,11 @@ test_lexical_scopes(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -1375,8 +1375,8 @@ test_lexical_scopes(Test_Context* context)
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -1392,11 +1392,11 @@ test_lexical_scopes(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -1431,8 +1431,8 @@ test_lexical_scopes(Test_Context* context)
                 ASSERT_EQUAL(while_statements->lexical_scope_index, LAST_LEXICAL_SCOPE_INDEX);
             }
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -1449,11 +1449,11 @@ test_lexical_scopes(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -1497,8 +1497,8 @@ test_lexical_scopes(Test_Context* context)
                 ASSERT_EQUAL(variable->type->qualifiers, AST_QUALIFIER_NONE);
             }
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -1509,7 +1509,7 @@ internal void
 test_return_statements(Test_Context* context)
 {
     Errors errors = {0};
-    errors_create(&errors, context->arena);
+    create_errors(&errors, context->arena);
 
     // NOTE(vlad): Testing functions without branches.
     {
@@ -1520,18 +1520,18 @@ test_return_statements(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -1544,18 +1544,18 @@ test_return_statements(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -1578,18 +1578,18 @@ test_return_statements(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -1607,11 +1607,11 @@ test_return_statements(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -1635,8 +1635,8 @@ test_return_statements(Test_Context* context)
                 ASSERT_STRINGS_ARE_EQUAL(return_statement->expression.number.token.lexeme, "0");
             }
 
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }

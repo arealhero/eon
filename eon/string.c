@@ -209,8 +209,7 @@ FOR_EACH_INTEGER_TYPE(DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION)
              ++i)                                                       \
         {                                                               \
             const char c = string.data[i];                              \
-            const Bool is_digit = '0' <= c && c <= '9';                 \
-            if (!is_digit)                                              \
+            if (!is_ascii_digit(c))                                     \
             {                                                           \
                 return false;                                           \
             }                                                           \
@@ -603,17 +602,13 @@ parse_integer_format_settings(const String_View format)
             continue;
         }
 
-        // TODO(vlad): Use 'is_letter'.
-        if ('a' <= c && c <= 'z')
+        if (is_ascii_letter(c))
         {
             index += 1;
             while (index < format.length)
             {
                 const char this_char = format.data[index];
-
-                const Bool is_valid_lexeme_symbol =
-                    ('a' <= this_char && this_char <= 'z')
-                    || (this_char == '-');
+                const Bool is_valid_lexeme_symbol = is_ascii_letter(this_char) || (this_char == '-');
 
                 if (!is_valid_lexeme_symbol)
                 {
@@ -688,7 +683,7 @@ parse_integer_format_settings(const String_View format)
                     {
                         const char this_char = format.data[index];
 
-                        if ('0' <= this_char && this_char <= '9')
+                        if (is_ascii_digit(this_char))
                         {
                             base = 10 * base + (this_char - '0');
                             index += 1;
@@ -726,7 +721,7 @@ parse_integer_format_settings(const String_View format)
                     {
                         const char this_char = format.data[index];
 
-                        if ('0' <= this_char && this_char <= '9')
+                        if (is_ascii_digit(this_char))
                         {
                             left_pad_count = 10 * left_pad_count + (this_char - '0');
                             index += 1;
@@ -837,17 +832,13 @@ parse_float_format_settings(const String_View format)
             continue;
         }
 
-        // TODO(vlad): Use 'is_letter'.
-        if ('a' <= c && c <= 'z')
+        if (is_ascii_letter(c))
         {
             index += 1;
             while (index < format.length)
             {
                 const char this_char = format.data[index];
-
-                const Bool is_valid_lexeme_symbol =
-                    ('a' <= this_char && this_char <= 'z')
-                    || (this_char == '-');
+                const Bool is_valid_lexeme_symbol = is_ascii_letter(this_char) || (this_char == '-');
 
                 if (!is_valid_lexeme_symbol)
                 {
@@ -922,7 +913,7 @@ parse_float_format_settings(const String_View format)
                     {
                         const char this_char = format.data[index];
 
-                        if ('0' <= this_char && this_char <= '9')
+                        if (is_ascii_digit(this_char))
                         {
                             left_pad_count = 10 * left_pad_count + (this_char - '0');
                             index += 1;
@@ -953,7 +944,7 @@ parse_float_format_settings(const String_View format)
                     {
                         const char this_char = format.data[index];
 
-                        if ('0' <= this_char && this_char <= '9')
+                        if (is_ascii_digit(this_char))
                         {
                             precision = 10 * precision + (this_char - '0');
                             index += 1;

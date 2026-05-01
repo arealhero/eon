@@ -32,7 +32,7 @@ main(const int argc, const char* argv[])
     const Timestamp start_timestamp = platform_get_current_monotonic_timestamp();
 #endif
 
-    Arena* main_arena = arena_create("main", GiB(1), MiB(1));
+    Arena* main_arena = create_arena("main", GiB(1), MiB(1));
 
     const String_View filename = string_view(argv[1]);
 
@@ -57,23 +57,23 @@ main(const int argc, const char* argv[])
     Lexer lexer = {0};
     Parser parser = {0};
 
-    Arena* errors_arena = arena_create("errors", GiB(1), MiB(1));
+    Arena* errors_arena = create_arena("errors", GiB(1), MiB(1));
 
     Errors errors = {0};
-    errors_create(&errors, errors_arena);
+    create_errors(&errors, errors_arena);
 
-    lexer_create(&lexer, filename, code);
+    create_lexer(&lexer, filename, code);
     // TODO(vlad): Make 'parser' the first argument of this function.
-    parser_create(&parser, main_arena, &lexer, &errors);
+    create_parser(&parser, main_arena, &lexer, &errors);
 
-    Arena* scratch_arena = arena_create("scratch", GiB(1), MiB(1));
+    Arena* scratch_arena = create_arena("scratch", GiB(1), MiB(1));
 
 #if LOG_TIMINGS
     const Timestamp parse_start_timestamp = platform_get_current_monotonic_timestamp();
 #endif
 
     Ast ast = {0};
-    if (!parser_parse(main_arena, &parser, &ast))
+    if (!parse_ast(main_arena, &parser, &ast))
     {
         for (Index i = 0;
              i < errors.errors_count;
@@ -92,7 +92,7 @@ main(const int argc, const char* argv[])
             parse_end_timestamp - parse_start_timestamp);
 #endif
 
-    Arena* semantics_scopes_arena = arena_create("semantics-lexical-scopes", GiB(1), MiB(1));
+    Arena* semantics_scopes_arena = create_arena("semantics-lexical-scopes", GiB(1), MiB(1));
 
 #if LOG_TIMINGS
     const Timestamp semantic_analysis_start_timestamp = platform_get_current_monotonic_timestamp();
@@ -111,14 +111,14 @@ main(const int argc, const char* argv[])
             semantic_analysis_end_timestamp - semantic_analysis_start_timestamp);
 #endif
 
-    Arena* scopes_arena = arena_create("interpreter-lexical-scopes", GiB(1), MiB(1));
+    Arena* scopes_arena = create_arena("interpreter-lexical-scopes", GiB(1), MiB(1));
 
     // TODO(vlad): Add type system.
     Interpreter interpreter = {0};
     interpreter_create(&interpreter, scopes_arena);
 
-    Arena* runtime_arena = arena_create("interpreter-runtime", GiB(1), MiB(1));
-    Arena* result_arena = arena_create("interpreter-result", GiB(1), MiB(1));
+    Arena* runtime_arena = create_arena("interpreter-runtime", GiB(1), MiB(1));
+    Arena* result_arena = create_arena("interpreter-result", GiB(1), MiB(1));
     Call_Info call_info = {0};
 
 #if LOG_TIMINGS
@@ -155,17 +155,17 @@ main(const int argc, const char* argv[])
 #endif
 
     interpreter_destroy(&interpreter);
-    parser_destroy(&parser);
-    errors_destroy(&errors);
-    lexer_destroy(&lexer);
+    destroy_parser(&parser);
+    destroy_errors(&errors);
+    destroy_lexer(&lexer);
 
-    arena_destroy(result_arena);
-    arena_destroy(runtime_arena);
-    arena_destroy(scopes_arena);
-    arena_destroy(semantics_scopes_arena);
-    arena_destroy(scratch_arena);
-    arena_destroy(errors_arena);
-    arena_destroy(main_arena);
+    destroy_arena(result_arena);
+    destroy_arena(runtime_arena);
+    destroy_arena(scopes_arena);
+    destroy_arena(semantics_scopes_arena);
+    destroy_arena(scratch_arena);
+    destroy_arena(errors_arena);
+    destroy_arena(main_arena);
 
     return result.result.s32_value;
 }

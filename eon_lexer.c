@@ -4,65 +4,8 @@
 
 #include <stdlib.h>
 
-maybe_unused internal String_View
-token_type_to_string(const Token_Type type)
-{
-#define ADD_TOKEN(type) case type: return string_view(#type)
-    switch (type)
-    {
-        ADD_TOKEN(TOKEN_UNDEFINED);
-
-        ADD_TOKEN(TOKEN_LEFT_PAREN);
-        ADD_TOKEN(TOKEN_RIGHT_PAREN);
-        ADD_TOKEN(TOKEN_LEFT_BRACE);
-        ADD_TOKEN(TOKEN_RIGHT_BRACE);
-        ADD_TOKEN(TOKEN_LEFT_BRACKET);
-        ADD_TOKEN(TOKEN_RIGHT_BRACKET);
-
-        ADD_TOKEN(TOKEN_COMMA);
-        ADD_TOKEN(TOKEN_DOT);
-        ADD_TOKEN(TOKEN_MINUS);
-        ADD_TOKEN(TOKEN_PLUS);
-        ADD_TOKEN(TOKEN_SLASH);
-        ADD_TOKEN(TOKEN_STAR);
-        ADD_TOKEN(TOKEN_COLON);
-        ADD_TOKEN(TOKEN_SEMICOLON);
-
-        ADD_TOKEN(TOKEN_NOT);
-        ADD_TOKEN(TOKEN_AMPERSAND);
-
-        ADD_TOKEN(TOKEN_ASSIGN);
-
-        ADD_TOKEN(TOKEN_EQUAL);
-        ADD_TOKEN(TOKEN_NOT_EQUAL);
-        ADD_TOKEN(TOKEN_LESS);
-        ADD_TOKEN(TOKEN_LESS_OR_EQUAL);
-        ADD_TOKEN(TOKEN_GREATER);
-        ADD_TOKEN(TOKEN_GREATER_OR_EQUAL);
-
-        ADD_TOKEN(TOKEN_IDENTIFIER);
-        ADD_TOKEN(TOKEN_STRING);
-        ADD_TOKEN(TOKEN_NUMBER);
-
-        ADD_TOKEN(TOKEN_FOR);
-        ADD_TOKEN(TOKEN_IF);
-        ADD_TOKEN(TOKEN_ELSE);
-        ADD_TOKEN(TOKEN_WHILE);
-        ADD_TOKEN(TOKEN_TRUE);
-        ADD_TOKEN(TOKEN_FALSE);
-        ADD_TOKEN(TOKEN_ARROW);
-        ADD_TOKEN(TOKEN_RETURN);
-        ADD_TOKEN(TOKEN_WILDCARD);
-
-        ADD_TOKEN(TOKEN_MUTABLE);
-
-        ADD_TOKEN(TOKEN_EOF);
-    }
-#undef ADD_TOKEN
-}
-
 internal void
-lexer_create(Lexer* lexer, const String_View filename, const String_View code)
+create_lexer(Lexer* lexer, const String_View filename, const String_View code)
 {
     lexer->filename = filename;
     lexer->code.data = code.data;
@@ -96,7 +39,7 @@ lexer_create(Lexer* lexer, const String_View filename, const String_View code)
 }
 
 internal inline char
-lexer_peek(Lexer* lexer)
+get_current_character(Lexer* lexer)
 {
     ASSERT(lexer->current_index < lexer->code.length);
     return lexer->code.data[lexer->current_index];
@@ -104,7 +47,7 @@ lexer_peek(Lexer* lexer)
 
 // TODO(vlad): Change the return type to 'void'?
 internal inline Bool
-lexer_advance(Lexer* lexer)
+move_to_next_character(Lexer* lexer)
 {
     if (lexer->current_index < lexer->code.length)
     {
@@ -117,26 +60,26 @@ lexer_advance(Lexer* lexer)
 }
 
 internal inline char
-lexer_get_current_character_and_advance(Lexer* lexer)
+consume_current_character(Lexer* lexer)
 {
     ASSERT(lexer->current_index < lexer->code.length);
-    char current_char = lexer_peek(lexer);
-    lexer_advance(lexer);
+    char current_char = get_current_character(lexer);
+    move_to_next_character(lexer);
     return current_char;
 }
 
 internal Bool
-lexer_match_and_optionally_advance(Lexer* lexer, const char expected_char)
+consume_current_character_if_matched(Lexer* lexer, const char expected_char)
 {
     if (lexer->current_index == lexer->code.length) { return false; }
-    if (lexer_peek(lexer) != expected_char) { return false; }
+    if (get_current_character(lexer) != expected_char) { return false; }
 
-    lexer_advance(lexer);
+    move_to_next_character(lexer);
     return true;
 }
 
 internal inline void
-lexer_create_token(Lexer* lexer, Token* token, const Token_Type type)
+create_token(Lexer* lexer, Token* token, const Token_Type type)
 {
     token->type = type;
     token->lexeme = (String_View) {
@@ -149,22 +92,10 @@ lexer_create_token(Lexer* lexer, Token* token, const Token_Type type)
 }
 
 internal inline Bool
-lexer_is_letter(const char c)
-{
-    return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z');
-}
-
-internal inline Bool
-lexer_is_digit(const char c)
-{
-    return ('0' <= c && c <= '9');
-}
-
-internal inline Bool
 is_a_part_of_identifier_tail(const char c)
 {
-    return lexer_is_letter(c)
-        || lexer_is_digit(c)
+    return is_ascii_letter(c)
+        || is_ascii_digit(c)
         || c == '_';
 }
 
@@ -174,19 +105,19 @@ is_not_a_newline(const char c)
     return c != '\n';
 }
 
-typedef Bool (*Predicate)(const char lookahead_char);
+typedef Bool (*Character_Predicate)(const char lookahead_char);
 
 internal void
-lexer_advance_while_predicate_is_true(Lexer* lexer,
-                                      const Predicate predicate)
+consume_characters_while_preciate_is_true(Lexer* lexer,
+                                          const Character_Predicate predicate)
 {
     while (lexer->current_index < lexer->code.length)
     {
-        const char lookahead_char = lexer_peek(lexer);
+        const char lookahead_char = get_current_character(lexer);
 
         if (predicate(lookahead_char))
         {
-            lexer_advance(lexer);
+            move_to_next_character(lexer);
         }
         else
         {
@@ -196,11 +127,11 @@ lexer_advance_while_predicate_is_true(Lexer* lexer,
 }
 
 internal Bool
-lexer_get_next_token(Lexer* lexer, Token* token, Errors* errors)
+get_next_token(Lexer* lexer, Token* token, Errors* errors)
 {
     if (lexer->current_index >= lexer->code.length)
     {
-        lexer_create_token(lexer, token, TOKEN_EOF);
+        create_token(lexer, token, TOKEN_EOF);
         return true;
     }
 
@@ -212,14 +143,14 @@ lexer_get_next_token(Lexer* lexer, Token* token, Errors* errors)
     while (lexer->current_index < lexer->code.length)
     {
         // FIXME(vlad): Do not advance here?
-        const char current_char = lexer_get_current_character_and_advance(lexer);
+        const char current_char = consume_current_character(lexer);
 
-        if (lexer_is_letter(current_char) || current_char == '_')
+        if (is_ascii_letter(current_char) || current_char == '_')
         {
-            lexer_advance_while_predicate_is_true(lexer,
-                                                  is_a_part_of_identifier_tail);
+            consume_characters_while_preciate_is_true(lexer,
+                                                      is_a_part_of_identifier_tail);
 
-            lexer_create_token(lexer, token, TOKEN_IDENTIFIER);
+            create_token(lexer, token, TOKEN_IDENTIFIER);
 
             for (Index i = 0;
                  i < lexer->keywords_count;
@@ -236,97 +167,97 @@ lexer_get_next_token(Lexer* lexer, Token* token, Errors* errors)
             return true;
         }
 
-        if (lexer_is_digit(current_char))
+        if (is_ascii_digit(current_char))
         {
-            lexer_advance_while_predicate_is_true(lexer, lexer_is_digit);
+            consume_characters_while_preciate_is_true(lexer, is_ascii_digit);
 
             if (lexer->current_index < lexer->code.length
-                && lexer_peek(lexer) == '.')
+                && get_current_character(lexer) == '.')
             {
-                lexer_advance(lexer);
-                lexer_advance_while_predicate_is_true(lexer, lexer_is_digit);
+                move_to_next_character(lexer);
+                consume_characters_while_preciate_is_true(lexer, is_ascii_digit);
             }
 
-            lexer_create_token(lexer, token, TOKEN_NUMBER);
+            create_token(lexer, token, TOKEN_NUMBER);
             return true;
         }
 
         switch (current_char)
         {
-            case '(': { lexer_create_token(lexer, token, TOKEN_LEFT_PAREN); return true; } break;
-            case ')': { lexer_create_token(lexer, token, TOKEN_RIGHT_PAREN); return true; } break;
-            case '{': { lexer_create_token(lexer, token, TOKEN_LEFT_BRACE); return true; } break;
-            case '}': { lexer_create_token(lexer, token, TOKEN_RIGHT_BRACE); return true; } break;
-            case '[': { lexer_create_token(lexer, token, TOKEN_LEFT_BRACKET); return true; } break;
-            case ']': { lexer_create_token(lexer, token, TOKEN_RIGHT_BRACKET); return true; } break;
-            case ':': { lexer_create_token(lexer, token, TOKEN_COLON); return true; } break;
-            case ';': { lexer_create_token(lexer, token, TOKEN_SEMICOLON); return true; } break;
-            case ',': { lexer_create_token(lexer, token, TOKEN_COMMA); return true; } break;
-            case '+': { lexer_create_token(lexer, token, TOKEN_PLUS); return true; } break;
-            case '*': { lexer_create_token(lexer, token, TOKEN_STAR); return true; } break;
-            case '&': { lexer_create_token(lexer, token, TOKEN_AMPERSAND); return true; } break;
+            case '(': { create_token(lexer, token, TOKEN_LEFT_PAREN); return true; } break;
+            case ')': { create_token(lexer, token, TOKEN_RIGHT_PAREN); return true; } break;
+            case '{': { create_token(lexer, token, TOKEN_LEFT_BRACE); return true; } break;
+            case '}': { create_token(lexer, token, TOKEN_RIGHT_BRACE); return true; } break;
+            case '[': { create_token(lexer, token, TOKEN_LEFT_BRACKET); return true; } break;
+            case ']': { create_token(lexer, token, TOKEN_RIGHT_BRACKET); return true; } break;
+            case ':': { create_token(lexer, token, TOKEN_COLON); return true; } break;
+            case ';': { create_token(lexer, token, TOKEN_SEMICOLON); return true; } break;
+            case ',': { create_token(lexer, token, TOKEN_COMMA); return true; } break;
+            case '+': { create_token(lexer, token, TOKEN_PLUS); return true; } break;
+            case '*': { create_token(lexer, token, TOKEN_STAR); return true; } break;
+            case '&': { create_token(lexer, token, TOKEN_AMPERSAND); return true; } break;
 
             case '!':
             {
-                if (lexer_match_and_optionally_advance(lexer, '='))
+                if (consume_current_character_if_matched(lexer, '='))
                 {
-                    lexer_create_token(lexer, token, TOKEN_NOT_EQUAL);
+                    create_token(lexer, token, TOKEN_NOT_EQUAL);
                 }
                 else
                 {
-                    lexer_create_token(lexer, token, TOKEN_NOT);
+                    create_token(lexer, token, TOKEN_NOT);
                 }
                 return true;
             } break;
 
             case '=':
             {
-                if (lexer_match_and_optionally_advance(lexer, '='))
+                if (consume_current_character_if_matched(lexer, '='))
                 {
-                    lexer_create_token(lexer, token, TOKEN_EQUAL);
+                    create_token(lexer, token, TOKEN_EQUAL);
                 }
                 else
                 {
-                    lexer_create_token(lexer, token, TOKEN_ASSIGN);
+                    create_token(lexer, token, TOKEN_ASSIGN);
                 }
                 return true;
             } break;
 
             case '-':
             {
-                if (lexer_match_and_optionally_advance(lexer, '>'))
+                if (consume_current_character_if_matched(lexer, '>'))
                 {
-                    lexer_create_token(lexer, token, TOKEN_ARROW);
+                    create_token(lexer, token, TOKEN_ARROW);
                 }
                 else
                 {
-                    lexer_create_token(lexer, token, TOKEN_MINUS);
+                    create_token(lexer, token, TOKEN_MINUS);
                 }
                 return true;
             } break;
 
             case '<':
             {
-                if (lexer_match_and_optionally_advance(lexer, '='))
+                if (consume_current_character_if_matched(lexer, '='))
                 {
-                    lexer_create_token(lexer, token, TOKEN_LESS_OR_EQUAL);
+                    create_token(lexer, token, TOKEN_LESS_OR_EQUAL);
                 }
                 else
                 {
-                    lexer_create_token(lexer, token, TOKEN_LESS);
+                    create_token(lexer, token, TOKEN_LESS);
                 }
                 return true;
             } break;
 
             case '>':
             {
-                if (lexer_match_and_optionally_advance(lexer, '='))
+                if (consume_current_character_if_matched(lexer, '='))
                 {
-                    lexer_create_token(lexer, token, TOKEN_GREATER_OR_EQUAL);
+                    create_token(lexer, token, TOKEN_GREATER_OR_EQUAL);
                 }
                 else
                 {
-                    lexer_create_token(lexer, token, TOKEN_GREATER);
+                    create_token(lexer, token, TOKEN_GREATER);
                 }
                 return true;
             } break;
@@ -336,39 +267,39 @@ lexer_get_next_token(Lexer* lexer, Token* token, Errors* errors)
                 // XXX(vlad): Remove multiline strings support?
                 while (lexer->current_index < lexer->code.length)
                 {
-                    if (lexer_match_and_optionally_advance(lexer, '"'))
+                    if (consume_current_character_if_matched(lexer, '"'))
                     {
-                        lexer_create_token(lexer, token, TOKEN_STRING);
+                        create_token(lexer, token, TOKEN_STRING);
                         return true;
                     }
-                    else if (lexer_match_and_optionally_advance(lexer, '\n'))
+                    else if (consume_current_character_if_matched(lexer, '\n'))
                     {
                         lexer->current_column = 0; // TODO(vlad): 1?
                         lexer->current_line += 1;
                     }
 
-                    lexer_advance(lexer);
+                    move_to_next_character(lexer);
                 }
             } break;
 
             case '/':
             {
-                if (lexer_match_and_optionally_advance(lexer, '/'))
+                if (consume_current_character_if_matched(lexer, '/'))
                 {
                     // NOTE(vlad): Single line comment, skipping this line.
-                    lexer_advance_while_predicate_is_true(lexer,
-                                                          is_not_a_newline);
+                    consume_characters_while_preciate_is_true(lexer,
+                                                              is_not_a_newline);
                     lexer->lexeme_start_index = lexer->current_index + 1;
                 }
-                else if (lexer_match_and_optionally_advance(lexer, '*'))
+                else if (consume_current_character_if_matched(lexer, '*'))
                 {
                     // NOTE(vlad): Block comment.
                     Size comment_depth = 1;
 
                     while (lexer->current_index < lexer->code.length)
                     {
-                        if (lexer_match_and_optionally_advance(lexer, '*')
-                            && lexer_match_and_optionally_advance(lexer, '/'))
+                        if (consume_current_character_if_matched(lexer, '*')
+                            && consume_current_character_if_matched(lexer, '/'))
                         {
                             comment_depth -= 1;
                             if (comment_depth == 0)
@@ -377,18 +308,18 @@ lexer_get_next_token(Lexer* lexer, Token* token, Errors* errors)
                             }
                         }
 
-                        if (lexer_match_and_optionally_advance(lexer, '/')
-                            && lexer_match_and_optionally_advance(lexer, '*'))
+                        if (consume_current_character_if_matched(lexer, '/')
+                            && consume_current_character_if_matched(lexer, '*'))
                         {
                             comment_depth += 1;
                         }
 
-                        lexer_advance(lexer);
+                        move_to_next_character(lexer);
                     }
                 }
                 else
                 {
-                    lexer_create_token(lexer, token, TOKEN_SLASH);
+                    create_token(lexer, token, TOKEN_SLASH);
                     return true;
                 }
             } break;
@@ -432,12 +363,12 @@ lexer_get_next_token(Lexer* lexer, Token* token, Errors* errors)
         }
     }
 
-    lexer_create_token(lexer, token, TOKEN_EOF);
+    create_token(lexer, token, TOKEN_EOF);
     return true;
 }
 
 internal void
-lexer_destroy(Lexer* lexer)
+destroy_lexer(Lexer* lexer)
 {
     if (lexer->keywords)
     {

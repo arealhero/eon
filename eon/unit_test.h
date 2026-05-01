@@ -61,7 +61,7 @@ internal void registry_register_test(Arena* arena,
 int
 main(const int argc, const char* argv[])
 {
-    init_io_state(MiB(10));
+    init_io_state(GiB(1));
 
     Bool show_stats_at_the_end = true;
     if (argc >= 2 && strings_are_equal(string_view(argv[1]), string_view("--hide-stats")))
@@ -69,12 +69,12 @@ main(const int argc, const char* argv[])
         show_stats_at_the_end = false;
     }
 
-    Arena* permanent_arena = arena_create("main", GiB(1), MiB(1));
+    Arena* permanent_arena = create_arena("main", GiB(1), MiB(1));
 
     Tests_Registry registry = {0};
     registry_register_tests(permanent_arena, &registry);
 
-    Arena* test_arena = arena_create("unit-test-arena", GiB(1), MiB(1));
+    Arena* test_arena = create_arena("unit-test-arena", GiB(1), MiB(1));
 
     const Timestamp tests_start_timestamp = platform_get_current_monotonic_timestamp();
 
@@ -118,8 +118,8 @@ main(const int argc, const char* argv[])
                 registry.failed_tests_count);
     }
 
-    arena_destroy(test_arena);
-    arena_destroy(permanent_arena);
+    destroy_arena(test_arena);
+    destroy_arena(permanent_arena);
 
     if (registry.failed_tests_count != 0)
     {

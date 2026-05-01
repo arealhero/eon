@@ -7,7 +7,7 @@ internal void
 test_expressions(Test_Context* context)
 {
     Errors errors = {0};
-    errors_create(&errors, context->arena);
+    create_errors(&errors, context->arena);
 
     // NOTE(vlad): Testing addition and subtraction.
     {
@@ -19,11 +19,11 @@ test_expressions(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -103,8 +103,8 @@ test_expressions(Test_Context* context)
             }
 
             ir_destroy(&ir);
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -117,11 +117,11 @@ test_expressions(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -241,8 +241,8 @@ test_expressions(Test_Context* context)
             }
 
             ir_destroy(&ir);
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }

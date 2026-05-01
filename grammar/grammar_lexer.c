@@ -2,18 +2,6 @@
 
 #include "grammar_log.h"
 
-internal inline Bool
-is_letter(const char c)
-{
-    return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z');
-}
-
-internal inline Bool
-is_digit(const char c)
-{
-    return '0' <= c && c <= '9';
-}
-
 internal inline char
 lexer_peek(Lexer* lexer)
 {
@@ -71,7 +59,7 @@ lexer_create_token(Lexer* lexer,
 }
 
 internal void
-lexer_create(Arena* arena, Lexer* lexer, String_View grammar)
+create_lexer(Arena* arena, Lexer* lexer, String_View grammar)
 {
     lexer->grammar = grammar;
 
@@ -110,15 +98,15 @@ lexer_get_next_token(Arena* scratch, Lexer* lexer, Token* token)
         const Index lexeme_start_index = lexer->current_index;
         const char current_char = lexer_peek(lexer);
 
-        if (is_letter(current_char))
+        if (is_ascii_letter(current_char))
         {
             // NOTE(vlad): Parsing identifier.
             while (lexer->current_index < lexer->grammar.length)
             {
                 const char lookahead_char = lexer_lookahead(lexer);
 
-                if (is_letter(lookahead_char)
-                    || is_digit(lookahead_char)
+                if (is_ascii_letter(lookahead_char)
+                    || is_ascii_digit(lookahead_char)
                     || lookahead_char == '_')
                 {
                     ASSERT(lexer_advance(lexer));
@@ -238,7 +226,7 @@ lexer_get_next_token(Arena* scratch, Lexer* lexer, Token* token)
 }
 
 internal void
-lexer_destroy(Lexer* lexer)
+destroy_lexer(Lexer* lexer)
 {
     UNUSED(lexer);
 }

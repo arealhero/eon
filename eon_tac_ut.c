@@ -7,7 +7,7 @@ internal void
 test_expression_lowering(Test_Context* context)
 {
     Errors errors = {0};
-    errors_create(&errors, context->arena);
+    create_errors(&errors, context->arena);
 
     {
         const String_View input = string_view("foo: () -> void = {"
@@ -17,11 +17,11 @@ test_expression_lowering(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -134,8 +134,8 @@ test_expression_lowering(Test_Context* context)
             ASSERT_EQUAL(instruction->second_argument.temp.id, 3);
         }
 
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }
@@ -148,11 +148,11 @@ test_expression_lowering(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_EQUAL(ast.function_definitions_count, 1);
@@ -233,8 +233,8 @@ test_expression_lowering(Test_Context* context)
             ++instruction;
         }
 
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }

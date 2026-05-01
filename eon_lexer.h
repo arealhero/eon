@@ -40,8 +40,6 @@ enum Token_Type
 };
 typedef enum Token_Type Token_Type;
 
-internal String_View token_type_to_string(const Token_Type type);
-
 struct Token
 {
     Token_Type type;
@@ -76,6 +74,6 @@ struct Lexer
 };
 typedef struct Lexer Lexer;
 
-internal void lexer_create(Lexer* lexer, const String_View filename, const String_View code);
-internal Bool lexer_get_next_token(Lexer* lexer, Token* token, Errors* errors);
-internal void lexer_destroy(Lexer* lexer);
+internal void create_lexer(Lexer* lexer, const String_View filename, const String_View code);
+internal Bool get_next_token(Lexer* lexer, Token* token, Errors* errors);
+internal void destroy_lexer(Lexer* lexer);

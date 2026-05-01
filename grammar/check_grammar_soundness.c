@@ -23,7 +23,7 @@ main(int argc, const char* argv[])
     }
 
     // TODO(vlad): Allocate more memory, otherwise we wouldn't be able to read files with size > 1 GiB.
-    Arena* arena = arena_create("filesystem", GiB(1), MiB(1));
+    Arena* arena = create_arena("filesystem", GiB(1), MiB(1));
 
     const String_View grammar_filename = string_view(argv[1]);
     Read_File_Result read_result = platform_read_entire_text_file(arena, grammar_filename);
@@ -37,7 +37,7 @@ main(int argc, const char* argv[])
     const String_View grammar = string_view(read_result.content);
     const Bool result = check_grammar_soundness(grammar_filename, grammar);
 
-    arena_destroy(arena);
+    destroy_arena(arena);
 
     if (!result)
     {
@@ -327,19 +327,19 @@ check_grammar_soundness(const String_View grammar_filename, const String_View gr
 {
     println("\nChecking '{}' soundness", grammar_filename);
 
-    Arena* arena = arena_create("main", GiB(1), MiB(1));
-    Arena* scratch = arena_create("scratch", GiB(1), MiB(1));
+    Arena* arena = create_arena("main", GiB(1), MiB(1));
+    Arena* scratch = create_arena("scratch", GiB(1), MiB(1));
 
     Lexer lexer = {0};
-    lexer_create(arena, &lexer, grammar);
+    create_lexer(arena, &lexer, grammar);
 
     Parser parser = {0};
-    parser_create(&parser, &lexer);
+    create_parser(&parser, &lexer);
 
     Ast ast = {0};
     {
         const Timestamp parsing_start = platform_get_current_monotonic_timestamp();
-        const Bool result = parser_parse(arena, scratch, &parser, &ast);
+        const Bool result = parse_ast(arena, scratch, &parser, &ast);
         const Timestamp parsing_end = platform_get_current_monotonic_timestamp();
 
         println("Grammar parsed in {} msc", parsing_end - parsing_start);
@@ -493,11 +493,11 @@ check_grammar_soundness(const String_View grammar_filename, const String_View gr
     //                  foo: a b c
     //                  bar: a b c d
 
-    parser_destroy(&parser);
-    lexer_destroy(&lexer);
+    destroy_parser(&parser);
+    destroy_lexer(&lexer);
 
-    arena_destroy(scratch);
-    arena_destroy(arena);
+    destroy_arena(scratch);
+    destroy_arena(arena);
 
     return !found_errors;
 }

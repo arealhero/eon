@@ -3,6 +3,18 @@
 #include <eon/build_info.h>
 #include <eon/common.h>
 
+internal inline Bool
+is_ascii_letter(const char c)
+{
+    return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z');
+}
+
+internal inline Bool
+is_ascii_digit(const char c)
+{
+    return ('0' <= c && c <= '9');
+}
+
 struct Arena;
 
 struct String_View

@@ -178,17 +178,17 @@ parse_identifier_definition(Arena* arena,
 }
 
 internal void
-parser_create(Parser* parser, Lexer* lexer)
+create_parser(Parser* parser, Lexer* lexer)
 {
     parser->lexer = lexer;
     parser->current_token = (Token){0};
 }
 
 internal Bool
-parser_parse(Arena* arena,
-             Arena* scratch,
-             Parser* parser,
-             Ast* ast)
+parse_ast(Arena* arena,
+          Arena* scratch,
+          Parser* parser,
+          Ast* ast)
 {
     do
     {
@@ -223,7 +223,7 @@ parser_parse(Arena* arena,
 }
 
 internal void
-parser_destroy(Parser* parser)
+destroy_parser(Parser* parser)
 {
     UNUSED(parser);
 }

@@ -28,7 +28,7 @@ deinit_io_state(void)
 internal void
 init_io_state(const Size initial_arena_size)
 {
-    global_io_state.arena = arena_create("IO", initial_arena_size, KiB(0));
+    global_io_state.arena = create_arena("IO", initial_arena_size, KiB(0));
     global_io_state.stdout_buffer = as_bytes(platform_reserve_memory(STDOUT_BUFFER_SIZE));
     global_io_state.stdout_buffer_index = 0;
     global_io_state.bufferization_policy = IO_FLUSH_ON_NEWLINE;

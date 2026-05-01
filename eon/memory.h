@@ -28,13 +28,13 @@ struct Arena
 };
 typedef struct Arena Arena;
 
-internal Arena* INTERNAL_arena_create(const String_View name,
+internal Arena* INTERNAL_create_arena(const String_View name,
                                       Size number_of_bytes_to_reserve,
                                       Size number_of_bytes_to_commit);
 
-#define arena_create(name, number_of_bytes_to_reserve, number_of_bytes_to_commit) \
-    INTERNAL_arena_create(string_view(name), number_of_bytes_to_reserve, number_of_bytes_to_commit)
-internal void arena_destroy(Arena* arena);
+#define create_arena(name, number_of_bytes_to_reserve, number_of_bytes_to_commit) \
+    INTERNAL_create_arena(string_view(name), number_of_bytes_to_reserve, number_of_bytes_to_commit)
+internal void destroy_arena(Arena* arena);
 
 internal Byte* arena_push(Arena* arena, Size number_of_bytes);
 internal Byte* arena_push_uninitialized(Arena* arena, Size number_of_bytes);

@@ -1,5 +1,8 @@
 #pragma once
 
+// FIXME(vlad): Rename to "eon_diagnostics.h" and support warnings and notes.
+//              (Maybe notes should be placed inside errors and warnings -- I'm not sure.)
+
 #include <eon/keywords.h>
 #include <eon/memory.h>
 #include <eon/string.h>
@@ -29,9 +32,9 @@ struct Errors
 typedef struct Errors Errors;
 
 // TODO(vlad): Remove 'maybe_unused' here?
-maybe_unused internal void errors_create(Errors* errors, Arena* errors_arena);
+maybe_unused internal void create_errors(Errors* errors, Arena* errors_arena);
 maybe_unused internal void add_error(Errors* errors, Error* error);
 maybe_unused internal void print_error(Arena* scratch, const Error* error);
 maybe_unused internal void clear_errors(Errors* errors);
-maybe_unused internal void errors_destroy(Errors* errors);
+maybe_unused internal void destroy_errors(Errors* errors);
 

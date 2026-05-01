@@ -4,8 +4,9 @@
 
 // FIXME(vlad): Report syntax errors here.
 
+// TODO(vlad): Move to 'eon_lexer.h'?
 internal String_View
-parser_token_type_to_string(const Token_Type type)
+token_type_to_string(const Token_Type type)
 {
 #define ADD_TOKEN(type, string) case type: return string_view(string)
     switch (type)
@@ -70,7 +71,7 @@ parser_fetch_token(Parser* parser)
         return true;
     }
 
-    if (!lexer_get_next_token(parser->lexer, &parser->current_token, parser->errors))
+    if (!get_next_token(parser->lexer, &parser->current_token, parser->errors))
     {
         return false;
     }
@@ -87,7 +88,7 @@ parser_fetch_lookahead_token(Parser* parser)
         return true;
     }
 
-    if (!lexer_get_next_token(parser->lexer, &parser->lookahead_token, parser->errors))
+    if (!get_next_token(parser->lexer, &parser->lookahead_token, parser->errors))
     {
         return false;
     }
@@ -120,8 +121,8 @@ parser_ensure_that_current_token_has_type(Parser* parser, const Token_Type expec
         // TODO(vlad): Use scratch arena instead?
         const String message = format_string(parser->errors->errors_arena,
                                              "Expected {}, found {}",
-                                             parser_token_type_to_string(expected_type),
-                                             parser_token_type_to_string(parser->current_token.type));
+                                             token_type_to_string(expected_type),
+                                             token_type_to_string(parser->current_token.type));
         error.message = string_view(message);
 
         add_error(parser->errors, &error);
@@ -162,7 +163,7 @@ parser_fetch_and_consume_token_with_type(Parser* parser,
 }
 
 internal void
-parser_create(Parser* parser, Arena* parser_arena, Lexer* lexer, Errors* errors)
+create_parser(Parser* parser, Arena* parser_arena, Lexer* lexer, Errors* errors)
 {
     parser->errors = errors;
 
@@ -1380,7 +1381,7 @@ parse_function_definition(Arena* parser_arena,
 }
 
 internal Bool
-parser_parse(Arena* parser_arena, Parser* parser, Ast* ast)
+parse_ast(Arena* parser_arena, Parser* parser, Ast* ast)
 {
     do
     {
@@ -1418,7 +1419,7 @@ parser_parse(Arena* parser_arena, Parser* parser, Ast* ast)
 }
 
 internal void
-parser_destroy(Parser* parser)
+destroy_parser(Parser* parser)
 {
     // XXX(vlad): Clear errors here? Probably not.
     UNUSED(parser);

@@ -51,6 +51,6 @@ struct Lexer
 };
 typedef struct Lexer Lexer;
 
-internal void lexer_create(Arena* arena, Lexer* lexer, String_View grammar);
+internal void create_lexer(Arena* arena, Lexer* lexer, String_View grammar);
 internal Bool lexer_get_next_token(Arena* scratch, Lexer* lexer, Token* token);
-internal void lexer_destroy(Lexer* lexer);
+internal void destroy_lexer(Lexer* lexer);

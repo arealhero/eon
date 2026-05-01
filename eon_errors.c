@@ -3,7 +3,7 @@
 #include <eon/io.h>
 
 internal void
-errors_create(Errors* errors, Arena* errors_arena)
+create_errors(Errors* errors, Arena* errors_arena)
 {
     *errors = (Errors) {0};
     errors->errors_arena = errors_arena;
@@ -116,7 +116,7 @@ clear_errors(Errors* errors)
 }
 
 internal void
-errors_destroy(Errors* errors)
+destroy_errors(Errors* errors)
 {
     UNUSED(errors);
 }

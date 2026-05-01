@@ -29,7 +29,7 @@ internal void
 test_simple_programs(Test_Context* context)
 {
     Errors errors = {0};
-    errors_create(&errors, context->arena);
+    create_errors(&errors, context->arena);
 
     {
         const String_View input = string_view("main: () -> Int32 = {"
@@ -39,11 +39,11 @@ test_simple_programs(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -63,8 +63,8 @@ test_simple_programs(Test_Context* context)
         ASSERT_EQUAL(result.result.s32_value, 0);
 
         interpreter_destroy(&interpreter);
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }
@@ -77,11 +77,11 @@ test_simple_programs(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -101,8 +101,8 @@ test_simple_programs(Test_Context* context)
         ASSERT_EQUAL(result.result.s32_value, 1);
 
         interpreter_destroy(&interpreter);
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }
@@ -115,11 +115,11 @@ test_simple_programs(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -139,8 +139,8 @@ test_simple_programs(Test_Context* context)
         ASSERT_EQUAL(result.result.s32_value, 6);
 
         interpreter_destroy(&interpreter);
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }
@@ -154,11 +154,11 @@ test_simple_programs(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -178,8 +178,8 @@ test_simple_programs(Test_Context* context)
         ASSERT_EQUAL(result.result.s32_value, 25);
 
         interpreter_destroy(&interpreter);
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }
@@ -194,11 +194,11 @@ test_simple_programs(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -218,8 +218,8 @@ test_simple_programs(Test_Context* context)
         ASSERT_EQUAL(result.result.s32_value, 20);
 
         interpreter_destroy(&interpreter);
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }
@@ -233,11 +233,11 @@ test_simple_programs(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -257,8 +257,8 @@ test_simple_programs(Test_Context* context)
         ASSERT_EQUAL(result.result.s32_value, 10);
 
         interpreter_destroy(&interpreter);
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }
@@ -271,11 +271,11 @@ test_simple_programs(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -302,8 +302,8 @@ test_simple_programs(Test_Context* context)
         ASSERT_EQUAL(result.result.s32_value, 123);
 
         interpreter_destroy(&interpreter);
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }
@@ -317,11 +317,11 @@ test_simple_programs(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -341,8 +341,8 @@ test_simple_programs(Test_Context* context)
         ASSERT_EQUAL(result.result.s32_value, 1);
 
         interpreter_destroy(&interpreter);
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }
@@ -356,11 +356,11 @@ test_simple_programs(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -380,8 +380,8 @@ test_simple_programs(Test_Context* context)
         ASSERT_EQUAL(result.result.s32_value, 1);
 
         interpreter_destroy(&interpreter);
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }
@@ -395,11 +395,11 @@ test_simple_programs(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -419,8 +419,8 @@ test_simple_programs(Test_Context* context)
         ASSERT_EQUAL(result.result.s32_value, 2);
 
         interpreter_destroy(&interpreter);
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }
@@ -439,11 +439,11 @@ test_simple_programs(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -463,8 +463,8 @@ test_simple_programs(Test_Context* context)
         ASSERT_EQUAL(result.result.s32_value, 20);
 
         interpreter_destroy(&interpreter);
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }
@@ -481,11 +481,11 @@ test_simple_programs(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -505,8 +505,8 @@ test_simple_programs(Test_Context* context)
         ASSERT_EQUAL(result.result.s32_value, 3);
 
         interpreter_destroy(&interpreter);
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }
@@ -524,11 +524,11 @@ test_simple_programs(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -554,8 +554,8 @@ test_simple_programs(Test_Context* context)
         ASSERT_EQUAL(result.result.s32_value, 0);
 
         interpreter_destroy(&interpreter);
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }
@@ -571,11 +571,11 @@ test_simple_programs(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -601,8 +601,8 @@ test_simple_programs(Test_Context* context)
         ASSERT_EQUAL(result.result.s32_value, 0);
 
         interpreter_destroy(&interpreter);
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }
@@ -618,11 +618,11 @@ test_simple_programs(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -645,8 +645,8 @@ test_simple_programs(Test_Context* context)
             ASSERT_EQUAL(result.result.s32_value, -10);
 
             interpreter_destroy(&interpreter);
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -660,11 +660,11 @@ test_simple_programs(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -687,8 +687,8 @@ test_simple_programs(Test_Context* context)
             ASSERT_EQUAL(result.result.s32_value, -13);
 
             interpreter_destroy(&interpreter);
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -702,11 +702,11 @@ test_simple_programs(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -729,8 +729,8 @@ test_simple_programs(Test_Context* context)
             ASSERT_EQUAL(result.result.s32_value, -7);
 
             interpreter_destroy(&interpreter);
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -744,11 +744,11 @@ test_simple_programs(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -771,8 +771,8 @@ test_simple_programs(Test_Context* context)
             ASSERT_EQUAL(result.result.s32_value, 10);
 
             interpreter_destroy(&interpreter);
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -790,11 +790,11 @@ test_simple_programs(Test_Context* context)
         //     Lexer lexer = {0};
         //     Parser parser = {0};
 
-        //     lexer_create(&lexer, string_view("<input>"), input);
-        //     parser_create(&parser, context->arena, &lexer, &errors);
+        //     create_lexer(&lexer, string_view("<input>"), input);
+        //     create_parser(&parser, context->arena, &lexer, &errors);
 
         //     Ast ast = {0};
-        //     ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        //     ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         //     ASSERT_EQUAL(errors.errors_count, 0);
 
         //     ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -817,8 +817,8 @@ test_simple_programs(Test_Context* context)
         //     ASSERT_EQUAL(result.result.s32_value, 10);
 
         //     interpreter_destroy(&interpreter);
-        //     parser_destroy(&parser);
-        //     lexer_destroy(&lexer);
+        //     destroy_parser(&parser);
+        //     destroy_lexer(&lexer);
 
         //     clear_errors(&errors);
         // }
@@ -829,7 +829,7 @@ internal void
 test_operator_precedence(Test_Context* context)
 {
     Errors errors = {0};
-    errors_create(&errors, context->arena);
+    create_errors(&errors, context->arena);
 
     // NOTE(vlad): Testing prefix and postfix operations.
     {
@@ -843,11 +843,11 @@ test_operator_precedence(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -870,8 +870,8 @@ test_operator_precedence(Test_Context* context)
             ASSERT_EQUAL(result.result.s32_value, -10);
 
             interpreter_destroy(&interpreter);
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -887,11 +887,11 @@ test_operator_precedence(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -914,8 +914,8 @@ test_operator_precedence(Test_Context* context)
             ASSERT_EQUAL(result.result.s32_value, 1);
 
             interpreter_destroy(&interpreter);
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -927,7 +927,7 @@ internal void
 test_type_system(Test_Context* context)
 {
     Errors errors = {0};
-    errors_create(&errors, context->arena);
+    create_errors(&errors, context->arena);
 
     {
         const String_View input = string_view("main: () -> Float32 = {"
@@ -937,11 +937,11 @@ test_type_system(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -964,8 +964,8 @@ test_type_system(Test_Context* context)
         ASSERT_FLOATS_ARE_EQUAL(result.result.f32_value, 1.2f);
 
         interpreter_destroy(&interpreter);
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }
@@ -978,11 +978,11 @@ test_type_system(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -1012,8 +1012,8 @@ test_type_system(Test_Context* context)
         ASSERT_FLOATS_ARE_EQUAL(result.result.f32_value, 0.3f);
 
         interpreter_destroy(&interpreter);
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }
@@ -1023,7 +1023,7 @@ internal void
 test_comparisons(Test_Context* context)
 {
     Errors errors = {0};
-    errors_create(&errors, context->arena);
+    create_errors(&errors, context->arena);
 
     // NOTE(vlad): Testing basic cases.
     {
@@ -1035,11 +1035,11 @@ test_comparisons(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -1062,8 +1062,8 @@ test_comparisons(Test_Context* context)
             ASSERT_EQUAL(result.result.s32_value, 1);
 
             interpreter_destroy(&interpreter);
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -1076,11 +1076,11 @@ test_comparisons(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -1103,8 +1103,8 @@ test_comparisons(Test_Context* context)
             ASSERT_EQUAL(result.result.s32_value, 0);
 
             interpreter_destroy(&interpreter);
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -1117,11 +1117,11 @@ test_comparisons(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -1144,8 +1144,8 @@ test_comparisons(Test_Context* context)
             ASSERT_EQUAL(result.result.s32_value, 0);
 
             interpreter_destroy(&interpreter);
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -1158,11 +1158,11 @@ test_comparisons(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -1185,8 +1185,8 @@ test_comparisons(Test_Context* context)
             ASSERT_EQUAL(result.result.s32_value, 1);
 
             interpreter_destroy(&interpreter);
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -1199,11 +1199,11 @@ test_comparisons(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -1226,8 +1226,8 @@ test_comparisons(Test_Context* context)
             ASSERT_EQUAL(result.result.s32_value, 0);
 
             interpreter_destroy(&interpreter);
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -1240,11 +1240,11 @@ test_comparisons(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -1267,8 +1267,8 @@ test_comparisons(Test_Context* context)
             ASSERT_EQUAL(result.result.s32_value, 1);
 
             interpreter_destroy(&interpreter);
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -1284,11 +1284,11 @@ test_comparisons(Test_Context* context)
             Lexer lexer = {0};
             Parser parser = {0};
 
-            lexer_create(&lexer, string_view("<input>"), input);
-            parser_create(&parser, context->arena, &lexer, &errors);
+            create_lexer(&lexer, string_view("<input>"), input);
+            create_parser(&parser, context->arena, &lexer, &errors);
 
             Ast ast = {0};
-            ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+            ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
             ASSERT_EQUAL(errors.errors_count, 0);
 
             ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -1311,8 +1311,8 @@ test_comparisons(Test_Context* context)
             ASSERT_EQUAL(result.result.s32_value, 1);
 
             interpreter_destroy(&interpreter);
-            parser_destroy(&parser);
-            lexer_destroy(&lexer);
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
 
             clear_errors(&errors);
         }
@@ -1323,7 +1323,7 @@ internal void
 test_compile_time_errors(Test_Context* context)
 {
     Errors errors = {0};
-    errors_create(&errors, context->arena);
+    create_errors(&errors, context->arena);
 
     // TODO(vlad): Test that there are only one function definition. Maybe we should test this
     //             after parsing and before executing.
@@ -1334,11 +1334,11 @@ test_compile_time_errors(Test_Context* context)
         Lexer lexer = {0};
         Parser parser = {0};
 
-        lexer_create(&lexer, string_view("<input>"), input);
-        parser_create(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, context->arena, &lexer, &errors);
 
         Ast ast = {0};
-        ASSERT_TRUE(parser_parse(context->arena, &parser, &ast));
+        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
         ASSERT_EQUAL(errors.errors_count, 0);
 
         ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
@@ -1357,8 +1357,8 @@ test_compile_time_errors(Test_Context* context)
         ASSERT_STRINGS_ARE_EQUAL(result.error, "Function 'main' is not defined");
 
         interpreter_destroy(&interpreter);
-        parser_destroy(&parser);
-        lexer_destroy(&lexer);
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
 
         clear_errors(&errors);
     }

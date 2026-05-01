@@ -343,6 +343,6 @@ struct Parser
 };
 typedef struct Parser Parser;
 
-internal void parser_create(Parser* parser, Arena* parser_arena, Lexer* lexer, Errors* errors);
-internal Bool parser_parse(Arena* parser_arena, Parser* parser, Ast* ast);
-internal void parser_destroy(Parser* parser);
+internal void create_parser(Parser* parser, Arena* parser_arena, Lexer* lexer, Errors* errors);
+internal Bool parse_ast(Arena* parser_arena, Parser* parser, Ast* ast);
+internal void destroy_parser(Parser* parser);

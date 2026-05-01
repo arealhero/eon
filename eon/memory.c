@@ -98,7 +98,7 @@ ARENA_ADD_REDZONE(Arena* arena)
 #endif
 
 maybe_unused internal Arena*
-INTERNAL_arena_create(const String_View name,
+INTERNAL_create_arena(const String_View name,
                       Size number_of_bytes_to_reserve,
                       Size number_of_bytes_to_commit)
 {
@@ -137,7 +137,7 @@ INTERNAL_arena_create(const String_View name,
 }
 
 maybe_unused internal void
-arena_destroy(Arena* arena)
+destroy_arena(Arena* arena)
 {
     // TODO(vlad): Move this memory to a quarantine in asan is enabled?
     //             This would prevent EOF in situations when the OS will

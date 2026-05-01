@@ -67,7 +67,7 @@ main(const int argc, const char* argv[])
     const String_View eon_executable = string_view(argv[1]);
     const String_View test_directory = string_view(argv[2]);
 
-    Arena* scratch_arena = arena_create("scratch", GiB(1), MiB(1));
+    Arena* scratch_arena = create_arena("scratch", GiB(1), MiB(1));
 
     {
         const File_Info eon_executable_info = platform_get_file_info(scratch_arena, eon_executable);
@@ -258,7 +258,7 @@ main(const int argc, const char* argv[])
     close(stdout_pipe[1]);
     close(stderr_pipe[1]);
 
-    Arena* child_output_arena = arena_create("child_output", GiB(1), MiB(1));
+    Arena* child_output_arena = create_arena("child_output", GiB(1), MiB(1));
 
     const String child_stdout = read_from_fd_until_done(child_output_arena,
                                                         stdout_pipe[0]);
@@ -311,8 +311,8 @@ main(const int argc, const char* argv[])
     const Timestamp test_end_timestamp = platform_get_current_monotonic_timestamp();
     println("Test took {} mcs to run", test_end_timestamp - test_start_timestamp);
 
-    arena_destroy(child_output_arena);
-    arena_destroy(scratch_arena);
+    destroy_arena(child_output_arena);
+    destroy_arena(scratch_arena);
 
     if (test_failed)
     {
