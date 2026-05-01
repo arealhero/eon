@@ -145,12 +145,12 @@ execute_expression(Arena* runtime_arena,
             {
                 case AST_TYPE_INT_32:
                 {
-                    result->s32_value = variable->s32_value;
+                    result->s32_value = variable->int32;
                 } break;
 
                 case AST_TYPE_FLOAT_32:
                 {
-                    result->f32_value = variable->f32_value;
+                    result->f32_value = variable->float32;
                 } break;
 
                 default:
@@ -562,12 +562,12 @@ interpreter_add_variable_to_current_lexical_scope(Arena* runtime_arena,
             {
                 case AST_TYPE_INT_32:
                 {
-                    variable->s32_value = (s32) 0;
+                    variable->int32 = (s32) 0;
                 } break;
 
                 case AST_TYPE_FLOAT_32:
                 {
-                    variable->f32_value = (f32) 0.0f;
+                    variable->float32 = (f32) 0.0f;
                 } break;
 
                 case AST_TYPE_UNSPECIFIED:
@@ -607,12 +607,12 @@ interpreter_add_variable_to_current_lexical_scope(Arena* runtime_arena,
             {
                 case AST_TYPE_INT_32:
                 {
-                    variable->s32_value = result.s32_value;
+                    variable->int32 = result.s32_value;
                 } break;
 
                 case AST_TYPE_FLOAT_32:
                 {
-                    variable->f32_value = result.f32_value;
+                    variable->float32 = result.f32_value;
                 } break;
 
                 default:
@@ -648,12 +648,12 @@ set_value_for_the_variable(Interpreter_Variable* variable,
     {
         case AST_TYPE_INT_32:
         {
-            variable->s32_value = value->s32_value;
+            variable->int32 = value->s32_value;
         } break;
 
         case AST_TYPE_FLOAT_32:
         {
-            variable->f32_value = value->f32_value;
+            variable->float32 = value->f32_value;
         } break;
 
         default:

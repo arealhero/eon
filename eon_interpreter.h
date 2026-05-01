@@ -12,8 +12,8 @@ struct Interpreter_Variable
     // FIXME(vlad): Remove code duplication (see 'Interpreter_Expression_Result').
     union
     {
-        s32 s32_value;
-        f32 f32_value;
+        s32 int32;
+        f32 float32;
     };
 };
 typedef struct Interpreter_Variable Interpreter_Variable;
