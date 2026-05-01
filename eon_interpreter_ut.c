@@ -1,6 +1,7 @@
 #include <eon/unit_test.h>
 
 #include "eon_interpreter.h"
+#include "eon_parser.h"
 #include "eon_semantics.h"
 
 internal Bool

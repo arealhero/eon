@@ -1,5 +1,6 @@
 #include <eon/unit_test.h>
 
+#include "eon_parser.h"
 #include "eon_semantics.h"
 #include "eon_tac.h"
 
