@@ -1,8 +1,8 @@
 #pragma once
 
-#include "eon_parser.h"
-
 #include <eon/memory.h>
+
+#include "eon_ast.h"
 
 struct Interpreter_Variable
 {

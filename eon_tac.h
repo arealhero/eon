@@ -3,7 +3,7 @@
 #include <eon/common.h>
 #include <eon/types.h>
 
-#include "eon_parser.h"
+#include "eon_ast.h"
 
 enum Tac_Operation
 {
