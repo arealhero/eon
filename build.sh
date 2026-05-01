@@ -30,6 +30,7 @@ clang_common_flags="
   -I.
   -fsanitize=address
   -fno-omit-frame-pointer
+  -ferror-limit=0
 "
 
 compile()
