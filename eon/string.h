@@ -17,6 +17,8 @@ is_ascii_digit(const char c)
 
 struct Arena;
 
+typedef char* C_String;
+
 struct String_View
 {
     const char* data;

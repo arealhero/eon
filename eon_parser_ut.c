@@ -83,7 +83,7 @@ test_function_definitions_parsing(Test_Context* test_context)
     }
 
     {
-        const String_View input = string_view("foo: (argument: Int32) -> void = {}");
+        const String_View input = string_view("foo: (argument: s32) -> void = {}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
@@ -113,7 +113,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         const Ast_Type* parameter_type = parameter->type;
         ASSERT_EQUAL(parameter_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(parameter_type->is_mutable);
-        ASSERT_STRINGS_ARE_EQUAL(parameter_type->named_type.token.lexeme, "Int32");
+        ASSERT_STRINGS_ARE_EQUAL(parameter_type->named_type.token.lexeme, "s32");
 
         ASSERT_FALSE(parameter->has_default_value);
 
@@ -213,7 +213,7 @@ test_function_definitions_parsing(Test_Context* test_context)
     }
 
     {
-        const String_View input = string_view("foo: (first: Int32, second: Some_Type) -> void = {}");
+        const String_View input = string_view("foo: (first: s32, second: Some_Type) -> void = {}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
@@ -244,7 +244,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             const Ast_Type* first_parameter_type = first_parameter->type;
             ASSERT_EQUAL(first_parameter_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(first_parameter_type->is_mutable);
-            ASSERT_STRINGS_ARE_EQUAL(first_parameter_type->named_type.token.lexeme, "Int32");
+            ASSERT_STRINGS_ARE_EQUAL(first_parameter_type->named_type.token.lexeme, "s32");
 
             ASSERT_FALSE(first_parameter->has_default_value);
         }
@@ -381,7 +381,7 @@ test_function_definitions_parsing(Test_Context* test_context)
     // NOTE(vlad): Testing mutable arguments and return types.
     {
         {
-            const String_View input = string_view("foo: (first: mutable Int32, second: Some_Type) -> void = {}");
+            const String_View input = string_view("foo: (first: mutable s32, second: Some_Type) -> void = {}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
@@ -412,7 +412,7 @@ test_function_definitions_parsing(Test_Context* test_context)
                 const Ast_Type* first_parameter_type = first_parameter->type;
                 ASSERT_EQUAL(first_parameter_type->kind, AST_TYPE_NAME);
                 ASSERT_TRUE(first_parameter_type->is_mutable);
-                ASSERT_STRINGS_ARE_EQUAL(first_parameter_type->named_type.token.lexeme, "Int32");
+                ASSERT_STRINGS_ARE_EQUAL(first_parameter_type->named_type.token.lexeme, "s32");
 
                 ASSERT_FALSE(first_parameter->has_default_value);
             }
@@ -442,7 +442,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         }
 
         {
-            const String_View input = string_view("foo: (first: Int32, second: mutable Some_Type) -> void = {}");
+            const String_View input = string_view("foo: (first: s32, second: mutable Some_Type) -> void = {}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
@@ -473,7 +473,7 @@ test_function_definitions_parsing(Test_Context* test_context)
                 const Ast_Type* first_parameter_type = first_parameter->type;
                 ASSERT_EQUAL(first_parameter_type->kind, AST_TYPE_NAME);
                 ASSERT_FALSE(first_parameter_type->is_mutable);
-                ASSERT_STRINGS_ARE_EQUAL(first_parameter_type->named_type.token.lexeme, "Int32");
+                ASSERT_STRINGS_ARE_EQUAL(first_parameter_type->named_type.token.lexeme, "s32");
 
                 ASSERT_FALSE(first_parameter->has_default_value);
             }
@@ -503,7 +503,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         }
 
         {
-            const String_View input = string_view("foo: (first: mutable Int32, second: mutable Some_Type) -> void = {}");
+            const String_View input = string_view("foo: (first: mutable s32, second: mutable Some_Type) -> void = {}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
@@ -534,7 +534,7 @@ test_function_definitions_parsing(Test_Context* test_context)
                 const Ast_Type* first_parameter_type = first_parameter->type;
                 ASSERT_EQUAL(first_parameter_type->kind, AST_TYPE_NAME);
                 ASSERT_TRUE(first_parameter_type->is_mutable);
-                ASSERT_STRINGS_ARE_EQUAL(first_parameter_type->named_type.token.lexeme, "Int32");
+                ASSERT_STRINGS_ARE_EQUAL(first_parameter_type->named_type.token.lexeme, "s32");
 
                 ASSERT_FALSE(first_parameter->has_default_value);
             }
@@ -768,7 +768,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
     // NOTE(vlad): Variable without initialisation.
     {
-        const String_View input = string_view("foo: () -> void = { variable: Int32; }");
+        const String_View input = string_view("foo: () -> void = { variable: s32; }");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
@@ -804,7 +804,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(statement->variable_definition.name.token.lexeme, "variable");
         ASSERT_EQUAL(statement->variable_definition.type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(statement->variable_definition.type->is_mutable);
-        ASSERT_STRINGS_ARE_EQUAL(statement->variable_definition.type->named_type.token.lexeme, "Int32");
+        ASSERT_STRINGS_ARE_EQUAL(statement->variable_definition.type->named_type.token.lexeme, "s32");
         ASSERT_FALSE(statement->variable_definition.has_initial_value);
 
         destroy_parser(&parser);
@@ -817,7 +817,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
     // NOTE(vlad): Variable with initialisation.
     {
         const String_View input = string_view("foo: () -> void = {"
-                                              "    variable: Int32 = 123;"
+                                              "    variable: s32 = 123;"
                                               "}");
 
         Compilation_Context context = {0};
@@ -856,7 +856,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "variable");
         ASSERT_EQUAL(definition->type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(definition->type->is_mutable);
-        ASSERT_STRINGS_ARE_EQUAL(definition->type->named_type.token.lexeme, "Int32");
+        ASSERT_STRINGS_ARE_EQUAL(definition->type->named_type.token.lexeme, "s32");
 
         ASSERT_TRUE(definition->has_initial_value);
         ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
@@ -1118,7 +1118,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
     // NOTE(vlad): Pointer declaration.
     {
         const String_View input = string_view("foo: () -> void = {"
-                                              "    pointer: * Int32;"
+                                              "    pointer: * s32;"
                                               "}");
 
         Compilation_Context context = {0};
@@ -1159,7 +1159,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_FALSE(definition->type->is_mutable);
         ASSERT_EQUAL(definition->type->pointer.pointed_to->kind, AST_TYPE_NAME);
         ASSERT_FALSE(definition->type->pointer.pointed_to->is_mutable);
-        ASSERT_STRINGS_ARE_EQUAL(definition->type->pointer.pointed_to->named_type.token.lexeme, "Int32");
+        ASSERT_STRINGS_ARE_EQUAL(definition->type->pointer.pointed_to->named_type.token.lexeme, "s32");
         ASSERT_FALSE(definition->has_initial_value);
 
         destroy_parser(&parser);
@@ -1172,7 +1172,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
     // NOTE(vlad): Pointer to a pointer declaration.
     {
         const String_View input = string_view("foo: () -> void = {"
-                                              "    pointer: ** Int32;"
+                                              "    pointer: ** s32;"
                                               "}");
 
         Compilation_Context context = {0};
@@ -1215,7 +1215,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_FALSE(definition->type->pointer.pointed_to->is_mutable);
         ASSERT_EQUAL(definition->type->pointer.pointed_to->pointer.pointed_to->kind, AST_TYPE_NAME);
         ASSERT_FALSE(definition->type->pointer.pointed_to->pointer.pointed_to->is_mutable);
-        ASSERT_STRINGS_ARE_EQUAL(definition->type->pointer.pointed_to->pointer.pointed_to->named_type.token.lexeme, "Int32");
+        ASSERT_STRINGS_ARE_EQUAL(definition->type->pointer.pointed_to->pointer.pointed_to->named_type.token.lexeme, "s32");
         ASSERT_FALSE(definition->has_initial_value);
 
         destroy_parser(&parser);
@@ -1229,7 +1229,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
     {
         {
             const String_View input = string_view("foo: () -> void = {"
-                                                  "    variable: mutable Int32;"
+                                                  "    variable: mutable s32;"
                                                   "}");
 
             Compilation_Context context = {0};
@@ -1266,7 +1266,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(statement->variable_definition.name.token.lexeme, "variable");
             ASSERT_EQUAL(statement->variable_definition.type->kind, AST_TYPE_NAME);
             ASSERT_TRUE(statement->variable_definition.type->is_mutable);
-            ASSERT_STRINGS_ARE_EQUAL(statement->variable_definition.type->named_type.token.lexeme, "Int32");
+            ASSERT_STRINGS_ARE_EQUAL(statement->variable_definition.type->named_type.token.lexeme, "s32");
             ASSERT_FALSE(statement->variable_definition.has_initial_value);
 
             destroy_parser(&parser);
@@ -1278,7 +1278,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
         {
             const String_View input = string_view("foo: () -> void = {"
-                                                  "    pointer: mutable * Int32;"
+                                                  "    pointer: mutable * s32;"
                                                   "}");
 
             Compilation_Context context = {0};
@@ -1319,7 +1319,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_TRUE(definition->type->is_mutable);
             ASSERT_EQUAL(definition->type->pointer.pointed_to->kind, AST_TYPE_NAME);
             ASSERT_FALSE(definition->type->pointer.pointed_to->is_mutable);
-            ASSERT_STRINGS_ARE_EQUAL(definition->type->pointer.pointed_to->named_type.token.lexeme, "Int32");
+            ASSERT_STRINGS_ARE_EQUAL(definition->type->pointer.pointed_to->named_type.token.lexeme, "s32");
             ASSERT_FALSE(definition->has_initial_value);
 
             destroy_parser(&parser);
@@ -1331,7 +1331,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
         {
             const String_View input = string_view("foo: () -> void = {"
-                                                  "    pointer: mutable * mutable Int32;"
+                                                  "    pointer: mutable * mutable s32;"
                                                   "}");
 
             Compilation_Context context = {0};
@@ -1372,7 +1372,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_TRUE(definition->type->is_mutable);
             ASSERT_EQUAL(definition->type->pointer.pointed_to->kind, AST_TYPE_NAME);
             ASSERT_TRUE(definition->type->pointer.pointed_to->is_mutable);
-            ASSERT_STRINGS_ARE_EQUAL(definition->type->pointer.pointed_to->named_type.token.lexeme, "Int32");
+            ASSERT_STRINGS_ARE_EQUAL(definition->type->pointer.pointed_to->named_type.token.lexeme, "s32");
             ASSERT_FALSE(definition->has_initial_value);
 
             destroy_parser(&parser);
@@ -1489,7 +1489,7 @@ test_return_statement_parsing(Test_Context* test_context)
 
     // NOTE(vlad): Simple return statement with a number constant.
     {
-        const String_View input = string_view("foo: () -> Int32 = {"
+        const String_View input = string_view("foo: () -> s32 = {"
                                               "    return 123;"
                                               "}");
 
@@ -1518,7 +1518,7 @@ test_return_statement_parsing(Test_Context* test_context)
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
-        ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "Int32");
+        ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "s32");
 
         ASSERT_EQUAL(definition->body.statements_count, 1);
 
@@ -2064,7 +2064,7 @@ test_expressions(Test_Context* test_context)
 
     // NOTE(vlad): Testing function call without arguments.
     {
-        const String_View input = string_view("foo: () -> Int32 = { return 123; }\n"
+        const String_View input = string_view("foo: () -> s32 = { return 123; }\n"
                                               "bar: () -> void = {"
                                               "    var := foo();"
                                               "}");
@@ -2095,7 +2095,7 @@ test_expressions(Test_Context* test_context)
             const Ast_Type* return_type = function_type->function.return_type;
             ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
-            ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "Int32");
+            ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "s32");
 
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
@@ -2150,7 +2150,7 @@ test_expressions(Test_Context* test_context)
 
     // NOTE(vlad): Testing function call with simple arguments.
     {
-        const String_View input = string_view("foo: (first: Int32, second: Int32) -> Int32 = { return first + second; }\n"
+        const String_View input = string_view("foo: (first: s32, second: s32) -> s32 = { return first + second; }\n"
                                               "bar: () -> void = {"
                                               "    var := foo(10, 20);"
                                               "}");
@@ -2754,7 +2754,7 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            const String_View input = string_view("foo: (arg: * Int32) -> void = {"
+            const String_View input = string_view("foo: (arg: * s32) -> void = {"
                                                   "    var := arg* * 2;"
                                                   "}");
 
@@ -2787,7 +2787,7 @@ test_expressions(Test_Context* test_context)
                 ASSERT_FALSE(parameter->type->is_mutable);
                 ASSERT_EQUAL(parameter->type->pointer.pointed_to->kind, AST_TYPE_NAME);
                 ASSERT_FALSE(parameter->type->pointer.pointed_to->is_mutable);
-                ASSERT_STRINGS_ARE_EQUAL(parameter->type->pointer.pointed_to->named_type.token.lexeme, "Int32");
+                ASSERT_STRINGS_ARE_EQUAL(parameter->type->pointer.pointed_to->named_type.token.lexeme, "s32");
             }
 
             const Ast_Type* return_type = function_type->function.return_type;
@@ -2831,7 +2831,7 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            const String_View input = string_view("foo: (arg: * Int32) -> void = {"
+            const String_View input = string_view("foo: (arg: * s32) -> void = {"
                                                   "    var := arg* + 2;"
                                                   "}");
 
@@ -2864,7 +2864,7 @@ test_expressions(Test_Context* test_context)
                 ASSERT_FALSE(parameter->type->is_mutable);
                 ASSERT_EQUAL(parameter->type->pointer.pointed_to->kind, AST_TYPE_NAME);
                 ASSERT_FALSE(parameter->type->pointer.pointed_to->is_mutable);
-                ASSERT_STRINGS_ARE_EQUAL(parameter->type->pointer.pointed_to->named_type.token.lexeme, "Int32");
+                ASSERT_STRINGS_ARE_EQUAL(parameter->type->pointer.pointed_to->named_type.token.lexeme, "s32");
             }
 
             const Ast_Type* return_type = function_type->function.return_type;
@@ -2908,7 +2908,7 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            const String_View input = string_view("foo: (arg: * * Int32) -> void = {"
+            const String_View input = string_view("foo: (arg: * * s32) -> void = {"
                                                   "    var := arg** * 2;"
                                                   "}");
 
@@ -2943,7 +2943,7 @@ test_expressions(Test_Context* test_context)
                 ASSERT_FALSE(parameter->type->pointer.pointed_to->is_mutable);
                 ASSERT_EQUAL(parameter->type->pointer.pointed_to->pointer.pointed_to->kind, AST_TYPE_NAME);
                 ASSERT_FALSE(parameter->type->pointer.pointed_to->pointer.pointed_to->is_mutable);
-                ASSERT_STRINGS_ARE_EQUAL(parameter->type->pointer.pointed_to->pointer.pointed_to->named_type.token.lexeme, "Int32");
+                ASSERT_STRINGS_ARE_EQUAL(parameter->type->pointer.pointed_to->pointer.pointed_to->named_type.token.lexeme, "s32");
             }
 
             const Ast_Type* return_type = function_type->function.return_type;
@@ -2995,7 +2995,7 @@ test_expressions(Test_Context* test_context)
 
         // NOTE(vlad): Dereference and multiplication without delimiting spaces.
         {
-            const String_View input = string_view("foo: (arg: * * Int32) -> void = {"
+            const String_View input = string_view("foo: (arg: * * s32) -> void = {"
                                                   "    var := arg***2;"
                                                   "}");
 
@@ -3030,7 +3030,7 @@ test_expressions(Test_Context* test_context)
                 ASSERT_FALSE(parameter->type->pointer.pointed_to->is_mutable);
                 ASSERT_EQUAL(parameter->type->pointer.pointed_to->pointer.pointed_to->kind, AST_TYPE_NAME);
                 ASSERT_FALSE(parameter->type->pointer.pointed_to->pointer.pointed_to->is_mutable);
-                ASSERT_STRINGS_ARE_EQUAL(parameter->type->pointer.pointed_to->pointer.pointed_to->named_type.token.lexeme, "Int32");
+                ASSERT_STRINGS_ARE_EQUAL(parameter->type->pointer.pointed_to->pointer.pointed_to->named_type.token.lexeme, "s32");
             }
 
             const Ast_Type* return_type = function_type->function.return_type;
@@ -3081,7 +3081,7 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            const String_View input = string_view("foo: (arg: Int32) -> void = {"
+            const String_View input = string_view("foo: (arg: s32) -> void = {"
                                                   "    var := arg&;"
                                                   "}");
 
@@ -3112,7 +3112,7 @@ test_expressions(Test_Context* test_context)
                 ASSERT_STRINGS_ARE_EQUAL(parameter->name.token.lexeme, "arg");
                 ASSERT_EQUAL(parameter->type->kind, AST_TYPE_NAME);
                 ASSERT_FALSE(parameter->type->is_mutable);
-                ASSERT_STRINGS_ARE_EQUAL(parameter->type->named_type.token.lexeme, "Int32");
+                ASSERT_STRINGS_ARE_EQUAL(parameter->type->named_type.token.lexeme, "s32");
             }
 
             const Ast_Type* return_type = function_type->function.return_type;
@@ -3145,7 +3145,7 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            const String_View input = string_view("foo: (arg: Int32) -> void = {"
+            const String_View input = string_view("foo: (arg: s32) -> void = {"
                                                   "    var := arg&* * 2;"
                                                   "}");
 
@@ -3176,7 +3176,7 @@ test_expressions(Test_Context* test_context)
                 ASSERT_STRINGS_ARE_EQUAL(parameter->name.token.lexeme, "arg");
                 ASSERT_EQUAL(parameter->type->kind, AST_TYPE_NAME);
                 ASSERT_FALSE(parameter->type->is_mutable);
-                ASSERT_STRINGS_ARE_EQUAL(parameter->type->named_type.token.lexeme, "Int32");
+                ASSERT_STRINGS_ARE_EQUAL(parameter->type->named_type.token.lexeme, "s32");
             }
 
             const Ast_Type* return_type = function_type->function.return_type;

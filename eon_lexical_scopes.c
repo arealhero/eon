@@ -1,5 +1,7 @@
 #include "eon_lexical_scopes.h"
 
+#include "eon_builtin_types.h"
+
 internal Index
 create_new_lexical_scope_with_parent(Compilation_Context* context, const Index parent_scope_index)
 {
@@ -348,6 +350,21 @@ create_lexical_scopes_for_code_block(Compilation_Context* context, Ast_Code_Bloc
     }
 }
 
+internal inline void
+add_builtin_type_symbol(Compilation_Context* context, const C_String name)
+{
+    Symbol symbol = {0};
+    symbol.kind = SYMBOL_TYPE;
+    symbol.name = string_view(name);
+    symbol.type_id = INVALID_TYPE_ID;
+    symbol.is_mutable = false;
+
+    const Symbol_Id symbol_id = add_symbol_to_lexical_scope(context,
+                                                            GLOBAL_LEXICAL_SCOPE_ID,
+                                                            &symbol);
+    ASSERT(symbol_id != INVALID_SYMBOL_ID);
+}
+
 internal Bool
 create_lexical_scopes(Compilation_Context* context)
 {
@@ -362,30 +379,28 @@ create_lexical_scopes(Compilation_Context* context)
         const Symbol_Id sentinel_symbol_id = create_symbol_in_compilation_context(context);
         ASSERT(sentinel_symbol_id == INVALID_SYMBOL_ID);
 
+        for (Index i = 0;
+             i < NUMBER_OF_STATIC_ARRAY_ELEMENTS(BUILTIN_TYPES);
+             ++i)
         {
-            Symbol symbol = {0};
-            symbol.kind = SYMBOL_TYPE;
-            symbol.name = string_view("void");
-            symbol.type_id = INVALID_TYPE_ID;
-            symbol.is_mutable = false;
-
-            const Symbol_Id symbol_id = add_symbol_to_lexical_scope(context,
-                                                                    global_scope_id,
-                                                                    &symbol);
-            ASSERT(symbol_id != INVALID_SYMBOL_ID);
+            const Builtin_Type* type = &BUILTIN_TYPES[i];
+            add_builtin_type_symbol(context, type->name);
         }
 
+        for (Index i = 0;
+             i < NUMBER_OF_STATIC_ARRAY_ELEMENTS(INTEGER_BUILTIN_TYPES);
+             ++i)
         {
-            Symbol symbol = {0};
-            symbol.kind = SYMBOL_TYPE;
-            symbol.name = string_view("Int32");
-            symbol.type_id = INVALID_TYPE_ID;
-            symbol.is_mutable = false;
+            const Integer_Builtin_Type* type = &INTEGER_BUILTIN_TYPES[i];
+            add_builtin_type_symbol(context, type->name);
+        }
 
-            const Symbol_Id symbol_id = add_symbol_to_lexical_scope(context,
-                                                                    global_scope_id,
-                                                                    &symbol);
-            ASSERT(symbol_id != INVALID_SYMBOL_ID);
+        for (Index i = 0;
+             i < NUMBER_OF_STATIC_ARRAY_ELEMENTS(FLOAT_BUILTIN_TYPES);
+             ++i)
+        {
+            const Float_Builtin_Type* type = &FLOAT_BUILTIN_TYPES[i];
+            add_builtin_type_symbol(context, type->name);
         }
     }
 

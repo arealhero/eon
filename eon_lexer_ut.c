@@ -510,7 +510,7 @@ test_identifiers(Test_Context* test_context)
     // NOTE(vlad): Testing arrays.
     {
         {
-            const String_View input = string_view("arr: [] Int32;");
+            const String_View input = string_view("arr: [] s32;");
 
             Lexer lexer = {0};
             create_lexer(&lexer, string_view("<input>"), input);
@@ -548,7 +548,7 @@ test_identifiers(Test_Context* test_context)
             ASSERT_TRUE(get_next_token(&lexer, &token, &errors));
             ASSERT_EQUAL(errors.errors_count, 0);
             ASSERT_EQUAL(token.type, TOKEN_IDENTIFIER);
-            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "Int32");
+            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "s32");
             ASSERT_EQUAL(token.line, 0);
             ASSERT_EQUAL(token.column, 8);
 
@@ -557,7 +557,7 @@ test_identifiers(Test_Context* test_context)
             ASSERT_EQUAL(token.type, TOKEN_SEMICOLON);
             ASSERT_STRINGS_ARE_EQUAL(token.lexeme, ";");
             ASSERT_EQUAL(token.line, 0);
-            ASSERT_EQUAL(token.column, 13);
+            ASSERT_EQUAL(token.column, 11);
 
             ASSERT_TRUE(get_next_token(&lexer, &token, &errors));
             ASSERT_EQUAL(errors.errors_count, 0);
@@ -567,7 +567,7 @@ test_identifiers(Test_Context* test_context)
         }
 
         {
-            const String_View input = string_view("arr: [] [] Int32;");
+            const String_View input = string_view("arr: [] [] s32;");
 
             Lexer lexer = {0};
             create_lexer(&lexer, string_view("<input>"), input);
@@ -619,7 +619,7 @@ test_identifiers(Test_Context* test_context)
             ASSERT_TRUE(get_next_token(&lexer, &token, &errors));
             ASSERT_EQUAL(errors.errors_count, 0);
             ASSERT_EQUAL(token.type, TOKEN_IDENTIFIER);
-            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "Int32");
+            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "s32");
             ASSERT_EQUAL(token.line, 0);
             ASSERT_EQUAL(token.column, 11);
 
@@ -628,7 +628,7 @@ test_identifiers(Test_Context* test_context)
             ASSERT_EQUAL(token.type, TOKEN_SEMICOLON);
             ASSERT_STRINGS_ARE_EQUAL(token.lexeme, ";");
             ASSERT_EQUAL(token.line, 0);
-            ASSERT_EQUAL(token.column, 16);
+            ASSERT_EQUAL(token.column, 14);
 
             ASSERT_TRUE(get_next_token(&lexer, &token, &errors));
             ASSERT_EQUAL(errors.errors_count, 0);

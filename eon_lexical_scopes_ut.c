@@ -87,7 +87,7 @@ test_function_scopes(Test_Context* test_context)
 
     // NOTE(vlad): Testing function parameters.
     {
-        const String_View input = string_view("foo: (a: Int32) -> void = {"
+        const String_View input = string_view("foo: (a: s32) -> void = {"
                                               "}");
 
         Compilation_Context context = {0};
@@ -145,7 +145,7 @@ test_function_scopes(Test_Context* test_context)
 
                 const Symbol* symbol = &context.symbols[symbol_id];
                 ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
-                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "Int32");
+                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "s32");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
             }
@@ -948,7 +948,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
 
     // NOTE(vlad): Testing function parameters.
     {
-        const String_View input = string_view("foo: (a: Int32) -> void = {"
+        const String_View input = string_view("foo: (a: s32) -> void = {"
                                               "    var := a;"
                                               "}");
 
@@ -1006,7 +1006,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
 
                 const Symbol* symbol = &context.symbols[symbol_id];
                 ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
-                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "Int32");
+                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "s32");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
             }
@@ -1088,7 +1088,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
     }
 
     {
-        const String_View input = string_view("foo: (a: Int32, b: Int32) -> void = {"
+        const String_View input = string_view("foo: (a: s32, b: s32) -> void = {"
                                               "    var := a + b * 2;"
                                               "}");
 
@@ -1146,7 +1146,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
 
                 const Symbol* symbol = &context.symbols[symbol_id];
                 ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
-                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "Int32");
+                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "s32");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
             }
@@ -1163,7 +1163,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
 
                 const Symbol* symbol = &context.symbols[symbol_id];
                 ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
-                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "Int32");
+                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "s32");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
             }
@@ -1270,8 +1270,8 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
     }
 
     {
-        const String_View input = string_view("foo: () -> Int32 = {}"
-                                              "bar: () -> Int32 = {}"
+        const String_View input = string_view("foo: () -> s32 = {}"
+                                              "bar: () -> s32 = {}"
                                               "baz: () -> void = {"
                                               "    var := foo() + bar();"
                                               "}");
@@ -1398,8 +1398,8 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
         const String_View input = string_view("baz: () -> void = {"
                                               "    var := foo() + bar();"
                                               "}"
-                                              "foo: () -> Int32 = {}"
-                                              "bar: () -> Int32 = {}");
+                                              "foo: () -> s32 = {}"
+                                              "bar: () -> s32 = {}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
