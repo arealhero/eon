@@ -5,8 +5,20 @@
 
 #include "eon_compilation_context.h"
 
+enum Symbol_Kind
+{
+    SYMBOL_UNDEFINED = 0,
+
+    SYMBOL_FUNCTION,
+    SYMBOL_VARIABLE,
+    SYMBOL_TYPE,
+};
+typedef enum Symbol_Kind Symbol_Kind;
+
 struct Symbol
 {
+    Symbol_Kind kind;
+
     String_View name;
     // TODO(vlad): Add Source_Location.
 

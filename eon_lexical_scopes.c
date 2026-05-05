@@ -224,6 +224,7 @@ create_lexical_scopes_for_code_block(Compilation_Context* context,
                 Ast_Variable_Definition* definition = &statement->variable_definition;
 
                 Symbol symbol = {0};
+                symbol.kind = SYMBOL_VARIABLE;
                 symbol.name = definition->name.token.lexeme;
                 symbol.type_id = INVALID_TYPE_ID;
                 symbol.is_mutable = definition->type->is_mutable;
@@ -329,6 +330,7 @@ create_lexical_scopes(Compilation_Context* context)
 
         {
             Symbol symbol = {0};
+            symbol.kind = SYMBOL_FUNCTION;
             symbol.name = function_definition->name.token.lexeme;
             symbol.type_id = INVALID_TYPE_ID;
             symbol.is_mutable = function_definition->type->is_mutable;
@@ -358,6 +360,7 @@ create_lexical_scopes(Compilation_Context* context)
             Ast_Function_Parameter* parameter = &parameters->parameters[parameter_index];
 
             Symbol symbol = {0};
+            symbol.kind = SYMBOL_VARIABLE;
             symbol.name = parameter->name.token.lexeme;
             symbol.type_id = INVALID_TYPE_ID;
             symbol.is_mutable = parameter->type->is_mutable;

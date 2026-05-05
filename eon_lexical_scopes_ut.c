@@ -41,6 +41,7 @@ test_function_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
+                ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
@@ -96,6 +97,7 @@ test_function_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
+                ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
@@ -121,6 +123,7 @@ test_function_scopes(Test_Context* test_context)
             ASSERT_EQUAL(parameter->name.symbol_id, symbol_id);
 
             const Symbol* symbol = &context.symbols[symbol_id];
+            ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
@@ -168,6 +171,7 @@ test_function_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
+                ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
@@ -184,6 +188,7 @@ test_function_scopes(Test_Context* test_context)
         {
             const Symbol_Id symbol_id = scope->symbol_ids[0];
             const Symbol* symbol = &context.symbols[symbol_id];
+            ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
@@ -249,6 +254,7 @@ test_if_statements_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
+                ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
@@ -265,6 +271,7 @@ test_if_statements_scopes(Test_Context* test_context)
         {
             const Symbol_Id symbol_id = scope->symbol_ids[0];
             const Symbol* symbol = &context.symbols[symbol_id];
+            ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
@@ -302,6 +309,7 @@ test_if_statements_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(variable_definition->name.symbol_id, symbol_id);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
+                ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
@@ -361,6 +369,7 @@ test_if_statements_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
+                ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
@@ -377,6 +386,7 @@ test_if_statements_scopes(Test_Context* test_context)
         {
             const Symbol_Id symbol_id = scope->symbol_ids[0];
             const Symbol* symbol = &context.symbols[symbol_id];
+            ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
@@ -423,6 +433,7 @@ test_if_statements_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(variable_definition->name.symbol_id, symbol_id);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
+                ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
@@ -478,6 +489,7 @@ test_while_loops_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
+                ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
@@ -494,6 +506,7 @@ test_while_loops_scopes(Test_Context* test_context)
         {
             const Symbol_Id symbol_id = scope->symbol_ids[0];
             const Symbol* symbol = &context.symbols[symbol_id];
+            ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
@@ -568,6 +581,7 @@ test_while_loops_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
+                ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
@@ -584,6 +598,7 @@ test_while_loops_scopes(Test_Context* test_context)
         {
             const Symbol_Id symbol_id = scope->symbol_ids[0];
             const Symbol* symbol = &context.symbols[symbol_id];
+            ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
@@ -621,6 +636,7 @@ test_while_loops_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(variable_definition->name.symbol_id, symbol_id);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
+                ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
@@ -671,6 +687,7 @@ test_while_loops_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
+                ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
@@ -687,6 +704,7 @@ test_while_loops_scopes(Test_Context* test_context)
         {
             const Symbol_Id symbol_id = scope->symbol_ids[0];
             const Symbol* symbol = &context.symbols[symbol_id];
+            ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
@@ -724,6 +742,7 @@ test_while_loops_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(variable_definition->name.symbol_id, symbol_id);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
+                ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
@@ -778,6 +797,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
                 ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
+                ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
@@ -803,6 +823,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
             ASSERT_EQUAL(parameter->name.symbol_id, symbol_id);
 
             const Symbol* symbol = &context.symbols[symbol_id];
+            ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
@@ -820,6 +841,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
             ASSERT_EQUAL(variable_definition->name.symbol_id, symbol_id);
 
             const Symbol* symbol = &context.symbols[symbol_id];
+            ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "var");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
@@ -874,6 +896,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
                 ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
+                ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
@@ -893,6 +916,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
 
         {
             const Symbol* a_symbol = &context.symbols[a_symbol_id];
+            ASSERT_EQUAL(a_symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(a_symbol->name, "a");
             ASSERT_EQUAL(a_symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(a_symbol->is_mutable);
@@ -900,6 +924,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
 
         {
             const Symbol* b_symbol = &context.symbols[b_symbol_id];
+            ASSERT_EQUAL(b_symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(b_symbol->name, "b");
             ASSERT_EQUAL(b_symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(b_symbol->is_mutable);
@@ -907,6 +932,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
 
         {
             const Symbol* var_symbol = &context.symbols[var_symbol_id];
+            ASSERT_EQUAL(var_symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(var_symbol->name, "var");
             ASSERT_EQUAL(var_symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(var_symbol->is_mutable);
@@ -1003,6 +1029,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
             ASSERT_EQUAL(foo_definition->name.symbol_id, foo_symbol_id);
 
             const Symbol* symbol = &context.symbols[foo_symbol_id];
+            ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
@@ -1012,6 +1039,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
             ASSERT_EQUAL(bar_definition->name.symbol_id, bar_symbol_id);
 
             const Symbol* symbol = &context.symbols[bar_symbol_id];
+            ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "bar");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
@@ -1021,6 +1049,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
             ASSERT_EQUAL(baz_definition->name.symbol_id, baz_symbol_id);
 
             const Symbol* symbol = &context.symbols[baz_symbol_id];
+            ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "baz");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
@@ -1036,6 +1065,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
 
         {
             const Symbol* var_symbol = &context.symbols[var_symbol_id];
+            ASSERT_EQUAL(var_symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(var_symbol->name, "var");
             ASSERT_EQUAL(var_symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(var_symbol->is_mutable);
