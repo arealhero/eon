@@ -145,17 +145,12 @@ struct Ast_Function_Parameter
 };
 typedef struct Ast_Function_Parameter Ast_Function_Parameter;
 
-struct Ast_Function_Parameters
+struct Ast_Function_Type
 {
     Ast_Function_Parameter* parameters;
     Size parameters_count;
     Size parameters_capacity;
-};
-typedef struct Ast_Function_Parameters Ast_Function_Parameters;
 
-struct Ast_Function_Type
-{
-    Ast_Function_Parameters parameters;
     struct Ast_Type* return_type;
 };
 typedef struct Ast_Function_Type Ast_Function_Type;
@@ -166,6 +161,7 @@ struct Ast_Type
 
     Bool is_mutable;
 
+    Symbol_Id symbol_id;
     Type_Id type_id;
 
     union

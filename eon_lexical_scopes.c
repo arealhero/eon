@@ -360,13 +360,13 @@ create_lexical_scopes(Compilation_Context* context)
 
         ASSERT(function_definition->type->kind == AST_TYPE_FUNCTION);
 
-        Ast_Function_Parameters* parameters = &function_definition->type->function.parameters;
+        Ast_Function_Type* function_type = &function_definition->type->function;
 
         for (Index parameter_index = 0;
-             parameter_index < parameters->parameters_count;
+             parameter_index < function_type->parameters_count;
              ++parameter_index)
         {
-            Ast_Function_Parameter* parameter = &parameters->parameters[parameter_index];
+            Ast_Function_Parameter* parameter = &function_type->parameters[parameter_index];
 
             Symbol symbol = {0};
             symbol.kind = SYMBOL_VARIABLE;

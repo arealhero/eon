@@ -31,8 +31,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -69,8 +68,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -107,10 +105,9 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 1);
+        ASSERT_EQUAL(function_type->function.parameters_count, 1);
 
-        const Ast_Function_Parameter* parameter = &parameters->parameters[0];
+        const Ast_Function_Parameter* parameter = &function_type->function.parameters[0];
         ASSERT_STRINGS_ARE_EQUAL(parameter->name.token.lexeme, "argument");
 
         const Ast_Type* parameter_type = parameter->type;
@@ -155,13 +152,12 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(return_type->is_mutable);
-        ASSERT_EQUAL(return_type->function.parameters.parameters_count, 0);
+        ASSERT_EQUAL(return_type->function.parameters_count, 0);
         ASSERT_EQUAL(return_type->function.return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->function.return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->function.return_type->named_type.token.lexeme, "void");
@@ -196,15 +192,14 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_POINTER);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_EQUAL(return_type->pointer.pointed_to->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(return_type->pointer.pointed_to->is_mutable);
-        ASSERT_EQUAL(return_type->pointer.pointed_to->function.parameters.parameters_count, 0);
+        ASSERT_EQUAL(return_type->pointer.pointed_to->function.parameters_count, 0);
         ASSERT_EQUAL(return_type->pointer.pointed_to->function.return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->pointer.pointed_to->function.return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->pointer.pointed_to->function.return_type->named_type.token.lexeme,
@@ -240,11 +235,10 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 2);
+        ASSERT_EQUAL(function_type->function.parameters_count, 2);
 
         {
-            const Ast_Function_Parameter* first_parameter = &parameters->parameters[0];
+            const Ast_Function_Parameter* first_parameter = &function_type->function.parameters[0];
             ASSERT_STRINGS_ARE_EQUAL(first_parameter->name.token.lexeme, "first");
 
             const Ast_Type* first_parameter_type = first_parameter->type;
@@ -256,7 +250,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         }
 
         {
-            const Ast_Function_Parameter* second_parameter = &parameters->parameters[1];
+            const Ast_Function_Parameter* second_parameter = &function_type->function.parameters[1];
             ASSERT_STRINGS_ARE_EQUAL(second_parameter->name.token.lexeme, "second");
 
             const Ast_Type* second_parameter_type = second_parameter->type;
@@ -305,8 +299,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 0);
+            ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
             ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -322,11 +315,10 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 1);
+            ASSERT_EQUAL(function_type->function.parameters_count, 1);
 
             {
-                const Ast_Function_Parameter* parameter = &parameters->parameters[0];
+                const Ast_Function_Parameter* parameter = &function_type->function.parameters[0];
                 ASSERT_STRINGS_ARE_EQUAL(parameter->name.token.lexeme, "arg");
 
                 ASSERT_EQUAL(parameter->type->kind, AST_TYPE_NAME);
@@ -372,8 +364,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -412,11 +403,10 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 2);
+            ASSERT_EQUAL(function_type->function.parameters_count, 2);
 
             {
-                const Ast_Function_Parameter* first_parameter = &parameters->parameters[0];
+                const Ast_Function_Parameter* first_parameter = &function_type->function.parameters[0];
                 ASSERT_STRINGS_ARE_EQUAL(first_parameter->name.token.lexeme, "first");
 
                 const Ast_Type* first_parameter_type = first_parameter->type;
@@ -428,7 +418,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             }
 
             {
-                const Ast_Function_Parameter* second_parameter = &parameters->parameters[1];
+                const Ast_Function_Parameter* second_parameter = &function_type->function.parameters[1];
                 ASSERT_STRINGS_ARE_EQUAL(second_parameter->name.token.lexeme, "second");
 
                 const Ast_Type* second_parameter_type = second_parameter->type;
@@ -474,11 +464,10 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 2);
+            ASSERT_EQUAL(function_type->function.parameters_count, 2);
 
             {
-                const Ast_Function_Parameter* first_parameter = &parameters->parameters[0];
+                const Ast_Function_Parameter* first_parameter = &function_type->function.parameters[0];
                 ASSERT_STRINGS_ARE_EQUAL(first_parameter->name.token.lexeme, "first");
 
                 const Ast_Type* first_parameter_type = first_parameter->type;
@@ -490,7 +479,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             }
 
             {
-                const Ast_Function_Parameter* second_parameter = &parameters->parameters[1];
+                const Ast_Function_Parameter* second_parameter = &function_type->function.parameters[1];
                 ASSERT_STRINGS_ARE_EQUAL(second_parameter->name.token.lexeme, "second");
 
                 const Ast_Type* second_parameter_type = second_parameter->type;
@@ -536,11 +525,10 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 2);
+            ASSERT_EQUAL(function_type->function.parameters_count, 2);
 
             {
-                const Ast_Function_Parameter* first_parameter = &parameters->parameters[0];
+                const Ast_Function_Parameter* first_parameter = &function_type->function.parameters[0];
                 ASSERT_STRINGS_ARE_EQUAL(first_parameter->name.token.lexeme, "first");
 
                 const Ast_Type* first_parameter_type = first_parameter->type;
@@ -552,7 +540,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             }
 
             {
-                const Ast_Function_Parameter* second_parameter = &parameters->parameters[1];
+                const Ast_Function_Parameter* second_parameter = &function_type->function.parameters[1];
                 ASSERT_STRINGS_ARE_EQUAL(second_parameter->name.token.lexeme, "second");
 
                 const Ast_Type* second_parameter_type = second_parameter->type;
@@ -598,8 +586,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 0);
+            ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
             ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -636,8 +623,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 0);
+            ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
             ASSERT_EQUAL(return_type->kind, AST_TYPE_POINTER);
@@ -676,8 +662,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 0);
+            ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
             ASSERT_EQUAL(return_type->kind, AST_TYPE_POINTER);
@@ -716,8 +701,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 0);
+            ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
             ASSERT_EQUAL(return_type->kind, AST_TYPE_POINTER);
@@ -755,15 +739,14 @@ test_function_definitions_parsing(Test_Context* test_context)
             const Ast_Type* function_type = definition->type;
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 0);
+            ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
             ASSERT_EQUAL(return_type->kind, AST_TYPE_POINTER);
             ASSERT_TRUE(return_type->is_mutable);
             ASSERT_EQUAL(return_type->pointer.pointed_to->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(return_type->pointer.pointed_to->is_mutable);
-            ASSERT_EQUAL(return_type->pointer.pointed_to->function.parameters.parameters_count, 0);
+            ASSERT_EQUAL(return_type->pointer.pointed_to->function.parameters_count, 0);
             ASSERT_EQUAL(return_type->pointer.pointed_to->function.return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->pointer.pointed_to->function.return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->pointer.pointed_to->function.return_type->named_type.token.lexeme, "void");
@@ -807,8 +790,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -858,8 +840,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -914,8 +895,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -970,8 +950,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -1038,8 +1017,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -1095,8 +1073,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -1164,8 +1141,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -1219,8 +1195,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -1277,8 +1252,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 0);
+            ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
             ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -1327,8 +1301,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 0);
+            ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
             ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -1381,8 +1354,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 0);
+            ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
             ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -1435,8 +1407,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 0);
+            ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
             ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -1496,8 +1467,7 @@ test_return_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -1543,8 +1513,7 @@ test_return_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -1600,8 +1569,7 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -1658,8 +1626,7 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -1727,8 +1694,7 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -1819,8 +1785,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -1889,8 +1854,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -1946,8 +1910,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -2003,8 +1966,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -2060,8 +2022,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -2129,8 +2090,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 0);
+            ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
             ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -2155,8 +2115,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 0);
+            ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
             ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -2217,8 +2176,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 0);
+            ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
             ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -2290,8 +2248,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 0);
+            ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
             ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -2394,8 +2351,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 0);
+            ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
             ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -2456,8 +2412,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 0);
+            ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
             ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -2518,8 +2473,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 0);
+            ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
             ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -2580,8 +2534,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 0);
+            ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
             ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -2642,8 +2595,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 0);
+            ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
             ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -2704,8 +2656,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 0);
+            ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
             ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -2769,8 +2720,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 0);
+            ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
             ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -2828,11 +2778,10 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 1);
+            ASSERT_EQUAL(function_type->function.parameters_count, 1);
 
             {
-                const Ast_Function_Parameter* parameter = &parameters->parameters[0];
+                const Ast_Function_Parameter* parameter = &function_type->function.parameters[0];
                 ASSERT_STRINGS_ARE_EQUAL(parameter->name.token.lexeme, "arg");
                 ASSERT_EQUAL(parameter->type->kind, AST_TYPE_POINTER);
                 ASSERT_FALSE(parameter->type->is_mutable);
@@ -2906,11 +2855,10 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 1);
+            ASSERT_EQUAL(function_type->function.parameters_count, 1);
 
             {
-                const Ast_Function_Parameter* parameter = &parameters->parameters[0];
+                const Ast_Function_Parameter* parameter = &function_type->function.parameters[0];
                 ASSERT_STRINGS_ARE_EQUAL(parameter->name.token.lexeme, "arg");
                 ASSERT_EQUAL(parameter->type->kind, AST_TYPE_POINTER);
                 ASSERT_FALSE(parameter->type->is_mutable);
@@ -2984,11 +2932,10 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 1);
+            ASSERT_EQUAL(function_type->function.parameters_count, 1);
 
             {
-                const Ast_Function_Parameter* parameter = &parameters->parameters[0];
+                const Ast_Function_Parameter* parameter = &function_type->function.parameters[0];
                 ASSERT_STRINGS_ARE_EQUAL(parameter->name.token.lexeme, "arg");
                 ASSERT_EQUAL(parameter->type->kind, AST_TYPE_POINTER);
                 ASSERT_FALSE(parameter->type->is_mutable);
@@ -3072,11 +3019,10 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 1);
+            ASSERT_EQUAL(function_type->function.parameters_count, 1);
 
             {
-                const Ast_Function_Parameter* parameter = &parameters->parameters[0];
+                const Ast_Function_Parameter* parameter = &function_type->function.parameters[0];
                 ASSERT_STRINGS_ARE_EQUAL(parameter->name.token.lexeme, "arg");
                 ASSERT_EQUAL(parameter->type->kind, AST_TYPE_POINTER);
                 ASSERT_FALSE(parameter->type->is_mutable);
@@ -3159,11 +3105,10 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 1);
+            ASSERT_EQUAL(function_type->function.parameters_count, 1);
 
             {
-                const Ast_Function_Parameter* parameter = &parameters->parameters[0];
+                const Ast_Function_Parameter* parameter = &function_type->function.parameters[0];
                 ASSERT_STRINGS_ARE_EQUAL(parameter->name.token.lexeme, "arg");
                 ASSERT_EQUAL(parameter->type->kind, AST_TYPE_NAME);
                 ASSERT_FALSE(parameter->type->is_mutable);
@@ -3224,11 +3169,10 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
 
-            const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-            ASSERT_EQUAL(parameters->parameters_count, 1);
+            ASSERT_EQUAL(function_type->function.parameters_count, 1);
 
             {
-                const Ast_Function_Parameter* parameter = &parameters->parameters[0];
+                const Ast_Function_Parameter* parameter = &function_type->function.parameters[0];
                 ASSERT_STRINGS_ARE_EQUAL(parameter->name.token.lexeme, "arg");
                 ASSERT_EQUAL(parameter->type->kind, AST_TYPE_NAME);
                 ASSERT_FALSE(parameter->type->is_mutable);
@@ -3315,8 +3259,7 @@ test_operator_precedence(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -3384,8 +3327,7 @@ test_operator_precedence(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -3454,8 +3396,7 @@ test_operator_precedence(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -3532,8 +3473,7 @@ test_assignments(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -3598,8 +3538,7 @@ test_assignments(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -3686,8 +3625,7 @@ test_while_statements(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
@@ -3779,8 +3717,7 @@ test_call_statements(Test_Context* test_context)
         ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
 
-        const Ast_Function_Parameters* parameters = &function_type->function.parameters;
-        ASSERT_EQUAL(parameters->parameters_count, 0);
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
         ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);

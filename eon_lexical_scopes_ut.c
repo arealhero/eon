@@ -114,10 +114,10 @@ test_function_scopes(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
         const Ast_Function_Type* function_type = &function_definition->type->function;
 
-        ASSERT_EQUAL(function_type->parameters.parameters_count, 1);
+        ASSERT_EQUAL(function_type->parameters_count, 1);
 
         {
-            const Ast_Function_Parameter* parameter = &function_type->parameters.parameters[0];
+            const Ast_Function_Parameter* parameter = &function_type->parameters[0];
 
             const Symbol_Id symbol_id = scope->symbol_ids[0];
             ASSERT_EQUAL(parameter->name.symbol_id, symbol_id);
@@ -814,10 +814,10 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
         ASSERT_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
         const Ast_Function_Type* function_type = &function_definition->type->function;
 
-        ASSERT_EQUAL(function_type->parameters.parameters_count, 1);
+        ASSERT_EQUAL(function_type->parameters_count, 1);
 
         {
-            const Ast_Function_Parameter* parameter = &function_type->parameters.parameters[0];
+            const Ast_Function_Parameter* parameter = &function_type->parameters[0];
 
             const Symbol_Id symbol_id = scope->symbol_ids[0];
             ASSERT_EQUAL(parameter->name.symbol_id, symbol_id);
@@ -941,15 +941,15 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
         ASSERT_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
         const Ast_Function_Type* function_type = &function_definition->type->function;
 
-        ASSERT_EQUAL(function_type->parameters.parameters_count, 2);
+        ASSERT_EQUAL(function_type->parameters_count, 2);
 
         {
-            const Ast_Function_Parameter* parameter = &function_type->parameters.parameters[0];
+            const Ast_Function_Parameter* parameter = &function_type->parameters[0];
             ASSERT_EQUAL(parameter->name.symbol_id, a_symbol_id);
         }
 
         {
-            const Ast_Function_Parameter* parameter = &function_type->parameters.parameters[1];
+            const Ast_Function_Parameter* parameter = &function_type->parameters[1];
             ASSERT_EQUAL(parameter->name.symbol_id, b_symbol_id);
         }
 

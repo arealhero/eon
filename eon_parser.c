@@ -264,7 +264,7 @@ parse_parameter_declaration(Parser* parser, Ast_Function_Parameter* parameter)
 }
 
 internal Bool
-parse_parameters_declaration(Parser* parser, Ast_Function_Parameters* parameters)
+parse_parameters_declaration(Parser* parser, Ast_Function_Type* function)
 {
     while (true)
     {
@@ -274,20 +274,20 @@ parse_parameters_declaration(Parser* parser, Ast_Function_Parameters* parameters
             return false;
         }
 
-        if (parameters->parameters_count == parameters->parameters_capacity)
+        if (function->parameters_count == function->parameters_capacity)
         {
             // XXX(vlad): We can change 'MAX(1, 2 * capacity)' to '(2 * capacity) | 1'.
-            const Size new_capacity = MAX(1, 2 * parameters->parameters_capacity);
-            parameters->parameters = reallocate(parser->context->ast_arena,
-                                                parameters->parameters,
-                                                Ast_Function_Parameter,
-                                                parameters->parameters_capacity,
-                                                new_capacity);
-            parameters->parameters_capacity = new_capacity;
+            const Size new_capacity = MAX(1, 2 * function->parameters_capacity);
+            function->parameters = reallocate(parser->context->ast_arena,
+                                              function->parameters,
+                                              Ast_Function_Parameter,
+                                              function->parameters_capacity,
+                                              new_capacity);
+            function->parameters_capacity = new_capacity;
         }
 
-        parameters->parameters[parameters->parameters_count] = parameter;
-        parameters->parameters_count += 1;
+        function->parameters[function->parameters_count] = parameter;
+        function->parameters_count += 1;
 
         if (!parser_fetch_token(parser))
         {
@@ -320,7 +320,7 @@ parse_function_type(Parser* parser, Ast_Type* type)
 
     if (parser->current_token.type != TOKEN_RIGHT_PAREN)
     {
-        if (!parse_parameters_declaration(parser, &type->function.parameters))
+        if (!parse_parameters_declaration(parser, &type->function))
         {
             return false;
         }
