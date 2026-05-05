@@ -42,3 +42,7 @@ struct Lexical_Scope
 typedef struct Lexical_Scope Lexical_Scope;
 
 maybe_unused internal Bool create_lexical_scopes(Compilation_Context* context);
+
+maybe_unused internal Symbol_Id find_symbol_id(Compilation_Context* context,
+                                               Lexical_Scope_Id this_lexical_scope_id,
+                                               const String_View name);

@@ -34,10 +34,12 @@ test_function_scopes(Test_Context* test_context)
         {
             const Lexical_Scope* global_scope = &context.lexical_scopes[GLOBAL_LEXICAL_SCOPE_ID];
             ASSERT_EQUAL(global_scope->parent_lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
-            ASSERT_EQUAL(global_scope->symbol_ids_count, 1);
 
             {
-                const Symbol_Id symbol_id = global_scope->symbol_ids[0];
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           function_definition->name.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
                 ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
@@ -46,6 +48,25 @@ test_function_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
             }
+        }
+
+        {
+            ASSERT_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            const Ast_Function_Type* function_type = &function_definition->type->function;
+
+            ASSERT_EQUAL(function_type->return_type->kind, AST_TYPE_NAME);
+
+            const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       function_type->return_type->named_type.token.lexeme);
+            ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+            ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
+
+            const Symbol* symbol = &context.symbols[symbol_id];
+            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+            ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
+            ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
+            ASSERT_FALSE(symbol->is_mutable);
         }
 
         const Lexical_Scope_Id function_scope_id = function_definition->body.lexical_scope_id;
@@ -90,15 +111,57 @@ test_function_scopes(Test_Context* test_context)
         {
             const Lexical_Scope* global_scope = &context.lexical_scopes[GLOBAL_LEXICAL_SCOPE_ID];
             ASSERT_EQUAL(global_scope->parent_lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
-            ASSERT_EQUAL(global_scope->symbol_ids_count, 1);
 
             {
-                const Symbol_Id symbol_id = global_scope->symbol_ids[0];
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           function_definition->name.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
                 ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
                 ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
+                ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
+                ASSERT_FALSE(symbol->is_mutable);
+            }
+        }
+
+        {
+            ASSERT_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            const Ast_Function_Type* function_type = &function_definition->type->function;
+
+            ASSERT_EQUAL(function_type->parameters_count, 1);
+
+            const Ast_Function_Parameter* parameter = &function_type->parameters[0];
+            ASSERT_EQUAL(parameter->type->kind, AST_TYPE_NAME);
+
+            {
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           parameter->type->named_type.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_EQUAL(parameter->type->symbol_id, symbol_id);
+
+                const Symbol* symbol = &context.symbols[symbol_id];
+                ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "Int32");
+                ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
+                ASSERT_FALSE(symbol->is_mutable);
+            }
+
+            ASSERT_EQUAL(function_type->return_type->kind, AST_TYPE_NAME);
+
+            {
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           function_type->return_type->named_type.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
+
+                const Symbol* symbol = &context.symbols[symbol_id];
+                ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
             }
@@ -164,11 +227,12 @@ test_function_scopes(Test_Context* test_context)
         {
             const Lexical_Scope* global_scope = &context.lexical_scopes[GLOBAL_LEXICAL_SCOPE_ID];
             ASSERT_EQUAL(global_scope->parent_lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
-            ASSERT_EQUAL(global_scope->symbol_ids_count, 1);
 
             {
-                const Symbol_Id symbol_id = global_scope->symbol_ids[0];
-                ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           function_definition->name.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
                 ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
@@ -176,6 +240,25 @@ test_function_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
             }
+        }
+
+        {
+            ASSERT_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            const Ast_Function_Type* function_type = &function_definition->type->function;
+
+            ASSERT_EQUAL(function_type->return_type->kind, AST_TYPE_NAME);
+
+            const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       function_type->return_type->named_type.token.lexeme);
+            ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+            ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
+
+            const Symbol* symbol = &context.symbols[symbol_id];
+            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+            ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
+            ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
+            ASSERT_FALSE(symbol->is_mutable);
         }
 
         const Lexical_Scope_Id function_scope_id = function_definition->body.lexical_scope_id;
@@ -247,11 +330,12 @@ test_if_statements_scopes(Test_Context* test_context)
         {
             const Lexical_Scope* global_scope = &context.lexical_scopes[GLOBAL_LEXICAL_SCOPE_ID];
             ASSERT_EQUAL(global_scope->parent_lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
-            ASSERT_EQUAL(global_scope->symbol_ids_count, 1);
 
             {
-                const Symbol_Id symbol_id = global_scope->symbol_ids[0];
-                ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           function_definition->name.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
                 ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
@@ -259,6 +343,25 @@ test_if_statements_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
             }
+        }
+
+        {
+            ASSERT_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            const Ast_Function_Type* function_type = &function_definition->type->function;
+
+            ASSERT_EQUAL(function_type->return_type->kind, AST_TYPE_NAME);
+
+            const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       function_type->return_type->named_type.token.lexeme);
+            ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+            ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
+
+            const Symbol* symbol = &context.symbols[symbol_id];
+            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+            ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
+            ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
+            ASSERT_FALSE(symbol->is_mutable);
         }
 
         const Lexical_Scope_Id function_scope_id = function_definition->body.lexical_scope_id;
@@ -362,11 +465,12 @@ test_if_statements_scopes(Test_Context* test_context)
         {
             const Lexical_Scope* global_scope = &context.lexical_scopes[GLOBAL_LEXICAL_SCOPE_ID];
             ASSERT_EQUAL(global_scope->parent_lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
-            ASSERT_EQUAL(global_scope->symbol_ids_count, 1);
 
             {
-                const Symbol_Id symbol_id = global_scope->symbol_ids[0];
-                ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           function_definition->name.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
                 ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
@@ -374,6 +478,25 @@ test_if_statements_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
             }
+        }
+
+        {
+            ASSERT_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            const Ast_Function_Type* function_type = &function_definition->type->function;
+
+            ASSERT_EQUAL(function_type->return_type->kind, AST_TYPE_NAME);
+
+            const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       function_type->return_type->named_type.token.lexeme);
+            ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+            ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
+
+            const Symbol* symbol = &context.symbols[symbol_id];
+            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+            ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
+            ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
+            ASSERT_FALSE(symbol->is_mutable);
         }
 
         const Lexical_Scope_Id function_scope_id = function_definition->body.lexical_scope_id;
@@ -482,11 +605,12 @@ test_while_loops_scopes(Test_Context* test_context)
         {
             const Lexical_Scope* global_scope = &context.lexical_scopes[GLOBAL_LEXICAL_SCOPE_ID];
             ASSERT_EQUAL(global_scope->parent_lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
-            ASSERT_EQUAL(global_scope->symbol_ids_count, 1);
 
             {
-                const Symbol_Id symbol_id = global_scope->symbol_ids[0];
-                ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           function_definition->name.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
                 ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
@@ -494,6 +618,25 @@ test_while_loops_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
             }
+        }
+
+        {
+            ASSERT_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            const Ast_Function_Type* function_type = &function_definition->type->function;
+
+            ASSERT_EQUAL(function_type->return_type->kind, AST_TYPE_NAME);
+
+            const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       function_type->return_type->named_type.token.lexeme);
+            ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+            ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
+
+            const Symbol* symbol = &context.symbols[symbol_id];
+            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+            ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
+            ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
+            ASSERT_FALSE(symbol->is_mutable);
         }
 
         const Lexical_Scope_Id function_scope_id = function_definition->body.lexical_scope_id;
@@ -574,11 +717,12 @@ test_while_loops_scopes(Test_Context* test_context)
         {
             const Lexical_Scope* global_scope = &context.lexical_scopes[GLOBAL_LEXICAL_SCOPE_ID];
             ASSERT_EQUAL(global_scope->parent_lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
-            ASSERT_EQUAL(global_scope->symbol_ids_count, 1);
 
             {
-                const Symbol_Id symbol_id = global_scope->symbol_ids[0];
-                ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           function_definition->name.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
                 ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
@@ -586,6 +730,25 @@ test_while_loops_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
             }
+        }
+
+        {
+            ASSERT_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            const Ast_Function_Type* function_type = &function_definition->type->function;
+
+            ASSERT_EQUAL(function_type->return_type->kind, AST_TYPE_NAME);
+
+            const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       function_type->return_type->named_type.token.lexeme);
+            ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+            ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
+
+            const Symbol* symbol = &context.symbols[symbol_id];
+            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+            ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
+            ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
+            ASSERT_FALSE(symbol->is_mutable);
         }
 
         const Lexical_Scope_Id function_scope_id = function_definition->body.lexical_scope_id;
@@ -680,11 +843,12 @@ test_while_loops_scopes(Test_Context* test_context)
         {
             const Lexical_Scope* global_scope = &context.lexical_scopes[GLOBAL_LEXICAL_SCOPE_ID];
             ASSERT_EQUAL(global_scope->parent_lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
-            ASSERT_EQUAL(global_scope->symbol_ids_count, 1);
 
             {
-                const Symbol_Id symbol_id = global_scope->symbol_ids[0];
-                ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           function_definition->name.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
                 ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
@@ -692,6 +856,25 @@ test_while_loops_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
             }
+        }
+
+        {
+            ASSERT_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            const Ast_Function_Type* function_type = &function_definition->type->function;
+
+            ASSERT_EQUAL(function_type->return_type->kind, AST_TYPE_NAME);
+
+            const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       function_type->return_type->named_type.token.lexeme);
+            ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+            ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
+
+            const Symbol* symbol = &context.symbols[symbol_id];
+            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+            ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
+            ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
+            ASSERT_FALSE(symbol->is_mutable);
         }
 
         const Lexical_Scope_Id function_scope_id = function_definition->body.lexical_scope_id;
@@ -790,15 +973,56 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
         {
             const Lexical_Scope* global_scope = &context.lexical_scopes[GLOBAL_LEXICAL_SCOPE_ID];
             ASSERT_EQUAL(global_scope->parent_lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
-            ASSERT_EQUAL(global_scope->symbol_ids_count, 1);
 
             {
-                const Symbol_Id symbol_id = global_scope->symbol_ids[0];
-                ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           function_definition->name.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
                 ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
+                ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
+                ASSERT_FALSE(symbol->is_mutable);
+            }
+        }
+
+        {
+            ASSERT_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            const Ast_Function_Type* function_type = &function_definition->type->function;
+
+            ASSERT_EQUAL(function_type->parameters_count, 1);
+
+            const Ast_Function_Parameter* parameter = &function_type->parameters[0];
+            ASSERT_EQUAL(parameter->type->kind, AST_TYPE_NAME);
+
+            {
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           parameter->type->named_type.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_EQUAL(parameter->type->symbol_id, symbol_id);
+
+                const Symbol* symbol = &context.symbols[symbol_id];
+                ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "Int32");
+                ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
+                ASSERT_FALSE(symbol->is_mutable);
+            }
+
+            ASSERT_EQUAL(function_type->return_type->kind, AST_TYPE_NAME);
+
+            {
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           function_type->return_type->named_type.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
+
+                const Symbol* symbol = &context.symbols[symbol_id];
+                ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
             }
@@ -889,15 +1113,73 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
         {
             const Lexical_Scope* global_scope = &context.lexical_scopes[GLOBAL_LEXICAL_SCOPE_ID];
             ASSERT_EQUAL(global_scope->parent_lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
-            ASSERT_EQUAL(global_scope->symbol_ids_count, 1);
 
             {
-                const Symbol_Id symbol_id = global_scope->symbol_ids[0];
-                ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           function_definition->name.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
 
                 const Symbol* symbol = &context.symbols[symbol_id];
                 ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
+                ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
+                ASSERT_FALSE(symbol->is_mutable);
+            }
+        }
+
+        {
+            ASSERT_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            const Ast_Function_Type* function_type = &function_definition->type->function;
+
+            ASSERT_EQUAL(function_type->parameters_count, 2);
+
+            {
+                const Ast_Function_Parameter* first_parameter = &function_type->parameters[0];
+                ASSERT_EQUAL(first_parameter->type->kind, AST_TYPE_NAME);
+
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           first_parameter->type->named_type.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_EQUAL(first_parameter->type->symbol_id, symbol_id);
+
+                const Symbol* symbol = &context.symbols[symbol_id];
+                ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "Int32");
+                ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
+                ASSERT_FALSE(symbol->is_mutable);
+            }
+
+            {
+                const Ast_Function_Parameter* second_parameter = &function_type->parameters[1];
+                ASSERT_EQUAL(second_parameter->type->kind, AST_TYPE_NAME);
+
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           second_parameter->type->named_type.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_EQUAL(second_parameter->type->symbol_id, symbol_id);
+
+                const Symbol* symbol = &context.symbols[symbol_id];
+                ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "Int32");
+                ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
+                ASSERT_FALSE(symbol->is_mutable);
+            }
+
+            ASSERT_EQUAL(function_type->return_type->kind, AST_TYPE_NAME);
+
+            {
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           function_type->return_type->named_type.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
+
+                const Symbol* symbol = &context.symbols[symbol_id];
+                ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
             }
@@ -1019,11 +1301,20 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
 
         const Lexical_Scope* global_scope = &context.lexical_scopes[GLOBAL_LEXICAL_SCOPE_ID];
         ASSERT_EQUAL(global_scope->parent_lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
-        ASSERT_EQUAL(global_scope->symbol_ids_count, 3);
 
-        const Symbol_Id foo_symbol_id = global_scope->symbol_ids[0];
-        const Symbol_Id bar_symbol_id = global_scope->symbol_ids[1];
-        const Symbol_Id baz_symbol_id = global_scope->symbol_ids[2];
+        const Symbol_Id foo_symbol_id = find_symbol_id(&context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       foo_definition->name.token.lexeme);
+        const Symbol_Id bar_symbol_id = find_symbol_id(&context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       bar_definition->name.token.lexeme);
+        const Symbol_Id baz_symbol_id = find_symbol_id(&context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       baz_definition->name.token.lexeme);
+
+        ASSERT_NOT_EQUAL(foo_symbol_id, INVALID_SYMBOL_ID);
+        ASSERT_NOT_EQUAL(bar_symbol_id, INVALID_SYMBOL_ID);
+        ASSERT_NOT_EQUAL(baz_symbol_id, INVALID_SYMBOL_ID);
 
         {
             ASSERT_EQUAL(foo_definition->name.symbol_id, foo_symbol_id);
@@ -1135,11 +1426,20 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
 
         const Lexical_Scope* global_scope = &context.lexical_scopes[GLOBAL_LEXICAL_SCOPE_ID];
         ASSERT_EQUAL(global_scope->parent_lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
-        ASSERT_EQUAL(global_scope->symbol_ids_count, 3);
 
-        const Symbol_Id baz_symbol_id = global_scope->symbol_ids[0];
-        const Symbol_Id foo_symbol_id = global_scope->symbol_ids[1];
-        const Symbol_Id bar_symbol_id = global_scope->symbol_ids[2];
+        const Symbol_Id foo_symbol_id = find_symbol_id(&context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       foo_definition->name.token.lexeme);
+        const Symbol_Id bar_symbol_id = find_symbol_id(&context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       bar_definition->name.token.lexeme);
+        const Symbol_Id baz_symbol_id = find_symbol_id(&context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       baz_definition->name.token.lexeme);
+
+        ASSERT_NOT_EQUAL(foo_symbol_id, INVALID_SYMBOL_ID);
+        ASSERT_NOT_EQUAL(bar_symbol_id, INVALID_SYMBOL_ID);
+        ASSERT_NOT_EQUAL(baz_symbol_id, INVALID_SYMBOL_ID);
 
         {
             ASSERT_EQUAL(foo_definition->name.symbol_id, foo_symbol_id);

@@ -89,6 +89,7 @@ add_symbol_to_lexical_scope(Compilation_Context* context,
 internal void set_symbol_ids_for_identifiers_in_expression(Compilation_Context* context,
                                                            Ast_Expression* expression,
                                                            const Lexical_Scope_Id this_lexical_scope_id);
+
 internal Symbol_Id
 find_symbol_id(Compilation_Context* context,
                Lexical_Scope_Id this_lexical_scope_id,
@@ -129,6 +130,19 @@ set_symbol_id_for_identifier(Compilation_Context* context,
 }
 
 internal inline void
+set_symbol_id_for_named_type(Compilation_Context* context,
+                             Ast_Type* type,
+                             const Lexical_Scope_Id this_lexical_scope_id)
+{
+    ASSERT(type->kind == AST_TYPE_NAME);
+
+    const Symbol_Id symbol_id = find_symbol_id(context,
+                                               this_lexical_scope_id,
+                                               type->named_type.token.lexeme);
+    type->symbol_id = symbol_id;
+}
+
+internal inline void
 set_symbol_ids_for_identifiers_in_call_expression(Compilation_Context* context,
                                                   Ast_Call* call,
                                                   const Lexical_Scope_Id this_lexical_scope_id)
@@ -141,6 +155,57 @@ set_symbol_ids_for_identifiers_in_call_expression(Compilation_Context* context,
     {
         Ast_Expression* argument = call->arguments[argument_index];
         set_symbol_ids_for_identifiers_in_expression(context, argument, this_lexical_scope_id);
+    }
+}
+
+internal void
+set_symbol_ids_for_identifiers_in_type(Compilation_Context* context,
+                                       Ast_Type* type,
+                                       const Lexical_Scope_Id this_lexical_scope_id)
+{
+    switch (type->kind)
+    {
+        case AST_TYPE_UNDEFINED:
+        {
+            UNREACHABLE();
+        } break;
+
+        case AST_TYPE_NAME:
+        {
+            set_symbol_id_for_named_type(context, type, this_lexical_scope_id);
+        } break;
+
+        case AST_TYPE_POINTER:
+        {
+            set_symbol_ids_for_identifiers_in_type(context,
+                                                   type->pointer.pointed_to,
+                                                   this_lexical_scope_id);
+        } break;
+
+        case AST_TYPE_FUNCTION:
+        {
+            Ast_Function_Type* function = &type->function;
+
+            for (Index parameter_index = 0;
+                 parameter_index < function->parameters_count;
+                 ++parameter_index)
+            {
+                Ast_Function_Parameter* parameter = &function->parameters[parameter_index];
+
+                set_symbol_ids_for_identifiers_in_type(context,
+                                                       parameter->type,
+                                                       this_lexical_scope_id);
+
+            }
+
+            set_symbol_ids_for_identifiers_in_type(context,
+                                                   function->return_type,
+                                                   this_lexical_scope_id);
+        } break;
+
+        case AST_TYPE_OMITTED:
+        {
+        } break;
     }
 }
 
@@ -235,6 +300,8 @@ create_lexical_scopes_for_code_block(Compilation_Context* context, Ast_Code_Bloc
 
                 definition->name.symbol_id = symbol_id;
 
+                set_symbol_ids_for_identifiers_in_type(context, definition->type, this_lexical_scope_id);
+
                 if (definition->has_initial_value)
                 {
                     set_symbol_ids_for_identifiers_in_expression(context,
@@ -312,14 +379,43 @@ create_lexical_scopes_for_code_block(Compilation_Context* context, Ast_Code_Bloc
 internal Bool
 create_lexical_scopes(Compilation_Context* context)
 {
-    const Symbol_Id sentinel_symbol_id = create_symbol_in_compilation_context(context);
-    ASSERT(sentinel_symbol_id == INVALID_SYMBOL_ID);
-
     const Lexical_Scope_Id sentinel_scope_id = create_new_lexical_scope_with_parent(context, INVALID_LEXICAL_SCOPE_ID);
     ASSERT(sentinel_scope_id == INVALID_LEXICAL_SCOPE_ID);
 
     const Lexical_Scope_Id global_scope_id = create_new_lexical_scope_with_parent(context, INVALID_LEXICAL_SCOPE_ID);
     ASSERT(global_scope_id == GLOBAL_LEXICAL_SCOPE_ID);
+
+    // NOTE(vlad): Populating global scope with builtin types.
+    {
+        const Symbol_Id sentinel_symbol_id = create_symbol_in_compilation_context(context);
+        ASSERT(sentinel_symbol_id == INVALID_SYMBOL_ID);
+
+        {
+            Symbol symbol = {0};
+            symbol.kind = SYMBOL_TYPE;
+            symbol.name = string_view("void");
+            symbol.type_id = INVALID_TYPE_ID;
+            symbol.is_mutable = false;
+
+            const Symbol_Id symbol_id = add_symbol_to_lexical_scope(context,
+                                                                    global_scope_id,
+                                                                    &symbol);
+            ASSERT(symbol_id != INVALID_SYMBOL_ID);
+        }
+
+        {
+            Symbol symbol = {0};
+            symbol.kind = SYMBOL_TYPE;
+            symbol.name = string_view("Int32");
+            symbol.type_id = INVALID_TYPE_ID;
+            symbol.is_mutable = false;
+
+            const Symbol_Id symbol_id = add_symbol_to_lexical_scope(context,
+                                                                    global_scope_id,
+                                                                    &symbol);
+            ASSERT(symbol_id != INVALID_SYMBOL_ID);
+        }
+    }
 
     // NOTE(vlad): Populating global scope so that the order of definition does not matter.
     {
@@ -358,6 +454,8 @@ create_lexical_scopes(Compilation_Context* context)
         function_body->lexical_scope_id = function_scope_index;
 
         ASSERT(function_definition->type->kind == AST_TYPE_FUNCTION);
+
+        set_symbol_ids_for_identifiers_in_type(context, function_definition->type, function_scope_index);
 
         Ast_Function_Type* function_type = &function_definition->type->function;
 
