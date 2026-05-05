@@ -109,9 +109,9 @@ find_symbol_id(Compilation_Context* context,
             {
                 return current_symbol_id;
             }
-
-            this_lexical_scope_id = scope->parent_lexical_scope_id;
         }
+
+        this_lexical_scope_id = scope->parent_lexical_scope_id;
     }
 
     FAIL("Cannot find the requested symbol");
