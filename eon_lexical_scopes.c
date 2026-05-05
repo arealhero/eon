@@ -322,28 +322,37 @@ create_lexical_scopes(Compilation_Context* context)
     const Lexical_Scope_Id global_scope_id = create_new_lexical_scope_with_parent(context, INVALID_LEXICAL_SCOPE_ID);
     ASSERT(global_scope_id == GLOBAL_LEXICAL_SCOPE_ID);
 
+    // NOTE(vlad): Populating global scope so that the order of definition does not matter.
+    {
+        for (Index function_definition_index = 0;
+             function_definition_index < context->ast.function_definitions_count;
+             ++function_definition_index)
+        {
+            Ast_Function_Definition* function_definition = &context->ast.function_definitions[function_definition_index];
+
+            {
+                Symbol symbol = {0};
+                symbol.kind = SYMBOL_FUNCTION;
+                symbol.name = function_definition->name.token.lexeme;
+                symbol.type_id = INVALID_TYPE_ID;
+                symbol.is_mutable = function_definition->type->is_mutable;
+
+                const Symbol_Id symbol_id = add_symbol_to_lexical_scope(context,
+                                                                        global_scope_id,
+                                                                        &symbol);
+
+                ASSERT(symbol_id != INVALID_SYMBOL_ID);
+
+                function_definition->name.symbol_id = symbol_id;
+            }
+        }
+    }
+
     for (Index function_definition_index = 0;
          function_definition_index < context->ast.function_definitions_count;
          ++function_definition_index)
     {
         Ast_Function_Definition* function_definition = &context->ast.function_definitions[function_definition_index];
-
-        {
-            Symbol symbol = {0};
-            symbol.kind = SYMBOL_FUNCTION;
-            symbol.name = function_definition->name.token.lexeme;
-            symbol.type_id = INVALID_TYPE_ID;
-            symbol.is_mutable = function_definition->type->is_mutable;
-
-            const Symbol_Id symbol_id = add_symbol_to_lexical_scope(context,
-                                                                    global_scope_id,
-                                                                    &symbol);
-
-            ASSERT(symbol_id != INVALID_SYMBOL_ID);
-
-            function_definition->name.symbol_id = symbol_id;
-        }
-
         Ast_Code_Block* function_body = &function_definition->body;
 
         const Index function_scope_index = create_new_lexical_scope_with_parent(context, global_scope_id);

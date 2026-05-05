@@ -1101,6 +1101,122 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
 
         clear_errors(&errors);
     }
+
+    // NOTE(vlad): Testing that the global symbols' order of definition is irrelevant.
+    {
+        const String_View input = string_view("baz: () -> void = {"
+                                              "    var := foo() + bar();"
+                                              "}"
+                                              "foo: () -> Int32 = {}"
+                                              "bar: () -> Int32 = {}");
+
+        Compilation_Context context = {0};
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_compilation_context(&context);
+        create_lexer(&lexer, string_view("<input>"), input);
+        create_parser(&parser, &lexer, &context, &errors);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_EQUAL(errors.errors_count, 0);
+
+        ASSERT_EQUAL(context.ast.function_definitions_count, 3);
+
+        ASSERT_TRUE(create_lexical_scopes(&context));
+
+        const Ast_Function_Definition* baz_definition = &context.ast.function_definitions[0];
+        const Ast_Function_Definition* foo_definition = &context.ast.function_definitions[1];
+        const Ast_Function_Definition* bar_definition = &context.ast.function_definitions[2];
+
+        ASSERT_EQUAL(baz_definition->body.lexical_scope_id, GLOBAL_LEXICAL_SCOPE_ID + 1);
+        ASSERT_EQUAL(foo_definition->body.lexical_scope_id, GLOBAL_LEXICAL_SCOPE_ID + 2);
+        ASSERT_EQUAL(bar_definition->body.lexical_scope_id, GLOBAL_LEXICAL_SCOPE_ID + 3);
+
+        const Lexical_Scope* global_scope = &context.lexical_scopes[GLOBAL_LEXICAL_SCOPE_ID];
+        ASSERT_EQUAL(global_scope->parent_lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
+        ASSERT_EQUAL(global_scope->symbol_ids_count, 3);
+
+        const Symbol_Id baz_symbol_id = global_scope->symbol_ids[0];
+        const Symbol_Id foo_symbol_id = global_scope->symbol_ids[1];
+        const Symbol_Id bar_symbol_id = global_scope->symbol_ids[2];
+
+        {
+            ASSERT_EQUAL(foo_definition->name.symbol_id, foo_symbol_id);
+
+            const Symbol* symbol = &context.symbols[foo_symbol_id];
+            ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+            ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
+            ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
+            ASSERT_FALSE(symbol->is_mutable);
+        }
+
+        {
+            ASSERT_EQUAL(bar_definition->name.symbol_id, bar_symbol_id);
+
+            const Symbol* symbol = &context.symbols[bar_symbol_id];
+            ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+            ASSERT_STRINGS_ARE_EQUAL(symbol->name, "bar");
+            ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
+            ASSERT_FALSE(symbol->is_mutable);
+        }
+
+        {
+            ASSERT_EQUAL(baz_definition->name.symbol_id, baz_symbol_id);
+
+            const Symbol* symbol = &context.symbols[baz_symbol_id];
+            ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+            ASSERT_STRINGS_ARE_EQUAL(symbol->name, "baz");
+            ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
+            ASSERT_FALSE(symbol->is_mutable);
+        }
+
+        const Lexical_Scope_Id baz_lexical_scope_id = baz_definition->body.lexical_scope_id;
+
+        const Lexical_Scope* scope = &context.lexical_scopes[baz_lexical_scope_id];
+        ASSERT_EQUAL(scope->parent_lexical_scope_id, GLOBAL_LEXICAL_SCOPE_ID);
+        ASSERT_EQUAL(scope->symbol_ids_count, 1);
+
+        const Symbol_Id var_symbol_id = scope->symbol_ids[0];
+
+        {
+            const Symbol* var_symbol = &context.symbols[var_symbol_id];
+            ASSERT_EQUAL(var_symbol->kind, SYMBOL_VARIABLE);
+            ASSERT_STRINGS_ARE_EQUAL(var_symbol->name, "var");
+            ASSERT_EQUAL(var_symbol->type_id, INVALID_TYPE_ID);
+            ASSERT_FALSE(var_symbol->is_mutable);
+        }
+
+        ASSERT_EQUAL(baz_definition->body.statements_count, 1);
+
+        {
+            const Ast_Statement* statement = &baz_definition->body.statements[0];
+            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+
+            const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
+            ASSERT_EQUAL(variable_definition->name.symbol_id, var_symbol_id);
+
+            ASSERT_TRUE(variable_definition->has_initial_value);
+
+            const Ast_Expression* initial_value = &variable_definition->initial_value;
+            ASSERT_EQUAL(initial_value->kind, AST_EXPRESSION_ADD);
+
+            const Ast_Binary_Expression* add_expression = &initial_value->binary_expression;
+            ASSERT_EQUAL(add_expression->lhs->kind, AST_EXPRESSION_CALL);
+            ASSERT_EQUAL(add_expression->lhs->call.called_expression->kind, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_EQUAL(add_expression->lhs->call.called_expression->identifier.symbol_id, foo_symbol_id);
+
+            ASSERT_EQUAL(add_expression->rhs->kind, AST_EXPRESSION_CALL);
+            ASSERT_EQUAL(add_expression->rhs->call.called_expression->kind, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_EQUAL(add_expression->rhs->call.called_expression->identifier.symbol_id, bar_symbol_id);
+        }
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+
+        clear_errors(&errors);
+    }
 }
 
 REGISTER_TESTS(
