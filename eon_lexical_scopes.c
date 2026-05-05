@@ -200,8 +200,7 @@ set_symbol_ids_for_identifiers_in_expression(Compilation_Context* context,
 }
 
 internal void
-create_lexical_scopes_for_code_block(Compilation_Context* context,
-                                     Ast_Code_Block* code_block)
+create_lexical_scopes_for_code_block(Compilation_Context* context, Ast_Code_Block* code_block)
 {
     const Lexical_Scope_Id this_lexical_scope_id = code_block->lexical_scope_id;
     ASSERT(this_lexical_scope_id != INVALID_LEXICAL_SCOPE_ID);
