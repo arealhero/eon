@@ -3,10 +3,10 @@
 #include "eon_lexer.h"
 
 internal void
-test_line_comments(Test_Context* context)
+test_line_comments(Test_Context* test_context)
 {
     Errors errors = {0};
-    errors.errors_arena = context->arena;
+    errors.errors_arena = test_context->arena;
 
     {
         const String_View input = string_view("// line comment");
@@ -191,10 +191,10 @@ test_line_comments(Test_Context* context)
 }
 
 internal void
-test_numbers(Test_Context* context)
+test_numbers(Test_Context* test_context)
 {
     Errors errors = {0};
-    errors.errors_arena = context->arena;
+    errors.errors_arena = test_context->arena;
 
     {
         const String_View input = string_view("2 + 2");
@@ -369,10 +369,10 @@ test_numbers(Test_Context* context)
 }
 
 internal void
-test_identifiers(Test_Context* context)
+test_identifiers(Test_Context* test_context)
 {
     Errors errors = {0};
-    errors.errors_arena = context->arena;
+    errors.errors_arena = test_context->arena;
 
     // NOTE(vlad): Variables tests.
 
@@ -640,10 +640,10 @@ test_identifiers(Test_Context* context)
 }
 
 internal void
-test_keywords_and_digraphs(Test_Context* context)
+test_keywords_and_digraphs(Test_Context* test_context)
 {
     Errors errors = {0};
-    errors.errors_arena = context->arena;
+    errors.errors_arena = test_context->arena;
 
     {
         const String_View input = string_view("for a");
@@ -764,10 +764,10 @@ test_keywords_and_digraphs(Test_Context* context)
 }
 
 internal void
-test_errors(Test_Context* context)
+test_errors(Test_Context* test_context)
 {
     Errors errors = {0};
-    errors.errors_arena = context->arena;
+    errors.errors_arena = test_context->arena;
 
     {
         const String_View input = string_view("?");

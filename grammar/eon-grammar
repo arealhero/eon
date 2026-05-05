@@ -8,7 +8,9 @@ letter: "[a-zA-Z]";
 digit: "[0-9]";
 wildcard: "_";
 
-// TODO(vlad): Support floating-point numbers.
+// TODO(vlad): Support scientific notation.
+// TODO(vlad): Support binary/octal/hexadecimal numbers.
+// TODO(vlad): Remove 'optional_number_sign'? It's already treated as an unary minus.
 number: optional_number_sign digit number_tail;
 optional_number_sign: EPS | "-" | "+";
 number_tail: EPS | digit number_tail | "." floating_part;
@@ -58,16 +60,17 @@ if_statement: "if" expression code_block optional_else_statement;
 optional_else_statement: EPS | "else" if_statement_or_code_block;
 if_statement_or_code_block: if_statement | code_block;
 
-function_type: "(" arguments_declaration ")" "->" type;
+function_type: "(" parameters_declaration ")" "->" type;
 type: optional_type_qualifiers type_tail;
 optional_type_qualifiers: EPS | "mutable";
 type_tail: explicitly_inferred_type | function_type | pointer_type | identifier; // TODO(vlad): Add support for arrays, etc. @tag(eon-grammar)
 explicitly_inferred_type: wildcard;
 pointer_type: "*" type;
 
-arguments_declaration: EPS | argument_declaration arguments_declaration_tail;
-argument_declaration: identifier ":" type; // TODO(vlad): Add default values support. @tag(eon-grammar)
-arguments_declaration_tail: EPS | "," argument_declaration arguments_declaration_tail;
+parameters_declaration: EPS | parameter_declaration parameters_declaration_tail;
+parameter_declaration: identifier ":" type "=" optional_parameter_default_value;
+parameters_declaration_tail: EPS | "," parameter_declaration parameters_declaration_tail;
+optional_parameter_default_value: EPS | "=" expression;
 
 expression: comparison_expression;
 

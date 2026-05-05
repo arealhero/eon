@@ -1,16 +1,24 @@
 #pragma once
 
+#include "eon_forward_declarations.h"
+
 #include "eon_lexer.h"
+
+struct Ast_Type;
+struct Ast_Expression;
+struct Ast_Statement;
 
 struct Ast_Identifier
 {
     Token token;
+    Symbol_Id symbol_id;
 };
 typedef struct Ast_Identifier Ast_Identifier;
 
 struct Ast_Number
 {
     Token token;
+    Bool is_a_floating_point_number; // FIXME(vlad): Fill this in.
 };
 typedef struct Ast_Number Ast_Number;
 
@@ -20,82 +28,6 @@ struct Ast_String_Literal
     String_View value;
 };
 typedef struct Ast_String_Literal Ast_String_Literal;
-
-enum Ast_Type_Type
-{
-    AST_TYPE_UNDEFINED = 0,
-
-    AST_TYPE_UNSPECIFIED,
-
-    AST_TYPE_USER_DEFINED,
-
-    AST_TYPE_FUNCTION,
-    // TODO(vlad): Add AST_TYPE_STRUCT.
-    AST_TYPE_POINTER,
-
-    // NOTE(vlad): Reserved types.
-    AST_TYPE_VOID,
-    AST_TYPE_BOOL, // TODO(vlad): Add Bool32?
-
-    AST_TYPE_INT32,
-    AST_TYPE_FLOAT32,
-    // TODO(vlad): Add other integers: AST_TYPE_INT8, etc.
-
-    // TODO(vlad): Add unions, arrays, etc.
-    // TODO(vlad): Add C types: AST_TYPE_C_STRING, AST_TYPE_C_INT, etc.
-};
-typedef enum Ast_Type_Type Ast_Type_Type;
-
-struct Ast_Type;
-
-struct Ast_Function_Arguments
-{
-    struct Ast_Variable_Definition* arguments;
-    Size arguments_count;
-    Size arguments_capacity;
-};
-typedef struct Ast_Function_Arguments Ast_Function_Arguments;
-
-enum Ast_Qualifiers
-{
-    AST_QUALIFIER_NONE    = 0,
-    AST_QUALIFIER_MUTABLE = 1 << 0,
-};
-typedef enum Ast_Qualifiers Ast_Qualifiers;
-
-struct Ast_Type
-{
-    // TODO(vlad): Add 'lexical_scope_index'?
-
-    Ast_Qualifiers qualifiers;
-    Ast_Type_Type type;
-    union
-    {
-        // NOTE(vlad): 'type == AST_TYPE_USER_DEFINED'.
-        struct
-        {
-            Ast_Identifier name;
-        };
-
-        // NOTE(vlad): 'type == AST_TYPE_FUNCTION'.
-        struct
-        {
-            Ast_Function_Arguments arguments;
-            struct Ast_Type* return_type;
-        };
-
-        // NOTE(vlad): 'type == AST_TYPE_POINTER'.
-        struct
-        {
-            struct Ast_Type* pointed_to;
-        };
-
-        // NOTE(vlad): Trivial types (VOID, INT_32, etc) have no data.
-    };
-
-    // TODO(vlad): Add optional inference information.
-};
-typedef struct Ast_Type Ast_Type;
 
 // NOTE(vlad): Expressions.
 
@@ -131,9 +63,7 @@ enum Ast_Expression_Type
 
     AST_EXPRESSION_CALL,
 };
-typedef enum Ast_Expression_Type Ast_Expression_Type;
-
-struct Ast_Expression;
+typedef enum Ast_Expression_Type Ast_Expression_Kind;
 
 struct Ast_Unary_Expression
 {
@@ -162,7 +92,10 @@ typedef struct Ast_Call Ast_Call;
 
 struct Ast_Expression
 {
-    Ast_Expression_Type type;
+    Ast_Expression_Kind kind;
+
+    Type_Id type_id;
+
     union
     {
         Ast_Number number;
@@ -177,36 +110,85 @@ struct Ast_Expression
 };
 typedef struct Ast_Expression Ast_Expression;
 
-// NOTE(vlad): Lexical scopes; will be filled in during semantic analysis.
-enum { LAST_LEXICAL_SCOPE_INDEX = 0, };
+// NOTE(vlad): Types.
 
-struct Ast_Variable_Definition;
-
-struct Lexical_Scope
+enum Ast_Type_Kind
 {
-    Index parent_scope_index;
-
-    struct Ast_Variable_Definition** variables;
-    Size variables_count;
-    Size variables_capacity;
-
-    Ast_Type required_return_type;
+    AST_TYPE_UNDEFINED = 0,
+    AST_TYPE_NAME,
+    AST_TYPE_POINTER,
+    AST_TYPE_FUNCTION,
+    AST_TYPE_OMITTED,
 };
-typedef struct Lexical_Scope Lexical_Scope;
+typedef enum Ast_Type_Kind Ast_Type_Kind;
+
+struct Ast_Named_Type
+{
+    Token token;
+};
+typedef struct Ast_Named_Type Ast_Named_Type;
+
+struct Ast_Pointer_Type
+{
+    Token token; // TODO(vlad): Do we need it here? It's just a token for a *.
+    struct Ast_Type* pointed_to;
+};
+typedef struct Ast_Pointer_Type Ast_Pointer_Type;
+
+struct Ast_Function_Parameter
+{
+    Ast_Identifier name;
+    struct Ast_Type* type;
+
+    Bool has_default_value;
+    Ast_Expression default_value;
+};
+typedef struct Ast_Function_Parameter Ast_Function_Parameter;
+
+struct Ast_Function_Parameters
+{
+    Ast_Function_Parameter* parameters;
+    Size parameters_count;
+    Size parameters_capacity;
+};
+typedef struct Ast_Function_Parameters Ast_Function_Parameters;
+
+struct Ast_Function_Type
+{
+    Ast_Function_Parameters parameters;
+    struct Ast_Type* return_type;
+};
+typedef struct Ast_Function_Type Ast_Function_Type;
+
+struct Ast_Type
+{
+    Ast_Type_Kind kind;
+
+    Bool is_mutable;
+
+    Type_Id type_id;
+
+    union
+    {
+        Ast_Named_Type named_type;
+        Ast_Pointer_Type pointer;
+        Ast_Function_Type function;
+    };
+};
+typedef struct Ast_Type Ast_Type;
 
 // NOTE(vlad): Statements.
-struct Ast_Statement;
 
-struct Ast_Statements
+struct Ast_Code_Block
 {
-    Index lexical_scope_index;
+    Lexical_Scope_Id lexical_scope_id;
     Bool every_path_returns;
 
     struct Ast_Statement* statements;
     Size statements_count;
     Size statements_capacity;
 };
-typedef struct Ast_Statements Ast_Statements;
+typedef struct Ast_Code_Block Ast_Code_Block;
 
 enum Ast_Statement_Type
 {
@@ -221,25 +203,13 @@ enum Ast_Statement_Type
 };
 typedef enum Ast_Statement_Type Ast_Statement_Type;
 
-enum Ast_Initialisation_Type
-{
-    AST_INITIALISATION_UNDEFINED = 0,
-
-    AST_INITIALISATION_DEFAULT,
-    AST_INITIALISATION_WITH_VALUE, // TODO(vlad): Rename to 'WITH_EXPRESSION'?
-
-    // XXX(vlad): Can we do better than this?
-    AST_INITIALISATION_ARGUMENT,
-};
-typedef enum Ast_Initialisation_Type Ast_Initialisation_Type;
-
 struct Ast_Variable_Definition
 {
     Ast_Identifier name;
     Ast_Type* type;
 
-    Ast_Initialisation_Type initialisation_type;
-    Ast_Expression initial_value; // TODO(vlad): Rename to 'initialising_expression' or something?
+    Bool has_initial_value;
+    Ast_Expression initial_value;
 };
 typedef struct Ast_Variable_Definition Ast_Variable_Definition;
 
@@ -260,15 +230,15 @@ typedef struct Ast_Return_Statement Ast_Return_Statement;
 struct Ast_If_Statement
 {
     Ast_Expression condition;
-    Ast_Statements if_statements; // TODO(vlad): Rename to 'if_branch'?
-    Ast_Statements else_statements; // TODO(vlad): Rename to 'else_branch'?
+    Ast_Code_Block if_statements; // TODO(vlad): Rename to 'if_branch'?
+    Ast_Code_Block else_statements; // TODO(vlad): Rename to 'else_branch'?
 };
 typedef struct Ast_If_Statement Ast_If_Statement;
 
 struct Ast_While_Statement
 {
     Ast_Expression condition;
-    Ast_Statements statements; // TODO(vlad): Rename to 'body'?
+    Ast_Code_Block body;
 };
 typedef struct Ast_While_Statement Ast_While_Statement;
 
@@ -298,7 +268,7 @@ struct Ast_Function_Definition
     Ast_Identifier name;
     Ast_Type* type;
 
-    Ast_Statements statements;
+    Ast_Code_Block body;
 };
 typedef struct Ast_Function_Definition Ast_Function_Definition;
 
@@ -307,10 +277,6 @@ struct Ast
     Ast_Function_Definition* function_definitions;
     Size function_definitions_count;
     Size function_definitions_capacity;
-
-    Lexical_Scope* lexical_scopes;
-    Size lexical_scopes_count;
-    Size lexical_scopes_capacity;
 };
 typedef struct Ast Ast;
 

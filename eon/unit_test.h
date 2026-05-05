@@ -31,7 +31,7 @@ struct Test_Context
 };
 typedef struct Test_Context Test_Context;
 
-typedef void (*Unit_Test)(Test_Context* context);
+typedef void (*Unit_Test)(Test_Context* test_context);
 
 struct Test_Info
 {
@@ -82,20 +82,20 @@ main(const int argc, const char* argv[])
          i < registry.total_tests_count;
          ++i)
     {
-        Test_Context context = {0};
-        context.arena = test_arena;
+        Test_Context test_context = {0};
+        test_context.arena = test_arena;
 
         Test_Info* test = &registry.tests[i];
-        test->run(&context);
+        test->run(&test_context);
 
-        if (context.result == TEST_FAILED)
+        if (test_context.result == TEST_FAILED)
         {
             println("{}:{}: Test '{}' failed\n"
                     "{}",
-                    context.failure_file,
-                    context.failure_line,
+                    test_context.failure_file,
+                    test_context.failure_line,
                     test->name,
-                    context.failure_comment);
+                    test_context.failure_comment);
 
             registry.failed_tests_count += 1;
         }
@@ -166,13 +166,13 @@ registry_register_test(Arena* arena,
     registry->total_tests_count += 1;
 }
 
-#define MARK_UNIT_TEST_AS_FAILED_IMPL(comment, file, line) \
+#define MARK_UNIT_TEST_AS_FAILED_IMPL(comment, file, line)      \
     do                                                          \
     {                                                           \
-        context->result = TEST_FAILED;                          \
-        context->failure_comment = string_view(comment);        \
-        context->failure_file = string_view(file);              \
-        context->failure_line = line;                           \
+        test_context->result = TEST_FAILED;                     \
+        test_context->failure_comment = string_view(comment);   \
+        test_context->failure_file = string_view(file);         \
+        test_context->failure_line = line;                      \
     }                                                           \
     while (0)
 #define MARK_UNIT_TEST_AS_FAILED(comment) MARK_UNIT_TEST_AS_FAILED_IMPL(comment, \
@@ -184,7 +184,7 @@ registry_register_test(Arena* arena,
 #define ASSERT_EQUAL_IMPL(expression, actual, expected, comment, file, line) \
     if (!(expression))                                                  \
     {                                                                   \
-        const String failure_comment = format_string(context->arena,    \
+        const String failure_comment = format_string(test_context->arena, \
                                                      "    {}: {}:\n"    \
                                                      "        Expected '{}', got '{}'", \
                                                      (comment),         \

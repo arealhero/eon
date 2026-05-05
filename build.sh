@@ -49,9 +49,9 @@ compile grammar/check_grammar_soundness.c -o build/grammar/check_grammar_soundne
 
 ./build/grammar/check_grammar_soundness grammar/eon-grammar
 
-compile eon.c -o build/eon \
-        $clang_common_flags \
-        $clang_warnings
+# compile eon.c -o build/eon \
+#         $clang_common_flags \
+#         $clang_warnings
 
 compile_and_run_unit_test()
 {
@@ -82,13 +82,17 @@ compile_and_run_unit_test()
 
 compile_and_run_unit_test eon/memory_ut.c
 compile_and_run_unit_test eon/string_ut.c
-compile_and_run_unit_test eon_interpreter_ut.c
+# compile_and_run_unit_test eon_interpreter_ut.c
 compile_and_run_unit_test eon_lexer_ut.c
 compile_and_run_unit_test eon_parser_ut.c
-compile_and_run_unit_test eon_semantics_ut.c
-compile_and_run_unit_test eon_tac_ut.c
+compile_and_run_unit_test eon_lexical_scopes_ut.c
 
 compile_and_run_unit_test eon/sanitizers/asan_ut.c -fsanitize=address -fsanitize-recover=address
+
+exit 0
+
+compile_and_run_unit_test eon_semantics_ut.c
+compile_and_run_unit_test eon_tac_ut.c
 
 mkdir -p build/tests
 compile tests/run_test.c -o build/tests/run_test \

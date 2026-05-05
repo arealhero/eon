@@ -43,6 +43,8 @@ typedef enum Token_Type Token_Type;
 struct Token
 {
     Token_Type type;
+
+    // TODO(vlad): Use 'Source_Location' here.
     String_View lexeme;
 
     String_View filename;

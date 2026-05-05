@@ -39,12 +39,12 @@ create_destination_string(Arena* arena)
 }
 
 internal void
-test_copy_memory(Test_Context* context)
+test_copy_memory(Test_Context* test_context)
 {
     // NOTE(vlad): Full copy.
     {
-        const String source_string = create_source_string(context->arena);
-        String destination_string = create_destination_string(context->arena);
+        const String source_string = create_source_string(test_context->arena);
+        String destination_string = create_destination_string(test_context->arena);
 
         copy_memory(as_bytes(destination_string.data),
                     as_bytes(source_string.data),
@@ -55,8 +55,8 @@ test_copy_memory(Test_Context* context)
 
     // NOTE(vlad): Partial copy.
     {
-        const String source_string = create_source_string(context->arena);
-        String destination_string = create_destination_string(context->arena);
+        const String source_string = create_source_string(test_context->arena);
+        String destination_string = create_destination_string(test_context->arena);
 
         copy_memory(as_bytes(destination_string.data),
                     as_bytes(source_string.data),
@@ -93,7 +93,7 @@ test_copy_memory(Test_Context* context)
 
     // NOTE(vlad): Source and destination are the same.
     {
-        String string = create_source_string(context->arena);
+        String string = create_source_string(test_context->arena);
 
         copy_memory(as_bytes(string.data),
                     as_bytes(string.data),
@@ -104,12 +104,12 @@ test_copy_memory(Test_Context* context)
 }
 
 internal void
-test_move_memory(Test_Context* context)
+test_move_memory(Test_Context* test_context)
 {
     // NOTE(vlad): Full copy.
     {
-        const String source_string = create_source_string(context->arena);
-        String destination_string = create_destination_string(context->arena);
+        const String source_string = create_source_string(test_context->arena);
+        String destination_string = create_destination_string(test_context->arena);
 
         move_memory(as_bytes(destination_string.data),
                     as_bytes(source_string.data),
@@ -120,8 +120,8 @@ test_move_memory(Test_Context* context)
 
     // NOTE(vlad): Partial copy.
     {
-        const String source_string = create_source_string(context->arena);
-        String destination_string = create_destination_string(context->arena);
+        const String source_string = create_source_string(test_context->arena);
+        String destination_string = create_destination_string(test_context->arena);
 
         move_memory(as_bytes(destination_string.data),
                     as_bytes(source_string.data),
@@ -135,7 +135,7 @@ test_move_memory(Test_Context* context)
 #if ASAN_ENABLED == 0
     // NOTE(vlad): Destination's suffix is the same as a source's prefix.
     {
-        String string = create_source_string(context->arena);
+        String string = create_source_string(test_context->arena);
 
         move_memory(as_bytes(string.data),
                     as_bytes(string.data + 2),
@@ -146,7 +146,7 @@ test_move_memory(Test_Context* context)
 
     // NOTE(vlad): Destination's prefix is the same as a source's suffix.
     {
-        String string = create_source_string(context->arena);
+        String string = create_source_string(test_context->arena);
 
         move_memory(as_bytes(string.data + 2),
                     as_bytes(string.data),
@@ -158,7 +158,7 @@ test_move_memory(Test_Context* context)
 
     // NOTE(vlad): Source and destination are the same.
     {
-        String string = create_source_string(context->arena);
+        String string = create_source_string(test_context->arena);
 
         move_memory(as_bytes(string.data),
                     as_bytes(string.data),
@@ -169,10 +169,10 @@ test_move_memory(Test_Context* context)
 }
 
 internal void
-test_fill_memory_with_zeros(Test_Context* context)
+test_fill_memory_with_zeros(Test_Context* test_context)
 {
     {
-        String string = create_source_string(context->arena);
+        String string = create_source_string(test_context->arena);
 
         fill_memory_with_zeros(as_bytes(string.data + 5), 5);
 
@@ -184,7 +184,7 @@ test_fill_memory_with_zeros(Test_Context* context)
     }
 
     {
-        String string = create_source_string(context->arena);
+        String string = create_source_string(test_context->arena);
 
         fill_memory_with_zeros(as_bytes(string.data), 5);
 

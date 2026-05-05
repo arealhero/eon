@@ -8,31 +8,21 @@
 #include "eon_errors.h"
 
 #include "eon_ast.h"
-
-struct Builtin_Type
-{
-    String_View lexeme;
-    Ast_Type_Type type;
-};
-typedef struct Builtin_Type Builtin_Type;
+#include "eon_compilation_context.h"
 
 struct Parser
 {
-    // TODO(vlad): Move this to AST?
+    Compilation_Context* context;
+
+    // FIXME(vlad): Move this to Compilation_Context.
     Errors* errors;
 
     Lexer* lexer;
     Token current_token;
     Token lookahead_token;
-
-    // TODO(vlad): Move this to AST and point variables' type here instead of creating a new type every time.
-    //             Also create something like 'unresolved_types' to be able to iterate over them and resolve
-    //             them in 'eon_semantics.h'.
-    Builtin_Type* builtin_types;
-    Size builtin_types_count;
 };
 typedef struct Parser Parser;
 
-internal void create_parser(Parser* parser, Arena* parser_arena, Lexer* lexer, Errors* errors);
-internal Bool parse_ast(Arena* parser_arena, Parser* parser, Ast* ast);
+internal void create_parser(Parser* parser, Lexer* lexer, Compilation_Context* context, Errors* errors);
+internal Bool parse_ast(Parser* parser);
 internal void destroy_parser(Parser* parser);

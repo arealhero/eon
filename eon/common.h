@@ -17,6 +17,8 @@ unused_impl(int dummy_parameter_for_varargs, ...)
 #define MIN(lhs, rhs) (((lhs) < (rhs)) ? (lhs) : (rhs))
 #define ABS(number) (((number) > 0) ? (number) : -(number))
 
+#define NUMBER_OF_STATIC_ARRAY_ELEMENTS(array) (size_of((array)) / size_of((array)[0]))
+
 internal inline Bool
 is_power_of_two(const USize number)
 {

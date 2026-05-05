@@ -51,7 +51,7 @@ suppress_asan_reporting(void)
 }
 
 internal void
-test_use_after_free_in_arenas(Test_Context* context)
+test_use_after_free_in_arenas(Test_Context* test_context)
 {
     suppress_asan_reporting();
 
@@ -129,7 +129,7 @@ test_use_after_free_in_arenas(Test_Context* context)
 }
 
 internal void
-test_buffer_overruns_in_arenas(Test_Context* context)
+test_buffer_overruns_in_arenas(Test_Context* test_context)
 {
     suppress_asan_reporting();
 
@@ -169,7 +169,7 @@ test_buffer_overruns_in_arenas(Test_Context* context)
 }
 
 internal void
-test_buffer_underruns_in_arenas(Test_Context* context)
+test_buffer_underruns_in_arenas(Test_Context* test_context)
 {
     suppress_asan_reporting();
 
