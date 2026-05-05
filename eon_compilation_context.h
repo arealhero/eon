@@ -52,3 +52,6 @@ typedef struct Compilation_Context Compilation_Context;
 internal void create_compilation_context(Compilation_Context* context);
 internal void destroy_compilation_context(Compilation_Context* context);
 
+maybe_unused internal Symbol_Id find_symbol_id(Compilation_Context* context,
+                                               Lexical_Scope_Id this_lexical_scope_id,
+                                               const String_View name);
