@@ -16,20 +16,8 @@ internal void
 emit_tac_instruction(Tac_Builder* builder,
                      const Tac_Instruction instruction)
 {
-    if (builder->instructions_count == builder->instructions_capacity)
-    {
-        // XXX(vlad): We can change 'MAX(1, 2 * capacity)' to '(2 * capacity) | 1'.
-        const Size new_capacity = MAX(1, 2 * builder->instructions_capacity);
-        builder->instructions = reallocate(builder->instructions_arena,
-                                           builder->instructions,
-                                           Tac_Instruction,
-                                           builder->instructions_capacity,
-                                           new_capacity);
-        builder->instructions_capacity = new_capacity;
-    }
-
-    builder->instructions[builder->instructions_count] = instruction;
-    builder->instructions_count += 1;
+    grow_array_if_needed(builder->instructions_arena, builder->instructions, Tac_Instruction);
+    builder->instructions[builder->instructions_count++] = instruction;
 }
 
 internal Tac_Temp

@@ -12,19 +12,8 @@ create_errors(Errors* errors, Arena* errors_arena)
 internal void
 add_error(Errors* errors, Error* error)
 {
-    if (errors->errors_count == errors->errors_capacity)
-    {
-        const Size new_capacity = MAX(1, 2 * errors->errors_capacity);
-        errors->errors = reallocate(errors->errors_arena,
-                                    errors->errors,
-                                    Error,
-                                    errors->errors_capacity,
-                                    new_capacity);
-        errors->errors_capacity = new_capacity;
-    }
-
-    errors->errors[errors->errors_count] = *error;
-    errors->errors_count += 1;
+    grow_array_if_needed(errors->errors_arena, errors->errors, Error);
+    errors->errors[errors->errors_count++] = *error;
 }
 
 maybe_unused internal void

@@ -5,17 +5,7 @@
 internal Index
 create_new_lexical_scope_with_parent(Compilation_Context* context, const Index parent_scope_index)
 {
-    if (context->lexical_scopes_count == context->lexical_scopes_capacity)
-    {
-        // XXX(vlad): We can change 'MAX(1, 2 * capacity)' to '(2 * capacity) | 1'.
-        const Size new_capacity = MAX(1, 2 * context->lexical_scopes_capacity);
-        context->lexical_scopes = reallocate(context->lexical_scopes_arena,
-                                             context->lexical_scopes,
-                                             Lexical_Scope,
-                                             context->lexical_scopes_capacity,
-                                             new_capacity);
-        context->lexical_scopes_capacity = new_capacity;
-    }
+    grow_array_if_needed(context->lexical_scopes_arena, context->lexical_scopes, Lexical_Scope);
 
     context->lexical_scopes[context->lexical_scopes_count] = (Lexical_Scope){0};
     context->lexical_scopes_count += 1;
@@ -30,18 +20,7 @@ create_new_lexical_scope_with_parent(Compilation_Context* context, const Index p
 internal Symbol_Id
 create_symbol_in_compilation_context(Compilation_Context* context)
 {
-    if (context->symbols_count == context->symbols_capacity)
-    {
-        // XXX(vlad): We can change 'MAX(1, 2 * capacity)' to '(2 * capacity) | 1'.
-        const Size new_capacity = MAX(1, 2 * context->symbols_capacity);
-        context->symbols = reallocate(context->symbols_arena,
-                                      context->symbols,
-                                      Symbol,
-                                      context->symbols_capacity,
-                                      new_capacity);
-        context->symbols_capacity = new_capacity;
-    }
-
+    grow_array_if_needed(context->symbols_arena, context->symbols, Symbol);
     return context->symbols_count++;
 }
 
@@ -71,17 +50,7 @@ add_symbol_to_lexical_scope(Compilation_Context* context,
     const Symbol_Id this_symbol_id = create_symbol_in_compilation_context(context);
     context->symbols[this_symbol_id] = *symbol_to_add;
 
-    if (lexical_scope->symbol_ids_count == lexical_scope->symbol_ids_capacity)
-    {
-        // XXX(vlad): We can change 'MAX(1, 2 * capacity)' to '(2 * capacity) | 1'.
-        const Size new_capacity = MAX(1, 2 * lexical_scope->symbol_ids_capacity);
-        lexical_scope->symbol_ids = reallocate(lexical_scope->symbol_ids_arena,
-                                               lexical_scope->symbol_ids,
-                                               Symbol_Id,
-                                               lexical_scope->symbol_ids_capacity,
-                                               new_capacity);
-        lexical_scope->symbol_ids_capacity = new_capacity;
-    }
+    grow_array_if_needed(lexical_scope->symbol_ids_arena, lexical_scope->symbol_ids, Symbol_Id);
 
     lexical_scope->symbol_ids[lexical_scope->symbol_ids_count++] = this_symbol_id;
 

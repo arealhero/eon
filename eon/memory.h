@@ -3,6 +3,7 @@
 #include <eon/common.h>
 #include <eon/conversions.h> // NOTE(vlad): Exporting 'KiB', 'MiB', etc for convenience.
 #include <eon/string.h>
+#include <eon/macros.h>
 
 internal inline void copy_memory(Byte* restrict to,
                                  const Byte* restrict from,
@@ -58,3 +59,20 @@ internal Byte* arena_reallocate(Arena* restrict arena,
     (Type*)(arena_push((arena), size_of(Type) * (number_of_elements)))
 #define allocate_uninitialized_array(arena, number_of_elements, Type)   \
     (Type*)(arena_push_uninitialized((arena), size_of(Type) * (number_of_elements)))
+
+#define grow_array_if_needed(arena, array, Type)                        \
+    do                                                                  \
+    {                                                                   \
+        if (CONCATENATE(array, _count) == CONCATENATE(array, _capacity)) \
+        {                                                               \
+            /* XXX(vlad): We can change 'MAX(1, 2 * capacity)' to '(2 * capacity) | 1'. */ \
+            const Size new_capacity = MAX(1, 2 * CONCATENATE(array, _capacity)); \
+            array = reallocate(arena,                                   \
+                               array,                                   \
+                               Type,                                    \
+                               CONCATENATE(array, _capacity),           \
+                               new_capacity);                           \
+            CONCATENATE(array, _capacity) = new_capacity;               \
+        }                                                               \
+    }                                                                   \
+    while (0)                                                           \

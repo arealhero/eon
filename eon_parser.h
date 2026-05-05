@@ -7,7 +7,6 @@
 #include "eon_lexer.h"
 #include "eon_errors.h"
 
-#include "eon_ast.h"
 #include "eon_compilation_context.h"
 
 struct Parser

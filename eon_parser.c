@@ -274,20 +274,8 @@ parse_parameters_declaration(Parser* parser, Ast_Function_Type* function)
             return false;
         }
 
-        if (function->parameters_count == function->parameters_capacity)
-        {
-            // XXX(vlad): We can change 'MAX(1, 2 * capacity)' to '(2 * capacity) | 1'.
-            const Size new_capacity = MAX(1, 2 * function->parameters_capacity);
-            function->parameters = reallocate(parser->context->ast_arena,
-                                              function->parameters,
-                                              Ast_Function_Parameter,
-                                              function->parameters_capacity,
-                                              new_capacity);
-            function->parameters_capacity = new_capacity;
-        }
-
-        function->parameters[function->parameters_count] = parameter;
-        function->parameters_count += 1;
+        grow_array_if_needed(parser->context->ast_arena, function->parameters, Ast_Function_Parameter);
+        function->parameters[function->parameters_count++] = parameter;
 
         if (!parser_fetch_token(parser))
         {
@@ -368,20 +356,8 @@ parse_arguments(Parser* parser, Ast_Call* call)
             return false;
         }
 
-        if (call->arguments_count == call->arguments_capacity)
-        {
-            // XXX(vlad): We can change 'MAX(1, 2 * capacity)' to '(2 * capacity) | 1'.
-            const Size new_capacity = MAX(1, 2 * call->arguments_capacity);
-            call->arguments = reallocate(parser->context->ast_arena,
-                                         call->arguments,
-                                         Ast_Expression*,
-                                         call->arguments_capacity,
-                                         new_capacity);
-            call->arguments_capacity = new_capacity;
-        }
-
-        call->arguments[call->arguments_count] = argument;
-        call->arguments_count += 1;
+        grow_array_if_needed(parser->context->ast_arena, call->arguments, Ast_Expression*);
+        call->arguments[call->arguments_count++] = argument;
 
         if (!parser_fetch_token(parser))
         {
@@ -1265,20 +1241,8 @@ parse_statements(Parser* parser, Ast_Code_Block* statements)
             return false;
         }
 
-        if (statements->statements_count == statements->statements_capacity)
-        {
-            // XXX(vlad): We can change 'MAX(1, 2 * capacity)' to '(2 * capacity) | 1'.
-            const Size new_capacity = MAX(1, 2 * statements->statements_capacity);
-            statements->statements = reallocate(parser->context->ast_arena,
-                                                statements->statements,
-                                                Ast_Statement,
-                                                statements->statements_capacity,
-                                                new_capacity);
-            statements->statements_capacity = new_capacity;
-        }
-
-        statements->statements[statements->statements_count] = statement;
-        statements->statements_count += 1;
+        grow_array_if_needed(parser->context->ast_arena, statements->statements, Ast_Statement);
+        statements->statements[statements->statements_count++] = statement;
 
         if (!parser_fetch_token(parser))
         {
@@ -1335,20 +1299,8 @@ parse_ast(Parser* parser)
             return false;
         }
 
-        if (ast->function_definitions_count == ast->function_definitions_capacity)
-        {
-            // XXX(vlad): We can change 'MAX(1, 2 * capacity)' to '(2 * capacity) | 1'.
-            const Size new_capacity = MAX(1, 2 * ast->function_definitions_capacity);
-            ast->function_definitions = reallocate(parser->context->ast_arena,
-                                                   ast->function_definitions,
-                                                   Ast_Function_Definition,
-                                                   ast->function_definitions_capacity,
-                                                   new_capacity);
-            ast->function_definitions_capacity = new_capacity;
-        }
-
-        ast->function_definitions[ast->function_definitions_count] = function_definition;
-        ast->function_definitions_count += 1;
+        grow_array_if_needed(parser->context->ast_arena, ast->function_definitions, Ast_Function_Definition);
+        ast->function_definitions[ast->function_definitions_count++] = function_definition;
 
         // NOTE(vlad): Prefetching the next token to check if its type is EOF.
         if (!parser_fetch_token(parser))
