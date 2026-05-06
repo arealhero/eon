@@ -11,7 +11,10 @@ create_new_lexical_scope_with_parent(Compilation_Context* context, const Index p
     context->lexical_scopes_count += 1;
 
     Lexical_Scope* created_scope = &context->lexical_scopes[context->lexical_scopes_count - 1];
-    created_scope->symbol_ids_arena = create_arena("lexical-scope-symbol-ids", GiB(1), MiB(1));
+    created_scope->symbol_ids_arena = acquire_arena_from_provider(context->arena_provider,
+                                                                  string_view("lexical-scope-symbol-ids"),
+                                                                  GiB(1),
+                                                                  MiB(1));
     created_scope->parent_lexical_scope_id = parent_scope_index;
     return context->lexical_scopes_count - 1;
 }

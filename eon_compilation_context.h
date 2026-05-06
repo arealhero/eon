@@ -14,8 +14,17 @@ struct Error
 };
 typedef struct Error Error;
 
+struct Arena_Provider;
+internal Arena* acquire_arena_from_provider(struct Arena_Provider* provider,
+                                            const String_View arena_name,
+                                            const Size number_of_bytes_to_reserve,
+                                            const Size number_of_bytes_to_commit);
+internal void release_arena_to_provider(struct Arena_Provider* provider, const Arena* arena);
+
 struct Compilation_Context
 {
+    struct Arena_Provider* arena_provider;
+
     Arena* error_messages_arena;
     Arena* errors_arena;
     Arena* ast_arena;
@@ -40,9 +49,10 @@ struct Compilation_Context
 };
 typedef struct Compilation_Context Compilation_Context;
 
-internal void create_compilation_context(Compilation_Context* context,
-                                         const Source_File* source_file);
-internal void destroy_compilation_context(Compilation_Context* context);
+maybe_unused internal void create_compilation_context(Compilation_Context* context,
+                                                      struct Arena_Provider* arena_provider,
+                                                      const Source_File* source_file);
+maybe_unused internal void destroy_compilation_context(Compilation_Context* context);
 
 maybe_unused internal void emit_error(Compilation_Context* context,
                                       const Source_Location location,

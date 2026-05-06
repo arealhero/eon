@@ -1,4 +1,4 @@
-#include <eon/unit_test.h>
+#include "eon_unit_test.h"
 
 #include "eon_parser.h"
 
@@ -6,15 +6,11 @@ internal void
 test_function_definitions_parsing(Test_Context* test_context)
 {
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> Bool = {}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> Bool = {}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -43,15 +39,11 @@ test_function_definitions_parsing(Test_Context* test_context)
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -80,15 +72,11 @@ test_function_definitions_parsing(Test_Context* test_context)
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: (argument: s32) -> void = {}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (argument: s32) -> void = {}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -127,15 +115,11 @@ test_function_definitions_parsing(Test_Context* test_context)
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> () -> void = {}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> () -> void = {}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -167,15 +151,11 @@ test_function_definitions_parsing(Test_Context* test_context)
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> * () -> void = {}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> * () -> void = {}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -210,15 +190,11 @@ test_function_definitions_parsing(Test_Context* test_context)
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: (first: s32, second: Some_Type) -> void = {}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (first: s32, second: Some_Type) -> void = {}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -272,16 +248,12 @@ test_function_definitions_parsing(Test_Context* test_context)
 
     // NOTE(vlad): Multiple function definitions.
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {}\n"
-                                  "bar: (arg: Type) -> Other_Type = {}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {}\n"
+                                                 "bar: (arg: Type) -> Other_Type = {}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -339,15 +311,11 @@ test_function_definitions_parsing(Test_Context* test_context)
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> Float32 = {}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> Float32 = {}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -378,15 +346,11 @@ test_function_definitions_parsing(Test_Context* test_context)
     // NOTE(vlad): Testing mutable arguments and return types.
     {
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: (first: mutable s32, second: Some_Type) -> void = {}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (first: mutable s32, second: Some_Type) -> void = {}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -439,15 +403,11 @@ test_function_definitions_parsing(Test_Context* test_context)
         }
 
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: (first: s32, second: mutable Some_Type) -> void = {}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (first: s32, second: mutable Some_Type) -> void = {}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -500,15 +460,11 @@ test_function_definitions_parsing(Test_Context* test_context)
         }
 
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: (first: mutable s32, second: mutable Some_Type) -> void = {}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (first: mutable s32, second: mutable Some_Type) -> void = {}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -561,15 +517,11 @@ test_function_definitions_parsing(Test_Context* test_context)
         }
 
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: () -> mutable Float32 = {}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> mutable Float32 = {}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -598,15 +550,11 @@ test_function_definitions_parsing(Test_Context* test_context)
         }
 
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: () -> mutable * Float32 = {}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> mutable * Float32 = {}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -637,15 +585,11 @@ test_function_definitions_parsing(Test_Context* test_context)
         }
 
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: () -> * mutable Float32 = {}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> * mutable Float32 = {}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -676,15 +620,11 @@ test_function_definitions_parsing(Test_Context* test_context)
         }
 
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: () -> mutable * mutable Float32 = {}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> mutable * mutable Float32 = {}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -715,15 +655,11 @@ test_function_definitions_parsing(Test_Context* test_context)
         }
 
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: () -> mutable * () -> void = {}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> mutable * () -> void = {}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -762,15 +698,11 @@ test_variable_definitions_parsing(Test_Context* test_context)
 {
     // NOTE(vlad): Variable without initialisation.
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = { variable: s32; }");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = { variable: s32; }");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -810,17 +742,13 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
     // NOTE(vlad): Variable with initialisation.
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    variable: s32 = 123;"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    variable: s32 = 123;"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -865,17 +793,13 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
     // NOTE(vlad): Variable with inferred type.
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    variable := 123;"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    variable := 123;"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -919,18 +843,14 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
     // NOTE(vlad): Multiple variable definitions.
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    var1 := 123;"
-                                  "    var2: String_View;"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    var1 := 123;"
+                                                 "    var2: String_View;"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -987,17 +907,13 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
     // NOTE(vlad): String_View initialisation.
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    var: String_View = \"Hello\";"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    var: String_View = \"Hello\";"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -1042,18 +958,14 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
     // NOTE(vlad): Variable initialisation via other variable.
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    var1 := 123;"
-                                  "    var2 := var1;"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    var1 := 123;"
+                                                 "    var2 := var1;"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -1111,17 +1023,13 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
     // NOTE(vlad): Pointer declaration.
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    pointer: * s32;"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    pointer: * s32;"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -1165,17 +1073,13 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
     // NOTE(vlad): Pointer to a pointer declaration.
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    pointer: ** s32;"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    pointer: ** s32;"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -1222,17 +1126,13 @@ test_variable_definitions_parsing(Test_Context* test_context)
     // NOTE(vlad): Testing mutable variables.
     {
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: () -> void = {"
-                                      "    variable: mutable s32;"
-                                      "}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                     "    variable: mutable s32;"
+                                                     "}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -1271,17 +1171,13 @@ test_variable_definitions_parsing(Test_Context* test_context)
         }
 
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: () -> void = {"
-                                      "    pointer: mutable * s32;"
-                                      "}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                     "    pointer: mutable * s32;"
+                                                     "}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -1324,17 +1220,13 @@ test_variable_definitions_parsing(Test_Context* test_context)
         }
 
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: () -> void = {"
-                                      "    pointer: mutable * mutable s32;"
-                                      "}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                     "    pointer: mutable * mutable s32;"
+                                                     "}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -1377,17 +1269,13 @@ test_variable_definitions_parsing(Test_Context* test_context)
         }
 
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: () -> void = {"
-                                      "    variable: mutable _ = 123;"
-                                      "}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                     "    variable: mutable _ = 123;"
+                                                     "}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -1434,17 +1322,13 @@ test_return_statement_parsing(Test_Context* test_context)
 {
     // NOTE(vlad): Empty return statement.
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    return;"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    return;"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -1480,17 +1364,13 @@ test_return_statement_parsing(Test_Context* test_context)
 
     // NOTE(vlad): Simple return statement with a number constant.
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> s32 = {"
-                                  "    return 123;"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {"
+                                                 "    return 123;"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -1533,17 +1413,13 @@ test_if_statement_parsing(Test_Context* test_context)
 {
     // NOTE(vlad): If without else.
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    if true { return; }"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    if true { return; }"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -1589,18 +1465,14 @@ test_if_statement_parsing(Test_Context* test_context)
 
     // NOTE(vlad): If with else.
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    if true { return; }"
-                                  "    else { a := 1; }"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    if true { return; }"
+                                                 "    else { a := 1; }"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -1656,19 +1528,15 @@ test_if_statement_parsing(Test_Context* test_context)
 
     // NOTE(vlad): Testing chained if statements.
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    if 1 { return 1; }"
-                                  "    else if 2 { return 2; }"
-                                  "    else { return 3; }"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    if 1 { return 1; }"
+                                                 "    else if 2 { return 2; }"
+                                                 "    else { return 3; }"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -1745,18 +1613,14 @@ internal void
 test_expressions(Test_Context* test_context)
 {
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    var1 := 0;"
-                                  "    var2 := (var1);"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    var1 := 0;"
+                                                 "    var2 := (var1);"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -1815,17 +1679,13 @@ test_expressions(Test_Context* test_context)
     // NOTE(vlad): Simple expression tests.
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    var := 2 + 2;"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    var := 2 + 2;"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -1871,17 +1731,13 @@ test_expressions(Test_Context* test_context)
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    var := 2 - 2;"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    var := 2 - 2;"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -1927,17 +1783,13 @@ test_expressions(Test_Context* test_context)
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    var := 2 * 2;"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    var := 2 * 2;"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -1983,17 +1835,13 @@ test_expressions(Test_Context* test_context)
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    var := 2 / 2;"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    var := 2 / 2;"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -2049,18 +1897,14 @@ test_expressions(Test_Context* test_context)
 
     // NOTE(vlad): Testing function call without arguments.
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> s32 = { return 123; }\n"
-                                  "bar: () -> void = {"
-                                  "    var := foo();"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = { return 123; }\n"
+                                                 "bar: () -> void = {"
+                                                 "    var := foo();"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -2135,18 +1979,14 @@ test_expressions(Test_Context* test_context)
 
     // NOTE(vlad): Testing function call with simple arguments.
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: (first: s32, second: s32) -> s32 = { return first + second; }\n"
-                                  "bar: () -> void = {"
-                                  "    var := foo(10, 20);"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (first: s32, second: s32) -> s32 = { return first + second; }\n"
+                                                 "bar: () -> void = {"
+                                                 "    var := foo(10, 20);"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -2208,17 +2048,13 @@ test_expressions(Test_Context* test_context)
 
     // NOTE(vlad): Testing function call with non-trivial arguments.
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    var := bar(10 + something * 30, baz(10, 20));"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    var := bar(10 + something * 30, baz(10, 20));"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -2312,17 +2148,13 @@ test_expressions(Test_Context* test_context)
     // NOTE(vlad): Testing comparison expressions.
     {
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: () -> void = {"
-                                      "    var := 1 == 1;"
-                                      "}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                     "    var := 1 == 1;"
+                                                     "}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -2373,17 +2205,13 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: () -> void = {"
-                                      "    var := 1 != 1;"
-                                      "}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                     "    var := 1 != 1;"
+                                                     "}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -2434,17 +2262,13 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: () -> void = {"
-                                      "    var := 1 < 1;"
-                                      "}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                     "    var := 1 < 1;"
+                                                     "}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -2495,17 +2319,13 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: () -> void = {"
-                                      "    var := 1 <= 1;"
-                                      "}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                     "    var := 1 <= 1;"
+                                                     "}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -2556,17 +2376,13 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: () -> void = {"
-                                      "    var := 1 > 1;"
-                                      "}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                     "    var := 1 > 1;"
+                                                     "}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -2617,17 +2433,13 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: () -> void = {"
-                                      "    var := 1 >= 1;"
-                                      "}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                     "    var := 1 >= 1;"
+                                                     "}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -2681,17 +2493,13 @@ test_expressions(Test_Context* test_context)
     // NOTE(vlad): Testing unary expressions.
     {
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: () -> void = {"
-                                      "    var := -1;"
-                                      "}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                     "    var := -1;"
+                                                     "}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -2739,17 +2547,13 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: (arg: * s32) -> void = {"
-                                      "    var := arg* * 2;"
-                                      "}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (arg: * s32) -> void = {"
+                                                     "    var := arg* * 2;"
+                                                     "}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -2816,17 +2620,13 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: (arg: * s32) -> void = {"
-                                      "    var := arg* + 2;"
-                                      "}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (arg: * s32) -> void = {"
+                                                     "    var := arg* + 2;"
+                                                     "}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -2893,17 +2693,13 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: (arg: * * s32) -> void = {"
-                                      "    var := arg** * 2;"
-                                      "}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (arg: * * s32) -> void = {"
+                                                     "    var := arg** * 2;"
+                                                     "}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -2980,17 +2776,13 @@ test_expressions(Test_Context* test_context)
 
         // NOTE(vlad): Dereference and multiplication without delimiting spaces.
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: (arg: * * s32) -> void = {"
-                                      "    var := arg***2;"
-                                      "}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (arg: * * s32) -> void = {"
+                                                     "    var := arg***2;"
+                                                     "}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -3066,17 +2858,13 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: (arg: s32) -> void = {"
-                                      "    var := arg&;"
-                                      "}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (arg: s32) -> void = {"
+                                                     "    var := arg&;"
+                                                     "}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -3130,17 +2918,13 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("foo: (arg: s32) -> void = {"
-                                      "    var := arg&* * 2;"
-                                      "}");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (arg: s32) -> void = {"
+                                                     "    var := arg&* * 2;"
+                                                     "}");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
             create_parser(&parser, &lexer, &context);
 
@@ -3217,17 +3001,13 @@ internal void
 test_operator_precedence(Test_Context* test_context)
 {
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    var := 1 + 2 * 3;"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    var := 1 + 2 * 3;"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -3285,17 +3065,13 @@ test_operator_precedence(Test_Context* test_context)
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    var := (1 + 2) * 3;"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    var := (1 + 2) * 3;"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -3354,17 +3130,13 @@ test_operator_precedence(Test_Context* test_context)
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    var := 3 + bar();"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    var := 3 + bar();"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -3427,18 +3199,14 @@ internal void
 test_assignments(Test_Context* test_context)
 {
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    var := 1;"
-                                  "    var = 2;"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    var := 1;"
+                                                 "    var = 2;"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -3492,18 +3260,14 @@ test_assignments(Test_Context* test_context)
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    var := 1;"
-                                  "    var = var + 1;"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    var := 1;"
+                                                 "    var = var + 1;"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -3573,21 +3337,17 @@ internal void
 test_while_statements(Test_Context* test_context)
 {
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    var := 10;"
-                                  "    while var != 0"
-                                  "    {"
-                                  "        var = var - 1;"
-                                  "    }"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    var := 10;"
+                                                 "    while var != 0"
+                                                 "    {"
+                                                 "        var = var - 1;"
+                                                 "    }"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -3666,17 +3426,13 @@ internal void
 test_call_statements(Test_Context* test_context)
 {
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    bar(10);"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    bar(10);"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -3730,15 +3486,11 @@ internal void
 test_syntax_errors(Test_Context* test_context)
 {
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -3753,15 +3505,11 @@ test_syntax_errors(Test_Context* test_context)
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 

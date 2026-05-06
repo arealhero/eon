@@ -1,0 +1,39 @@
+#pragma once
+
+#include <eon/unit_test.h>
+
+#include "eon_compilation_context.h"
+
+struct Arena_Provider
+{
+    Test_Context* test_context;
+};
+
+internal inline Arena*
+acquire_arena_from_provider(struct Arena_Provider* provider,
+                            const String_View arena_name,
+                            const Size number_of_bytes_to_reserve,
+                            const Size number_of_bytes_to_commit)
+{
+    UNUSED(arena_name, number_of_bytes_to_reserve, number_of_bytes_to_commit);
+    return provider->test_context->arena;
+}
+
+internal inline void
+release_arena_to_provider(struct Arena_Provider* provider, const Arena* arena)
+{
+    UNUSED(provider, arena);
+}
+
+#define CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE(source_code)           \
+    struct Arena_Provider test_arena_provider = {0};                    \
+    test_arena_provider.test_context = test_context;                    \
+                                                                        \
+    Compilation_Context context = {0};                                  \
+    do {                                                                \
+        Source_File source_file = {0};                                  \
+        source_file.filename = string_view("<test-input>");             \
+        source_file.code = string_view(source_code);                    \
+        create_compilation_context(&context, &test_arena_provider, &source_file); \
+    }                                                                   \
+    while (0)

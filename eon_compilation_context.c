@@ -4,13 +4,16 @@
 
 internal void
 create_compilation_context(Compilation_Context* context,
+                           struct Arena_Provider* arena_provider,
                            const Source_File* source_file)
 {
-    context->error_messages_arena = create_arena("error-messages", GiB(1), MiB(1));
-    context->errors_arena = create_arena("errors", GiB(1), MiB(1));
-    context->ast_arena = create_arena("ast", GiB(1), MiB(1));
-    context->lexical_scopes_arena = create_arena("lexical-scopes", GiB(1), MiB(1));
-    context->symbols_arena = create_arena("symbols", GiB(1), MiB(1));
+    context->arena_provider = arena_provider;
+
+    context->error_messages_arena = acquire_arena_from_provider(arena_provider, string_view("error-messages"), GiB(1), MiB(1));
+    context->errors_arena = acquire_arena_from_provider(arena_provider, string_view("errors"), GiB(1), MiB(1));
+    context->ast_arena = acquire_arena_from_provider(arena_provider, string_view("ast"), GiB(1), MiB(1));
+    context->lexical_scopes_arena = acquire_arena_from_provider(arena_provider, string_view("lexical-scopes"), GiB(1), MiB(1));
+    context->symbols_arena = acquire_arena_from_provider(arena_provider, string_view("symbols"), GiB(1), MiB(1));
 
     context->source_file = *source_file;
 }
@@ -23,14 +26,14 @@ destroy_compilation_context(Compilation_Context* context)
          ++scope_index)
     {
         Lexical_Scope* scope = &context->lexical_scopes[scope_index];
-        destroy_arena(scope->symbol_ids_arena);
+        release_arena_to_provider(context->arena_provider, scope->symbol_ids_arena);
     }
 
-    destroy_arena(context->error_messages_arena);
-    destroy_arena(context->errors_arena);
-    destroy_arena(context->ast_arena);
-    destroy_arena(context->lexical_scopes_arena);
-    destroy_arena(context->symbols_arena);
+    release_arena_to_provider(context->arena_provider, context->error_messages_arena);
+    release_arena_to_provider(context->arena_provider, context->errors_arena);
+    release_arena_to_provider(context->arena_provider, context->ast_arena);
+    release_arena_to_provider(context->arena_provider, context->lexical_scopes_arena);
+    release_arena_to_provider(context->arena_provider, context->symbols_arena);
 }
 
 internal void

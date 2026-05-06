@@ -1,4 +1,4 @@
-#include <eon/unit_test.h>
+#include "eon_unit_test.h"
 
 #include "eon_lexical_scopes.h"
 #include "eon_parser.h"
@@ -7,16 +7,12 @@ internal void
 test_function_scopes(Test_Context* test_context)
 {
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -84,16 +80,12 @@ test_function_scopes(Test_Context* test_context)
 
     // NOTE(vlad): Testing function parameters.
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: (a: s32) -> void = {"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (a: s32) -> void = {"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -199,17 +191,13 @@ test_function_scopes(Test_Context* test_context)
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    a := 1;"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    a := 1;"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -296,20 +284,16 @@ internal void
 test_if_statements_scopes(Test_Context* test_context)
 {
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    a := 1;"
-                                  "    if 2 + 2 == 4 {"
-                                  "        a := 2.0;"
-                                  "    }"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    a := 1;"
+                                                 "    if 2 + 2 == 4 {"
+                                                 "        a := 2.0;"
+                                                 "    }"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -430,21 +414,17 @@ test_if_statements_scopes(Test_Context* test_context)
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    a := 1;"
-                                  "    if 2 + 2 == 4 {"
-                                  "    } else {"
-                                  "        a := 2.0;"
-                                  "    }"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    a := 1;"
+                                                 "    if 2 + 2 == 4 {"
+                                                 "    } else {"
+                                                 "        a := 2.0;"
+                                                 "    }"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -569,19 +549,15 @@ internal void
 test_while_loops_scopes(Test_Context* test_context)
 {
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    a := 1;"
-                                  "    while a == 1 {"
-                                  "    }"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    a := 1;"
+                                                 "    while a == 1 {"
+                                                 "    }"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -680,20 +656,16 @@ test_while_loops_scopes(Test_Context* test_context)
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    a := 1;"
-                                  "    while a == 1 {"
-                                  "        a := 2.0;"
-                                  "    }"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    a := 1;"
+                                                 "    while a == 1 {"
+                                                 "        a := 2.0;"
+                                                 "    }"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -806,20 +778,16 @@ test_while_loops_scopes(Test_Context* test_context)
 
     // NOTE(vlad): Yes, this looks bizzare, but this is valid in C, so I decided to leave it be.
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> void = {"
-                                  "    a := 1;"
-                                  "    while a == 1 {"
-                                  "        a := a;"
-                                  "    }"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    a := 1;"
+                                                 "    while a == 1 {"
+                                                 "        a := a;"
+                                                 "    }"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -936,17 +904,13 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
 {
     // NOTE(vlad): Testing function parameters.
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: (a: s32) -> void = {"
-                                  "    var := a;"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (a: s32) -> void = {"
+                                                 "    var := a;"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -1076,17 +1040,13 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: (a: s32, b: s32) -> void = {"
-                                  "    var := a + b * 2;"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (a: s32, b: s32) -> void = {"
+                                                 "    var := a + b * 2;"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -1258,19 +1218,15 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("foo: () -> s32 = {}"
-                                  "bar: () -> s32 = {}"
-                                  "baz: () -> void = {"
-                                  "    var := foo() + bar();"
-                                  "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {}"
+                                                 "bar: () -> s32 = {}"
+                                                 "baz: () -> void = {"
+                                                 "    var := foo() + bar();"
+                                                 "}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 
@@ -1383,19 +1339,15 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
 
     // NOTE(vlad): Testing that the global symbols' order of definition is irrelevant.
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("baz: () -> void = {"
-                                  "    var := foo() + bar();"
-                                  "}"
-                                  "foo: () -> s32 = {}"
-                                  "bar: () -> s32 = {}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("baz: () -> void = {"
+                                                 "    var := foo() + bar();"
+                                                 "}"
+                                                 "foo: () -> s32 = {}"
+                                                 "bar: () -> s32 = {}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
         create_parser(&parser, &lexer, &context);
 

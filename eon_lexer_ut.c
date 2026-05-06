@@ -1,4 +1,4 @@
-#include <eon/unit_test.h>
+#include "eon_unit_test.h"
 
 #include "eon_lexer.h"
 #include "eon_compilation_context.h"
@@ -7,14 +7,9 @@ internal void
 test_line_comments(Test_Context* test_context)
 {
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("// line comment");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("// line comment");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
-
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
 
         Token token = {0};
@@ -27,14 +22,9 @@ test_line_comments(Test_Context* test_context)
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("// nested // line // comments");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("// nested // line // comments");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
-
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
 
         Token token = {0};
@@ -43,43 +33,35 @@ test_line_comments(Test_Context* test_context)
         ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("// line comment\n123");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("// line comment\n123");
 
-            Compilation_Context context = {0};
-            Lexer lexer = {0};
-
-            create_compilation_context(&context, &source);
-            create_lexer(&lexer, &context);
-
-            Token token = {0};
-
-            ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_EQUAL(token.type, TOKEN_NUMBER);
-            ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "123");
-            ASSERT_EQUAL(token.location.line, 1);
-            ASSERT_EQUAL(token.location.column, 0);
-
-            ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_EQUAL(context.errors_count, 0);
-            ASSERT_EQUAL(token.type, TOKEN_EOF);
-
-            destroy_lexer(&lexer);
-    }
-
-    {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("2 + // line comment\n2");
-
-        Compilation_Context context = {0};
         Lexer lexer = {0};
+        create_lexer(&lexer, &context);
 
-        create_compilation_context(&context, &source);
+        Token token = {0};
+
+        ASSERT_TRUE(get_next_token(&lexer, &token));
+        ASSERT_EQUAL(token.type, TOKEN_NUMBER);
+        ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "123");
+        ASSERT_EQUAL(token.location.line, 1);
+        ASSERT_EQUAL(token.location.column, 0);
+
+        ASSERT_TRUE(get_next_token(&lexer, &token));
+        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_EQUAL(token.type, TOKEN_EOF);
+
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("2 + // line comment\n2");
+
+        Lexer lexer = {0};
         create_lexer(&lexer, &context);
 
         Token token = {0};
@@ -110,19 +92,15 @@ test_line_comments(Test_Context* test_context)
         ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
     }
 
     // NOTE(vlad): Block comments tests.
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("2 + /* block comment */ 2");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("2 + /* block comment */ 2");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
-
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
 
         Token token = {0};
@@ -153,17 +131,13 @@ test_line_comments(Test_Context* test_context)
         ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("2 + /* nested /* block /* comments */ */ */ 2");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("2 + /* nested /* block /* comments */ */ */ 2");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
-
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
 
         Token token = {0};
@@ -194,17 +168,13 @@ test_line_comments(Test_Context* test_context)
         ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("/* // line comment inside block comment is ignored */ 2");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("/* // line comment inside block comment is ignored */ 2");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
-
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
 
         Token token = {0};
@@ -221,6 +191,7 @@ test_line_comments(Test_Context* test_context)
         ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
     }
 }
 
@@ -228,14 +199,9 @@ internal void
 test_numbers(Test_Context* test_context)
 {
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("2 + 2");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("2 + 2");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
-
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
 
         Token token = {0};
@@ -266,17 +232,13 @@ test_numbers(Test_Context* test_context)
         ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("1234567890 + 999999999999999");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("1234567890 + 999999999999999");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
-
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
 
         Token token = {0};
@@ -307,19 +269,15 @@ test_numbers(Test_Context* test_context)
         ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
     }
 
     // NOTE(vlad): Testing floating-point numbers.
     {
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("0.1");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("0.1");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
-
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
 
             Token token = {0};
@@ -336,17 +294,13 @@ test_numbers(Test_Context* test_context)
             ASSERT_EQUAL(token.type, TOKEN_EOF);
 
             destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
         }
 
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("a := 0.1;");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("a := 0.1;");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
-
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
 
             Token token = {0};
@@ -391,20 +345,16 @@ test_numbers(Test_Context* test_context)
             ASSERT_EQUAL(token.type, TOKEN_EOF);
 
             destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
         }
     }
 
     // FIXME(vlad): Test errors like '123a'.
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("&");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("&");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
-
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
 
         Token token = {0};
@@ -421,6 +371,7 @@ test_numbers(Test_Context* test_context)
         ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
     }
 }
 
@@ -430,14 +381,9 @@ test_identifiers(Test_Context* test_context)
     // NOTE(vlad): Variables tests.
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("a + b");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("a + b");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
-
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
 
         Token token = {0};
@@ -468,17 +414,13 @@ test_identifiers(Test_Context* test_context)
         ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("_hello world");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("_hello world");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
-
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
 
         Token token = {0};
@@ -502,19 +444,15 @@ test_identifiers(Test_Context* test_context)
         ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
     }
 
     // NOTE(vlad): Functions tests.
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("main: () = {}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("main: () = {}");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
-
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
 
         Token token = {0};
@@ -573,19 +511,15 @@ test_identifiers(Test_Context* test_context)
         ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
     }
 
     // NOTE(vlad): Testing arrays.
     {
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("arr: [] s32;");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("arr: [] s32;");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
-
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
 
             Token token = {0};
@@ -637,17 +571,13 @@ test_identifiers(Test_Context* test_context)
             ASSERT_EQUAL(token.type, TOKEN_EOF);
 
             destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
         }
 
         {
-            Source_File source = {0};
-            source.filename = string_view("<input>");
-            source.code = string_view("arr: [] [] s32;");
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("arr: [] [] s32;");
 
-            Compilation_Context context = {0};
             Lexer lexer = {0};
-
-            create_compilation_context(&context, &source);
             create_lexer(&lexer, &context);
 
             Token token = {0};
@@ -713,6 +643,7 @@ test_identifiers(Test_Context* test_context)
             ASSERT_EQUAL(token.type, TOKEN_EOF);
 
             destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
         }
     }
 }
@@ -721,14 +652,9 @@ internal void
 test_keywords_and_digraphs(Test_Context* test_context)
 {
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("for a");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("for a");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
-
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
 
         Token token = {0};
@@ -752,17 +678,13 @@ test_keywords_and_digraphs(Test_Context* test_context)
         ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("return");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("return");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
-
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
 
         Token token = {0};
@@ -779,17 +701,13 @@ test_keywords_and_digraphs(Test_Context* test_context)
         ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("->");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("->");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
-
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
 
         Token token = {0};
@@ -806,17 +724,13 @@ test_keywords_and_digraphs(Test_Context* test_context)
         ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("mutable");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("mutable");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
-
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
 
         Token token = {0};
@@ -833,17 +747,13 @@ test_keywords_and_digraphs(Test_Context* test_context)
         ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
     }
 
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("_");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("_");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
-
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
 
         Token token = {0};
@@ -860,6 +770,7 @@ test_keywords_and_digraphs(Test_Context* test_context)
         ASSERT_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
     }
 }
 
@@ -867,18 +778,12 @@ internal void
 test_errors(Test_Context* test_context)
 {
     {
-        Source_File source = {0};
-        source.filename = string_view("<input>");
-        source.code = string_view("?");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("?");
 
-        Compilation_Context context = {0};
         Lexer lexer = {0};
-
-        create_compilation_context(&context, &source);
         create_lexer(&lexer, &context);
 
         Token token = {0};
-
         ASSERT_FALSE(get_next_token(&lexer, &token));
 
         ASSERT_EQUAL(context.errors_count, 1);
@@ -889,6 +794,7 @@ test_errors(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(error->message, "Unexpected character encountered");
 
         destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
     }
 }
 
