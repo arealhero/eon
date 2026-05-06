@@ -45,17 +45,17 @@ token_type_to_string(const Token_Type type)
         ADD_TOKEN(TOKEN_STRING, "string literal");
         ADD_TOKEN(TOKEN_NUMBER, "number");
 
-        ADD_TOKEN(TOKEN_FOR, "for");
-        ADD_TOKEN(TOKEN_IF, "if");
-        ADD_TOKEN(TOKEN_ELSE, "else");
-        ADD_TOKEN(TOKEN_WHILE, "while");
-        ADD_TOKEN(TOKEN_TRUE, "true");
-        ADD_TOKEN(TOKEN_FALSE, "false");
+        ADD_TOKEN(TOKEN_FOR, "'for'");
+        ADD_TOKEN(TOKEN_IF, "'if'");
+        ADD_TOKEN(TOKEN_ELSE, "'else'");
+        ADD_TOKEN(TOKEN_WHILE, "'while'");
+        ADD_TOKEN(TOKEN_TRUE, "'true'");
+        ADD_TOKEN(TOKEN_FALSE, "'false'");
         ADD_TOKEN(TOKEN_ARROW, "'->'");
-        ADD_TOKEN(TOKEN_RETURN, "return");
+        ADD_TOKEN(TOKEN_RETURN, "'return'");
         ADD_TOKEN(TOKEN_WILDCARD, "wildcard ('_')");
 
-        ADD_TOKEN(TOKEN_MUTABLE, "mutable");
+        ADD_TOKEN(TOKEN_MUTABLE, "'mutable'");
 
         ADD_TOKEN(TOKEN_EOF, "end of file");
     }
