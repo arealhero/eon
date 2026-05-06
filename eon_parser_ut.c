@@ -3522,6 +3522,29 @@ test_syntax_errors(Test_Context* test_context)
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    var := 123a;"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_FALSE(parse_ast(&parser));
+
+        ASSERT_EQUAL(context.errors_count, 1);
+
+        // TODO(vlad): Can we produce a better error message here?
+        ASSERT_STRINGS_ARE_EQUAL(context.errors[0].message, "Expected ;, found identifier");
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
 }
 
 REGISTER_TESTS(

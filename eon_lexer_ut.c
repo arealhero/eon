@@ -349,8 +349,6 @@ test_numbers(Test_Context* test_context)
         }
     }
 
-    // FIXME(vlad): Test errors like '123a'.
-
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("&");
 
