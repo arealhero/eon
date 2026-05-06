@@ -51,6 +51,10 @@ maybe_unused internal void emit_error(Compilation_Context* context,
                                       const Source_Location location,
                                       const String_View message);
 
+maybe_unused internal Symbol_Id create_symbol(Compilation_Context* context);
+
 maybe_unused internal Symbol_Id find_symbol_id(Compilation_Context* context,
                                                Lexical_Scope_Id this_lexical_scope_id,
                                                const String_View name);
+
+maybe_unused internal struct Symbol* get_symbol_by_id(Compilation_Context* context, const Symbol_Id symbol_id);

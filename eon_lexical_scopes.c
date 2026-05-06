@@ -19,14 +19,6 @@ create_new_lexical_scope_with_parent(Compilation_Context* context, const Index p
     return context->lexical_scopes_count - 1;
 }
 
-// FIXME(vlad): Move to 'eon_compilation_context.c'.
-internal Symbol_Id
-create_symbol_in_compilation_context(Compilation_Context* context)
-{
-    grow_array_if_needed(context->symbols_arena, context->symbols, Symbol);
-    return context->symbols_count++;
-}
-
 internal Lexical_Scope_Id
 add_symbol_to_lexical_scope(Compilation_Context* context,
                             const Index lexical_scope_index,
@@ -50,7 +42,7 @@ add_symbol_to_lexical_scope(Compilation_Context* context,
         }
     }
 
-    const Symbol_Id this_symbol_id = create_symbol_in_compilation_context(context);
+    const Symbol_Id this_symbol_id = create_symbol(context);
     context->symbols[this_symbol_id] = *symbol_to_add;
 
     grow_array_if_needed(lexical_scope->symbol_ids_arena, lexical_scope->symbol_ids, Symbol_Id);
@@ -69,10 +61,30 @@ set_symbol_id_for_identifier(Compilation_Context* context,
                              Ast_Identifier* identifier,
                              const Lexical_Scope_Id this_lexical_scope_id)
 {
-    const Symbol_Id symbol_id = find_symbol_id(context,
-                                               this_lexical_scope_id,
-                                               identifier->token.lexeme);
-    identifier->symbol_id = symbol_id;
+    const Symbol_Id found_symbol_id = find_symbol_id(context,
+                                                     this_lexical_scope_id,
+                                                     identifier->token.lexeme);
+
+    if (found_symbol_id == INVALID_SYMBOL_ID)
+    {
+        const Source_Location error_location = identifier->token.location;
+        const String error_message = format_string(context->error_messages_arena,
+                                                   "Use of undeclared identifier '{}'",
+                                                   identifier->token.lexeme);
+
+        emit_error(context, error_location, string_view(error_message));
+
+        const Symbol_Id unknown_symbol_id = create_symbol(context);
+        Symbol* unknown_symbol = get_symbol_by_id(context, unknown_symbol_id);
+
+        unknown_symbol->kind = SYMBOL_UNKNOWN;
+
+        identifier->symbol_id = unknown_symbol_id;
+    }
+    else
+    {
+        identifier->symbol_id = found_symbol_id;
+    }
 }
 
 internal inline void
@@ -82,10 +94,29 @@ set_symbol_id_for_named_type(Compilation_Context* context,
 {
     ASSERT(type->kind == AST_TYPE_NAME);
 
-    const Symbol_Id symbol_id = find_symbol_id(context,
-                                               this_lexical_scope_id,
-                                               type->named_type.token.lexeme);
-    type->symbol_id = symbol_id;
+    const Symbol_Id found_symbol_id = find_symbol_id(context,
+                                                     this_lexical_scope_id,
+                                                     type->named_type.token.lexeme);
+    if (found_symbol_id == INVALID_SYMBOL_ID)
+    {
+        const Source_Location error_location = type->named_type.token.location;
+        const String error_message = format_string(context->error_messages_arena,
+                                                   "Use of undeclared identifier '{}'",
+                                                   type->named_type.token.lexeme);
+
+        emit_error(context, error_location, string_view(error_message));
+
+        const Symbol_Id unknown_symbol_id = create_symbol(context);
+        Symbol* unknown_symbol = get_symbol_by_id(context, unknown_symbol_id);
+
+        unknown_symbol->kind = SYMBOL_UNKNOWN;
+
+        type->symbol_id = unknown_symbol_id;
+    }
+    else
+    {
+        type->symbol_id = found_symbol_id;
+    }
 }
 
 internal inline void
@@ -337,7 +368,7 @@ add_builtin_type_symbol(Compilation_Context* context, const C_String name)
     ASSERT(symbol_id != INVALID_SYMBOL_ID);
 }
 
-internal Bool
+internal void
 create_lexical_scopes(Compilation_Context* context)
 {
     const Lexical_Scope_Id sentinel_scope_id = create_new_lexical_scope_with_parent(context, INVALID_LEXICAL_SCOPE_ID);
@@ -348,7 +379,7 @@ create_lexical_scopes(Compilation_Context* context)
 
     // NOTE(vlad): Populating global scope with builtin types.
     {
-        const Symbol_Id sentinel_symbol_id = create_symbol_in_compilation_context(context);
+        const Symbol_Id sentinel_symbol_id = create_symbol(context);
         ASSERT(sentinel_symbol_id == INVALID_SYMBOL_ID);
 
         for (Index i = 0;
@@ -440,6 +471,4 @@ create_lexical_scopes(Compilation_Context* context)
 
         create_lexical_scopes_for_code_block(context, function_body);
     }
-
-    return true;
 }

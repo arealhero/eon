@@ -9,6 +9,7 @@ enum Symbol_Kind
 {
     SYMBOL_UNDEFINED = 0,
 
+    SYMBOL_UNKNOWN,
     SYMBOL_FUNCTION,
     SYMBOL_VARIABLE,
     SYMBOL_TYPE,
@@ -41,4 +42,4 @@ struct Lexical_Scope
 };
 typedef struct Lexical_Scope Lexical_Scope;
 
-maybe_unused internal Bool create_lexical_scopes(Compilation_Context* context);
+maybe_unused internal void create_lexical_scopes(Compilation_Context* context);

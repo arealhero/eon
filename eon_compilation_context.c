@@ -49,6 +49,13 @@ emit_error(Compilation_Context* context,
 }
 
 internal Symbol_Id
+create_symbol(Compilation_Context* context)
+{
+    grow_array_if_needed(context->symbols_arena, context->symbols, Symbol);
+    return context->symbols_count++;
+}
+
+internal Symbol_Id
 find_symbol_id(Compilation_Context* context,
                Lexical_Scope_Id this_lexical_scope_id,
                const String_View name)
@@ -73,6 +80,13 @@ find_symbol_id(Compilation_Context* context,
         this_lexical_scope_id = scope->parent_lexical_scope_id;
     }
 
-    FAIL("Cannot find the requested symbol");
+    return INVALID_SYMBOL_ID;
+}
+
+internal Symbol*
+get_symbol_by_id(Compilation_Context* context, const Symbol_Id symbol_id)
+{
+    ASSERT(symbol_id != INVALID_SYMBOL_ID && symbol_id < context->symbols_count);
+    return &context->symbols[symbol_id];
 }
 
