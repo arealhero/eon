@@ -11,35 +11,35 @@ token_type_to_string(const Token_Type type)
 #define ADD_TOKEN(type, string) case type: return string_view(string)
     switch (type)
     {
-        ADD_TOKEN(TOKEN_UNDEFINED, "undefined token");
+        ADD_TOKEN(TOKEN_UNDEFINED, "UNDEFINED TOKEN");
 
-        ADD_TOKEN(TOKEN_LEFT_PAREN, "(");
-        ADD_TOKEN(TOKEN_RIGHT_PAREN, ")");
-        ADD_TOKEN(TOKEN_LEFT_BRACE, "{");
-        ADD_TOKEN(TOKEN_RIGHT_BRACE, "}");
-        ADD_TOKEN(TOKEN_LEFT_BRACKET, "[");
-        ADD_TOKEN(TOKEN_RIGHT_BRACKET, "]");
+        ADD_TOKEN(TOKEN_LEFT_PAREN, "'('");
+        ADD_TOKEN(TOKEN_RIGHT_PAREN, "')'");
+        ADD_TOKEN(TOKEN_LEFT_BRACE, "'{'");
+        ADD_TOKEN(TOKEN_RIGHT_BRACE, "'}'");
+        ADD_TOKEN(TOKEN_LEFT_BRACKET, "'['");
+        ADD_TOKEN(TOKEN_RIGHT_BRACKET, "']'");
 
-        ADD_TOKEN(TOKEN_COMMA, ",");
-        ADD_TOKEN(TOKEN_DOT, ".");
-        ADD_TOKEN(TOKEN_MINUS, "-");
-        ADD_TOKEN(TOKEN_PLUS, "+");
-        ADD_TOKEN(TOKEN_SLASH, "/");
-        ADD_TOKEN(TOKEN_STAR, "*");
-        ADD_TOKEN(TOKEN_COLON, ":");
-        ADD_TOKEN(TOKEN_SEMICOLON, ";");
+        ADD_TOKEN(TOKEN_COMMA, "','");
+        ADD_TOKEN(TOKEN_DOT, "'.'");
+        ADD_TOKEN(TOKEN_MINUS, "'-'");
+        ADD_TOKEN(TOKEN_PLUS, "'+'");
+        ADD_TOKEN(TOKEN_SLASH, "'/'");
+        ADD_TOKEN(TOKEN_STAR, "'*'");
+        ADD_TOKEN(TOKEN_COLON, "':'");
+        ADD_TOKEN(TOKEN_SEMICOLON, "';'");
 
-        ADD_TOKEN(TOKEN_NOT, "!");
-        ADD_TOKEN(TOKEN_AMPERSAND, "&");
+        ADD_TOKEN(TOKEN_NOT, "'!'");
+        ADD_TOKEN(TOKEN_AMPERSAND, "'&'");
 
-        ADD_TOKEN(TOKEN_ASSIGN, "=");
+        ADD_TOKEN(TOKEN_ASSIGN, "'='");
 
-        ADD_TOKEN(TOKEN_EQUAL, "==");
-        ADD_TOKEN(TOKEN_NOT_EQUAL, "!=");
-        ADD_TOKEN(TOKEN_LESS, "<");
-        ADD_TOKEN(TOKEN_LESS_OR_EQUAL, "<=");
-        ADD_TOKEN(TOKEN_GREATER, ">");
-        ADD_TOKEN(TOKEN_GREATER_OR_EQUAL, ">=");
+        ADD_TOKEN(TOKEN_EQUAL, "'=='");
+        ADD_TOKEN(TOKEN_NOT_EQUAL, "'!='");
+        ADD_TOKEN(TOKEN_LESS, "'<'");
+        ADD_TOKEN(TOKEN_LESS_OR_EQUAL, "'<='");
+        ADD_TOKEN(TOKEN_GREATER, "'>'");
+        ADD_TOKEN(TOKEN_GREATER_OR_EQUAL, "'>='");
 
         ADD_TOKEN(TOKEN_IDENTIFIER, "identifier");
         ADD_TOKEN(TOKEN_STRING, "string literal");
@@ -51,9 +51,9 @@ token_type_to_string(const Token_Type type)
         ADD_TOKEN(TOKEN_WHILE, "while");
         ADD_TOKEN(TOKEN_TRUE, "true");
         ADD_TOKEN(TOKEN_FALSE, "false");
-        ADD_TOKEN(TOKEN_ARROW, "->");
+        ADD_TOKEN(TOKEN_ARROW, "'->'");
         ADD_TOKEN(TOKEN_RETURN, "return");
-        ADD_TOKEN(TOKEN_WILDCARD, "wildcard (_)");
+        ADD_TOKEN(TOKEN_WILDCARD, "wildcard ('_')");
 
         ADD_TOKEN(TOKEN_MUTABLE, "mutable");
 
