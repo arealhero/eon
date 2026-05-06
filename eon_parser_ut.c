@@ -3523,7 +3523,12 @@ test_syntax_errors(Test_Context* test_context)
         ASSERT_FALSE(parse_ast(&parser));
 
         ASSERT_EQUAL(context.errors_count, 1);
-        ASSERT_STRINGS_ARE_EQUAL(context.errors[0].message, "Expected :, found end of file");
+        const Error* error = &context.errors[0];
+        const String_View expected_message = string_view("<test-input>:1:4: error: Expected :, found end of file\n"
+                                                         "  1 | foo\n"
+                                                         "    |    ^");
+        ASSERT_STRINGS_ARE_EQUAL(format_error_message(test_context->arena, &context, error),
+                                 expected_message);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -3531,8 +3536,8 @@ test_syntax_errors(Test_Context* test_context)
     }
 
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    var := 123a;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    var := 123a;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -3544,9 +3549,14 @@ test_syntax_errors(Test_Context* test_context)
         ASSERT_FALSE(parse_ast(&parser));
 
         ASSERT_EQUAL(context.errors_count, 1);
+        const Error* error = &context.errors[0];
 
         // TODO(vlad): Can we produce a better error message here?
-        ASSERT_STRINGS_ARE_EQUAL(context.errors[0].message, "Expected ;, found identifier");
+        const String_View expected_message = string_view("<test-input>:2:15: error: Expected ;, found identifier\n"
+                                                         "  2 |     var := 123a;\n"
+                                                         "    |               ^");
+        ASSERT_STRINGS_ARE_EQUAL(format_error_message(test_context->arena, &context, error),
+                                 expected_message);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);

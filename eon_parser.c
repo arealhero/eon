@@ -412,7 +412,12 @@ parse_primary_expression(Parser* parser, Ast_Expression* expression)
             {
                 return false;
             }
-            parser_fetch_and_consume_token_with_type(parser, TOKEN_RIGHT_PAREN);
+
+            if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_RIGHT_PAREN))
+            {
+                return false;
+            }
+
             return true;
         } break;
 

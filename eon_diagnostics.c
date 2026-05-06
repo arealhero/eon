@@ -19,15 +19,13 @@ format_error_message(Arena* arena, Compilation_Context* context, const Error* er
         current_line_start_index -= 1;
     }
 
-    // TODO(vlad): Support multiline highlights?
-    Index current_line_end_index = error->location.offset_in_bytes + error->location.length_in_bytes;
+    Index current_line_end_index = error->location.offset_in_bytes;
 
     while (current_line_end_index < context->source_file.code.length)
     {
         const char this_char = context->source_file.code.data[current_line_end_index];
         if (this_char == '\n')
         {
-            current_line_end_index -= 1;
             break;
         }
 
@@ -36,7 +34,7 @@ format_error_message(Arena* arena, Compilation_Context* context, const Error* er
 
     const String_View current_line = (String_View) {
         .data = context->source_file.code.data + current_line_start_index,
-        .length = MAX(current_line_end_index - current_line_start_index - 1, 0),
+        .length = current_line_end_index - current_line_start_index,
     };
 
     String result = {0};
@@ -46,6 +44,8 @@ format_error_message(Arena* arena, Compilation_Context* context, const Error* er
     const String line_number_as_a_string = format_string(arena, "{}", error->location.line + 1);
     const Size highlight_line_length = line_number_as_a_string.length + 3
         + error->location.column + location_length;
+
+    // TODO(vlad): Support multiline highlights?
 
     String highlight_line = {0};
     highlight_line.data = allocate_uninitialized_array(arena, highlight_line_length, char);

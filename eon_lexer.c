@@ -135,6 +135,7 @@ get_next_token(Lexer* lexer, Token* token)
 {
     if (lexer->current_index >= lexer->code.length)
     {
+        lexer->lexeme_start_index = lexer->current_index;
         create_token(lexer, token, TOKEN_EOF);
         return true;
     }
