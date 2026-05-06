@@ -3,6 +3,8 @@
 #include <eon/types.h>
 #include <eon/string.h>
 
+#include "eon_forward_declarations.h"
+
 typedef Index Source_File_Id;
 
 struct Source_File
@@ -21,3 +23,12 @@ struct Source_Location
     Index column;
 };
 typedef struct Source_Location Source_Location;
+
+struct Error
+{
+    Source_Location location;
+    String_View message;
+};
+typedef struct Error Error;
+
+maybe_unused internal String format_error_message(Arena* arena, struct Compilation_Context* context, const Error* error);

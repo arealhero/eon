@@ -7,13 +7,6 @@
 #include "eon_ast.h"
 #include "eon_diagnostics.h"
 
-struct Error
-{
-    Source_Location location;
-    String_View message;
-};
-typedef struct Error Error;
-
 struct Arena_Provider;
 internal Arena* acquire_arena_from_provider(struct Arena_Provider* provider,
                                             const String_View arena_name,

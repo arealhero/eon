@@ -787,9 +787,11 @@ test_errors(Test_Context* test_context)
         ASSERT_EQUAL(context.errors_count, 1);
 
         const Error* error = &context.errors[0];
-        ASSERT_EQUAL(error->location.line, 0);
-        ASSERT_EQUAL(error->location.column, 0);
-        ASSERT_STRINGS_ARE_EQUAL(error->message, "Unexpected character encountered");
+        const String_View expected_message = string_view("<test-input>:1:1: error: Unexpected character encountered\n"
+                                                         "  1 | ?\n"
+                                                         "    | ^");
+        ASSERT_STRINGS_ARE_EQUAL(format_error_message(test_context->arena, &context, error),
+                                 expected_message);
 
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
@@ -805,4 +807,5 @@ REGISTER_TESTS(
 )
 
 #include "eon_compilation_context.c"
+#include "eon_diagnostics.c"
 #include "eon_lexer.c"
