@@ -5,22 +5,21 @@
 internal void
 test_function_definitions_parsing(Test_Context* test_context)
 {
-    Errors errors = {0};
-    create_errors(&errors, test_context->arena);
-
     {
-        const String_View input = string_view("foo: () -> Bool = {}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> Bool = {}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -41,23 +40,23 @@ test_function_definitions_parsing(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     {
-        const String_View input = string_view("foo: () -> void = {}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -78,23 +77,23 @@ test_function_definitions_parsing(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     {
-        const String_View input = string_view("foo: (argument: s32) -> void = {}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: (argument: s32) -> void = {}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -125,23 +124,23 @@ test_function_definitions_parsing(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     {
-        const String_View input = string_view("foo: () -> () -> void = {}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> () -> void = {}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -165,23 +164,23 @@ test_function_definitions_parsing(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     {
-        const String_View input = string_view("foo: () -> * () -> void = {}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> * () -> void = {}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -208,23 +207,23 @@ test_function_definitions_parsing(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     {
-        const String_View input = string_view("foo: (first: s32, second: Some_Type) -> void = {}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: (first: s32, second: Some_Type) -> void = {}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -269,25 +268,25 @@ test_function_definitions_parsing(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     // NOTE(vlad): Multiple function definitions.
     {
-        const String_View input = string_view("foo: () -> void = {}\n"
-                                              "bar: (arg: Type) -> Other_Type = {}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {}\n"
+                                  "bar: (arg: Type) -> Other_Type = {}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 2);
 
@@ -337,23 +336,23 @@ test_function_definitions_parsing(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     {
-        const String_View input = string_view("foo: () -> Float32 = {}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> Float32 = {}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -374,25 +373,25 @@ test_function_definitions_parsing(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     // NOTE(vlad): Testing mutable arguments and return types.
     {
         {
-            const String_View input = string_view("foo: (first: mutable s32, second: Some_Type) -> void = {}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: (first: mutable s32, second: Some_Type) -> void = {}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -437,23 +436,23 @@ test_function_definitions_parsing(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
 
         {
-            const String_View input = string_view("foo: (first: s32, second: mutable Some_Type) -> void = {}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: (first: s32, second: mutable Some_Type) -> void = {}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -498,23 +497,23 @@ test_function_definitions_parsing(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
 
         {
-            const String_View input = string_view("foo: (first: mutable s32, second: mutable Some_Type) -> void = {}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: (first: mutable s32, second: mutable Some_Type) -> void = {}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -559,23 +558,23 @@ test_function_definitions_parsing(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
 
         {
-            const String_View input = string_view("foo: () -> mutable Float32 = {}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: () -> mutable Float32 = {}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -596,23 +595,23 @@ test_function_definitions_parsing(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
 
         {
-            const String_View input = string_view("foo: () -> mutable * Float32 = {}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: () -> mutable * Float32 = {}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -635,23 +634,23 @@ test_function_definitions_parsing(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
 
         {
-            const String_View input = string_view("foo: () -> * mutable Float32 = {}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: () -> * mutable Float32 = {}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -674,23 +673,23 @@ test_function_definitions_parsing(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
 
         {
-            const String_View input = string_view("foo: () -> mutable * mutable Float32 = {}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: () -> mutable * mutable Float32 = {}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -713,23 +712,23 @@ test_function_definitions_parsing(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
 
         {
-            const String_View input = string_view("foo: () -> mutable * () -> void = {}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: () -> mutable * () -> void = {}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -754,8 +753,6 @@ test_function_definitions_parsing(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
     }
 }
@@ -763,23 +760,22 @@ test_function_definitions_parsing(Test_Context* test_context)
 internal void
 test_variable_definitions_parsing(Test_Context* test_context)
 {
-    Errors errors = {0};
-    create_errors(&errors, test_context->arena);
-
     // NOTE(vlad): Variable without initialisation.
     {
-        const String_View input = string_view("foo: () -> void = { variable: s32; }");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = { variable: s32; }");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -810,26 +806,26 @@ test_variable_definitions_parsing(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     // NOTE(vlad): Variable with initialisation.
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    variable: s32 = 123;"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    variable: s32 = 123;"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -865,26 +861,26 @@ test_variable_definitions_parsing(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     // NOTE(vlad): Variable with inferred type.
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    variable := 123;"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    variable := 123;"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -919,27 +915,27 @@ test_variable_definitions_parsing(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     // NOTE(vlad): Multiple variable definitions.
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    var1 := 123;"
-                                              "    var2: String_View;"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    var1 := 123;"
+                                  "    var2: String_View;"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -987,26 +983,26 @@ test_variable_definitions_parsing(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     // NOTE(vlad): String_View initialisation.
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    var: String_View = \"Hello\";"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    var: String_View = \"Hello\";"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1042,27 +1038,27 @@ test_variable_definitions_parsing(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     // NOTE(vlad): Variable initialisation via other variable.
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    var1 := 123;"
-                                              "    var2 := var1;"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    var1 := 123;"
+                                  "    var2 := var1;"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1111,26 +1107,26 @@ test_variable_definitions_parsing(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     // NOTE(vlad): Pointer declaration.
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    pointer: * s32;"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    pointer: * s32;"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1165,26 +1161,26 @@ test_variable_definitions_parsing(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     // NOTE(vlad): Pointer to a pointer declaration.
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    pointer: ** s32;"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    pointer: ** s32;"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1221,27 +1217,27 @@ test_variable_definitions_parsing(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     // NOTE(vlad): Testing mutable variables.
     {
         {
-            const String_View input = string_view("foo: () -> void = {"
-                                                  "    variable: mutable s32;"
-                                                  "}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: () -> void = {"
+                                      "    variable: mutable s32;"
+                                      "}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1272,25 +1268,25 @@ test_variable_definitions_parsing(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
 
         {
-            const String_View input = string_view("foo: () -> void = {"
-                                                  "    pointer: mutable * s32;"
-                                                  "}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: () -> void = {"
+                                      "    pointer: mutable * s32;"
+                                      "}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1325,25 +1321,25 @@ test_variable_definitions_parsing(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
 
         {
-            const String_View input = string_view("foo: () -> void = {"
-                                                  "    pointer: mutable * mutable s32;"
-                                                  "}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: () -> void = {"
+                                      "    pointer: mutable * mutable s32;"
+                                      "}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1378,25 +1374,25 @@ test_variable_definitions_parsing(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
 
         {
-            const String_View input = string_view("foo: () -> void = {"
-                                                  "    variable: mutable _ = 123;"
-                                                  "}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: () -> void = {"
+                                      "    variable: mutable _ = 123;"
+                                      "}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1429,8 +1425,6 @@ test_variable_definitions_parsing(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
     }
 }
@@ -1438,25 +1432,24 @@ test_variable_definitions_parsing(Test_Context* test_context)
 internal void
 test_return_statement_parsing(Test_Context* test_context)
 {
-    Errors errors = {0};
-    create_errors(&errors, test_context->arena);
-
     // NOTE(vlad): Empty return statement.
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    return;"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    return;"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1483,26 +1476,26 @@ test_return_statement_parsing(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     // NOTE(vlad): Simple return statement with a number constant.
     {
-        const String_View input = string_view("foo: () -> s32 = {"
-                                              "    return 123;"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> s32 = {"
+                                  "    return 123;"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1532,33 +1525,30 @@ test_return_statement_parsing(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 }
 
 internal void
 test_if_statement_parsing(Test_Context* test_context)
 {
-    Errors errors = {0};
-    create_errors(&errors, test_context->arena);
-
     // NOTE(vlad): If without else.
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    if true { return; }"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    if true { return; }"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1595,27 +1585,27 @@ test_if_statement_parsing(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     // NOTE(vlad): If with else.
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    if true { return; }"
-                                              "    else { a := 1; }"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    if true { return; }"
+                                  "    else { a := 1; }"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1662,28 +1652,28 @@ test_if_statement_parsing(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     // NOTE(vlad): Testing chained if statements.
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    if 1 { return 1; }"
-                                              "    else if 2 { return 2; }"
-                                              "    else { return 3; }"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    if 1 { return 1; }"
+                                  "    else if 2 { return 2; }"
+                                  "    else { return 3; }"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1748,33 +1738,30 @@ test_if_statement_parsing(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 }
 
 internal void
 test_expressions(Test_Context* test_context)
 {
-    Errors errors = {0};
-    create_errors(&errors, test_context->arena);
-
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    var1 := 0;"
-                                              "    var2 := (var1);"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    var1 := 0;"
+                                  "    var2 := (var1);"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1823,27 +1810,27 @@ test_expressions(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     // NOTE(vlad): Simple expression tests.
 
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    var := 2 + 2;"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    var := 2 + 2;"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1881,25 +1868,25 @@ test_expressions(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    var := 2 - 2;"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    var := 2 - 2;"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1937,25 +1924,25 @@ test_expressions(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    var := 2 * 2;"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    var := 2 * 2;"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1993,25 +1980,25 @@ test_expressions(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    var := 2 / 2;"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    var := 2 / 2;"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2058,27 +2045,27 @@ test_expressions(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     // NOTE(vlad): Testing function call without arguments.
     {
-        const String_View input = string_view("foo: () -> s32 = { return 123; }\n"
-                                              "bar: () -> void = {"
-                                              "    var := foo();"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> s32 = { return 123; }\n"
+                                  "bar: () -> void = {"
+                                  "    var := foo();"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 2);
 
@@ -2144,27 +2131,27 @@ test_expressions(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     // NOTE(vlad): Testing function call with simple arguments.
     {
-        const String_View input = string_view("foo: (first: s32, second: s32) -> s32 = { return first + second; }\n"
-                                              "bar: () -> void = {"
-                                              "    var := foo(10, 20);"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: (first: s32, second: s32) -> s32 = { return first + second; }\n"
+                                  "bar: () -> void = {"
+                                  "    var := foo(10, 20);"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 2);
 
@@ -2217,26 +2204,26 @@ test_expressions(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     // NOTE(vlad): Testing function call with non-trivial arguments.
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    var := bar(10 + something * 30, baz(10, 20));"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    var := bar(10 + something * 30, baz(10, 20));"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2320,27 +2307,27 @@ test_expressions(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     // NOTE(vlad): Testing comparison expressions.
     {
         {
-            const String_View input = string_view("foo: () -> void = {"
-                                                  "    var := 1 == 1;"
-                                                  "}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: () -> void = {"
+                                      "    var := 1 == 1;"
+                                      "}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2383,25 +2370,25 @@ test_expressions(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
 
         {
-            const String_View input = string_view("foo: () -> void = {"
-                                                  "    var := 1 != 1;"
-                                                  "}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: () -> void = {"
+                                      "    var := 1 != 1;"
+                                      "}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2444,25 +2431,25 @@ test_expressions(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
 
         {
-            const String_View input = string_view("foo: () -> void = {"
-                                                  "    var := 1 < 1;"
-                                                  "}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: () -> void = {"
+                                      "    var := 1 < 1;"
+                                      "}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2505,25 +2492,25 @@ test_expressions(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
 
         {
-            const String_View input = string_view("foo: () -> void = {"
-                                                  "    var := 1 <= 1;"
-                                                  "}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: () -> void = {"
+                                      "    var := 1 <= 1;"
+                                      "}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2566,25 +2553,25 @@ test_expressions(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
 
         {
-            const String_View input = string_view("foo: () -> void = {"
-                                                  "    var := 1 > 1;"
-                                                  "}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: () -> void = {"
+                                      "    var := 1 > 1;"
+                                      "}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2627,25 +2614,25 @@ test_expressions(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
 
         {
-            const String_View input = string_view("foo: () -> void = {"
-                                                  "    var := 1 >= 1;"
-                                                  "}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: () -> void = {"
+                                      "    var := 1 >= 1;"
+                                      "}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2688,28 +2675,28 @@ test_expressions(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
     }
 
     // NOTE(vlad): Testing unary expressions.
     {
         {
-            const String_View input = string_view("foo: () -> void = {"
-                                                  "    var := -1;"
-                                                  "}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: () -> void = {"
+                                      "    var := -1;"
+                                      "}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2749,25 +2736,25 @@ test_expressions(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
 
         {
-            const String_View input = string_view("foo: (arg: * s32) -> void = {"
-                                                  "    var := arg* * 2;"
-                                                  "}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: (arg: * s32) -> void = {"
+                                      "    var := arg* * 2;"
+                                      "}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2826,25 +2813,25 @@ test_expressions(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
 
         {
-            const String_View input = string_view("foo: (arg: * s32) -> void = {"
-                                                  "    var := arg* + 2;"
-                                                  "}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: (arg: * s32) -> void = {"
+                                      "    var := arg* + 2;"
+                                      "}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2903,25 +2890,25 @@ test_expressions(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
 
         {
-            const String_View input = string_view("foo: (arg: * * s32) -> void = {"
-                                                  "    var := arg** * 2;"
-                                                  "}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: (arg: * * s32) -> void = {"
+                                      "    var := arg** * 2;"
+                                      "}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2989,26 +2976,26 @@ test_expressions(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
 
         // NOTE(vlad): Dereference and multiplication without delimiting spaces.
         {
-            const String_View input = string_view("foo: (arg: * * s32) -> void = {"
-                                                  "    var := arg***2;"
-                                                  "}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: (arg: * * s32) -> void = {"
+                                      "    var := arg***2;"
+                                      "}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -3076,25 +3063,25 @@ test_expressions(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
 
         {
-            const String_View input = string_view("foo: (arg: s32) -> void = {"
-                                                  "    var := arg&;"
-                                                  "}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: (arg: s32) -> void = {"
+                                      "    var := arg&;"
+                                      "}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -3140,25 +3127,25 @@ test_expressions(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
 
         {
-            const String_View input = string_view("foo: (arg: s32) -> void = {"
-                                                  "    var := arg&* * 2;"
-                                                  "}");
+            Source_File source = {0};
+            source.filename = string_view("<input>");
+            source.code = string_view("foo: (arg: s32) -> void = {"
+                                      "    var := arg&* * 2;"
+                                      "}");
 
             Compilation_Context context = {0};
             Lexer lexer = {0};
             Parser parser = {0};
 
-            create_compilation_context(&context);
-            create_lexer(&lexer, string_view("<input>"), input);
-            create_parser(&parser, &lexer, &context, &errors);
+            create_compilation_context(&context, &source);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(errors.errors_count, 0);
+            ASSERT_EQUAL(context.errors_count, 0);
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -3222,8 +3209,6 @@ test_expressions(Test_Context* test_context)
             destroy_parser(&parser);
             destroy_lexer(&lexer);
             destroy_compilation_context(&context);
-
-            clear_errors(&errors);
         }
     }
 }
@@ -3231,24 +3216,23 @@ test_expressions(Test_Context* test_context)
 internal void
 test_operator_precedence(Test_Context* test_context)
 {
-    Errors errors = {0};
-    create_errors(&errors, test_context->arena);
-
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    var := 1 + 2 * 3;"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    var := 1 + 2 * 3;"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -3298,25 +3282,25 @@ test_operator_precedence(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    var := (1 + 2) * 3;"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    var := (1 + 2) * 3;"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -3367,25 +3351,25 @@ test_operator_precedence(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    var := 3 + bar();"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    var := 3 + bar();"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -3436,33 +3420,30 @@ test_operator_precedence(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 }
 
 internal void
 test_assignments(Test_Context* test_context)
 {
-    Errors errors = {0};
-    create_errors(&errors, test_context->arena);
-
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    var := 1;"
-                                              "    var = 2;"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    var := 1;"
+                                  "    var = 2;"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -3508,26 +3489,26 @@ test_assignments(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    var := 1;"
-                                              "    var = var + 1;"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    var := 1;"
+                                  "    var = var + 1;"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -3585,36 +3566,33 @@ test_assignments(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 }
 
 internal void
 test_while_statements(Test_Context* test_context)
 {
-    Errors errors = {0};
-    create_errors(&errors, test_context->arena);
-
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    var := 10;"
-                                              "    while var != 0"
-                                              "    {"
-                                              "        var = var - 1;"
-                                              "    }"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    var := 10;"
+                                  "    while var != 0"
+                                  "    {"
+                                  "        var = var - 1;"
+                                  "    }"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -3681,32 +3659,29 @@ test_while_statements(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 }
 
 internal void
 test_call_statements(Test_Context* test_context)
 {
-    Errors errors = {0};
-    create_errors(&errors, test_context->arena);
-
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    bar(10);"
-                                              "}");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo: () -> void = {"
+                                  "    bar(10);"
+                                  "}");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_EQUAL(context.errors_count, 0);
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -3748,61 +3723,56 @@ test_call_statements(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 }
 
 internal void
 test_syntax_errors(Test_Context* test_context)
 {
-    Errors errors = {0};
-    create_errors(&errors, test_context->arena);
-
     {
-        const String_View input = string_view("");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_FALSE(parse_ast(&parser));
 
-        ASSERT_EQUAL(errors.errors_count, 1);
-        ASSERT_STRINGS_ARE_EQUAL(errors.errors[0].message, "Expected identifier, found end of file");
+        ASSERT_EQUAL(context.errors_count, 1);
+        ASSERT_STRINGS_ARE_EQUAL(context.errors[0].message, "Expected identifier, found end of file");
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 
     {
-        const String_View input = string_view("foo");
+        Source_File source = {0};
+        source.filename = string_view("<input>");
+        source.code = string_view("foo");
 
         Compilation_Context context = {0};
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_compilation_context(&context);
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, &lexer, &context, &errors);
+        create_compilation_context(&context, &source);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
         ASSERT_FALSE(parse_ast(&parser));
 
-        ASSERT_EQUAL(errors.errors_count, 1);
-        ASSERT_STRINGS_ARE_EQUAL(errors.errors[0].message, "Expected :, found end of file");
+        ASSERT_EQUAL(context.errors_count, 1);
+        ASSERT_STRINGS_ARE_EQUAL(context.errors[0].message, "Expected :, found end of file");
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-
-        clear_errors(&errors);
     }
 }
 
@@ -3820,6 +3790,5 @@ REGISTER_TESTS(
 )
 
 #include "eon_compilation_context.c"
-#include "eon_errors.c"
 #include "eon_lexer.c"
 #include "eon_parser.c"

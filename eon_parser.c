@@ -71,7 +71,7 @@ parser_fetch_token(Parser* parser)
         return true;
     }
 
-    if (!get_next_token(parser->lexer, &parser->current_token, parser->errors))
+    if (!get_next_token(parser->lexer, &parser->current_token))
     {
         return false;
     }
@@ -88,7 +88,7 @@ parser_fetch_lookahead_token(Parser* parser)
         return true;
     }
 
-    if (!get_next_token(parser->lexer, &parser->lookahead_token, parser->errors))
+    if (!get_next_token(parser->lexer, &parser->lookahead_token))
     {
         return false;
     }
@@ -111,21 +111,14 @@ parser_ensure_that_current_token_has_type(Parser* parser, const Token_Type expec
 
     if (parser->current_token.type != expected_type)
     {
-        Error error = {0};
-        error.filename = parser->current_token.filename;
-        error.line = parser->current_token.line;
-        error.column = parser->current_token.column;
-        error.highlight_length = parser->current_token.lexeme.length;
-        error.code = parser->lexer->code;
+        const Source_Location error_location = parser->current_token.location;
+        // FIXME(vlad): Move to 'eon_compilation_context.h' or something.
+        const String error_message = format_string(parser->context->error_messages_arena,
+                                                   "Expected {}, found {}",
+                                                   token_type_to_string(expected_type),
+                                                   token_type_to_string(parser->current_token.type));
 
-        // TODO(vlad): Use scratch arena instead?
-        const String message = format_string(parser->errors->errors_arena,
-                                             "Expected {}, found {}",
-                                             token_type_to_string(expected_type),
-                                             token_type_to_string(parser->current_token.type));
-        error.message = string_view(message);
-
-        add_error(parser->errors, &error);
+        emit_error(parser->context, error_location, string_view(error_message));
 
         return false;
     }
@@ -163,11 +156,9 @@ parser_fetch_and_consume_token_with_type(Parser* parser,
 }
 
 internal void
-create_parser(Parser* parser, Lexer* lexer, Compilation_Context* context, Errors* errors)
+create_parser(Parser* parser, Lexer* lexer, Compilation_Context* context)
 {
     parser->context = context;
-
-    parser->errors = errors;
 
     parser->lexer = lexer;
     parser->current_token = (Token){0};

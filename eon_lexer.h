@@ -3,7 +3,8 @@
 #include <eon/common.h>
 #include <eon/string.h>
 
-#include "eon_errors.h"
+#include "eon_forward_declarations.h"
+#include "eon_diagnostics.h"
 
 enum Token_Type
 {
@@ -43,13 +44,8 @@ typedef enum Token_Type Token_Type;
 struct Token
 {
     Token_Type type;
-
-    // TODO(vlad): Use 'Source_Location' here.
     String_View lexeme;
-
-    String_View filename;
-    Index line;
-    Index column;
+    Source_Location location;
 };
 typedef struct Token Token;
 
@@ -62,7 +58,8 @@ typedef struct Keyword Keyword;
 
 struct Lexer
 {
-    String_View filename;
+    struct Compilation_Context* context;
+
     String_View code;
 
     Index lexeme_start_index;
@@ -76,6 +73,6 @@ struct Lexer
 };
 typedef struct Lexer Lexer;
 
-internal void create_lexer(Lexer* lexer, const String_View filename, const String_View code);
-internal Bool get_next_token(Lexer* lexer, Token* token, Errors* errors);
+internal void create_lexer(Lexer* lexer, struct Compilation_Context* context);
+internal Bool get_next_token(Lexer* lexer, Token* token);
 internal void destroy_lexer(Lexer* lexer);

@@ -1,15 +1,16 @@
 #include "eon_lexer.h"
 
+#include "eon_compilation_context.h"
+
 #include <eon/io.h>
 
 #include <stdlib.h>
 
 internal void
-create_lexer(Lexer* lexer, const String_View filename, const String_View code)
+create_lexer(Lexer* lexer, Compilation_Context* context)
 {
-    lexer->filename = filename;
-    lexer->code.data = code.data;
-    lexer->code.length = code.length;
+    lexer->context = context;
+    lexer->code = context->source_file.code;
     lexer->lexeme_start_index = 0;
     lexer->current_index = 0;
     lexer->current_line = 0;
@@ -81,14 +82,17 @@ consume_current_character_if_matched(Lexer* lexer, const char expected_char)
 internal inline void
 create_token(Lexer* lexer, Token* token, const Token_Type type)
 {
+    const Size lexeme_length = lexer->current_index - lexer->lexeme_start_index;
+
     token->type = type;
     token->lexeme = (String_View) {
         .data   = lexer->code.data + lexer->lexeme_start_index,
-        .length = lexer->current_index - lexer->lexeme_start_index,
+        .length = lexeme_length,
     };
-    token->filename = lexer->filename;
-    token->line = lexer->current_line;
-    token->column = lexer->current_column - token->lexeme.length;
+    token->location.offset_in_bytes = lexer->lexeme_start_index;
+    token->location.length_in_bytes = lexeme_length;
+    token->location.line = lexer->current_line;
+    token->location.column = lexer->current_column - token->lexeme.length;
 }
 
 internal inline Bool
@@ -127,7 +131,7 @@ consume_characters_while_preciate_is_true(Lexer* lexer,
 }
 
 internal Bool
-get_next_token(Lexer* lexer, Token* token, Errors* errors)
+get_next_token(Lexer* lexer, Token* token)
 {
     if (lexer->current_index >= lexer->code.length)
     {
@@ -341,15 +345,15 @@ get_next_token(Lexer* lexer, Token* token, Errors* errors)
 
             default:
             {
-                Error error = {0};
-                error.filename = string_view("<input>");
-                error.line = lexer->current_line;
-                error.column = lexer->current_column - 1;
-                error.highlight_length = 1;
-                error.code = lexer->code;
-                error.message = string_view("Unexpected character encountered");
+                Source_Location error_location = {0};
+                error_location.offset_in_bytes = lexer->current_index;
+                error_location.length_in_bytes = 1;
+                error_location.line = lexer->current_line;
+                error_location.column = lexer->current_column - 1;
 
-                add_error(errors, &error);
+                const String_View error_message = string_view("Unexpected character encountered");
+
+                emit_error(lexer->context, error_location, error_message);
 
                 // TODO(vlad): Do we really need this?
                 lexer->lexeme_start_index = lexer->current_index;
