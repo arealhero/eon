@@ -9,8 +9,6 @@ enum Symbol_Kind
 {
     SYMBOL_UNDEFINED = 0,
 
-    SYMBOL_BUILTIN_TYPE,
-
     SYMBOL_UNKNOWN,
 
     SYMBOL_FUNCTION,
@@ -28,6 +26,7 @@ struct Symbol
 
     Type_Id type_id;
     Bool is_mutable;
+    Bool is_builtin;
 };
 typedef struct Symbol Symbol;
 

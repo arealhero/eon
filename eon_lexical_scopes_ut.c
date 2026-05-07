@@ -58,10 +58,11 @@ test_function_scopes(Test_Context* test_context)
             ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
 
             const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-            ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
+            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
+            ASSERT_TRUE(symbol->is_builtin);
         }
 
         const Lexical_Scope_Id function_scope_id = function_definition->body.lexical_scope_id;
@@ -135,10 +136,11 @@ test_function_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(parameter->type->symbol_id, symbol_id);
 
                 const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-                ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
+                ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "s32");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
+                ASSERT_TRUE(symbol->is_builtin);
             }
 
             ASSERT_EQUAL(function_type->return_type->kind, AST_TYPE_NAME);
@@ -151,10 +153,11 @@ test_function_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
 
                 const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-                ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
+                ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
+                ASSERT_TRUE(symbol->is_builtin);
             }
         }
 
@@ -242,10 +245,11 @@ test_function_scopes(Test_Context* test_context)
             ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
 
             const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-            ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
+            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
+            ASSERT_TRUE(symbol->is_builtin);
         }
 
         const Lexical_Scope_Id function_scope_id = function_definition->body.lexical_scope_id;
@@ -338,10 +342,11 @@ test_if_statements_scopes(Test_Context* test_context)
             ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
 
             const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-            ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
+            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
+            ASSERT_TRUE(symbol->is_builtin);
         }
 
         const Lexical_Scope_Id function_scope_id = function_definition->body.lexical_scope_id;
@@ -469,10 +474,11 @@ test_if_statements_scopes(Test_Context* test_context)
             ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
 
             const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-            ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
+            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
+            ASSERT_TRUE(symbol->is_builtin);
         }
 
         const Lexical_Scope_Id function_scope_id = function_definition->body.lexical_scope_id;
@@ -602,10 +608,11 @@ test_while_loops_scopes(Test_Context* test_context)
             ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
 
             const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-            ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
+            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
+            ASSERT_TRUE(symbol->is_builtin);
         }
 
         const Lexical_Scope_Id function_scope_id = function_definition->body.lexical_scope_id;
@@ -710,10 +717,11 @@ test_while_loops_scopes(Test_Context* test_context)
             ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
 
             const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-            ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
+            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
+            ASSERT_TRUE(symbol->is_builtin);
         }
 
         const Lexical_Scope_Id function_scope_id = function_definition->body.lexical_scope_id;
@@ -832,10 +840,11 @@ test_while_loops_scopes(Test_Context* test_context)
             ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
 
             const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-            ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
+            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
+            ASSERT_TRUE(symbol->is_builtin);
         }
 
         const Lexical_Scope_Id function_scope_id = function_definition->body.lexical_scope_id;
@@ -959,10 +968,11 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
                 ASSERT_EQUAL(parameter->type->symbol_id, symbol_id);
 
                 const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-                ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
+                ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "s32");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
+                ASSERT_TRUE(symbol->is_builtin);
             }
 
             ASSERT_EQUAL(function_type->return_type->kind, AST_TYPE_NAME);
@@ -975,10 +985,11 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
                 ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
 
                 const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-                ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
+                ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
+                ASSERT_TRUE(symbol->is_builtin);
             }
         }
 
@@ -1095,10 +1106,11 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
                 ASSERT_EQUAL(first_parameter->type->symbol_id, symbol_id);
 
                 const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-                ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
+                ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "s32");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
+                ASSERT_TRUE(symbol->is_builtin);
             }
 
             {
@@ -1112,10 +1124,11 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
                 ASSERT_EQUAL(second_parameter->type->symbol_id, symbol_id);
 
                 const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-                ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
+                ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "s32");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
+                ASSERT_TRUE(symbol->is_builtin);
             }
 
             ASSERT_EQUAL(function_type->return_type->kind, AST_TYPE_NAME);
@@ -1128,10 +1141,11 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
                 ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
 
                 const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-                ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
+                ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
+                ASSERT_TRUE(symbol->is_builtin);
             }
         }
 

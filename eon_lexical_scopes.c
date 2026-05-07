@@ -374,9 +374,10 @@ internal inline void
 add_builtin_type_symbol(Compilation_Context* context, const C_String name)
 {
     Symbol symbol = {0};
-    symbol.kind = SYMBOL_BUILTIN_TYPE;
+    symbol.kind = SYMBOL_TYPE;
     symbol.name = string_view(name);
     symbol.is_mutable = false;
+    symbol.is_builtin = true;
 
     const Symbol_Id symbol_id = add_symbol_to_lexical_scope(context,
                                                             GLOBAL_LEXICAL_SCOPE_ID,
