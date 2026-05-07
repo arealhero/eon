@@ -2,10 +2,23 @@
 
 #include "eon_compilation_context.h"
 
-maybe_unused internal String
-format_error_message(Arena* arena, Compilation_Context* context, const Error* error)
+internal inline String_View
+message_level_to_string(const Message_Level level)
 {
-    Index current_line_start_index = error->location.offset_in_bytes;
+    switch (level)
+    {
+        case MESSAGE_LEVEL_ERROR: return string_view("error");
+        case MESSAGE_LEVEL_NOTE: return string_view("note");
+        case MAX_MESSAGE_LEVEL: FAIL("MAX_MESSAGE_LEVEL should not be converted to string.");
+    }
+}
+
+internal String
+format_diagnostic_message(Arena* arena,
+                          Compilation_Context* context,
+                          const Diagnostic_Message* message)
+{
+    Index current_line_start_index = message->location.offset_in_bytes;
 
     while (current_line_start_index > 0)
     {
@@ -19,7 +32,7 @@ format_error_message(Arena* arena, Compilation_Context* context, const Error* er
         current_line_start_index -= 1;
     }
 
-    Index current_line_end_index = error->location.offset_in_bytes;
+    Index current_line_end_index = message->location.offset_in_bytes;
 
     while (current_line_end_index < context->source_file.code.length)
     {
@@ -39,11 +52,11 @@ format_error_message(Arena* arena, Compilation_Context* context, const Error* er
 
     String result = {0};
 
-    const Index location_length = MAX(error->location.length_in_bytes, 1);
+    const Index location_length = MAX(message->location.length_in_bytes, 1);
 
-    const String line_number_as_a_string = format_string(arena, "{}", error->location.line + 1);
+    const String line_number_as_a_string = format_string(arena, "{}", message->location.line + 1);
     const Size highlight_line_length = line_number_as_a_string.length + 3
-        + error->location.column + location_length;
+        + message->location.column + location_length;
 
     // TODO(vlad): Support multiline highlights?
 
@@ -62,7 +75,7 @@ format_error_message(Arena* arena, Compilation_Context* context, const Error* er
     highlight_line.data[next_char_index++] = '|';
 
     for (Index i = 0;
-         i < error->location.column + 1;
+         i < message->location.column + 1;
          ++i)
     {
         highlight_line.data[next_char_index++] = ' ';
@@ -78,13 +91,14 @@ format_error_message(Arena* arena, Compilation_Context* context, const Error* er
     }
 
     result = format_string(arena,
-                           "{}:{}:{}: error: {}\n"
+                           "{}:{}:{}: {}: {}\n"
                            "  {} | {}\n"
                            "  {}",
                            context->source_file.filename,
                            line_number_as_a_string,
-                           error->location.column + 1,
-                           error->message,
+                           message->location.column + 1,
+                           message_level_to_string(message->level),
+                           message->text,
                            line_number_as_a_string,
                            current_line,
                            highlight_line);

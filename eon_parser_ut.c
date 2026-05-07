@@ -15,7 +15,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -48,7 +48,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -81,7 +81,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -124,7 +124,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -160,7 +160,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -199,7 +199,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -258,7 +258,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 2);
 
@@ -320,7 +320,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -355,7 +355,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -412,7 +412,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -469,7 +469,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -526,7 +526,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -559,7 +559,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -594,7 +594,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -629,7 +629,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -664,7 +664,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -707,7 +707,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -753,7 +753,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -804,7 +804,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -855,7 +855,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -918,7 +918,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -970,7 +970,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1034,7 +1034,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1084,7 +1084,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1137,7 +1137,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1182,7 +1182,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1231,7 +1231,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1280,7 +1280,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1333,7 +1333,7 @@ test_return_statement_parsing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1375,7 +1375,7 @@ test_return_statement_parsing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1424,7 +1424,7 @@ test_if_statement_parsing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1477,7 +1477,7 @@ test_if_statement_parsing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1541,7 +1541,7 @@ test_if_statement_parsing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1625,7 +1625,7 @@ test_expressions(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1690,7 +1690,7 @@ test_expressions(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1742,7 +1742,7 @@ test_expressions(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1794,7 +1794,7 @@ test_expressions(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1846,7 +1846,7 @@ test_expressions(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1909,7 +1909,7 @@ test_expressions(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 2);
 
@@ -1991,7 +1991,7 @@ test_expressions(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 2);
 
@@ -2059,7 +2059,7 @@ test_expressions(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2159,7 +2159,7 @@ test_expressions(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2216,7 +2216,7 @@ test_expressions(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2273,7 +2273,7 @@ test_expressions(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2330,7 +2330,7 @@ test_expressions(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2387,7 +2387,7 @@ test_expressions(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2444,7 +2444,7 @@ test_expressions(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2504,7 +2504,7 @@ test_expressions(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2558,7 +2558,7 @@ test_expressions(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2631,7 +2631,7 @@ test_expressions(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2704,7 +2704,7 @@ test_expressions(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2787,7 +2787,7 @@ test_expressions(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2869,7 +2869,7 @@ test_expressions(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -2929,7 +2929,7 @@ test_expressions(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_EQUAL(context.errors_count, 0);
+            ASSERT_FALSE(has_diagnostic_messages(&context));
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -3012,7 +3012,7 @@ test_operator_precedence(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -3076,7 +3076,7 @@ test_operator_precedence(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -3141,7 +3141,7 @@ test_operator_precedence(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -3211,7 +3211,7 @@ test_assignments(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -3272,7 +3272,7 @@ test_assignments(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -3352,7 +3352,7 @@ test_while_statements(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -3437,7 +3437,7 @@ test_call_statements(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -3496,15 +3496,15 @@ test_syntax_errors(Test_Context* test_context)
 
         ASSERT_FALSE(parse_ast(&parser));
 
-        ASSERT_EQUAL(context.errors_count, 1);
-        ASSERT_STRINGS_ARE_EQUAL(context.errors[0].message, "Expected identifier, found end of file");
+        ASSERT_TRUE(has_compilation_errors(&context));
 
-        const Error* error = &context.errors[0];
-        const String_View expected_message = string_view("<test-input>:1:1: error: Expected identifier, found end of file\n"
-                                                         "  1 | \n"
-                                                         "    | ^");
-        ASSERT_STRINGS_ARE_EQUAL(format_error_message(test_context->arena, &context, error),
-                                 expected_message);
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:1:1: error: Expected identifier, found end of file\n"
+                                                        "  1 | \n"
+                                                        "    | ^");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -3522,13 +3522,15 @@ test_syntax_errors(Test_Context* test_context)
 
         ASSERT_FALSE(parse_ast(&parser));
 
-        ASSERT_EQUAL(context.errors_count, 1);
-        const Error* error = &context.errors[0];
-        const String_View expected_message = string_view("<test-input>:1:4: error: Expected ':', found end of file\n"
-                                                         "  1 | foo\n"
-                                                         "    |    ^");
-        ASSERT_STRINGS_ARE_EQUAL(format_error_message(test_context->arena, &context, error),
-                                 expected_message);
+        ASSERT_TRUE(has_compilation_errors(&context));
+
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:1:4: error: Expected ':', found end of file\n"
+                                                        "  1 | foo\n"
+                                                        "    |    ^");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -3548,15 +3550,16 @@ test_syntax_errors(Test_Context* test_context)
 
         ASSERT_FALSE(parse_ast(&parser));
 
-        ASSERT_EQUAL(context.errors_count, 1);
-        const Error* error = &context.errors[0];
+        ASSERT_TRUE(has_compilation_errors(&context));
 
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
         // TODO(vlad): Can we produce a better error message here?
-        const String_View expected_message = string_view("<test-input>:2:15: error: Expected ';', found identifier\n"
-                                                         "  2 |     var := 123a;\n"
-                                                         "    |               ^");
-        ASSERT_STRINGS_ARE_EQUAL(format_error_message(test_context->arena, &context, error),
-                                 expected_message);
+        const String_View expected_output = string_view("<test-input>:2:15: error: Expected ';', found identifier\n"
+                                                        "  2 |     var := 123a;\n"
+                                                        "    |               ^");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);

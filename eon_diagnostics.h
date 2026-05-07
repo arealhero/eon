@@ -24,11 +24,23 @@ struct Source_Location
 };
 typedef struct Source_Location Source_Location;
 
-struct Error
+enum Message_Level
 {
-    Source_Location location;
-    String_View message;
-};
-typedef struct Error Error;
+    MESSAGE_LEVEL_ERROR = 0,
+    MESSAGE_LEVEL_NOTE,
 
-maybe_unused internal String format_error_message(Arena* arena, struct Compilation_Context* context, const Error* error);
+    MAX_MESSAGE_LEVEL,
+};
+typedef enum Message_Level Message_Level;
+
+struct Diagnostic_Message
+{
+    Message_Level level;
+    Source_Location location;
+    String_View text;
+};
+typedef struct Diagnostic_Message Diagnostic_Message;
+
+maybe_unused internal String format_diagnostic_message(Arena* arena,
+                                                       struct Compilation_Context* context,
+                                                       const Diagnostic_Message* message);

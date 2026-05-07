@@ -18,17 +18,17 @@ struct Compilation_Context
 {
     struct Arena_Provider* arena_provider;
 
-    Arena* error_messages_arena;
-    Arena* errors_arena;
+    Arena* diagnostic_message_texts_arena;
+    Arena* diagnostic_messages_arena;
     Arena* ast_arena;
     Arena* lexical_scopes_arena;
     Arena* symbols_arena;
 
     Source_File source_file;
 
-    Error* errors;
-    Size errors_count;
-    Size errors_capacity;
+    Diagnostic_Message* diagnostic_messages;
+    Size diagnostic_messages_count;
+    Size diagnostic_messages_capacity;
 
     Ast ast;
 
@@ -47,9 +47,14 @@ maybe_unused internal void create_compilation_context(Compilation_Context* conte
                                                       const Source_File* source_file);
 maybe_unused internal void destroy_compilation_context(Compilation_Context* context);
 
-maybe_unused internal void emit_error(Compilation_Context* context,
-                                      const Source_Location location,
-                                      const String_View message);
+maybe_unused internal Bool has_compilation_errors(const Compilation_Context* context);
+maybe_unused internal inline Bool has_diagnostic_messages(const Compilation_Context* context);
+maybe_unused internal void emit_diagnostic_message(Compilation_Context* context, const Diagnostic_Message* message);
+
+// FIXME(vlad): Return 'Scattered_String'?
+maybe_unused internal String dump_diagnostic_messages(Arena* messages_arena,
+                                                      Compilation_Context* context,
+                                                      const Message_Level max_level);
 
 maybe_unused internal Symbol_Id create_symbol(Compilation_Context* context);
 

@@ -346,15 +346,15 @@ get_next_token(Lexer* lexer, Token* token)
 
             default:
             {
-                Source_Location error_location = {0};
-                error_location.offset_in_bytes = lexer->current_index;
-                error_location.length_in_bytes = 1;
-                error_location.line = lexer->current_line;
-                error_location.column = lexer->current_column - 1;
+                Diagnostic_Message error = {0};
+                error.level = MESSAGE_LEVEL_ERROR;
+                error.location.offset_in_bytes = lexer->current_index;
+                error.location.length_in_bytes = 1;
+                error.location.line = lexer->current_line;
+                error.location.column = lexer->current_column - 1;
+                error.text = string_view("Unexpected character encountered");
 
-                const String_View error_message = string_view("Unexpected character encountered");
-
-                emit_error(lexer->context, error_location, error_message);
+                emit_diagnostic_message(lexer->context, &error);
 
                 // TODO(vlad): Do we really need this?
                 lexer->lexeme_start_index = lexer->current_index;

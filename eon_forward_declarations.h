@@ -6,7 +6,10 @@ struct Compilation_Context;
 
 struct Symbol;
 typedef Index Symbol_Id;
-enum { INVALID_SYMBOL_ID = 0 };
+enum {
+    UNDEFINED_SYMBOL_ID = 0,
+    INVALID_SYMBOL_ID = 1,
+};
 
 struct Type;
 typedef Index Type_Id;

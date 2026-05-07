@@ -17,7 +17,7 @@ test_function_scopes(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -34,10 +34,10 @@ test_function_scopes(Test_Context* test_context)
                 const Symbol_Id symbol_id = find_symbol_id(&context,
                                                            GLOBAL_LEXICAL_SCOPE_ID,
                                                            function_definition->name.token.lexeme);
-                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
                 ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
 
-                const Symbol* symbol = &context.symbols[symbol_id];
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
                 ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -54,11 +54,11 @@ test_function_scopes(Test_Context* test_context)
             const Symbol_Id symbol_id = find_symbol_id(&context,
                                                        GLOBAL_LEXICAL_SCOPE_ID,
                                                        function_type->return_type->named_type.token.lexeme);
-            ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+            ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
             ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
 
-            const Symbol* symbol = &context.symbols[symbol_id];
-            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+            const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+            ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
@@ -90,7 +90,7 @@ test_function_scopes(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -107,10 +107,10 @@ test_function_scopes(Test_Context* test_context)
                 const Symbol_Id symbol_id = find_symbol_id(&context,
                                                            GLOBAL_LEXICAL_SCOPE_ID,
                                                            function_definition->name.token.lexeme);
-                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
                 ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
 
-                const Symbol* symbol = &context.symbols[symbol_id];
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
                 ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -131,11 +131,11 @@ test_function_scopes(Test_Context* test_context)
                 const Symbol_Id symbol_id = find_symbol_id(&context,
                                                            GLOBAL_LEXICAL_SCOPE_ID,
                                                            parameter->type->named_type.token.lexeme);
-                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
                 ASSERT_EQUAL(parameter->type->symbol_id, symbol_id);
 
-                const Symbol* symbol = &context.symbols[symbol_id];
-                ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+                ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "s32");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
@@ -147,11 +147,11 @@ test_function_scopes(Test_Context* test_context)
                 const Symbol_Id symbol_id = find_symbol_id(&context,
                                                            GLOBAL_LEXICAL_SCOPE_ID,
                                                            function_type->return_type->named_type.token.lexeme);
-                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
                 ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
 
-                const Symbol* symbol = &context.symbols[symbol_id];
-                ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+                ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
@@ -176,7 +176,7 @@ test_function_scopes(Test_Context* test_context)
             const Symbol_Id symbol_id = scope->symbol_ids[0];
             ASSERT_EQUAL(parameter->name.symbol_id, symbol_id);
 
-            const Symbol* symbol = &context.symbols[symbol_id];
+            const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
             ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -202,7 +202,7 @@ test_function_scopes(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -219,9 +219,9 @@ test_function_scopes(Test_Context* test_context)
                 const Symbol_Id symbol_id = find_symbol_id(&context,
                                                            GLOBAL_LEXICAL_SCOPE_ID,
                                                            function_definition->name.token.lexeme);
-                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
 
-                const Symbol* symbol = &context.symbols[symbol_id];
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
                 ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -238,11 +238,11 @@ test_function_scopes(Test_Context* test_context)
             const Symbol_Id symbol_id = find_symbol_id(&context,
                                                        GLOBAL_LEXICAL_SCOPE_ID,
                                                        function_type->return_type->named_type.token.lexeme);
-            ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+            ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
             ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
 
-            const Symbol* symbol = &context.symbols[symbol_id];
-            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+            const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+            ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
@@ -257,7 +257,7 @@ test_function_scopes(Test_Context* test_context)
 
         {
             const Symbol_Id symbol_id = scope->symbol_ids[0];
-            const Symbol* symbol = &context.symbols[symbol_id];
+            const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
             ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -298,7 +298,7 @@ test_if_statements_scopes(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -315,9 +315,9 @@ test_if_statements_scopes(Test_Context* test_context)
                 const Symbol_Id symbol_id = find_symbol_id(&context,
                                                            GLOBAL_LEXICAL_SCOPE_ID,
                                                            function_definition->name.token.lexeme);
-                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
 
-                const Symbol* symbol = &context.symbols[symbol_id];
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
                 ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -334,11 +334,11 @@ test_if_statements_scopes(Test_Context* test_context)
             const Symbol_Id symbol_id = find_symbol_id(&context,
                                                        GLOBAL_LEXICAL_SCOPE_ID,
                                                        function_type->return_type->named_type.token.lexeme);
-            ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+            ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
             ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
 
-            const Symbol* symbol = &context.symbols[symbol_id];
-            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+            const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+            ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
@@ -353,7 +353,7 @@ test_if_statements_scopes(Test_Context* test_context)
 
         {
             const Symbol_Id symbol_id = scope->symbol_ids[0];
-            const Symbol* symbol = &context.symbols[symbol_id];
+            const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
             ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -391,7 +391,7 @@ test_if_statements_scopes(Test_Context* test_context)
                 const Symbol_Id symbol_id = then_code_block_scope->symbol_ids[0];
                 ASSERT_EQUAL(variable_definition->name.symbol_id, symbol_id);
 
-                const Symbol* symbol = &context.symbols[symbol_id];
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
                 ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -429,7 +429,7 @@ test_if_statements_scopes(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -446,9 +446,9 @@ test_if_statements_scopes(Test_Context* test_context)
                 const Symbol_Id symbol_id = find_symbol_id(&context,
                                                            GLOBAL_LEXICAL_SCOPE_ID,
                                                            function_definition->name.token.lexeme);
-                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
 
-                const Symbol* symbol = &context.symbols[symbol_id];
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
                 ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -465,11 +465,11 @@ test_if_statements_scopes(Test_Context* test_context)
             const Symbol_Id symbol_id = find_symbol_id(&context,
                                                        GLOBAL_LEXICAL_SCOPE_ID,
                                                        function_type->return_type->named_type.token.lexeme);
-            ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+            ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
             ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
 
-            const Symbol* symbol = &context.symbols[symbol_id];
-            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+            const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+            ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
@@ -484,7 +484,7 @@ test_if_statements_scopes(Test_Context* test_context)
 
         {
             const Symbol_Id symbol_id = scope->symbol_ids[0];
-            const Symbol* symbol = &context.symbols[symbol_id];
+            const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
             ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -531,7 +531,7 @@ test_if_statements_scopes(Test_Context* test_context)
                 const Symbol_Id symbol_id = else_code_block_scope->symbol_ids[0];
                 ASSERT_EQUAL(variable_definition->name.symbol_id, symbol_id);
 
-                const Symbol* symbol = &context.symbols[symbol_id];
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
                 ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -562,7 +562,7 @@ test_while_loops_scopes(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -579,9 +579,9 @@ test_while_loops_scopes(Test_Context* test_context)
                 const Symbol_Id symbol_id = find_symbol_id(&context,
                                                            GLOBAL_LEXICAL_SCOPE_ID,
                                                            function_definition->name.token.lexeme);
-                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
 
-                const Symbol* symbol = &context.symbols[symbol_id];
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
                 ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -598,11 +598,11 @@ test_while_loops_scopes(Test_Context* test_context)
             const Symbol_Id symbol_id = find_symbol_id(&context,
                                                        GLOBAL_LEXICAL_SCOPE_ID,
                                                        function_type->return_type->named_type.token.lexeme);
-            ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+            ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
             ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
 
-            const Symbol* symbol = &context.symbols[symbol_id];
-            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+            const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+            ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
@@ -617,7 +617,7 @@ test_while_loops_scopes(Test_Context* test_context)
 
         {
             const Symbol_Id symbol_id = scope->symbol_ids[0];
-            const Symbol* symbol = &context.symbols[symbol_id];
+            const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
             ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -670,7 +670,7 @@ test_while_loops_scopes(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -687,9 +687,9 @@ test_while_loops_scopes(Test_Context* test_context)
                 const Symbol_Id symbol_id = find_symbol_id(&context,
                                                            GLOBAL_LEXICAL_SCOPE_ID,
                                                            function_definition->name.token.lexeme);
-                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
 
-                const Symbol* symbol = &context.symbols[symbol_id];
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
                 ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -706,11 +706,11 @@ test_while_loops_scopes(Test_Context* test_context)
             const Symbol_Id symbol_id = find_symbol_id(&context,
                                                        GLOBAL_LEXICAL_SCOPE_ID,
                                                        function_type->return_type->named_type.token.lexeme);
-            ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+            ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
             ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
 
-            const Symbol* symbol = &context.symbols[symbol_id];
-            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+            const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+            ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
@@ -725,7 +725,7 @@ test_while_loops_scopes(Test_Context* test_context)
 
         {
             const Symbol_Id symbol_id = scope->symbol_ids[0];
-            const Symbol* symbol = &context.symbols[symbol_id];
+            const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
             ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -763,7 +763,7 @@ test_while_loops_scopes(Test_Context* test_context)
                 const Symbol_Id symbol_id = then_code_block_scope->symbol_ids[0];
                 ASSERT_EQUAL(variable_definition->name.symbol_id, symbol_id);
 
-                const Symbol* symbol = &context.symbols[symbol_id];
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
                 ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -792,7 +792,7 @@ test_while_loops_scopes(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -809,9 +809,9 @@ test_while_loops_scopes(Test_Context* test_context)
                 const Symbol_Id symbol_id = find_symbol_id(&context,
                                                            GLOBAL_LEXICAL_SCOPE_ID,
                                                            function_definition->name.token.lexeme);
-                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
 
-                const Symbol* symbol = &context.symbols[symbol_id];
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
                 ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -828,11 +828,11 @@ test_while_loops_scopes(Test_Context* test_context)
             const Symbol_Id symbol_id = find_symbol_id(&context,
                                                        GLOBAL_LEXICAL_SCOPE_ID,
                                                        function_type->return_type->named_type.token.lexeme);
-            ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+            ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
             ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
 
-            const Symbol* symbol = &context.symbols[symbol_id];
-            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+            const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+            ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
             ASSERT_FALSE(symbol->is_mutable);
@@ -847,7 +847,7 @@ test_while_loops_scopes(Test_Context* test_context)
 
         {
             const Symbol_Id symbol_id = scope->symbol_ids[0];
-            const Symbol* symbol = &context.symbols[symbol_id];
+            const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
             ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -885,7 +885,7 @@ test_while_loops_scopes(Test_Context* test_context)
                 const Symbol_Id symbol_id = then_code_block_scope->symbol_ids[0];
                 ASSERT_EQUAL(variable_definition->name.symbol_id, symbol_id);
 
-                const Symbol* symbol = &context.symbols[symbol_id];
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
                 ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -915,7 +915,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -932,9 +932,9 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
                 const Symbol_Id symbol_id = find_symbol_id(&context,
                                                            GLOBAL_LEXICAL_SCOPE_ID,
                                                            function_definition->name.token.lexeme);
-                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
 
-                const Symbol* symbol = &context.symbols[symbol_id];
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
                 ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -955,11 +955,11 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
                 const Symbol_Id symbol_id = find_symbol_id(&context,
                                                            GLOBAL_LEXICAL_SCOPE_ID,
                                                            parameter->type->named_type.token.lexeme);
-                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
                 ASSERT_EQUAL(parameter->type->symbol_id, symbol_id);
 
-                const Symbol* symbol = &context.symbols[symbol_id];
-                ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+                ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "s32");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
@@ -971,11 +971,11 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
                 const Symbol_Id symbol_id = find_symbol_id(&context,
                                                            GLOBAL_LEXICAL_SCOPE_ID,
                                                            function_type->return_type->named_type.token.lexeme);
-                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
                 ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
 
-                const Symbol* symbol = &context.symbols[symbol_id];
-                ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+                ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
@@ -1000,7 +1000,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
             const Symbol_Id symbol_id = scope->symbol_ids[0];
             ASSERT_EQUAL(parameter->name.symbol_id, symbol_id);
 
-            const Symbol* symbol = &context.symbols[symbol_id];
+            const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
             ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -1018,7 +1018,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
             const Symbol_Id symbol_id = scope->symbol_ids[1];
             ASSERT_EQUAL(variable_definition->name.symbol_id, symbol_id);
 
-            const Symbol* symbol = &context.symbols[symbol_id];
+            const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
             ASSERT_EQUAL(symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "var");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -1051,7 +1051,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
@@ -1068,9 +1068,9 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
                 const Symbol_Id symbol_id = find_symbol_id(&context,
                                                            GLOBAL_LEXICAL_SCOPE_ID,
                                                            function_definition->name.token.lexeme);
-                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
 
-                const Symbol* symbol = &context.symbols[symbol_id];
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
                 ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -1091,11 +1091,11 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
                 const Symbol_Id symbol_id = find_symbol_id(&context,
                                                            GLOBAL_LEXICAL_SCOPE_ID,
                                                            first_parameter->type->named_type.token.lexeme);
-                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
                 ASSERT_EQUAL(first_parameter->type->symbol_id, symbol_id);
 
-                const Symbol* symbol = &context.symbols[symbol_id];
-                ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+                ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "s32");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
@@ -1108,11 +1108,11 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
                 const Symbol_Id symbol_id = find_symbol_id(&context,
                                                            GLOBAL_LEXICAL_SCOPE_ID,
                                                            second_parameter->type->named_type.token.lexeme);
-                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
                 ASSERT_EQUAL(second_parameter->type->symbol_id, symbol_id);
 
-                const Symbol* symbol = &context.symbols[symbol_id];
-                ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+                ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "s32");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
@@ -1124,11 +1124,11 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
                 const Symbol_Id symbol_id = find_symbol_id(&context,
                                                            GLOBAL_LEXICAL_SCOPE_ID,
                                                            function_type->return_type->named_type.token.lexeme);
-                ASSERT_NOT_EQUAL(symbol_id, INVALID_SYMBOL_ID);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
                 ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
 
-                const Symbol* symbol = &context.symbols[symbol_id];
-                ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+                ASSERT_EQUAL(symbol->kind, SYMBOL_BUILTIN_TYPE);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
                 ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
                 ASSERT_FALSE(symbol->is_mutable);
@@ -1147,7 +1147,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
         const Symbol_Id var_symbol_id = scope->symbol_ids[2];
 
         {
-            const Symbol* a_symbol = &context.symbols[a_symbol_id];
+            const Symbol* a_symbol = get_symbol_by_id(&context, a_symbol_id);
             ASSERT_EQUAL(a_symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(a_symbol->name, "a");
             ASSERT_EQUAL(a_symbol->type_id, INVALID_TYPE_ID);
@@ -1155,7 +1155,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
         }
 
         {
-            const Symbol* b_symbol = &context.symbols[b_symbol_id];
+            const Symbol* b_symbol = get_symbol_by_id(&context, b_symbol_id);
             ASSERT_EQUAL(b_symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(b_symbol->name, "b");
             ASSERT_EQUAL(b_symbol->type_id, INVALID_TYPE_ID);
@@ -1163,7 +1163,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
         }
 
         {
-            const Symbol* var_symbol = &context.symbols[var_symbol_id];
+            const Symbol* var_symbol = get_symbol_by_id(&context, var_symbol_id);
             ASSERT_EQUAL(var_symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(var_symbol->name, "var");
             ASSERT_EQUAL(var_symbol->type_id, INVALID_TYPE_ID);
@@ -1231,7 +1231,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 3);
 
@@ -1258,14 +1258,14 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
                                                        GLOBAL_LEXICAL_SCOPE_ID,
                                                        baz_definition->name.token.lexeme);
 
-        ASSERT_NOT_EQUAL(foo_symbol_id, INVALID_SYMBOL_ID);
-        ASSERT_NOT_EQUAL(bar_symbol_id, INVALID_SYMBOL_ID);
-        ASSERT_NOT_EQUAL(baz_symbol_id, INVALID_SYMBOL_ID);
+        ASSERT_NOT_EQUAL(foo_symbol_id, UNDEFINED_SYMBOL_ID);
+        ASSERT_NOT_EQUAL(bar_symbol_id, UNDEFINED_SYMBOL_ID);
+        ASSERT_NOT_EQUAL(baz_symbol_id, UNDEFINED_SYMBOL_ID);
 
         {
             ASSERT_EQUAL(foo_definition->name.symbol_id, foo_symbol_id);
 
-            const Symbol* symbol = &context.symbols[foo_symbol_id];
+            const Symbol* symbol = get_symbol_by_id(&context, foo_symbol_id);
             ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -1275,7 +1275,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
         {
             ASSERT_EQUAL(bar_definition->name.symbol_id, bar_symbol_id);
 
-            const Symbol* symbol = &context.symbols[bar_symbol_id];
+            const Symbol* symbol = get_symbol_by_id(&context, bar_symbol_id);
             ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "bar");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -1285,7 +1285,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
         {
             ASSERT_EQUAL(baz_definition->name.symbol_id, baz_symbol_id);
 
-            const Symbol* symbol = &context.symbols[baz_symbol_id];
+            const Symbol* symbol = get_symbol_by_id(&context, baz_symbol_id);
             ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "baz");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -1301,7 +1301,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
         const Symbol_Id var_symbol_id = scope->symbol_ids[0];
 
         {
-            const Symbol* var_symbol = &context.symbols[var_symbol_id];
+            const Symbol* var_symbol = get_symbol_by_id(&context, var_symbol_id);
             ASSERT_EQUAL(var_symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(var_symbol->name, "var");
             ASSERT_EQUAL(var_symbol->type_id, INVALID_TYPE_ID);
@@ -1352,7 +1352,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 3);
 
@@ -1379,14 +1379,14 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
                                                        GLOBAL_LEXICAL_SCOPE_ID,
                                                        baz_definition->name.token.lexeme);
 
-        ASSERT_NOT_EQUAL(foo_symbol_id, INVALID_SYMBOL_ID);
-        ASSERT_NOT_EQUAL(bar_symbol_id, INVALID_SYMBOL_ID);
-        ASSERT_NOT_EQUAL(baz_symbol_id, INVALID_SYMBOL_ID);
+        ASSERT_NOT_EQUAL(foo_symbol_id, UNDEFINED_SYMBOL_ID);
+        ASSERT_NOT_EQUAL(bar_symbol_id, UNDEFINED_SYMBOL_ID);
+        ASSERT_NOT_EQUAL(baz_symbol_id, UNDEFINED_SYMBOL_ID);
 
         {
             ASSERT_EQUAL(foo_definition->name.symbol_id, foo_symbol_id);
 
-            const Symbol* symbol = &context.symbols[foo_symbol_id];
+            const Symbol* symbol = get_symbol_by_id(&context, foo_symbol_id);
             ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -1396,7 +1396,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
         {
             ASSERT_EQUAL(bar_definition->name.symbol_id, bar_symbol_id);
 
-            const Symbol* symbol = &context.symbols[bar_symbol_id];
+            const Symbol* symbol = get_symbol_by_id(&context, bar_symbol_id);
             ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "bar");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -1406,7 +1406,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
         {
             ASSERT_EQUAL(baz_definition->name.symbol_id, baz_symbol_id);
 
-            const Symbol* symbol = &context.symbols[baz_symbol_id];
+            const Symbol* symbol = get_symbol_by_id(&context, baz_symbol_id);
             ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "baz");
             ASSERT_EQUAL(symbol->type_id, INVALID_TYPE_ID);
@@ -1422,7 +1422,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
         const Symbol_Id var_symbol_id = scope->symbol_ids[0];
 
         {
-            const Symbol* var_symbol = &context.symbols[var_symbol_id];
+            const Symbol* var_symbol = get_symbol_by_id(&context, var_symbol_id);
             ASSERT_EQUAL(var_symbol->kind, SYMBOL_VARIABLE);
             ASSERT_STRINGS_ARE_EQUAL(var_symbol->name, "var");
             ASSERT_EQUAL(var_symbol->type_id, INVALID_TYPE_ID);
@@ -1474,23 +1474,18 @@ test_uses_of_undeclared_identifiers(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
-
-        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
-
-        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
-        ASSERT_EQUAL(function_definition->body.lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         create_lexical_scopes(&context);
+        ASSERT_TRUE(has_compilation_errors(&context));
 
-        ASSERT_EQUAL(context.errors_count, 1);
-        const Error* error = &context.errors[0];
-
-        const String_View expected_message = string_view("<test-input>:2:12: error: Use of undeclared identifier 'a'\n"
-                                                         "  2 |     var := a;\n"
-                                                         "    |            ^");
-        ASSERT_STRINGS_ARE_EQUAL(format_error_message(test_context->arena, &context, error),
-                                 expected_message);
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:2:12: error: Use of undeclared identifier 'a'\n"
+                                                        "  2 |     var := a;\n"
+                                                        "    |            ^");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -1509,23 +1504,18 @@ test_uses_of_undeclared_identifiers(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
-
-        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
-
-        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
-        ASSERT_EQUAL(function_definition->body.lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         create_lexical_scopes(&context);
+        ASSERT_TRUE(has_compilation_errors(&context));
 
-        ASSERT_EQUAL(context.errors_count, 1);
-        const Error* error = &context.errors[0];
-
-        const String_View expected_message = string_view("<test-input>:2:12: error: Use of undeclared identifier 'bar'\n"
-                                                         "  2 |     var := bar();\n"
-                                                         "    |            ^~~");
-        ASSERT_STRINGS_ARE_EQUAL(format_error_message(test_context->arena, &context, error),
-                                 expected_message);
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:2:12: error: Use of undeclared identifier 'bar'\n"
+                                                        "  2 |     var := bar();\n"
+                                                        "    |            ^~~");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -1543,23 +1533,18 @@ test_uses_of_undeclared_identifiers(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
-
-        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
-
-        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
-        ASSERT_EQUAL(function_definition->body.lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         create_lexical_scopes(&context);
+        ASSERT_TRUE(has_compilation_errors(&context));
 
-        ASSERT_EQUAL(context.errors_count, 1);
-        const Error* error = &context.errors[0];
-
-        const String_View expected_message = string_view("<test-input>:1:12: error: Use of undeclared identifier 'Undeclared_Type'\n"
-                                                         "  1 | foo: () -> Undeclared_Type = {\n"
-                                                         "    |            ^~~~~~~~~~~~~~~");
-        ASSERT_STRINGS_ARE_EQUAL(format_error_message(test_context->arena, &context, error),
-                                 expected_message);
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:1:12: error: Use of undeclared identifier 'Undeclared_Type'\n"
+                                                        "  1 | foo: () -> Undeclared_Type = {\n"
+                                                        "    |            ^~~~~~~~~~~~~~~");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -1578,23 +1563,18 @@ test_uses_of_undeclared_identifiers(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
-
-        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
-
-        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
-        ASSERT_EQUAL(function_definition->body.lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         create_lexical_scopes(&context);
+        ASSERT_TRUE(has_compilation_errors(&context));
 
-        ASSERT_EQUAL(context.errors_count, 1);
-        const Error* error = &context.errors[0];
-
-        const String_View expected_message = string_view("<test-input>:2:24: error: Use of undeclared identifier 'Whatever'\n"
-                                                         "  2 |     var: * (parameter: Whatever) -> void;\n"
-                                                         "    |                        ^~~~~~~~");
-        ASSERT_STRINGS_ARE_EQUAL(format_error_message(test_context->arena, &context, error),
-                                 expected_message);
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:2:24: error: Use of undeclared identifier 'Whatever'\n"
+                                                        "  2 |     var: * (parameter: Whatever) -> void;\n"
+                                                        "    |                        ^~~~~~~~");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -1613,34 +1593,91 @@ test_uses_of_undeclared_identifiers(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_EQUAL(context.errors_count, 0);
-
-        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
-
-        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
-        ASSERT_EQUAL(function_definition->body.lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
+        ASSERT_FALSE(has_diagnostic_messages(&context));
 
         create_lexical_scopes(&context);
+        ASSERT_TRUE(has_compilation_errors(&context));
 
-        ASSERT_EQUAL(context.errors_count, 2);
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:2:10: error: Use of undeclared identifier 'Undeclared_Type'\n"
+                                                        "  2 |     var: Undeclared_Type = bar();\n"
+                                                        "    |          ^~~~~~~~~~~~~~~\n"
+                                                        "<test-input>:2:28: error: Use of undeclared identifier 'bar'\n"
+                                                        "  2 |     var: Undeclared_Type = bar();\n"
+                                                        "    |                            ^~~");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        {
-            const Error* error = &context.errors[0];
-            const String_View expected_message = string_view("<test-input>:2:10: error: Use of undeclared identifier 'Undeclared_Type'\n"
-                                                             "  2 |     var: Undeclared_Type = bar();\n"
-                                                             "    |          ^~~~~~~~~~~~~~~");
-            ASSERT_STRINGS_ARE_EQUAL(format_error_message(test_context->arena, &context, error),
-                                     expected_message);
-        }
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+}
 
-        {
-            const Error* error = &context.errors[1];
-            const String_View expected_message = string_view("<test-input>:2:28: error: Use of undeclared identifier 'bar'\n"
-                                                             "  2 |     var: Undeclared_Type = bar();\n"
-                                                             "    |                            ^~~");
-            ASSERT_STRINGS_ARE_EQUAL(format_error_message(test_context->arena, &context, error),
-                                     expected_message);
-        }
+internal void
+test_redefinitions(Test_Context* test_context)
+{
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {}\n"
+                                                 "foo: () -> void = {}\n");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_FALSE(has_diagnostic_messages(&context));
+
+        create_lexical_scopes(&context);
+        ASSERT_TRUE(has_compilation_errors(&context));
+
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:2:1: error: Redefinition of 'foo'\n"
+                                                        "  2 | foo: () -> void = {}\n"
+                                                        "    | ^~~\n"
+                                                        "<test-input>:1:1: note: Previously defined here\n"
+                                                        "  1 | foo: () -> void = {}\n"
+                                                        "    | ^~~");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    var := 10;\n"
+                                                 "    var := 20;\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_FALSE(has_diagnostic_messages(&context));
+
+        create_lexical_scopes(&context);
+        ASSERT_TRUE(has_compilation_errors(&context));
+
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:3:5: error: Redefinition of 'var'\n"
+                                                        "  3 |     var := 20;\n"
+                                                        "    |     ^~~\n"
+                                                        "<test-input>:2:5: note: Previously defined here\n"
+                                                        "  2 |     var := 10;\n"
+                                                        "    |     ^~~");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -1653,7 +1690,8 @@ REGISTER_TESTS(
     test_if_statements_scopes,
     test_while_loops_scopes,
     test_that_every_identifier_has_symbol_id_in_expressions,
-    test_uses_of_undeclared_identifiers
+    test_uses_of_undeclared_identifiers,
+    test_redefinitions
 )
 
 #include "eon_compilation_context.c"

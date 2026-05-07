@@ -111,14 +111,18 @@ parser_ensure_that_current_token_has_type(Parser* parser, const Token_Type expec
 
     if (parser->current_token.type != expected_type)
     {
-        const Source_Location error_location = parser->current_token.location;
         // FIXME(vlad): Move to 'eon_compilation_context.h' or something.
-        const String error_message = format_string(parser->context->error_messages_arena,
-                                                   "Expected {}, found {}",
-                                                   token_type_to_string(expected_type),
-                                                   token_type_to_string(parser->current_token.type));
+        const String error_message_text = format_string(parser->context->diagnostic_message_texts_arena,
+                                                        "Expected {}, found {}",
+                                                        token_type_to_string(expected_type),
+                                                        token_type_to_string(parser->current_token.type));
 
-        emit_error(parser->context, error_location, string_view(error_message));
+        Diagnostic_Message error = {0};
+        error.level = MESSAGE_LEVEL_ERROR;
+        error.location = parser->current_token.location;
+        error.text = string_view(error_message_text);
+
+        emit_diagnostic_message(parser->context, &error);
 
         return false;
     }

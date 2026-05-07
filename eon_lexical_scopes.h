@@ -9,6 +9,8 @@ enum Symbol_Kind
 {
     SYMBOL_UNDEFINED = 0,
 
+    SYMBOL_BUILTIN_TYPE,
+
     SYMBOL_UNKNOWN,
 
     SYMBOL_FUNCTION,
@@ -22,7 +24,7 @@ struct Symbol
     Symbol_Kind kind;
 
     String_View name;
-    // TODO(vlad): Add Source_Location.
+    Source_Location location;
 
     Type_Id type_id;
     Bool is_mutable;
