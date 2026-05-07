@@ -13,7 +13,10 @@ enum {
 
 struct Type;
 typedef Index Type_Id;
-enum { INVALID_TYPE_ID = 0 };
+enum {
+    UNDEFINED_TYPE_ID = 0,
+    INVALID_TYPE_ID = 1,
+};
 
 struct Lexical_Scope;
 typedef Index Lexical_Scope_Id;

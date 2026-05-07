@@ -1,6 +1,7 @@
 #include "eon_compilation_context.h"
 
 #include "eon_lexical_scopes.h"
+#include "eon_types.h"
 
 internal void
 create_compilation_context(Compilation_Context* context,
@@ -14,6 +15,8 @@ create_compilation_context(Compilation_Context* context,
     context->ast_arena = acquire_arena_from_provider(arena_provider, string_view("ast"), GiB(1), MiB(1));
     context->lexical_scopes_arena = acquire_arena_from_provider(arena_provider, string_view("lexical-scopes"), GiB(1), MiB(1));
     context->symbols_arena = acquire_arena_from_provider(arena_provider, string_view("symbols"), GiB(1), MiB(1));
+    context->types_arena = acquire_arena_from_provider(arena_provider, string_view("types"), GiB(1), MiB(1));
+    context->parameter_type_ids_arena = acquire_arena_from_provider(arena_provider, string_view("function-parameter-type-ids"), GiB(1), MiB(1));
 
     context->source_file = *source_file;
 }
@@ -34,6 +37,8 @@ destroy_compilation_context(Compilation_Context* context)
     release_arena_to_provider(context->arena_provider, context->ast_arena);
     release_arena_to_provider(context->arena_provider, context->lexical_scopes_arena);
     release_arena_to_provider(context->arena_provider, context->symbols_arena);
+    release_arena_to_provider(context->arena_provider, context->types_arena);
+    release_arena_to_provider(context->arena_provider, context->parameter_type_ids_arena);
 }
 
 internal Bool
@@ -175,7 +180,13 @@ find_symbol_id(Compilation_Context* context,
     return UNDEFINED_SYMBOL_ID;
 }
 
-internal Symbol*
+internal inline Symbol*
+get_symbol_for_identifier(Compilation_Context* context, const Ast_Identifier* identifier)
+{
+    return get_symbol_by_id(context, identifier->symbol_id);
+}
+
+internal inline Symbol*
 get_symbol_by_id(Compilation_Context* context, const Symbol_Id symbol_id)
 {
     ASSERT(symbol_id != UNDEFINED_SYMBOL_ID);
@@ -185,3 +196,47 @@ get_symbol_by_id(Compilation_Context* context, const Symbol_Id symbol_id)
     return &context->symbols[symbol_id];
 }
 
+internal Type_Id
+create_type(Compilation_Context* context)
+{
+    grow_array_if_needed(context->types_arena, context->types, Type);
+    return context->types_count++;
+}
+
+internal inline Type*
+get_type_by_id(Compilation_Context* context, const Type_Id type_id)
+{
+    ASSERT(type_id != UNDEFINED_TYPE_ID);
+    ASSERT(type_id != INVALID_TYPE_ID);
+
+    ASSERT(0 <= type_id && type_id < context->types_count);
+    return &context->types[type_id];
+}
+
+internal inline Bool
+type_is_a_root_node(Type* type)
+{
+    return type->parent_type_id == UNDEFINED_TYPE_ID;
+}
+
+internal inline Bool
+type_id_is_a_root_node(Compilation_Context* context, const Type_Id type_id)
+{
+    Type* type = get_type_by_id(context, type_id);
+    return type_is_a_root_node(type);
+}
+
+internal Type_Id
+find_root_type_id(Compilation_Context* context, const Type_Id type_id)
+{
+    Type* node = get_type_by_id(context, type_id);
+
+    if (!type_is_a_root_node(node))
+    {
+        // NOTE(vlad): Performing type compression here.
+        node->parent_type_id = find_root_type_id(context, node->parent_type_id);
+        return node->parent_type_id;
+    }
+
+    return type_id;
+}

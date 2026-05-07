@@ -24,9 +24,8 @@ struct Float_Builtin_Type
 };
 typedef struct Float_Builtin_Type Float_Builtin_Type;
 
-static Builtin_Type BUILTIN_TYPES[] = {
-    (Builtin_Type) { .name = "void" },
-};
+static Builtin_Type VOID_BUILTIN_TYPE = (Builtin_Type) { .name = "void" };
+static Builtin_Type BOOLEAN_BUILTIN_TYPE = (Builtin_Type) { .name = "bool" };
 
 static Integer_Builtin_Type INTEGER_BUILTIN_TYPES[] = {
     (Integer_Builtin_Type) { .name = "s8",  .width_in_bits = 8,  .is_signed = true },

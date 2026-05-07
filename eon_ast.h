@@ -161,7 +161,7 @@ struct Ast_Type
 
     Bool is_mutable;
 
-    Symbol_Id symbol_id;
+    Symbol_Id symbol_id; // FIXME(vlad): Move to 'named_type'?
     Type_Id type_id;
 
     union
@@ -178,7 +178,7 @@ typedef struct Ast_Type Ast_Type;
 struct Ast_Code_Block
 {
     Lexical_Scope_Id lexical_scope_id;
-    Bool every_path_returns;
+    Bool every_path_returns; // FIXME(vlad): Add 'Type_Id'.
 
     struct Ast_Statement* statements;
     Size statements_count;

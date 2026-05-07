@@ -23,6 +23,8 @@ struct Compilation_Context
     Arena* ast_arena;
     Arena* lexical_scopes_arena;
     Arena* symbols_arena;
+    Arena* types_arena;
+    Arena* parameter_type_ids_arena;
 
     Source_File source_file;
 
@@ -39,6 +41,10 @@ struct Compilation_Context
     struct Lexical_Scope* lexical_scopes;
     Size lexical_scopes_count;
     Size lexical_scopes_capacity;
+
+    struct Type* types;
+    Size types_count;
+    Size types_capacity;
 };
 typedef struct Compilation_Context Compilation_Context;
 
@@ -62,4 +68,10 @@ maybe_unused internal Symbol_Id find_symbol_id(Compilation_Context* context,
                                                Lexical_Scope_Id this_lexical_scope_id,
                                                const String_View name);
 
-maybe_unused internal struct Symbol* get_symbol_by_id(Compilation_Context* context, const Symbol_Id symbol_id);
+maybe_unused internal inline struct Symbol* get_symbol_for_identifier(Compilation_Context* context, const Ast_Identifier* identifier);
+maybe_unused internal inline struct Symbol* get_symbol_by_id(Compilation_Context* context, const Symbol_Id symbol_id);
+
+maybe_unused internal Type_Id create_type(Compilation_Context* context);
+maybe_unused internal inline struct Type* get_type_by_id(Compilation_Context* context, const Type_Id type_id);
+maybe_unused internal inline Bool type_id_is_a_root_node(Compilation_Context* context, const Type_Id type_id);
+maybe_unused internal Type_Id find_root_type_id(Compilation_Context* context, const Type_Id type_id);

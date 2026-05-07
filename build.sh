@@ -82,15 +82,16 @@ compile_and_run_unit_test()
 
 compile_and_run_unit_test eon/memory_ut.c
 compile_and_run_unit_test eon/string_ut.c
-# compile_and_run_unit_test eon_interpreter_ut.c
 compile_and_run_unit_test eon_lexer_ut.c
 compile_and_run_unit_test eon_parser_ut.c
 compile_and_run_unit_test eon_lexical_scopes_ut.c
+compile_and_run_unit_test eon_types_ut.c
 
 compile_and_run_unit_test eon/sanitizers/asan_ut.c -fsanitize=address -fsanitize-recover=address
 
 exit 0
 
+compile_and_run_unit_test eon_interpreter_ut.c
 compile_and_run_unit_test eon_semantics_ut.c
 compile_and_run_unit_test eon_tac_ut.c
 
