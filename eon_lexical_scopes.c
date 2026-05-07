@@ -26,6 +26,8 @@ add_symbol_to_lexical_scope(Compilation_Context* context,
 {
     ASSERT(0 <= lexical_scope_index && lexical_scope_index < context->lexical_scopes_count);
 
+    // TODO(vlad): Forbid shadowing.
+
     Lexical_Scope* lexical_scope = &context->lexical_scopes[lexical_scope_index];
 
     for (Index symbol_id_index = 0;
