@@ -909,6 +909,389 @@ test_while_loops_scopes(Test_Context* test_context)
 }
 
 internal void
+test_basic_control_flow_analysis(Test_Context* test_context)
+{
+    // NOTE(vlad): Testing function without statements.
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_FALSE(has_diagnostic_messages(&context));
+
+        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+        ASSERT_EQUAL(function_definition->body.lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
+
+        create_lexical_scopes(&context);
+
+        {
+            const Lexical_Scope* global_scope = &context.lexical_scopes[GLOBAL_LEXICAL_SCOPE_ID];
+            ASSERT_EQUAL(global_scope->parent_lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
+
+            {
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           function_definition->name.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
+
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+                ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
+                ASSERT_EQUAL(symbol->type_id, UNDEFINED_TYPE_ID);
+                ASSERT_FALSE(symbol->is_mutable);
+            }
+        }
+
+        {
+            ASSERT_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            const Ast_Function_Type* function_type = &function_definition->type->function;
+
+            ASSERT_EQUAL(function_type->return_type->kind, AST_TYPE_NAME);
+
+            const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       function_type->return_type->named_type.token.lexeme);
+            ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
+            ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
+
+            const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+            ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
+            ASSERT_EQUAL(symbol->type_id, UNDEFINED_TYPE_ID);
+            ASSERT_FALSE(symbol->is_mutable);
+            ASSERT_TRUE(symbol->is_builtin);
+
+            const Ast_Code_Block* body = &function_definition->body;
+            ASSERT_FALSE(body->every_path_returns);
+        }
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    // NOTE(vlad): Testing function with return statement.
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    return;"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_FALSE(has_diagnostic_messages(&context));
+
+        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+        ASSERT_EQUAL(function_definition->body.lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
+
+        create_lexical_scopes(&context);
+
+        {
+            const Lexical_Scope* global_scope = &context.lexical_scopes[GLOBAL_LEXICAL_SCOPE_ID];
+            ASSERT_EQUAL(global_scope->parent_lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
+
+            {
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           function_definition->name.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
+
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+                ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
+                ASSERT_EQUAL(symbol->type_id, UNDEFINED_TYPE_ID);
+                ASSERT_FALSE(symbol->is_mutable);
+            }
+        }
+
+        {
+            ASSERT_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            const Ast_Function_Type* function_type = &function_definition->type->function;
+
+            ASSERT_EQUAL(function_type->return_type->kind, AST_TYPE_NAME);
+
+            const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       function_type->return_type->named_type.token.lexeme);
+            ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
+            ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
+
+            const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+            ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
+            ASSERT_EQUAL(symbol->type_id, UNDEFINED_TYPE_ID);
+            ASSERT_FALSE(symbol->is_mutable);
+            ASSERT_TRUE(symbol->is_builtin);
+
+            const Ast_Code_Block* body = &function_definition->body;
+            ASSERT_TRUE(body->every_path_returns);
+        }
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    // NOTE(vlad): Testing 'if' statement without 'else' branch.
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    if 2 == 2 {"
+                                                 "        return;"
+                                                 "    }"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_FALSE(has_diagnostic_messages(&context));
+
+        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+        ASSERT_EQUAL(function_definition->body.lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
+
+        create_lexical_scopes(&context);
+
+        {
+            const Lexical_Scope* global_scope = &context.lexical_scopes[GLOBAL_LEXICAL_SCOPE_ID];
+            ASSERT_EQUAL(global_scope->parent_lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
+
+            {
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           function_definition->name.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
+
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+                ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
+                ASSERT_EQUAL(symbol->type_id, UNDEFINED_TYPE_ID);
+                ASSERT_FALSE(symbol->is_mutable);
+            }
+        }
+
+        {
+            ASSERT_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            const Ast_Function_Type* function_type = &function_definition->type->function;
+
+            ASSERT_EQUAL(function_type->return_type->kind, AST_TYPE_NAME);
+
+            const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       function_type->return_type->named_type.token.lexeme);
+            ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
+            ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
+
+            const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+            ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
+            ASSERT_EQUAL(symbol->type_id, UNDEFINED_TYPE_ID);
+            ASSERT_FALSE(symbol->is_mutable);
+            ASSERT_TRUE(symbol->is_builtin);
+
+            const Ast_Code_Block* body = &function_definition->body;
+            ASSERT_FALSE(body->every_path_returns);
+
+            ASSERT_EQUAL(body->statements_count, 1);
+            const Ast_Statement* statement = &body->statements[0];
+            ASSERT_EQUAL(statement->type, AST_STATEMENT_IF);
+
+            const Ast_If_Statement* if_statement = &statement->if_statement;
+            ASSERT_TRUE(if_statement->if_statements.every_path_returns);
+            ASSERT_FALSE(if_statement->else_statements.every_path_returns);
+        }
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    // NOTE(vlad): Testing 'if' statement with 'else' branch.
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    if 2 == 2 {"
+                                                 "        return;"
+                                                 "    } else {"
+                                                 "        return;"
+                                                 "    }"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_FALSE(has_diagnostic_messages(&context));
+
+        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+        ASSERT_EQUAL(function_definition->body.lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
+
+        create_lexical_scopes(&context);
+
+        {
+            const Lexical_Scope* global_scope = &context.lexical_scopes[GLOBAL_LEXICAL_SCOPE_ID];
+            ASSERT_EQUAL(global_scope->parent_lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
+
+            {
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           function_definition->name.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
+
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+                ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
+                ASSERT_EQUAL(symbol->type_id, UNDEFINED_TYPE_ID);
+                ASSERT_FALSE(symbol->is_mutable);
+            }
+        }
+
+        {
+            ASSERT_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            const Ast_Function_Type* function_type = &function_definition->type->function;
+
+            ASSERT_EQUAL(function_type->return_type->kind, AST_TYPE_NAME);
+
+            const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       function_type->return_type->named_type.token.lexeme);
+            ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
+            ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
+
+            const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+            ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
+            ASSERT_EQUAL(symbol->type_id, UNDEFINED_TYPE_ID);
+            ASSERT_FALSE(symbol->is_mutable);
+            ASSERT_TRUE(symbol->is_builtin);
+
+            const Ast_Code_Block* body = &function_definition->body;
+            ASSERT_TRUE(body->every_path_returns);
+
+            ASSERT_EQUAL(body->statements_count, 1);
+            const Ast_Statement* statement = &body->statements[0];
+            ASSERT_EQUAL(statement->type, AST_STATEMENT_IF);
+
+            const Ast_If_Statement* if_statement = &statement->if_statement;
+            ASSERT_TRUE(if_statement->if_statements.every_path_returns);
+            ASSERT_TRUE(if_statement->else_statements.every_path_returns);
+        }
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    // NOTE(vlad): Testing 'if' statement inside the 'while' loop.
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    while 1 == 1 {"
+                                                 "        if 2 != 3 { return; }"
+                                                 "    }"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_FALSE(has_diagnostic_messages(&context));
+
+        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+        ASSERT_EQUAL(function_definition->body.lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
+
+        create_lexical_scopes(&context);
+
+        {
+            const Lexical_Scope* global_scope = &context.lexical_scopes[GLOBAL_LEXICAL_SCOPE_ID];
+            ASSERT_EQUAL(global_scope->parent_lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
+
+            {
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           function_definition->name.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
+
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+                ASSERT_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
+                ASSERT_EQUAL(symbol->type_id, UNDEFINED_TYPE_ID);
+                ASSERT_FALSE(symbol->is_mutable);
+            }
+        }
+
+        {
+            ASSERT_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            const Ast_Function_Type* function_type = &function_definition->type->function;
+
+            ASSERT_EQUAL(function_type->return_type->kind, AST_TYPE_NAME);
+
+            const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       function_type->return_type->named_type.token.lexeme);
+            ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
+            ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
+
+            const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+            ASSERT_EQUAL(symbol->kind, SYMBOL_TYPE);
+            ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
+            ASSERT_EQUAL(symbol->type_id, UNDEFINED_TYPE_ID);
+            ASSERT_FALSE(symbol->is_mutable);
+            ASSERT_TRUE(symbol->is_builtin);
+
+            const Ast_Code_Block* body = &function_definition->body;
+            ASSERT_FALSE(body->every_path_returns);
+
+            ASSERT_EQUAL(body->statements_count, 1);
+            const Ast_Statement* statement = &body->statements[0];
+            ASSERT_EQUAL(statement->type, AST_STATEMENT_WHILE);
+
+            const Ast_While_Statement* while_statement = &statement->while_statement;
+            const Ast_Code_Block* while_body = &while_statement->body;
+            ASSERT_FALSE(while_body->every_path_returns);
+
+            ASSERT_EQUAL(while_body->statements_count, 1);
+            const Ast_Statement* statement_in_while_body = &while_body->statements[0];
+            ASSERT_EQUAL(statement_in_while_body->type, AST_STATEMENT_IF);
+
+            const Ast_If_Statement* if_statement = &statement_in_while_body->if_statement;
+            ASSERT_TRUE(if_statement->if_statements.every_path_returns);
+            ASSERT_FALSE(if_statement->else_statements.every_path_returns);
+        }
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+}
+
+internal void
 test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_context)
 {
     // NOTE(vlad): Testing function parameters.
@@ -1703,6 +2086,7 @@ REGISTER_TESTS(
     test_function_scopes,
     test_if_statements_scopes,
     test_while_loops_scopes,
+    test_basic_control_flow_analysis,
     test_that_every_identifier_has_symbol_id_in_expressions,
     test_uses_of_undeclared_identifiers,
     test_redefinitions

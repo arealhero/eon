@@ -327,6 +327,8 @@ create_lexical_scopes_for_code_block(Compilation_Context* context, Ast_Code_Bloc
                                                                  &return_statement->expression,
                                                                  this_lexical_scope_id);
                 }
+
+                code_block->every_path_returns = true;
             } break;
 
             case AST_STATEMENT_WHILE:
@@ -340,6 +342,8 @@ create_lexical_scopes_for_code_block(Compilation_Context* context, Ast_Code_Bloc
                 body->lexical_scope_id = new_scope_id;
 
                 create_lexical_scopes_for_code_block(context, body);
+
+                code_block->every_path_returns = body->every_path_returns;
             } break;
 
             case AST_STATEMENT_IF:
@@ -359,6 +363,8 @@ create_lexical_scopes_for_code_block(Compilation_Context* context, Ast_Code_Bloc
                 else_code_block->lexical_scope_id = else_scope_id;
 
                 create_lexical_scopes_for_code_block(context, else_code_block);
+
+                code_block->every_path_returns = then_code_block->every_path_returns && else_code_block->every_path_returns;
             } break;
 
             case AST_STATEMENT_CALL:
