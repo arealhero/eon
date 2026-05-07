@@ -44,10 +44,6 @@ platform_commit_memory(Byte* pointer, Size number_of_bytes)
 internal Bool
 platform_decommit_memory(Byte* pointer, Size number_of_bytes)
 {
-    println("Decommitting {} bytes ({} pages)",
-            number_of_bytes,
-            number_of_bytes / platform_get_page_size());
-
     // NOTE(vlad): 'posix_madvise' and 'mprotect' may fail if address is not a multiple
     //             of the page size as returned by 'sysconf()'.
     ASSERT((Size)pointer % platform_get_page_size() == 0);
