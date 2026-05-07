@@ -198,6 +198,8 @@ parse_type(Parser* parser, Ast_Type* type)
         return false;
     }
 
+    type->location = parser->current_token.location;
+
     if (parser->current_token.type == TOKEN_MUTABLE)
     {
         type->is_mutable = true;
@@ -227,6 +229,10 @@ parse_type(Parser* parser, Ast_Type* type)
         {
             type->kind = AST_TYPE_NAME;
             type->named_type.token = parser->current_token;
+
+            const Source_Location end_location = parser->current_token.location;
+            extend_location(&type->location, &end_location);
+
             parser_consume_token(parser);
             return true;
         } break;
@@ -291,7 +297,19 @@ parse_function_type(Parser* parser, Ast_Type* type)
 {
     type->kind = AST_TYPE_FUNCTION;
 
-    if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_LEFT_PAREN))
+    if (!parser_fetch_token(parser))
+    {
+        return false;
+    }
+
+    if (type->location.offset_in_bytes == 0)
+    {
+        // TODO(vlad): Zeroth offset can _in theory_ be a valid location.
+        //             Rewrite this condition.
+        type->location = parser->current_token.location;
+    }
+
+    if (!parser_try_to_consume_token_with_type(parser, TOKEN_LEFT_PAREN))
     {
         return false;
     }
@@ -321,7 +339,14 @@ parse_function_type(Parser* parser, Ast_Type* type)
     }
 
     type->function.return_type = allocate(parser->context->ast_arena, Ast_Type);
-    return parse_type(parser, type->function.return_type);
+
+    if (!parse_type(parser, type->function.return_type))
+    {
+        return false;
+    }
+
+    extend_location(&type->location, &type->function.return_type->location);
+    return true;
 }
 
 internal Bool
@@ -335,7 +360,13 @@ parse_pointer_type(Parser* parser, Ast_Type* type)
     }
 
     type->pointer.pointed_to = allocate(parser->context->ast_arena, Ast_Type);
-    return parse_type(parser, type->pointer.pointed_to);
+    if (!parse_type(parser, type->pointer.pointed_to))
+    {
+        return false;
+    }
+
+    extend_location(&type->location, &type->pointer.pointed_to->location);
+    return true;
 }
 
 internal Bool parse_expression(Parser* parser, Ast_Expression* expression);

@@ -13,6 +13,24 @@ message_level_to_string(const Message_Level level)
     }
 }
 
+internal inline String_View
+source_location_to_string(struct Compilation_Context* context,
+                          const Source_Location* location)
+{
+    return (String_View) {
+        .data = context->source_file.code.data + location->offset_in_bytes,
+        .length = location->length_in_bytes,
+    };
+}
+
+internal inline void
+extend_location(Source_Location* location, const Source_Location* to_location)
+{
+    location->length_in_bytes = to_location->offset_in_bytes
+        + to_location->length_in_bytes
+        - location->offset_in_bytes;
+}
+
 internal String
 format_diagnostic_message(Arena* arena,
                           Compilation_Context* context,

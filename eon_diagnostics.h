@@ -41,6 +41,9 @@ struct Diagnostic_Message
 };
 typedef struct Diagnostic_Message Diagnostic_Message;
 
+maybe_unused internal inline String_View source_location_to_string(struct Compilation_Context* context,
+                                                                   const Source_Location* location);
+maybe_unused internal inline void extend_location(Source_Location* location, const Source_Location* to_location);
 maybe_unused internal String format_diagnostic_message(Arena* arena,
                                                        struct Compilation_Context* context,
                                                        const Diagnostic_Message* message);

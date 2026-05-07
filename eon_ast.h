@@ -159,6 +159,8 @@ struct Ast_Type
 {
     Ast_Type_Kind kind;
 
+    Source_Location location;
+
     Bool is_mutable;
 
     Symbol_Id symbol_id; // FIXME(vlad): Move to 'named_type'?
