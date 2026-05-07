@@ -178,7 +178,9 @@ typedef struct Ast_Type Ast_Type;
 struct Ast_Code_Block
 {
     Lexical_Scope_Id lexical_scope_id;
-    Bool every_path_returns; // FIXME(vlad): Add 'Type_Id'.
+
+    Type_Id return_type_id;
+    Bool every_path_returns;
 
     struct Ast_Statement* statements;
     Size statements_count;

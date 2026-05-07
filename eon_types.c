@@ -3,6 +3,16 @@
 #include "eon_builtin_types.h"
 #include "eon_lexical_scopes.h"
 
+internal inline Type_Id
+get_void_type_id(Compilation_Context* context)
+{
+    const Symbol_Id void_symbol_id = find_symbol_id(context,
+                                                    GLOBAL_LEXICAL_SCOPE_ID,
+                                                    string_view(VOID_BUILTIN_TYPE.name));
+    const Symbol* void_symbol = get_symbol_by_id(context, void_symbol_id);
+    return void_symbol->type_id;
+}
+
 internal Type_Id
 create_new_type_variable(Compilation_Context* context)
 {
@@ -143,14 +153,52 @@ try_to_unify_types(Compilation_Context* context,
         return false;
     }
 
-    if (lhs_root_type->kind == TYPE_POINTER)
+    switch (lhs_root_type->kind)
     {
-        return try_to_unify_types(context,
-                                  lhs_root_type->pointer_info.points_to_type_id,
-                                  rhs_root_type->pointer_info.points_to_type_id);
-    }
+        case TYPE_UNDEFINED:
+        {
+            UNREACHABLE();
+        } break;
 
-    // XXX(vlad): Should we check specific info?
+        case TYPE_VOID:
+        {
+            return true;
+        } break;
+
+        case TYPE_VARIABLE:
+        {
+            // NOTE(vlad): Type variables were handled earlier in this function.
+            UNREACHABLE();
+        } break;
+
+        case TYPE_INTEGER:
+        {
+            return lhs_root_type->integer_info.is_signed == rhs_root_type->integer_info.is_signed
+                && lhs_root_type->integer_info.width_in_bits == rhs_root_type->integer_info.width_in_bits;
+        } break;
+
+        case TYPE_FLOAT:
+        {
+            return lhs_root_type->float_info.width_in_bits == rhs_root_type->float_info.width_in_bits;
+        } break;
+
+        case TYPE_BOOLEAN:
+        {
+            return true;
+        } break;
+
+        case TYPE_POINTER:
+        {
+            return try_to_unify_types(context,
+                                      lhs_root_type->pointer_info.points_to_type_id,
+                                      rhs_root_type->pointer_info.points_to_type_id);
+        } break;
+
+        case TYPE_FUNCTION:
+        {
+            FAIL("[TYPE] Function types unification is not supported yet");
+        } break;
+    }
 
     return true;
 }
@@ -319,64 +367,88 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
     }
 }
 
-internal Bool
-resolve_types_in_statement(Compilation_Context* context, Ast_Statement* statement)
+internal void
+resolve_types_in_code_block(Compilation_Context* context, Ast_Code_Block* code_block)
 {
-    switch (statement->type)
+    for (Index statement_index = 0;
+         statement_index < code_block->statements_count;
+         ++statement_index)
     {
-        case AST_STATEMENT_UNDEFINED:
-        {
-            UNREACHABLE();
-        } break;
+        Ast_Statement* statement = &code_block->statements[statement_index];
 
-        case AST_STATEMENT_VARIABLE_DEFINITION:
+        switch (statement->type)
         {
-            Ast_Variable_Definition* definition = &statement->variable_definition;
-            Symbol* variable_symbol = get_symbol_for_identifier(context, &definition->name);
-            variable_symbol->type_id = resolve_type_by_ast_type(context, definition->type);
-
-            if (definition->has_initial_value)
+            case AST_STATEMENT_UNDEFINED:
             {
-                const Type_Id initial_value_type_id = resolve_types_in_expression(context,
-                                                                                  &definition->initial_value);
-                ASSERT(try_to_unify_types(context, variable_symbol->type_id, initial_value_type_id));
-            }
-            else
+                UNREACHABLE();
+            } break;
+
+            case AST_STATEMENT_VARIABLE_DEFINITION:
             {
-                Type* type = get_type_by_id(context, variable_symbol->type_id);
-                ASSERT(type->kind != TYPE_VARIABLE);
-            }
+                Ast_Variable_Definition* definition = &statement->variable_definition;
+                Symbol* variable_symbol = get_symbol_for_identifier(context, &definition->name);
+                variable_symbol->type_id = resolve_type_by_ast_type(context, definition->type);
 
-            return true;
-        } break;
+                if (definition->has_initial_value)
+                {
+                    const Type_Id initial_value_type_id = resolve_types_in_expression(context,
+                                                                                      &definition->initial_value);
+                    ASSERT(try_to_unify_types(context, variable_symbol->type_id, initial_value_type_id));
+                }
+                else
+                {
+                    Type* type = get_type_by_id(context, variable_symbol->type_id);
+                    ASSERT(type->kind != TYPE_VARIABLE);
+                }
+            } break;
 
-        case AST_STATEMENT_ASSIGNMENT:
-        {
-            FAIL("[TYPE] Assignments are not yet supported");
-        } break;
+            case AST_STATEMENT_ASSIGNMENT:
+            {
+                FAIL("[TYPE] Assignments are not yet supported");
+            } break;
 
-        case AST_STATEMENT_RETURN:
-        {
-            FAIL("[TYPE] Return statements are not yet supported");
-        } break;
+            case AST_STATEMENT_RETURN:
+            {
+                Ast_Return_Statement* return_statement = &statement->return_statement;
 
-        case AST_STATEMENT_WHILE:
-        {
-            FAIL("[TYPE] While loops are not yet supported");
-        } break;
+                Type_Id return_type_id = UNDEFINED_TYPE_ID;
+                if (return_statement->is_empty)
+                {
+                    return_type_id = get_void_type_id(context);
+                }
+                else
+                {
+                    return_type_id = resolve_types_in_expression(context, &return_statement->expression);
+                }
 
-        case AST_STATEMENT_IF:
-        {
-            FAIL("[TYPE] If statements are not yet supported");
-        } break;
+                if (code_block->return_type_id == UNDEFINED_TYPE_ID)
+                {
+                    code_block->return_type_id = return_type_id;
+                }
+                else
+                {
+                    ASSERT(try_to_unify_types(context, code_block->return_type_id, return_type_id));
+                }
 
-        case AST_STATEMENT_CALL:
-        {
-            FAIL("[TYPE] Call statements are not yet supported");
-        } break;
+                code_block->every_path_returns = true;
+            } break;
+
+            case AST_STATEMENT_WHILE:
+            {
+                FAIL("[TYPE] While loops are not yet supported");
+            } break;
+
+            case AST_STATEMENT_IF:
+            {
+                FAIL("[TYPE] If statements are not yet supported");
+            } break;
+
+            case AST_STATEMENT_CALL:
+            {
+                FAIL("[TYPE] Call statements are not yet supported");
+            } break;
+        }
     }
-
-    UNREACHABLE();
 }
 
 internal Bool
@@ -400,12 +472,27 @@ resolve_and_validate_types(Compilation_Context* context)
         bind_type_id_to_a_symbol(context, function_definition->name.symbol_id, function_type_id);
 
         Ast_Code_Block* body = &function_definition->body;
-        for (Index statement_index = 0;
-             statement_index < body->statements_count;
-             ++statement_index)
+        resolve_types_in_code_block(context, body);
+
+        const Type_Id void_type_id = get_void_type_id(context);
+        const Type_Id expected_return_type_id = function_definition->type->function.return_type->type_id;
+
+        if (body->return_type_id == UNDEFINED_TYPE_ID)
         {
-            Ast_Statement* statement = &body->statements[statement_index];
-            resolve_types_in_statement(context, statement);
+            body->return_type_id = void_type_id;
+            body->every_path_returns = true;
+        }
+
+        if (!try_to_unify_types(context,
+                                body->return_type_id,
+                                expected_return_type_id))
+        {
+            FAIL("[TYPE] Return types mismatch");
+        }
+
+        if (expected_return_type_id != void_type_id && !body->every_path_returns)
+        {
+            FAIL("[TYPE] Non-void function does not return a value in all control paths");
         }
     }
 
