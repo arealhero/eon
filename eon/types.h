@@ -2,56 +2,67 @@
 
 #include <eon/build_info.h>
 
-// NOTE(vlad): Defining unsigned integer types.
+#if COMPILER_MSVC
+typedef unsigned __int8  u8;
+typedef unsigned __int16 u16;
+typedef unsigned __int32 u32;
+typedef unsigned __int64 u64;
 
-#if defined(__UINT8_TYPE__)
+typedef signed __int8  s8;
+typedef signed __int16 s16;
+typedef signed __int32 s32;
+typedef signed __int64 s64;
+#else
+
+#    if defined(__UINT8_TYPE__)
 typedef __UINT8_TYPE__ u8;
-#else
-#    error __UINT8_TYPE__ is not defined.
-#endif
+#    else
+#        error __UINT8_TYPE__ is not defined.
+#    endif
 
-#if defined(__UINT16_TYPE__)
+#    if defined(__UINT16_TYPE__)
 typedef __UINT16_TYPE__ u16;
-#else
-#    error __UINT16_TYPE__ is not defined.
-#endif
+#    else
+#        error __UINT16_TYPE__ is not defined.
+#    endif
 
-#if defined(__UINT32_TYPE__)
+#    if defined(__UINT32_TYPE__)
 typedef __UINT32_TYPE__ u32;
-#else
-#    error __UINT32_TYPE__ is not defined.
-#endif
+#    else
+#        error __UINT32_TYPE__ is not defined.
+#    endif
 
-#if defined(__UINT64_TYPE__)
+#    if defined(__UINT64_TYPE__)
 typedef __UINT64_TYPE__ u64;
-#else
-#    error __UINT64_TYPE__ is not defined.
-#endif
+#    else
+#        error __UINT64_TYPE__ is not defined.
+#    endif
 
 // NOTE(vlad): Defining signed integer types.
 
-#if defined(__INT8_TYPE__)
+#    if defined(__INT8_TYPE__)
 typedef __INT8_TYPE__ s8;
-#else
-#    error __INT8_TYPE__ is not defined.
-#endif
+#    else
+#        error __INT8_TYPE__ is not defined.
+#    endif
 
-#if defined(__INT16_TYPE__)
+#    if defined(__INT16_TYPE__)
 typedef __INT16_TYPE__ s16;
-#else
-#    error __INT16_TYPE__ is not defined.
-#endif
+#    else
+#        error __INT16_TYPE__ is not defined.
+#    endif
 
-#if defined(__INT32_TYPE__)
+#    if defined(__INT32_TYPE__)
 typedef __INT32_TYPE__ s32;
-#else
-#    error __INT32_TYPE__ is not defined.
-#endif
+#    else
+#        error __INT32_TYPE__ is not defined.
+#    endif
 
-#if defined(__INT64_TYPE__)
+#    if defined(__INT64_TYPE__)
 typedef __INT64_TYPE__ s64;
-#else
-#    error __INT64_TYPE__ is not defined.
+#    else
+#        error __INT64_TYPE__ is not defined.
+#    endif
 #endif
 
 // NOTE(vlad): Defining floating-point types.
@@ -59,12 +70,16 @@ typedef __INT64_TYPE__ s64;
 // FIXME(vlad): Ensure that f32 and f64 conforms to IEEE 754.
 #if defined(__SIZEOF_FLOAT__)
 #    if __SIZEOF_FLOAT__ == 4
-typedef float  f32;
+typedef float f32;
 #    else
 #        error Failed to define "f32": __SIZEOF_FLOAT__ != 4.
 #    endif
 #else
-#    error Failed to define "f32": __SIZEOF_FLOAT__ is not defined.
+#    if COMPILER_MSVC
+typedef float f32;
+#    else
+#        error Failed to define "f32": __SIZEOF_FLOAT__ is not defined.
+#    endif
 #endif
 
 #if defined(__SIZEOF_DOUBLE__)
@@ -74,7 +89,11 @@ typedef double f64;
 #        error Failed to define "f64": __SIZEOF_DOUBLE__ != 8.
 #    endif
 #else
-#    error Failed to define "f64": __SIZEOF_DOUBLE__ is not defined.
+#    if COMPILER_MSVC
+typedef double f64;
+#    else
+#        error Failed to define "f64": __SIZEOF_DOUBLE__ is not defined.
+#    endif
 #endif
 
 // NOTE(vlad): Defining memory-related types.
@@ -104,7 +123,18 @@ typedef u64 USize;
                  u64: (u64)0xFFFFFFFFFFFFFFFF   \
              )
 
-#define MIN_VALUE(Integer_Type) (Integer_Type)~(MAX_VALUE(Integer_Type))
+#define MIN_VALUE(Integer_Type)                 \
+    _Generic((Integer_Type)0,                   \
+                 s8: (s8)0x80,                  \
+                 s16: (s16)0x8000,              \
+                 s32: (s32)0x80000000,          \
+                 s64: (s64)0x8000000000000000,  \
+                                                \
+                 u8: (u8)0,                     \
+                 u16: (u16)0,                   \
+                 u32: (u32)0,                   \
+                 u64: (u64)0                    \
+             )
 
 typedef Size Index;
 

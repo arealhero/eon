@@ -6,9 +6,10 @@
 internal inline Type_Id
 get_void_type_id(Compilation_Context* context)
 {
+    const Builtin_Type void_builtin_type = VOID_BUILTIN_TYPE;
     const Symbol_Id void_symbol_id = find_symbol_id(context,
                                                     GLOBAL_LEXICAL_SCOPE_ID,
-                                                    string_view(VOID_BUILTIN_TYPE.name));
+                                                    string_view(void_builtin_type.name));
     const Symbol* void_symbol = get_symbol_by_id(context, void_symbol_id);
     return void_symbol->type_id;
 }
@@ -70,7 +71,8 @@ create_builtin_types(Compilation_Context* context)
         Type* void_type = get_type_by_id(context, void_type_id);
         void_type->kind = TYPE_VOID;
 
-        bind_type_id_to_a_builtin_symbol(context, VOID_BUILTIN_TYPE.name, void_type_id);
+        const Builtin_Type void_builtin_type = VOID_BUILTIN_TYPE;
+        bind_type_id_to_a_builtin_symbol(context, void_builtin_type.name, void_type_id);
     }
 
     {
@@ -80,14 +82,16 @@ create_builtin_types(Compilation_Context* context)
         Type* bool_type = get_type_by_id(context, bool_type_id);
         bool_type->kind = TYPE_BOOLEAN;
 
-        bind_type_id_to_a_builtin_symbol(context, BOOLEAN_BUILTIN_TYPE.name, bool_type_id);
+        const Builtin_Type boolean_builtin_type = BOOLEAN_BUILTIN_TYPE;
+        bind_type_id_to_a_builtin_symbol(context, boolean_builtin_type.name, bool_type_id);
     }
 
+    const Integer_Builtin_Type integer_builtin_types[] = INTEGER_BUILTIN_TYPES;
     for (Index i = 0;
-         i < NUMBER_OF_STATIC_ARRAY_ELEMENTS(INTEGER_BUILTIN_TYPES);
+         i < NUMBER_OF_STATIC_ARRAY_ELEMENTS(integer_builtin_types);
          ++i)
     {
-        const Integer_Builtin_Type* builtin_type = &INTEGER_BUILTIN_TYPES[i];
+        const Integer_Builtin_Type* builtin_type = &integer_builtin_types[i];
 
         const Type_Id integer_type_id = create_type(context);
         ASSERT(integer_type_id != UNDEFINED_TYPE_ID && integer_type_id != INVALID_TYPE_ID);
@@ -100,11 +104,12 @@ create_builtin_types(Compilation_Context* context)
         bind_type_id_to_a_builtin_symbol(context, builtin_type->name, integer_type_id);
     }
 
+    const Float_Builtin_Type float_builtin_types[] = FLOAT_BUILTIN_TYPES;
     for (Index i = 0;
-         i < NUMBER_OF_STATIC_ARRAY_ELEMENTS(FLOAT_BUILTIN_TYPES);
+         i < NUMBER_OF_STATIC_ARRAY_ELEMENTS(float_builtin_types);
          ++i)
     {
-        const Float_Builtin_Type* builtin_type = &FLOAT_BUILTIN_TYPES[i];
+        const Float_Builtin_Type* builtin_type = &float_builtin_types[i];
 
         const Type_Id float_type_id = create_type(context);
         ASSERT(float_type_id != UNDEFINED_TYPE_ID && float_type_id != INVALID_TYPE_ID);
@@ -150,7 +155,6 @@ try_to_unify_types(Compilation_Context* context,
     if (lhs_root_type->kind != rhs_root_type->kind)
     {
         FAIL("Failed to unify types");
-        return false;
     }
 
     switch (lhs_root_type->kind)
@@ -282,6 +286,8 @@ resolve_type_by_ast_type(Compilation_Context* context,
             return type_id;
         } break;
     }
+
+    UNREACHABLE();
 }
 
 internal Type_Id
@@ -365,6 +371,8 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
             FAIL("[TYPE] Calls are not supported yet");
         } break;
     }
+
+    UNREACHABLE();
 }
 
 internal void

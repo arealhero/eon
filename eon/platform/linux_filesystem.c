@@ -62,36 +62,3 @@ platform_read_entire_text_file(Arena* arena, const String_View filename)
     return result;
 }
 
-internal File_Info
-platform_get_file_info(Arena* scratch_arena, const String_View filename)
-{
-    char* zero_terminated_filename = allocate_uninitialized_array(scratch_arena, filename.length + 1, char);
-    copy_memory(as_bytes(zero_terminated_filename),
-                as_bytes(filename.data),
-                filename.length);
-    zero_terminated_filename[filename.length] = '\0';
-
-    File_Info info = {0};
-
-    if (access(zero_terminated_filename, F_OK) == 0)
-    {
-        info.exists = true;
-    }
-
-    if (access(zero_terminated_filename, R_OK) == 0)
-    {
-        info.readable = true;
-    }
-
-    if (access(zero_terminated_filename, W_OK) == 0)
-    {
-        info.writeable = true;
-    }
-
-    if (access(zero_terminated_filename, X_OK) == 0)
-    {
-        info.executable = true;
-    }
-
-    return info;
-}

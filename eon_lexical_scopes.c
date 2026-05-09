@@ -403,22 +403,27 @@ create_lexical_scopes(Compilation_Context* context)
         const Symbol_Id invalid_symbol_id = create_symbol(context);
         ASSERT(invalid_symbol_id == INVALID_SYMBOL_ID);
 
-        add_builtin_type_symbol(context, VOID_BUILTIN_TYPE.name);
-        add_builtin_type_symbol(context, BOOLEAN_BUILTIN_TYPE.name);
+        const Builtin_Type void_builtin_type = VOID_BUILTIN_TYPE;
+        add_builtin_type_symbol(context, void_builtin_type.name);
 
+        const Builtin_Type boolean_builtin_type = BOOLEAN_BUILTIN_TYPE;
+        add_builtin_type_symbol(context, boolean_builtin_type.name);
+
+        const Integer_Builtin_Type integer_builtin_types[] = INTEGER_BUILTIN_TYPES;
         for (Index i = 0;
-             i < NUMBER_OF_STATIC_ARRAY_ELEMENTS(INTEGER_BUILTIN_TYPES);
+             i < NUMBER_OF_STATIC_ARRAY_ELEMENTS(integer_builtin_types);
              ++i)
         {
-            const Integer_Builtin_Type* type = &INTEGER_BUILTIN_TYPES[i];
+            const Integer_Builtin_Type* type = &integer_builtin_types[i];
             add_builtin_type_symbol(context, type->name);
         }
 
+        const Float_Builtin_Type float_builtin_types[] = FLOAT_BUILTIN_TYPES;
         for (Index i = 0;
-             i < NUMBER_OF_STATIC_ARRAY_ELEMENTS(FLOAT_BUILTIN_TYPES);
+             i < NUMBER_OF_STATIC_ARRAY_ELEMENTS(float_builtin_types);
              ++i)
         {
-            const Float_Builtin_Type* type = &FLOAT_BUILTIN_TYPES[i];
+            const Float_Builtin_Type* type = &float_builtin_types[i];
             add_builtin_type_symbol(context, type->name);
         }
     }

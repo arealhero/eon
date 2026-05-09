@@ -17,24 +17,26 @@ platform_get_page_size(void)
 internal Byte*
 platform_reserve_memory(const Size number_of_bytes)
 {
-    return VirtualAlloc(NULL, number_of_bytes, MEM_RESERVE, PAGE_READWRITE);
+    return VirtualAlloc(NULL, (USize)number_of_bytes, MEM_RESERVE, PAGE_READWRITE);
 }
 
 internal Bool
 platform_commit_memory(Byte* pointer, Size number_of_bytes)
 {
-    const Byte* result = VirtualAlloc(pointer, number_of_bytes, MEM_COMMIT, PAGE_READWRITE);
+    const Byte* result = VirtualAlloc(pointer, (USize)number_of_bytes, MEM_COMMIT, PAGE_READWRITE);
     return result != NULL;
 }
 
 internal Bool
 platform_decommit_memory(Byte* pointer, Size number_of_bytes)
 {
-    return VirtualFree(pointer, number_of_bytes, MEM_DECOMMIT);
+    return VirtualFree(pointer, (USize)number_of_bytes, MEM_DECOMMIT);
 }
 
 internal Bool
 platform_release_memory(Byte* pointer, Size number_of_bytes)
 {
-    return VirtualFree(pointer, number_of_bytes, MEM_RELEASE);
+    return VirtualFree(pointer, (USize)number_of_bytes, MEM_RELEASE);
 }
+
+#include "win32_restore_hacks.h" // IWYU pragma: export

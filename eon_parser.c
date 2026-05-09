@@ -60,6 +60,8 @@ token_type_to_string(const Token_Type type)
         ADD_TOKEN(TOKEN_EOF, "end of file");
     }
 #undef ADD_TOKEN
+
+    UNREACHABLE();
 }
 
 internal Bool

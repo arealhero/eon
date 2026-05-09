@@ -1,11 +1,10 @@
 #include "io.h"
 
+#include <eon/platform/io.h>
+
 #include <eon/memory.h>
 #include <eon/platform/memory.h>
 #include <eon/sanitizers/asan.h>
-
-#include <stdlib.h> // NOTE(vlad): For 'atexit'.
-#include <unistd.h> // NOTE(vlad): For 'write'.
 
 #define STDOUT_BUFFER_SIZE KiB(4)
 
@@ -40,27 +39,6 @@ init_io_state(const Size initial_arena_size)
     platform_commit_memory(global_io_state.stdout_buffer, STDOUT_BUFFER_SIZE);
 
     atexit(deinit_io_state);
-}
-
-internal void
-write_data_to_stdout(const Byte* data, const Size data_size)
-{
-    if (data_size == 0)
-    {
-        return;
-    }
-
-    Size written_bytes_count = 0;
-
-    while (written_bytes_count != data_size)
-    {
-        written_bytes_count = write(STDOUT_FD, data, (USize)data_size);
-        if (written_bytes_count == -1)
-        {
-            // NOTE(vlad): Is there something better we can do here?
-            return;
-        }
-    }
 }
 
 internal void

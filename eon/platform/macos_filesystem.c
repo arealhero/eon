@@ -59,36 +59,6 @@ platform_read_entire_text_file(Arena* arena, const String_View filename)
     return result;
 }
 
-internal File_Info
-platform_get_file_info(Arena* scratch_arena, const String_View filename)
-{
-    const char* zero_terminated_filename = to_c_string(scratch_arena, filename);
-
-    File_Info info = {0};
-
-    if (access(zero_terminated_filename, F_OK) == 0)
-    {
-        info.exists = true;
-    }
-
-    if (access(zero_terminated_filename, R_OK) == 0)
-    {
-        info.readable = true;
-    }
-
-    if (access(zero_terminated_filename, W_OK) == 0)
-    {
-        info.writeable = true;
-    }
-
-    if (access(zero_terminated_filename, X_OK) == 0)
-    {
-        info.executable = true;
-    }
-
-    return info;
-}
-
 internal void
 platform_write_string_to_file(Arena* scratch_arena,
                               const String_View filename,

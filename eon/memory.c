@@ -255,10 +255,7 @@ arena_clear(Arena* arena)
     //
     //             Also we need to think about this situation when we will implement growable arenas.
     //             @tag(asan) @tag(growable-arena)
-
-    return;
-#endif
-
+#else
     const Size page_size = platform_get_page_size();
 
     ASSERT(arena->committed_memory_offset % page_size == 0);
@@ -271,6 +268,7 @@ arena_clear(Arena* arena)
 
     arena->committed_memory_offset = page_size;
     arena->free_memory_offset = ARENA_HEADER_SIZE;
+#endif
 }
 
 maybe_unused internal Byte*

@@ -4,10 +4,51 @@
 #    define EON_DISABLE_ASSERTS 0
 #endif
 
+#include <eon/build_info.h>
 #include <eon/common.h>
 #include <eon/io.h>
 #include <eon/keywords.h>
 #include <eon/macros.h>
+
+#if COMPILER_MSVC
+#    define DEBUGTRAP() __debugbreak()
+#elif defined(__has_builtin) && __has_builtin(__builtin_debugtrap)
+#    define DEBUGTRAP() __builtin_debugtrap()
+#elif COMPILER_GCC || COMPILER_CLANG
+#    if ARCH_X86 || ARCH_X86_64
+#        define DEBUGTRAP() __asm__ volatile("int3")
+#    else
+#        error Failed to define 'DEBUGTRAP()'.
+#     endif
+#else
+#    error Failed to define 'DEBUGTRAP()'.
+#endif
+
+#if COMPILER_MSVC
+#    if ARCH_X86
+#        define TRAP() __asm { ud2 }
+#    elif ARCH_X86_64
+#        include <eon/platform/win32_hacks.h>
+#        include <windows.h>
+internal inline void
+TRAP(void)
+{
+    static unsigned char code[] = { 0x0F, 0x0B, 0xC3 }; /* ud2; ret */
+    DWORD dummy;
+    VirtualProtect(code, sizeof(code), PAGE_EXECUTE_READWRITE, &dummy);
+    ((void(*)(void))code)();
+}
+#        include <eon/platform/win32_restore_hacks.h> // IWYU pragma: export
+#    else
+#        error Failed to define 'TRAP()': unknown architecture.
+#    endif
+#elif defined(__has_builtin) && __has_builtin(__builtin_trap)
+#    define TRAP() __builtin_trap()
+#elif COMPILER_GCC || COMPILER_CLANG
+#    define TRAP() __asm__ volatile("ud2")
+#else
+#    error Failed to define 'TRAP()'.
+#endif
 
 noreturn internal inline void
 INTERNAL_exit(const String_View message)
@@ -18,11 +59,11 @@ INTERNAL_exit(const String_View message)
 
     // TODO(vlad): Print backtrace?
     // TODO(vlad): Use trap in debug builds only and 'quick_exit()' in release builds?
-    __builtin_debugtrap();
+    DEBUGTRAP();
 
     // NOTE(vlad): GCC will emit an implicit call to `abort()` here.
     //             @tag(libc)
-    __builtin_trap();
+    TRAP();
 }
 #define FAIL(message) INTERNAL_exit(string_view(message))
 #define UNREACHABLE() FAIL("This should be unreachable")

@@ -21,17 +21,7 @@ struct Read_File_Result
 };
 typedef struct Read_File_Result Read_File_Result;
 
-struct File_Info
-{
-    Bool exists;
-    Bool readable;
-    Bool writeable;
-    Bool executable;
-};
-typedef struct File_Info File_Info;
-
 maybe_unused internal Read_File_Result platform_read_entire_text_file(Arena* arena, const String_View filename);
-maybe_unused internal File_Info platform_get_file_info(Arena* scratch_arena, const String_View filename);
 
 maybe_unused internal void platform_write_string_to_file(Arena* scratch_arena,
                                                          const String_View filename,
@@ -41,6 +31,8 @@ maybe_unused internal void platform_write_string_to_file(Arena* scratch_arena,
 #    include "linux_filesystem.c"
 #elif OS_MAC
 #    include "macos_filesystem.c"
+#elif OS_WINDOWS
+#    include "win32_filesystem.c"
 #else
 #    error This OS is not supported yet.
 #endif

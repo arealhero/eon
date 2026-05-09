@@ -13,6 +13,8 @@ internal Timestamp platform_get_current_monotonic_timestamp(void);
 #    include "linux_time.c"
 #elif OS_MAC
 #    include "macos_time.c"
+#elif OS_WINDOWS
+#    include "win32_time.c"
 #else
 #    error This OS is not supported yet.
 #endif

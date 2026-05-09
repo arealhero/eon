@@ -1,6 +1,32 @@
 #include "grammar_parser.h"
 
-#include "grammar_log.h"
+internal inline String_View
+token_type_to_string(const Token_Type type)
+{
+#define ADD_TOKEN(type, string) case type: return string_view(string)
+    switch (type)
+    {
+        case TOKEN_UNDEFINED:
+        {
+            UNREACHABLE();
+        } break;
+
+        ADD_TOKEN(TOKEN_TERMINAL, "terminal");
+        ADD_TOKEN(TOKEN_NON_TERMINAL, "non-terminal");
+
+        ADD_TOKEN(TOKEN_COLON, "':'");
+        ADD_TOKEN(TOKEN_OR, "'|'");
+        ADD_TOKEN(TOKEN_SEMICOLON, "';'");
+        ADD_TOKEN(TOKEN_EPS, "'EPS'");
+        ADD_TOKEN(TOKEN_EOF, "'EOF'");
+        ADD_TOKEN(TOKEN_ANY, "'ANY'");
+
+        ADD_TOKEN(TOKEN_END, "end of file");
+    }
+#undef ADD_TOKEN
+
+    UNREACHABLE();
+}
 
 internal Bool
 parser_get_next_token(Arena* scratch, Parser* parser)
@@ -55,8 +81,9 @@ parser_get_and_consume_token_with_type(Arena* scratch,
         return true;
     }
 
-    println("Parser error: Expected type {}, found {}",
-            expected_type, parser->current_token.type);
+    println("Parser error: Expected {}, found {}",
+            token_type_to_string(expected_type),
+            token_type_to_string(parser->current_token.type));
 
     return false;
 }
@@ -151,8 +178,8 @@ parse_identifier_expressions(Arena* arena,
             ASSERT(0 && "Unreachable");
         }
 
-        println("Parser error: Token with unexpected type {} encountered while parsing a production rule",
-                parser->current_token.type);
+        println("Parser error: Unexpected {} encountered while parsing a production rule",
+                token_type_to_string(parser->current_token.type));
 
         return false;
     }

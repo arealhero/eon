@@ -23,14 +23,14 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location), "() -> Bool");
 
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "Bool");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "Bool");
@@ -58,14 +58,14 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location), "() -> void");
 
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -93,7 +93,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "(argument: s32) -> void");
@@ -104,7 +104,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(parameter->name.token.lexeme, "argument");
 
         const Ast_Type* parameter_type = parameter->type;
-        ASSERT_EQUAL(parameter_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(parameter_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(parameter_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(parameter_type->named_type.token.lexeme, "s32");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &parameter_type->location), "s32");
@@ -112,7 +112,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_FALSE(parameter->has_default_value);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -140,7 +140,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> () -> void");
@@ -148,11 +148,11 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "() -> void");
         ASSERT_EQUAL(return_type->function.parameters_count, 0);
-        ASSERT_EQUAL(return_type->function.return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->function.return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->function.return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->function.return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->function.return_type->location),
@@ -181,7 +181,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> * () -> void");
@@ -189,16 +189,16 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_POINTER);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_POINTER);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location),
                                  "* () -> void");
-        ASSERT_EQUAL(return_type->pointer.pointed_to->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->pointer.pointed_to->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(return_type->pointer.pointed_to->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->pointer.pointed_to->location),
                                  "() -> void");
         ASSERT_EQUAL(return_type->pointer.pointed_to->function.parameters_count, 0);
-        ASSERT_EQUAL(return_type->pointer.pointed_to->function.return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->pointer.pointed_to->function.return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->pointer.pointed_to->function.return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context,
                                                            &return_type->pointer.pointed_to->function.return_type->location),
@@ -229,7 +229,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "(first: s32, second: Some_Type) -> void");
@@ -241,7 +241,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(first_parameter->name.token.lexeme, "first");
 
             const Ast_Type* first_parameter_type = first_parameter->type;
-            ASSERT_EQUAL(first_parameter_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_parameter_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(first_parameter_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(first_parameter_type->named_type.token.lexeme, "s32");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &first_parameter_type->location), "s32");
@@ -254,7 +254,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(second_parameter->name.token.lexeme, "second");
 
             const Ast_Type* second_parameter_type = second_parameter->type;
-            ASSERT_EQUAL(second_parameter_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_parameter_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(second_parameter_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(second_parameter_type->named_type.token.lexeme, "Some_Type");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &second_parameter_type->location), "Some_Type");
@@ -263,7 +263,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         }
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -294,14 +294,14 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location), "() -> void");
 
             ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -312,7 +312,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "bar");
 
             const Ast_Type* function_type = definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "(arg: Type) -> Other_Type");
@@ -323,7 +323,7 @@ test_function_definitions_parsing(Test_Context* test_context)
                 const Ast_Function_Parameter* parameter = &function_type->function.parameters[0];
                 ASSERT_STRINGS_ARE_EQUAL(parameter->name.token.lexeme, "arg");
 
-                ASSERT_EQUAL(parameter->type->kind, AST_TYPE_NAME);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(parameter->type->kind, AST_TYPE_NAME);
                 ASSERT_FALSE(parameter->type->is_mutable);
                 ASSERT_STRINGS_ARE_EQUAL(parameter->type->named_type.token.lexeme, "Type");
                 ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &parameter->type->location), "Type");
@@ -332,7 +332,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             }
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "Other_Type");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "Other_Type");
@@ -361,14 +361,14 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location), "() -> f32");
 
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "f32");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "f32");
@@ -398,7 +398,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "(first: mutable s32, second: Some_Type) -> void");
@@ -410,7 +410,7 @@ test_function_definitions_parsing(Test_Context* test_context)
                 ASSERT_STRINGS_ARE_EQUAL(first_parameter->name.token.lexeme, "first");
 
                 const Ast_Type* first_parameter_type = first_parameter->type;
-                ASSERT_EQUAL(first_parameter_type->kind, AST_TYPE_NAME);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(first_parameter_type->kind, AST_TYPE_NAME);
                 ASSERT_TRUE(first_parameter_type->is_mutable);
                 ASSERT_STRINGS_ARE_EQUAL(first_parameter_type->named_type.token.lexeme, "s32");
                 ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &first_parameter_type->location),
@@ -424,7 +424,7 @@ test_function_definitions_parsing(Test_Context* test_context)
                 ASSERT_STRINGS_ARE_EQUAL(second_parameter->name.token.lexeme, "second");
 
                 const Ast_Type* second_parameter_type = second_parameter->type;
-                ASSERT_EQUAL(second_parameter_type->kind, AST_TYPE_NAME);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(second_parameter_type->kind, AST_TYPE_NAME);
                 ASSERT_FALSE(second_parameter_type->is_mutable);
                 ASSERT_STRINGS_ARE_EQUAL(second_parameter_type->named_type.token.lexeme, "Some_Type");
                 ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &second_parameter_type->location),
@@ -434,7 +434,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             }
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location),
@@ -463,7 +463,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "(first: s32, second: mutable Some_Type) -> void");
@@ -475,7 +475,7 @@ test_function_definitions_parsing(Test_Context* test_context)
                 ASSERT_STRINGS_ARE_EQUAL(first_parameter->name.token.lexeme, "first");
 
                 const Ast_Type* first_parameter_type = first_parameter->type;
-                ASSERT_EQUAL(first_parameter_type->kind, AST_TYPE_NAME);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(first_parameter_type->kind, AST_TYPE_NAME);
                 ASSERT_FALSE(first_parameter_type->is_mutable);
                 ASSERT_STRINGS_ARE_EQUAL(first_parameter_type->named_type.token.lexeme, "s32");
                 ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &first_parameter_type->location), "s32");
@@ -488,7 +488,7 @@ test_function_definitions_parsing(Test_Context* test_context)
                 ASSERT_STRINGS_ARE_EQUAL(second_parameter->name.token.lexeme, "second");
 
                 const Ast_Type* second_parameter_type = second_parameter->type;
-                ASSERT_EQUAL(second_parameter_type->kind, AST_TYPE_NAME);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(second_parameter_type->kind, AST_TYPE_NAME);
                 ASSERT_TRUE(second_parameter_type->is_mutable);
                 ASSERT_STRINGS_ARE_EQUAL(second_parameter_type->named_type.token.lexeme, "Some_Type");
                 ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &second_parameter_type->location),
@@ -498,7 +498,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             }
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -526,7 +526,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "(first: mutable s32, second: mutable Some_Type) -> void");
@@ -538,7 +538,7 @@ test_function_definitions_parsing(Test_Context* test_context)
                 ASSERT_STRINGS_ARE_EQUAL(first_parameter->name.token.lexeme, "first");
 
                 const Ast_Type* first_parameter_type = first_parameter->type;
-                ASSERT_EQUAL(first_parameter_type->kind, AST_TYPE_NAME);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(first_parameter_type->kind, AST_TYPE_NAME);
                 ASSERT_TRUE(first_parameter_type->is_mutable);
                 ASSERT_STRINGS_ARE_EQUAL(first_parameter_type->named_type.token.lexeme, "s32");
                 ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &first_parameter_type->location),
@@ -552,7 +552,7 @@ test_function_definitions_parsing(Test_Context* test_context)
                 ASSERT_STRINGS_ARE_EQUAL(second_parameter->name.token.lexeme, "second");
 
                 const Ast_Type* second_parameter_type = second_parameter->type;
-                ASSERT_EQUAL(second_parameter_type->kind, AST_TYPE_NAME);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(second_parameter_type->kind, AST_TYPE_NAME);
                 ASSERT_TRUE(second_parameter_type->is_mutable);
                 ASSERT_STRINGS_ARE_EQUAL(second_parameter_type->named_type.token.lexeme, "Some_Type");
                 ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &second_parameter_type->location),
@@ -562,7 +562,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             }
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location),
@@ -591,7 +591,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "() -> mutable f32");
@@ -599,7 +599,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_TRUE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "f32");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location),
@@ -628,7 +628,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "() -> mutable * f32");
@@ -636,11 +636,11 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_POINTER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_POINTER);
             ASSERT_TRUE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location),
                                      "mutable * f32");
-            ASSERT_EQUAL(return_type->pointer.pointed_to->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->pointer.pointed_to->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->pointer.pointed_to->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->pointer.pointed_to->named_type.token.lexeme, "f32");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->pointer.pointed_to->location),
@@ -669,7 +669,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "() -> * mutable f32");
@@ -677,11 +677,11 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_POINTER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_POINTER);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location),
                                      "* mutable f32");
-            ASSERT_EQUAL(return_type->pointer.pointed_to->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->pointer.pointed_to->kind, AST_TYPE_NAME);
             ASSERT_TRUE(return_type->pointer.pointed_to->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->pointer.pointed_to->named_type.token.lexeme, "f32");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->pointer.pointed_to->location),
@@ -710,7 +710,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "() -> mutable * mutable f32");
@@ -718,11 +718,11 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_POINTER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_POINTER);
             ASSERT_TRUE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location),
                                      "mutable * mutable f32");
-            ASSERT_EQUAL(return_type->pointer.pointed_to->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->pointer.pointed_to->kind, AST_TYPE_NAME);
             ASSERT_TRUE(return_type->pointer.pointed_to->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->pointer.pointed_to->named_type.token.lexeme, "f32");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->pointer.pointed_to->location),
@@ -751,7 +751,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "() -> mutable * () -> void");
@@ -759,16 +759,16 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_POINTER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_POINTER);
             ASSERT_TRUE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location),
                                      "mutable * () -> void");
-            ASSERT_EQUAL(return_type->pointer.pointed_to->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->pointer.pointed_to->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(return_type->pointer.pointed_to->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->pointer.pointed_to->location),
                                      "() -> void");
             ASSERT_EQUAL(return_type->pointer.pointed_to->function.parameters_count, 0);
-            ASSERT_EQUAL(return_type->pointer.pointed_to->function.return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->pointer.pointed_to->function.return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->pointer.pointed_to->function.return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context,
                                                                &return_type->pointer.pointed_to->function.return_type->location),
@@ -804,7 +804,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -812,7 +812,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -820,11 +820,11 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &definition->body.statements[0];
-        ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
         ASSERT_STRINGS_ARE_EQUAL(statement->variable_definition.name.token.lexeme, "variable");
 
         const Ast_Type* variable_type = statement->variable_definition.type;
-        ASSERT_EQUAL(variable_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(variable_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(variable_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(variable_type->named_type.token.lexeme, "s32");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &variable_type->location), "s32");
@@ -856,7 +856,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = function_definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -864,7 +864,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -872,17 +872,17 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "variable");
-        ASSERT_EQUAL(definition->type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(definition->type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(definition->type->named_type.token.lexeme, "s32");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "s32");
 
         ASSERT_TRUE(definition->has_initial_value);
-        ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.number.token.lexeme, "123");
 
         destroy_parser(&parser);
@@ -911,7 +911,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = function_definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -919,7 +919,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -927,16 +927,16 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "variable");
-        ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
         ASSERT_FALSE(definition->type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
 
         ASSERT_TRUE(definition->has_initial_value);
-        ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.number.token.lexeme, "123");
 
         destroy_parser(&parser);
@@ -966,7 +966,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = function_definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -974,7 +974,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -983,25 +983,25 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var1");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.number.token.lexeme, "123");
         }
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[1];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var2");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(definition->type->named_type.token.lexeme, "String_View");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "String_View");
@@ -1034,7 +1034,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = function_definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -1042,7 +1042,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -1050,16 +1050,16 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-        ASSERT_EQUAL(definition->type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(definition->type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(definition->type->named_type.token.lexeme, "String_View");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "String_View");
         ASSERT_TRUE(definition->has_initial_value);
-        ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_STRING_LITERAL);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_STRING_LITERAL);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.string_literal.value, "Hello");
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.string_literal.token.lexeme, "\"Hello\"");
 
@@ -1090,7 +1090,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = function_definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -1098,7 +1098,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -1107,29 +1107,29 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var1");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.number.token.lexeme, "123");
         }
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[1];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var2");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_IDENTIFIER);
             ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.identifier.token.lexeme, "var1");
         }
 
@@ -1159,7 +1159,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = function_definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -1167,7 +1167,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -1175,16 +1175,16 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "pointer");
-        ASSERT_EQUAL(definition->type->kind, AST_TYPE_POINTER);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_POINTER);
         ASSERT_FALSE(definition->type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "* s32");
 
         const Ast_Type* pointed_to_type = definition->type->pointer.pointed_to;
-        ASSERT_EQUAL(pointed_to_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(pointed_to_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(pointed_to_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(pointed_to_type->named_type.token.lexeme, "s32");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &pointed_to_type->location), "s32");
@@ -1216,7 +1216,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = function_definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -1224,7 +1224,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -1232,18 +1232,18 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "pointer");
-        ASSERT_EQUAL(definition->type->kind, AST_TYPE_POINTER);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_POINTER);
         ASSERT_FALSE(definition->type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "** s32");
-        ASSERT_EQUAL(definition->type->pointer.pointed_to->kind, AST_TYPE_POINTER);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->pointer.pointed_to->kind, AST_TYPE_POINTER);
         ASSERT_FALSE(definition->type->pointer.pointed_to->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->pointer.pointed_to->location),
                                  "* s32");
-        ASSERT_EQUAL(definition->type->pointer.pointed_to->pointer.pointed_to->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->pointer.pointed_to->pointer.pointed_to->kind, AST_TYPE_NAME);
         ASSERT_FALSE(definition->type->pointer.pointed_to->pointer.pointed_to->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(definition->type->pointer.pointed_to->pointer.pointed_to->named_type.token.lexeme, "s32");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context,
@@ -1278,7 +1278,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "() -> void");
@@ -1286,7 +1286,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -1294,12 +1294,12 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             ASSERT_STRINGS_ARE_EQUAL(statement->variable_definition.name.token.lexeme, "variable");
 
             const Ast_Type* variable_type = statement->variable_definition.type;
-            ASSERT_EQUAL(variable_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(variable_type->kind, AST_TYPE_NAME);
             ASSERT_TRUE(variable_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(variable_type->named_type.token.lexeme, "s32");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &variable_type->location), "mutable s32");
@@ -1330,7 +1330,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = function_definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "() -> void");
@@ -1338,7 +1338,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -1346,15 +1346,15 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "pointer");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_POINTER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_POINTER);
             ASSERT_TRUE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location),
                                      "mutable * s32");
-            ASSERT_EQUAL(definition->type->pointer.pointed_to->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->pointer.pointed_to->kind, AST_TYPE_NAME);
             ASSERT_FALSE(definition->type->pointer.pointed_to->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(definition->type->pointer.pointed_to->named_type.token.lexeme, "s32");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->pointer.pointed_to->location),
@@ -1386,7 +1386,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = function_definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "() -> void");
@@ -1394,7 +1394,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -1402,15 +1402,15 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "pointer");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_POINTER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_POINTER);
             ASSERT_TRUE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location),
                                      "mutable * mutable s32");
-            ASSERT_EQUAL(definition->type->pointer.pointed_to->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->pointer.pointed_to->kind, AST_TYPE_NAME);
             ASSERT_TRUE(definition->type->pointer.pointed_to->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(definition->type->pointer.pointed_to->named_type.token.lexeme, "s32");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->pointer.pointed_to->location),
@@ -1442,7 +1442,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "() -> void");
@@ -1450,7 +1450,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -1458,17 +1458,17 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
             ASSERT_STRINGS_ARE_EQUAL(statement->variable_definition.name.token.lexeme, "variable");
 
             const Ast_Type* variable_type = statement->variable_definition.type;
-            ASSERT_EQUAL(variable_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(variable_type->kind, AST_TYPE_NAME);
             ASSERT_TRUE(variable_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(variable_type->named_type.token.lexeme, "_");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &variable_type->location), "mutable _");
 
             ASSERT_TRUE(statement->variable_definition.has_initial_value);
-            ASSERT_EQUAL(statement->variable_definition.initial_value.kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->variable_definition.initial_value.kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(statement->variable_definition.initial_value.number.token.lexeme, "123");
 
             destroy_parser(&parser);
@@ -1502,7 +1502,7 @@ test_return_statement_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -1510,7 +1510,7 @@ test_return_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -1518,7 +1518,7 @@ test_return_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &definition->body.statements[0];
-        ASSERT_EQUAL(statement->type, AST_STATEMENT_RETURN);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
         ASSERT_TRUE(statement->return_statement.is_empty);
 
         destroy_parser(&parser);
@@ -1547,7 +1547,7 @@ test_return_statement_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> s32");
@@ -1555,7 +1555,7 @@ test_return_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "s32");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "s32");
@@ -1563,9 +1563,9 @@ test_return_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &definition->body.statements[0];
-        ASSERT_EQUAL(statement->type, AST_STATEMENT_RETURN);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
         ASSERT_FALSE(statement->return_statement.is_empty);
-        ASSERT_EQUAL(statement->return_statement.expression.kind, AST_EXPRESSION_NUMBER);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->return_statement.expression.kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(statement->return_statement.expression.number.token.lexeme,
                                  "123");
 
@@ -1599,7 +1599,7 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -1607,7 +1607,7 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -1615,14 +1615,14 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &definition->body.statements[0];
-        ASSERT_EQUAL(statement->type, AST_STATEMENT_IF);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_IF);
         const Ast_If_Statement* if_statement = &statement->if_statement;
-        ASSERT_EQUAL(if_statement->condition.kind, AST_EXPRESSION_IDENTIFIER);
-        ASSERT_EQUAL(if_statement->condition.identifier.token.type, TOKEN_TRUE);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(if_statement->condition.kind, AST_EXPRESSION_IDENTIFIER);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(if_statement->condition.identifier.token.type, TOKEN_TRUE);
 
         const Ast_Code_Block* then_code_block = &if_statement->if_statements;
         ASSERT_EQUAL(then_code_block->statements_count, 1);
-        ASSERT_EQUAL(then_code_block->statements[0].type, AST_STATEMENT_RETURN);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(then_code_block->statements[0].type, AST_STATEMENT_RETURN);
         ASSERT_TRUE(then_code_block->statements[0].return_statement.is_empty);
 
         const Ast_Code_Block* else_code_block = &if_statement->else_statements;
@@ -1655,7 +1655,7 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -1663,7 +1663,7 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -1671,28 +1671,28 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &definition->body.statements[0];
-        ASSERT_EQUAL(statement->type, AST_STATEMENT_IF);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_IF);
         const Ast_If_Statement* if_statement = &statement->if_statement;
-        ASSERT_EQUAL(if_statement->condition.kind, AST_EXPRESSION_IDENTIFIER);
-        ASSERT_EQUAL(if_statement->condition.identifier.token.type, TOKEN_TRUE);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(if_statement->condition.kind, AST_EXPRESSION_IDENTIFIER);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(if_statement->condition.identifier.token.type, TOKEN_TRUE);
 
         const Ast_Code_Block* then_code_block = &if_statement->if_statements;
         ASSERT_EQUAL(then_code_block->statements_count, 1);
-        ASSERT_EQUAL(then_code_block->statements[0].type, AST_STATEMENT_RETURN);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(then_code_block->statements[0].type, AST_STATEMENT_RETURN);
         ASSERT_TRUE(then_code_block->statements[0].return_statement.is_empty);
 
         const Ast_Code_Block* else_code_block = &if_statement->else_statements;
         ASSERT_EQUAL(else_code_block->statements_count, 1);
-        ASSERT_EQUAL(else_code_block->statements[0].type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(else_code_block->statements[0].type, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* variable_definition = &else_code_block->statements[0].variable_definition;
 
         ASSERT_STRINGS_ARE_EQUAL(variable_definition->name.token.lexeme, "a");
-        ASSERT_EQUAL(variable_definition->type->kind, AST_TYPE_OMITTED);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(variable_definition->type->kind, AST_TYPE_OMITTED);
         ASSERT_FALSE(variable_definition->type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &variable_definition->type->location), "");
         ASSERT_TRUE(variable_definition->has_initial_value);
-        ASSERT_EQUAL(variable_definition->initial_value.kind, AST_EXPRESSION_NUMBER);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(variable_definition->initial_value.kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(variable_definition->initial_value.number.token.lexeme, "1");
 
         destroy_parser(&parser);
@@ -1723,7 +1723,7 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -1731,7 +1731,7 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -1739,45 +1739,45 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &definition->body.statements[0];
-        ASSERT_EQUAL(statement->type, AST_STATEMENT_IF);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_IF);
 
         const Ast_If_Statement* if_statement = &statement->if_statement;
-        ASSERT_EQUAL(if_statement->condition.kind, AST_EXPRESSION_NUMBER);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(if_statement->condition.kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(if_statement->condition.number.token.lexeme, "1");
 
         const Ast_Code_Block* then_code_block = &if_statement->if_statements;
         ASSERT_EQUAL(then_code_block->statements_count, 1);
-        ASSERT_EQUAL(then_code_block->statements[0].type, AST_STATEMENT_RETURN);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(then_code_block->statements[0].type, AST_STATEMENT_RETURN);
 
         const Ast_Return_Statement* first_return = &then_code_block->statements[0].return_statement;
         ASSERT_FALSE(first_return->is_empty);
-        ASSERT_EQUAL(first_return->expression.kind, AST_EXPRESSION_NUMBER);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(first_return->expression.kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(first_return->expression.number.token.lexeme, "1");
 
         const Ast_Code_Block* else_code_block = &if_statement->else_statements;
         ASSERT_EQUAL(else_code_block->statements_count, 1);
-        ASSERT_EQUAL(else_code_block->statements[0].type, AST_STATEMENT_IF);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(else_code_block->statements[0].type, AST_STATEMENT_IF);
 
         const Ast_If_Statement* else_if_statement = &else_code_block->statements[0].if_statement;
-        ASSERT_EQUAL(else_if_statement->condition.kind, AST_EXPRESSION_NUMBER);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(else_if_statement->condition.kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(else_if_statement->condition.number.token.lexeme, "2");
 
         const Ast_Code_Block* else_if_true_code_block = &else_if_statement->if_statements;
         ASSERT_EQUAL(else_if_true_code_block->statements_count, 1);
-        ASSERT_EQUAL(else_if_true_code_block->statements[0].type, AST_STATEMENT_RETURN);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(else_if_true_code_block->statements[0].type, AST_STATEMENT_RETURN);
 
         const Ast_Return_Statement* second_return = &else_if_true_code_block->statements[0].return_statement;
         ASSERT_FALSE(second_return->is_empty);
-        ASSERT_EQUAL(second_return->expression.kind, AST_EXPRESSION_NUMBER);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(second_return->expression.kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(second_return->expression.number.token.lexeme, "2");
 
         const Ast_Code_Block* else_if_false_code_block = &else_if_statement->else_statements;
         ASSERT_EQUAL(else_if_false_code_block->statements_count, 1);
-        ASSERT_EQUAL(else_if_false_code_block->statements[0].type, AST_STATEMENT_RETURN);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(else_if_false_code_block->statements[0].type, AST_STATEMENT_RETURN);
 
         const Ast_Return_Statement* third_return = &else_if_false_code_block->statements[0].return_statement;
         ASSERT_FALSE(third_return->is_empty);
-        ASSERT_EQUAL(third_return->expression.kind, AST_EXPRESSION_NUMBER);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(third_return->expression.kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(third_return->expression.number.token.lexeme, "3");
 
         destroy_parser(&parser);
@@ -1810,7 +1810,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = function_definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -1818,7 +1818,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -1827,29 +1827,29 @@ test_expressions(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var1");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.number.token.lexeme, "0");
         }
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[1];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var2");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_IDENTIFIER);
             ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.identifier.token.lexeme, "var1");
         }
 
@@ -1880,7 +1880,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = function_definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -1888,7 +1888,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -1896,19 +1896,19 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-        ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
         ASSERT_FALSE(definition->type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
         ASSERT_TRUE(definition->has_initial_value);
-        ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_ADD);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_ADD);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme, "+");
-        ASSERT_EQUAL(definition->initial_value.binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.lhs->number.token.lexeme, "2");
-        ASSERT_EQUAL(definition->initial_value.binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.rhs->number.token.lexeme, "2");
 
         destroy_parser(&parser);
@@ -1936,7 +1936,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = function_definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -1944,7 +1944,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -1952,19 +1952,19 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-        ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
         ASSERT_FALSE(definition->type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
         ASSERT_TRUE(definition->has_initial_value);
-        ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_SUBTRACT);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_SUBTRACT);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme, "-");
-        ASSERT_EQUAL(definition->initial_value.binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.lhs->number.token.lexeme, "2");
-        ASSERT_EQUAL(definition->initial_value.binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.rhs->number.token.lexeme, "2");
 
         destroy_parser(&parser);
@@ -1992,7 +1992,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = function_definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -2000,7 +2000,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -2008,19 +2008,19 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-        ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
         ASSERT_FALSE(definition->type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
         ASSERT_TRUE(definition->has_initial_value);
-        ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_MULTIPLY);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_MULTIPLY);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme, "*");
-        ASSERT_EQUAL(definition->initial_value.binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.lhs->number.token.lexeme, "2");
-        ASSERT_EQUAL(definition->initial_value.binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.rhs->number.token.lexeme, "2");
 
         destroy_parser(&parser);
@@ -2048,7 +2048,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = function_definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -2056,7 +2056,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -2064,27 +2064,27 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-        ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
         ASSERT_FALSE(definition->type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
         ASSERT_TRUE(definition->has_initial_value);
 
-        ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_DIVIDE);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_DIVIDE);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme, "/");
 
         {
             const Ast_Expression* lhs = definition->initial_value.binary_expression.lhs;
-            ASSERT_EQUAL(lhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(lhs->number.token.lexeme, "2");
         }
 
         {
             const Ast_Expression* rhs = definition->initial_value.binary_expression.rhs;
-            ASSERT_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(rhs->number.token.lexeme, "2");
         }
 
@@ -2116,7 +2116,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = function_definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "() -> s32");
@@ -2124,7 +2124,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "s32");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "s32");
@@ -2132,9 +2132,9 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_RETURN);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
             ASSERT_FALSE(statement->return_statement.is_empty);
-            ASSERT_EQUAL(statement->return_statement.expression.kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->return_statement.expression.kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(statement->return_statement.expression.number.token.lexeme,
                                      "123");
         }
@@ -2144,7 +2144,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "bar");
 
             const Ast_Type* function_type = function_definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "() -> void");
@@ -2152,7 +2152,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -2160,19 +2160,19 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_CALL);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_CALL);
 
             const Ast_Call* call = &definition->initial_value.call;
             const Ast_Expression* called_expression = call->called_expression;
-            ASSERT_EQUAL(called_expression->kind, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(called_expression->kind, AST_EXPRESSION_IDENTIFIER);
             ASSERT_STRINGS_ARE_EQUAL(called_expression->identifier.token.lexeme, "foo");
             ASSERT_EQUAL(call->arguments_count, 0);
         }
@@ -2205,7 +2205,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "bar");
 
             const Ast_Type* function_type = function_definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "() -> void");
@@ -2213,7 +2213,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -2221,30 +2221,30 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_CALL);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_CALL);
 
             const Ast_Call* call = &definition->initial_value.call;
             const Ast_Expression* called_expression = call->called_expression;
-            ASSERT_EQUAL(called_expression->kind, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(called_expression->kind, AST_EXPRESSION_IDENTIFIER);
             ASSERT_STRINGS_ARE_EQUAL(called_expression->identifier.token.lexeme, "foo");
             ASSERT_EQUAL(call->arguments_count, 2);
 
             {
                 const Ast_Expression* first_argument = call->arguments[0];
-                ASSERT_EQUAL(first_argument->kind, AST_EXPRESSION_NUMBER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, AST_EXPRESSION_NUMBER);
                 ASSERT_STRINGS_ARE_EQUAL(first_argument->number.token.lexeme, "10");
             }
 
             {
                 const Ast_Expression* second_argument = call->arguments[1];
-                ASSERT_EQUAL(second_argument->kind, AST_EXPRESSION_NUMBER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, AST_EXPRESSION_NUMBER);
                 ASSERT_STRINGS_ARE_EQUAL(second_argument->number.token.lexeme, "20");
             }
         }
@@ -2276,7 +2276,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = function_definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "() -> void");
@@ -2284,7 +2284,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -2292,62 +2292,62 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_CALL);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_CALL);
 
             const Ast_Call* call = &definition->initial_value.call;
             const Ast_Expression* called_expression = call->called_expression;
-            ASSERT_EQUAL(called_expression->kind, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(called_expression->kind, AST_EXPRESSION_IDENTIFIER);
             ASSERT_STRINGS_ARE_EQUAL(called_expression->identifier.token.lexeme, "bar");
             ASSERT_EQUAL(call->arguments_count, 2);
 
             {
                 const Ast_Expression* first_argument = call->arguments[0];
-                ASSERT_EQUAL(first_argument->kind, AST_EXPRESSION_ADD);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, AST_EXPRESSION_ADD);
 
                 ASSERT_STRINGS_ARE_EQUAL(first_argument->binary_expression.operator.lexeme, "+");
 
                 {
                     const Ast_Expression* lhs = first_argument->binary_expression.lhs;
-                    ASSERT_EQUAL(lhs->kind, AST_EXPRESSION_NUMBER);
+                    ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_NUMBER);
                     ASSERT_STRINGS_ARE_EQUAL(lhs->number.token.lexeme, "10");
                 }
 
                 {
                     const Ast_Expression* rhs = first_argument->binary_expression.rhs;
-                    ASSERT_EQUAL(rhs->kind, AST_EXPRESSION_MULTIPLY);
+                    ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_MULTIPLY);
                     ASSERT_STRINGS_ARE_EQUAL(rhs->binary_expression.operator.lexeme, "*");
 
-                    ASSERT_EQUAL(rhs->binary_expression.lhs->kind, AST_EXPRESSION_IDENTIFIER);
+                    ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->binary_expression.lhs->kind, AST_EXPRESSION_IDENTIFIER);
                     ASSERT_STRINGS_ARE_EQUAL(rhs->binary_expression.lhs->identifier.token.lexeme, "something");
 
-                    ASSERT_EQUAL(rhs->binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
+                    ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
                     ASSERT_STRINGS_ARE_EQUAL(rhs->binary_expression.rhs->number.token.lexeme, "30");
                 }
             }
 
             {
                 const Ast_Expression* second_argument = call->arguments[1];
-                ASSERT_EQUAL(second_argument->kind, AST_EXPRESSION_CALL);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, AST_EXPRESSION_CALL);
 
                 const Ast_Call* nested_call = &second_argument->call;
                 const Ast_Expression* nested_called_expression = nested_call->called_expression;
-                ASSERT_EQUAL(nested_called_expression->kind, AST_EXPRESSION_IDENTIFIER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(nested_called_expression->kind, AST_EXPRESSION_IDENTIFIER);
                 ASSERT_STRINGS_ARE_EQUAL(nested_called_expression->identifier.token.lexeme, "baz");
 
                 ASSERT_EQUAL(nested_call->arguments_count, 2);
 
-                ASSERT_EQUAL(nested_call->arguments[0]->kind, AST_EXPRESSION_NUMBER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(nested_call->arguments[0]->kind, AST_EXPRESSION_NUMBER);
                 ASSERT_STRINGS_ARE_EQUAL(nested_call->arguments[0]->number.token.lexeme, "10");
 
-                ASSERT_EQUAL(nested_call->arguments[1]->kind, AST_EXPRESSION_NUMBER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(nested_call->arguments[1]->kind, AST_EXPRESSION_NUMBER);
                 ASSERT_STRINGS_ARE_EQUAL(nested_call->arguments[1]->number.token.lexeme, "20");
             }
         }
@@ -2379,7 +2379,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = function_definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "() -> void");
@@ -2387,7 +2387,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -2395,24 +2395,24 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_EQUAL);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_EQUAL);
 
             const Ast_Binary_Expression* binary_expression = &definition->initial_value.binary_expression;
 
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->operator.lexeme, "==");
 
-            ASSERT_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->lhs->number.token.lexeme, "1");
 
-            ASSERT_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->rhs->number.token.lexeme, "1");
 
             destroy_parser(&parser);
@@ -2440,7 +2440,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = function_definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "() -> void");
@@ -2448,7 +2448,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -2456,24 +2456,24 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NOT_EQUAL);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NOT_EQUAL);
 
             const Ast_Binary_Expression* binary_expression = &definition->initial_value.binary_expression;
 
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->operator.lexeme, "!=");
 
-            ASSERT_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->lhs->number.token.lexeme, "1");
 
-            ASSERT_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->rhs->number.token.lexeme, "1");
 
             destroy_parser(&parser);
@@ -2501,7 +2501,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = function_definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "() -> void");
@@ -2509,7 +2509,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -2517,24 +2517,24 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_LESS);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_LESS);
 
             const Ast_Binary_Expression* binary_expression = &definition->initial_value.binary_expression;
 
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->operator.lexeme, "<");
 
-            ASSERT_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->lhs->number.token.lexeme, "1");
 
-            ASSERT_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->rhs->number.token.lexeme, "1");
 
             destroy_parser(&parser);
@@ -2562,7 +2562,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = function_definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "() -> void");
@@ -2570,7 +2570,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -2578,24 +2578,24 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_LESS_OR_EQUAL);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_LESS_OR_EQUAL);
 
             const Ast_Binary_Expression* binary_expression = &definition->initial_value.binary_expression;
 
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->operator.lexeme, "<=");
 
-            ASSERT_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->lhs->number.token.lexeme, "1");
 
-            ASSERT_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->rhs->number.token.lexeme, "1");
 
             destroy_parser(&parser);
@@ -2623,7 +2623,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = function_definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "() -> void");
@@ -2631,7 +2631,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -2639,24 +2639,24 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_GREATER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_GREATER);
 
             const Ast_Binary_Expression* binary_expression = &definition->initial_value.binary_expression;
 
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->operator.lexeme, ">");
 
-            ASSERT_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->lhs->number.token.lexeme, "1");
 
-            ASSERT_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->rhs->number.token.lexeme, "1");
 
             destroy_parser(&parser);
@@ -2684,7 +2684,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = function_definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "() -> void");
@@ -2692,7 +2692,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -2700,24 +2700,24 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_GREATER_OR_EQUAL);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_GREATER_OR_EQUAL);
 
             const Ast_Binary_Expression* binary_expression = &definition->initial_value.binary_expression;
 
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->operator.lexeme, ">=");
 
-            ASSERT_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->lhs->number.token.lexeme, "1");
 
-            ASSERT_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->rhs->number.token.lexeme, "1");
 
             destroy_parser(&parser);
@@ -2748,7 +2748,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = function_definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "() -> void");
@@ -2756,7 +2756,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -2764,21 +2764,21 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NEGATE);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NEGATE);
 
             const Ast_Unary_Expression* unary_expression = &definition->initial_value.unary_expression;
 
             ASSERT_STRINGS_ARE_EQUAL(unary_expression->operator.lexeme, "-");
 
-            ASSERT_EQUAL(unary_expression->operand->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(unary_expression->operand->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(unary_expression->operand->number.token.lexeme, "1");
 
             destroy_parser(&parser);
@@ -2806,7 +2806,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = function_definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "(arg: * s32) -> void");
@@ -2816,10 +2816,10 @@ test_expressions(Test_Context* test_context)
             {
                 const Ast_Function_Parameter* parameter = &function_type->function.parameters[0];
                 ASSERT_STRINGS_ARE_EQUAL(parameter->name.token.lexeme, "arg");
-                ASSERT_EQUAL(parameter->type->kind, AST_TYPE_POINTER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(parameter->type->kind, AST_TYPE_POINTER);
                 ASSERT_FALSE(parameter->type->is_mutable);
                 ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &parameter->type->location), "* s32");
-                ASSERT_EQUAL(parameter->type->pointer.pointed_to->kind, AST_TYPE_NAME);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(parameter->type->pointer.pointed_to->kind, AST_TYPE_NAME);
                 ASSERT_FALSE(parameter->type->pointer.pointed_to->is_mutable);
                 ASSERT_STRINGS_ARE_EQUAL(parameter->type->pointer.pointed_to->named_type.token.lexeme, "s32");
                 ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &parameter->type->pointer.pointed_to->location),
@@ -2827,7 +2827,7 @@ test_expressions(Test_Context* test_context)
             }
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -2835,15 +2835,15 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_MULTIPLY);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_MULTIPLY);
 
             {
                 const Ast_Binary_Expression* binary_expression = &definition->initial_value.binary_expression;
@@ -2851,13 +2851,13 @@ test_expressions(Test_Context* test_context)
                 ASSERT_STRINGS_ARE_EQUAL(binary_expression->operator.lexeme, "*");
 
                 const Ast_Expression* lhs = binary_expression->lhs;
-                ASSERT_EQUAL(lhs->kind, AST_EXPRESSION_DEREFERENCE);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_DEREFERENCE);
                 ASSERT_STRINGS_ARE_EQUAL(lhs->unary_expression.operator.lexeme, "*");
-                ASSERT_EQUAL(lhs->unary_expression.operand->kind, AST_EXPRESSION_IDENTIFIER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->unary_expression.operand->kind, AST_EXPRESSION_IDENTIFIER);
                 ASSERT_STRINGS_ARE_EQUAL(lhs->unary_expression.operand->identifier.token.lexeme, "arg");
 
                 const Ast_Expression* rhs = binary_expression->rhs;
-                ASSERT_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
                 ASSERT_STRINGS_ARE_EQUAL(rhs->number.token.lexeme, "2");
             }
 
@@ -2886,7 +2886,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = function_definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "(arg: * s32) -> void");
@@ -2896,10 +2896,10 @@ test_expressions(Test_Context* test_context)
             {
                 const Ast_Function_Parameter* parameter = &function_type->function.parameters[0];
                 ASSERT_STRINGS_ARE_EQUAL(parameter->name.token.lexeme, "arg");
-                ASSERT_EQUAL(parameter->type->kind, AST_TYPE_POINTER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(parameter->type->kind, AST_TYPE_POINTER);
                 ASSERT_FALSE(parameter->type->is_mutable);
                 ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &parameter->type->location), "* s32");
-                ASSERT_EQUAL(parameter->type->pointer.pointed_to->kind, AST_TYPE_NAME);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(parameter->type->pointer.pointed_to->kind, AST_TYPE_NAME);
                 ASSERT_FALSE(parameter->type->pointer.pointed_to->is_mutable);
                 ASSERT_STRINGS_ARE_EQUAL(parameter->type->pointer.pointed_to->named_type.token.lexeme, "s32");
                 ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &parameter->type->pointer.pointed_to->location),
@@ -2907,7 +2907,7 @@ test_expressions(Test_Context* test_context)
             }
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -2915,15 +2915,15 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_ADD);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_ADD);
 
             {
                 const Ast_Binary_Expression* binary_expression = &definition->initial_value.binary_expression;
@@ -2931,13 +2931,13 @@ test_expressions(Test_Context* test_context)
                 ASSERT_STRINGS_ARE_EQUAL(binary_expression->operator.lexeme, "+");
 
                 const Ast_Expression* lhs = binary_expression->lhs;
-                ASSERT_EQUAL(lhs->kind, AST_EXPRESSION_DEREFERENCE);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_DEREFERENCE);
                 ASSERT_STRINGS_ARE_EQUAL(lhs->unary_expression.operator.lexeme, "*");
-                ASSERT_EQUAL(lhs->unary_expression.operand->kind, AST_EXPRESSION_IDENTIFIER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->unary_expression.operand->kind, AST_EXPRESSION_IDENTIFIER);
                 ASSERT_STRINGS_ARE_EQUAL(lhs->unary_expression.operand->identifier.token.lexeme, "arg");
 
                 const Ast_Expression* rhs = binary_expression->rhs;
-                ASSERT_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
                 ASSERT_STRINGS_ARE_EQUAL(rhs->number.token.lexeme, "2");
             }
 
@@ -2966,7 +2966,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = function_definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "(arg: * * s32) -> void");
@@ -2976,15 +2976,15 @@ test_expressions(Test_Context* test_context)
             {
                 const Ast_Function_Parameter* parameter = &function_type->function.parameters[0];
                 ASSERT_STRINGS_ARE_EQUAL(parameter->name.token.lexeme, "arg");
-                ASSERT_EQUAL(parameter->type->kind, AST_TYPE_POINTER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(parameter->type->kind, AST_TYPE_POINTER);
                 ASSERT_FALSE(parameter->type->is_mutable);
                 ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &parameter->type->location),
                                          "* * s32");
-                ASSERT_EQUAL(parameter->type->pointer.pointed_to->kind, AST_TYPE_POINTER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(parameter->type->pointer.pointed_to->kind, AST_TYPE_POINTER);
                 ASSERT_FALSE(parameter->type->pointer.pointed_to->is_mutable);
                 ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &parameter->type->pointer.pointed_to->location),
                                          "* s32");
-                ASSERT_EQUAL(parameter->type->pointer.pointed_to->pointer.pointed_to->kind, AST_TYPE_NAME);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(parameter->type->pointer.pointed_to->pointer.pointed_to->kind, AST_TYPE_NAME);
                 ASSERT_FALSE(parameter->type->pointer.pointed_to->pointer.pointed_to->is_mutable);
                 ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context,
                                                                    &parameter->type->pointer.pointed_to->pointer.pointed_to->location),
@@ -2993,7 +2993,7 @@ test_expressions(Test_Context* test_context)
             }
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -3001,15 +3001,15 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_MULTIPLY);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_MULTIPLY);
 
             {
                 const Ast_Binary_Expression* binary_expression = &definition->initial_value.binary_expression;
@@ -3017,20 +3017,20 @@ test_expressions(Test_Context* test_context)
                 ASSERT_STRINGS_ARE_EQUAL(binary_expression->operator.lexeme, "*");
 
                 const Ast_Expression* lhs = binary_expression->lhs;
-                ASSERT_EQUAL(lhs->kind, AST_EXPRESSION_DEREFERENCE);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_DEREFERENCE);
                 {
                     const Ast_Unary_Expression* first_dereference = &lhs->unary_expression;
                     ASSERT_STRINGS_ARE_EQUAL(first_dereference->operator.lexeme, "*");
-                    ASSERT_EQUAL(first_dereference->operand->kind, AST_EXPRESSION_DEREFERENCE);
+                    ASSERT_ENUM_VALUES_ARE_EQUAL(first_dereference->operand->kind, AST_EXPRESSION_DEREFERENCE);
 
                     const Ast_Unary_Expression* second_dereference = &first_dereference->operand->unary_expression;
                     ASSERT_STRINGS_ARE_EQUAL(second_dereference->operator.lexeme, "*");
-                    ASSERT_EQUAL(second_dereference->operand->kind, AST_EXPRESSION_IDENTIFIER);
+                    ASSERT_ENUM_VALUES_ARE_EQUAL(second_dereference->operand->kind, AST_EXPRESSION_IDENTIFIER);
                     ASSERT_STRINGS_ARE_EQUAL(second_dereference->operand->identifier.token.lexeme, "arg");
                 }
 
                 const Ast_Expression* rhs = binary_expression->rhs;
-                ASSERT_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
                 ASSERT_STRINGS_ARE_EQUAL(rhs->number.token.lexeme, "2");
             }
 
@@ -3060,7 +3060,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = function_definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "(arg: * * s32) -> void");
@@ -3070,15 +3070,15 @@ test_expressions(Test_Context* test_context)
             {
                 const Ast_Function_Parameter* parameter = &function_type->function.parameters[0];
                 ASSERT_STRINGS_ARE_EQUAL(parameter->name.token.lexeme, "arg");
-                ASSERT_EQUAL(parameter->type->kind, AST_TYPE_POINTER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(parameter->type->kind, AST_TYPE_POINTER);
                 ASSERT_FALSE(parameter->type->is_mutable);
                 ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &parameter->type->location),
                                          "* * s32");
-                ASSERT_EQUAL(parameter->type->pointer.pointed_to->kind, AST_TYPE_POINTER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(parameter->type->pointer.pointed_to->kind, AST_TYPE_POINTER);
                 ASSERT_FALSE(parameter->type->pointer.pointed_to->is_mutable);
                 ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &parameter->type->pointer.pointed_to->location),
                                          "* s32");
-                ASSERT_EQUAL(parameter->type->pointer.pointed_to->pointer.pointed_to->kind, AST_TYPE_NAME);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(parameter->type->pointer.pointed_to->pointer.pointed_to->kind, AST_TYPE_NAME);
                 ASSERT_FALSE(parameter->type->pointer.pointed_to->pointer.pointed_to->is_mutable);
                 ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context,
                                                                    &parameter->type->pointer.pointed_to->pointer.pointed_to->location),
@@ -3087,7 +3087,7 @@ test_expressions(Test_Context* test_context)
             }
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -3095,15 +3095,15 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_MULTIPLY);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_MULTIPLY);
 
             {
                 const Ast_Binary_Expression* binary_expression = &definition->initial_value.binary_expression;
@@ -3111,20 +3111,20 @@ test_expressions(Test_Context* test_context)
                 ASSERT_STRINGS_ARE_EQUAL(binary_expression->operator.lexeme, "*");
 
                 const Ast_Expression* lhs = binary_expression->lhs;
-                ASSERT_EQUAL(lhs->kind, AST_EXPRESSION_DEREFERENCE);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_DEREFERENCE);
                 {
                     const Ast_Unary_Expression* first_dereference = &lhs->unary_expression;
                     ASSERT_STRINGS_ARE_EQUAL(first_dereference->operator.lexeme, "*");
-                    ASSERT_EQUAL(first_dereference->operand->kind, AST_EXPRESSION_DEREFERENCE);
+                    ASSERT_ENUM_VALUES_ARE_EQUAL(first_dereference->operand->kind, AST_EXPRESSION_DEREFERENCE);
 
                     const Ast_Unary_Expression* second_dereference = &first_dereference->operand->unary_expression;
                     ASSERT_STRINGS_ARE_EQUAL(second_dereference->operator.lexeme, "*");
-                    ASSERT_EQUAL(second_dereference->operand->kind, AST_EXPRESSION_IDENTIFIER);
+                    ASSERT_ENUM_VALUES_ARE_EQUAL(second_dereference->operand->kind, AST_EXPRESSION_IDENTIFIER);
                     ASSERT_STRINGS_ARE_EQUAL(second_dereference->operand->identifier.token.lexeme, "arg");
                 }
 
                 const Ast_Expression* rhs = binary_expression->rhs;
-                ASSERT_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
                 ASSERT_STRINGS_ARE_EQUAL(rhs->number.token.lexeme, "2");
             }
 
@@ -3153,7 +3153,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = function_definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "(arg: s32) -> void");
@@ -3163,14 +3163,14 @@ test_expressions(Test_Context* test_context)
             {
                 const Ast_Function_Parameter* parameter = &function_type->function.parameters[0];
                 ASSERT_STRINGS_ARE_EQUAL(parameter->name.token.lexeme, "arg");
-                ASSERT_EQUAL(parameter->type->kind, AST_TYPE_NAME);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(parameter->type->kind, AST_TYPE_NAME);
                 ASSERT_FALSE(parameter->type->is_mutable);
                 ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &parameter->type->location), "s32");
                 ASSERT_STRINGS_ARE_EQUAL(parameter->type->named_type.token.lexeme, "s32");
             }
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -3178,19 +3178,19 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_ADDRESS_OF);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_ADDRESS_OF);
 
             const Ast_Unary_Expression* unary_expression = &definition->initial_value.unary_expression;
             ASSERT_STRINGS_ARE_EQUAL(unary_expression->operator.lexeme, "&");
-            ASSERT_EQUAL(unary_expression->operand->kind, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(unary_expression->operand->kind, AST_EXPRESSION_IDENTIFIER);
             ASSERT_STRINGS_ARE_EQUAL(unary_expression->operand->identifier.token.lexeme, "arg");
 
             destroy_parser(&parser);
@@ -3218,7 +3218,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
             const Ast_Type* function_type = function_definition->type;
-            ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
             ASSERT_FALSE(function_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                      "(arg: s32) -> void");
@@ -3228,14 +3228,14 @@ test_expressions(Test_Context* test_context)
             {
                 const Ast_Function_Parameter* parameter = &function_type->function.parameters[0];
                 ASSERT_STRINGS_ARE_EQUAL(parameter->name.token.lexeme, "arg");
-                ASSERT_EQUAL(parameter->type->kind, AST_TYPE_NAME);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(parameter->type->kind, AST_TYPE_NAME);
                 ASSERT_FALSE(parameter->type->is_mutable);
                 ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &parameter->type->location), "s32");
                 ASSERT_STRINGS_ARE_EQUAL(parameter->type->named_type.token.lexeme, "s32");
             }
 
             const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
             ASSERT_FALSE(return_type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -3243,15 +3243,15 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_MULTIPLY);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_MULTIPLY);
 
             {
                 const Ast_Binary_Expression* binary_expression = &definition->initial_value.binary_expression;
@@ -3259,20 +3259,20 @@ test_expressions(Test_Context* test_context)
                 ASSERT_STRINGS_ARE_EQUAL(binary_expression->operator.lexeme, "*");
 
                 const Ast_Expression* lhs = binary_expression->lhs;
-                ASSERT_EQUAL(lhs->kind, AST_EXPRESSION_DEREFERENCE);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_DEREFERENCE);
                 {
                     const Ast_Unary_Expression* dereference = &lhs->unary_expression;
                     ASSERT_STRINGS_ARE_EQUAL(dereference->operator.lexeme, "*");
-                    ASSERT_EQUAL(dereference->operand->kind, AST_EXPRESSION_ADDRESS_OF);
+                    ASSERT_ENUM_VALUES_ARE_EQUAL(dereference->operand->kind, AST_EXPRESSION_ADDRESS_OF);
 
                     const Ast_Unary_Expression* address_of = &dereference->operand->unary_expression;
                     ASSERT_STRINGS_ARE_EQUAL(address_of->operator.lexeme, "&");
-                    ASSERT_EQUAL(address_of->operand->kind, AST_EXPRESSION_IDENTIFIER);
+                    ASSERT_ENUM_VALUES_ARE_EQUAL(address_of->operand->kind, AST_EXPRESSION_IDENTIFIER);
                     ASSERT_STRINGS_ARE_EQUAL(address_of->operand->identifier.token.lexeme, "arg");
                 }
 
                 const Ast_Expression* rhs = binary_expression->rhs;
-                ASSERT_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
                 ASSERT_STRINGS_ARE_EQUAL(rhs->number.token.lexeme, "2");
             }
 
@@ -3306,7 +3306,7 @@ test_operator_precedence(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = function_definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -3314,7 +3314,7 @@ test_operator_precedence(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -3322,30 +3322,30 @@ test_operator_precedence(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-        ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
         ASSERT_FALSE(definition->type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
         ASSERT_TRUE(definition->has_initial_value);
-        ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_ADD);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_ADD);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme, "+");
 
         {
             const Ast_Expression* lhs = definition->initial_value.binary_expression.lhs;
-            ASSERT_EQUAL(lhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(lhs->number.token.lexeme, "1");
         }
 
         {
             const Ast_Expression* rhs = definition->initial_value.binary_expression.rhs;
-            ASSERT_EQUAL(rhs->kind, AST_EXPRESSION_MULTIPLY);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_MULTIPLY);
             ASSERT_STRINGS_ARE_EQUAL(rhs->binary_expression.operator.lexeme, "*");
-            ASSERT_EQUAL(rhs->binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(rhs->binary_expression.lhs->number.token.lexeme, "2");
-            ASSERT_EQUAL(rhs->binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(rhs->binary_expression.rhs->number.token.lexeme, "3");
         }
 
@@ -3374,7 +3374,7 @@ test_operator_precedence(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = function_definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -3382,7 +3382,7 @@ test_operator_precedence(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -3390,31 +3390,31 @@ test_operator_precedence(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-        ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
         ASSERT_FALSE(definition->type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
         ASSERT_TRUE(definition->has_initial_value);
 
-        ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_MULTIPLY);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_MULTIPLY);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme, "*");
 
         {
             const Ast_Expression* lhs = definition->initial_value.binary_expression.lhs;
-            ASSERT_EQUAL(lhs->kind, AST_EXPRESSION_ADD);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_ADD);
             ASSERT_STRINGS_ARE_EQUAL(lhs->binary_expression.operator.lexeme, "+");
-            ASSERT_EQUAL(lhs->binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(lhs->binary_expression.lhs->number.token.lexeme, "1");
-            ASSERT_EQUAL(lhs->binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(lhs->binary_expression.rhs->number.token.lexeme, "2");
         }
 
         {
             const Ast_Expression* rhs = definition->initial_value.binary_expression.rhs;
-            ASSERT_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(rhs->number.token.lexeme, "3");
         }
 
@@ -3443,7 +3443,7 @@ test_operator_precedence(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = function_definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -3451,7 +3451,7 @@ test_operator_precedence(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -3459,30 +3459,30 @@ test_operator_precedence(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-        ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
         ASSERT_FALSE(definition->type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
         ASSERT_TRUE(definition->has_initial_value);
-        ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_ADD);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_ADD);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme, "+");
 
         {
             const Ast_Expression* lhs = definition->initial_value.binary_expression.lhs;
-            ASSERT_EQUAL(lhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(lhs->number.token.lexeme, "3");
         }
 
         {
             const Ast_Expression* rhs = definition->initial_value.binary_expression.rhs;
-            ASSERT_EQUAL(rhs->kind, AST_EXPRESSION_CALL);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_CALL);
 
             const Ast_Call* call = &rhs->call;
             const Ast_Expression* called_expression = call->called_expression;
-            ASSERT_EQUAL(called_expression->kind, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(called_expression->kind, AST_EXPRESSION_IDENTIFIER);
             ASSERT_STRINGS_ARE_EQUAL(called_expression->identifier.token.lexeme, "bar");
             ASSERT_EQUAL(call->arguments_count, 0);
         }
@@ -3517,7 +3517,7 @@ test_assignments(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = function_definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -3525,7 +3525,7 @@ test_assignments(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -3534,25 +3534,25 @@ test_assignments(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.number.token.lexeme, "1");
         }
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[1];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_ASSIGNMENT);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_ASSIGNMENT);
 
             const Ast_Assignment* assignment = &statement->assignment;
             ASSERT_STRINGS_ARE_EQUAL(assignment->name.token.lexeme, "var");
-            ASSERT_EQUAL(assignment->expression.kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(assignment->expression.kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(assignment->expression.number.token.lexeme, "2");
         }
 
@@ -3582,7 +3582,7 @@ test_assignments(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = function_definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -3590,7 +3590,7 @@ test_assignments(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -3599,36 +3599,36 @@ test_assignments(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.number.token.lexeme, "1");
         }
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[1];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_ASSIGNMENT);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_ASSIGNMENT);
 
             const Ast_Assignment* assignment = &statement->assignment;
             ASSERT_STRINGS_ARE_EQUAL(assignment->name.token.lexeme, "var");
-            ASSERT_EQUAL(assignment->expression.kind, AST_EXPRESSION_ADD);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(assignment->expression.kind, AST_EXPRESSION_ADD);
             ASSERT_STRINGS_ARE_EQUAL(assignment->expression.binary_expression.operator.lexeme, "+");
 
             {
                 const Ast_Expression* lhs = assignment->expression.binary_expression.lhs;
-                ASSERT_EQUAL(lhs->kind, AST_EXPRESSION_IDENTIFIER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_IDENTIFIER);
                 ASSERT_STRINGS_ARE_EQUAL(lhs->identifier.token.lexeme, "var");
             }
 
             {
                 const Ast_Expression* rhs = assignment->expression.binary_expression.rhs;
-                ASSERT_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
                 ASSERT_STRINGS_ARE_EQUAL(rhs->number.token.lexeme, "1");
             }
         }
@@ -3666,7 +3666,7 @@ test_while_statements(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = function_definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -3674,7 +3674,7 @@ test_while_statements(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -3683,46 +3683,46 @@ test_while_statements(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &definition->type->location), "");
             ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.number.token.lexeme, "10");
         }
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[1];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_WHILE);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_WHILE);
 
             const Ast_While_Statement* while_statement = &statement->while_statement;
 
             const Ast_Expression* condition = &while_statement->condition;
-            ASSERT_EQUAL(condition->kind, AST_EXPRESSION_NOT_EQUAL);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(condition->kind, AST_EXPRESSION_NOT_EQUAL);
             ASSERT_STRINGS_ARE_EQUAL(condition->binary_expression.operator.lexeme, "!=");
 
-            ASSERT_EQUAL(condition->binary_expression.lhs->kind, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(condition->binary_expression.lhs->kind, AST_EXPRESSION_IDENTIFIER);
             ASSERT_STRINGS_ARE_EQUAL(condition->binary_expression.lhs->identifier.token.lexeme, "var");
 
-            ASSERT_EQUAL(condition->binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(condition->binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(condition->binary_expression.rhs->number.token.lexeme, "0");
 
             ASSERT_EQUAL(while_statement->body.statements_count, 1);
 
             const Ast_Statement* inner_statement = &while_statement->body.statements[0];
-            ASSERT_EQUAL(inner_statement->type, AST_STATEMENT_ASSIGNMENT);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(inner_statement->type, AST_STATEMENT_ASSIGNMENT);
 
             const Ast_Assignment* assignment = &inner_statement->assignment;
             ASSERT_STRINGS_ARE_EQUAL(assignment->name.token.lexeme, "var");
-            ASSERT_EQUAL(assignment->expression.kind, AST_EXPRESSION_SUBTRACT);
-            ASSERT_EQUAL(assignment->expression.binary_expression.lhs->kind, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(assignment->expression.kind, AST_EXPRESSION_SUBTRACT);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(assignment->expression.binary_expression.lhs->kind, AST_EXPRESSION_IDENTIFIER);
             ASSERT_STRINGS_ARE_EQUAL(assignment->expression.binary_expression.lhs->identifier.token.lexeme, "var");
 
-            ASSERT_EQUAL(assignment->expression.binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(assignment->expression.binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(assignment->expression.binary_expression.rhs->number.token.lexeme, "1");
         }
 
@@ -3755,7 +3755,7 @@ test_call_statements(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
 
         const Ast_Type* function_type = function_definition->type;
-        ASSERT_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
         ASSERT_FALSE(function_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &function_type->location),
                                  "() -> void");
@@ -3763,7 +3763,7 @@ test_call_statements(Test_Context* test_context)
         ASSERT_EQUAL(function_type->function.parameters_count, 0);
 
         const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
         ASSERT_FALSE(return_type->is_mutable);
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, &return_type->location), "void");
@@ -3772,19 +3772,19 @@ test_call_statements(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_CALL);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_CALL);
 
             const Ast_Call_Statement* call_statement = &statement->call_statement;
             const Ast_Call* call = &call_statement->call;
 
             const Ast_Expression* called_expression = call->called_expression;
-            ASSERT_EQUAL(called_expression->kind, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(called_expression->kind, AST_EXPRESSION_IDENTIFIER);
             ASSERT_STRINGS_ARE_EQUAL(called_expression->identifier.token.lexeme, "bar");
             ASSERT_EQUAL(call->arguments_count, 1);
 
             {
                 const Ast_Expression* argument = call->arguments[0];
-                ASSERT_EQUAL(argument->kind, AST_EXPRESSION_NUMBER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(argument->kind, AST_EXPRESSION_NUMBER);
                 ASSERT_STRINGS_ARE_EQUAL(argument->number.token.lexeme, "10");
             }
         }

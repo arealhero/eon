@@ -26,7 +26,7 @@ test_signed_integers_formatting(Test_Context* test_context)
     }
 
     {
-        const String result = format_string(test_context->arena, "{}", (s8)(255));
+        const String result = format_string(test_context->arena, "{}", (s8)(-1));
         ASSERT_STRINGS_ARE_EQUAL(result, "-1");
     }
 
@@ -96,7 +96,7 @@ test_unsigned_integers_formatting(Test_Context* test_context)
     }
 
     {
-        const String result = format_string(test_context->arena, "{}", (u8)(256));
+        const String result = format_string(test_context->arena, "{}", (u8)(0));
         ASSERT_STRINGS_ARE_EQUAL(result, "0");
     }
 

@@ -241,3 +241,6 @@ registry_register_test(Arena* arena,
                       __LINE__)
 #define ASSERT_FLOATS_ARE_EQUAL(actual, expected)               \
     ASSERT_FLOATS_ARE_EQUAL_WITH_EPS(actual, expected, 1e-6)
+
+#define ASSERT_ENUM_VALUES_ARE_EQUAL(expected, actual)  \
+    ASSERT_EQUAL((u64)expected, (u64)actual)

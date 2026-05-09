@@ -43,8 +43,8 @@ test_builtin_types_resolving(Test_Context* test_context)
         ASSERT_TYPE_IS_VALID(function_type_id);
 
         const Type* function_type = get_type_by_id(&context, function_type_id);
-        ASSERT_EQUAL(function_type->kind, TYPE_FUNCTION);
-        ASSERT_EQUAL(function_type->parent_type_id, UNDEFINED_TYPE_ID);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->parent_type_id, UNDEFINED_TYPE_ID);
 
         const Function_Type_Info* info = &function_type->function_info;
         ASSERT_EQUAL(info->parameter_type_ids_count, 1);
@@ -57,26 +57,26 @@ test_builtin_types_resolving(Test_Context* test_context)
             {
                 ASSERT_TYPE_IS_VALID(parameter_type_id);
                 const Type* parameter_type = get_type_by_id(&context, parameter_type_id);
-                ASSERT_EQUAL(parameter_type->kind, TYPE_INTEGER);
-                ASSERT_EQUAL(parameter_type->parent_type_id, UNDEFINED_TYPE_ID);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(parameter_type->kind, TYPE_INTEGER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(parameter_type->parent_type_id, UNDEFINED_TYPE_ID);
                 ASSERT_TRUE(parameter_type->integer_info.is_signed);
                 ASSERT_EQUAL(parameter_type->integer_info.width_in_bits, 32);
             }
 
             ASSERT_TYPE_IS_VALID(return_type_id);
             const Type* return_type = get_type_by_id(&context, return_type_id);
-            ASSERT_EQUAL(return_type->kind, TYPE_VOID);
-            ASSERT_EQUAL(return_type->parent_type_id, UNDEFINED_TYPE_ID);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_VOID);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->parent_type_id, UNDEFINED_TYPE_ID);
         }
 
         // NOTE(vlad): Test that every symbol has a type.
         {
             const Symbol* function_symbol = get_symbol_for_identifier(&context, &function_definition->name);
-            ASSERT_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
             ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, function_definition->name.token.lexeme);
             ASSERT_EQUAL(function_type_id, function_symbol->type_id);
 
-            ASSERT_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
             ASSERT_EQUAL(function_definition->type->function.parameters_count, 1);
 
             const Ast_Function_Parameter* parameter = &function_definition->type->function.parameters[0];
@@ -99,14 +99,14 @@ test_builtin_types_resolving(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
 
             ASSERT_TRUE(variable_definition->has_initial_value);
 
             const Ast_Expression* initial_value = &variable_definition->initial_value;
             ASSERT_EQUAL(initial_value->type_id, parameter_type_id);
-            ASSERT_EQUAL(initial_value->kind, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(initial_value->kind, AST_EXPRESSION_IDENTIFIER);
 
             const Ast_Identifier* identifier = &initial_value->identifier;
             const Symbol* identifier_symbol = get_symbol_for_identifier(&context, identifier);
@@ -117,7 +117,7 @@ test_builtin_types_resolving(Test_Context* test_context)
             ASSERT_EQUAL(find_root_type_id(&context, variable_symbol->type_id), parameter_type_id);
 
             const Ast_Type* type = variable_definition->type;
-            ASSERT_EQUAL(type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(type->kind, AST_TYPE_OMITTED);
             ASSERT_EQUAL(find_root_type_id(&context, type->type_id), parameter_type_id);
         }
 
@@ -157,8 +157,8 @@ test_builtin_types_resolving(Test_Context* test_context)
         ASSERT_TYPE_IS_VALID(function_type_id);
 
         const Type* function_type = get_type_by_id(&context, function_type_id);
-        ASSERT_EQUAL(function_type->kind, TYPE_FUNCTION);
-        ASSERT_EQUAL(function_type->parent_type_id, UNDEFINED_TYPE_ID);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->parent_type_id, UNDEFINED_TYPE_ID);
 
         const Function_Type_Info* info = &function_type->function_info;
         ASSERT_EQUAL(info->parameter_type_ids_count, 1);
@@ -171,16 +171,16 @@ test_builtin_types_resolving(Test_Context* test_context)
             {
                 ASSERT_TYPE_IS_VALID(parameter_type_id);
                 const Type* parameter_type = get_type_by_id(&context, parameter_type_id);
-                ASSERT_EQUAL(parameter_type->kind, TYPE_INTEGER);
-                ASSERT_EQUAL(parameter_type->parent_type_id, UNDEFINED_TYPE_ID);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(parameter_type->kind, TYPE_INTEGER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(parameter_type->parent_type_id, UNDEFINED_TYPE_ID);
                 ASSERT_TRUE(parameter_type->integer_info.is_signed);
                 ASSERT_EQUAL(parameter_type->integer_info.width_in_bits, 32);
             }
 
             ASSERT_TYPE_IS_VALID(return_type_id);
             const Type* return_type = get_type_by_id(&context, return_type_id);
-            ASSERT_EQUAL(return_type->kind, TYPE_INTEGER);
-            ASSERT_EQUAL(return_type->parent_type_id, UNDEFINED_TYPE_ID);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_INTEGER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->parent_type_id, UNDEFINED_TYPE_ID);
             ASSERT_TRUE(return_type->integer_info.is_signed);
             ASSERT_EQUAL(return_type->integer_info.width_in_bits, 32);
         }
@@ -188,11 +188,11 @@ test_builtin_types_resolving(Test_Context* test_context)
         // NOTE(vlad): Test that every symbol has a type.
         {
             const Symbol* function_symbol = get_symbol_for_identifier(&context, &function_definition->name);
-            ASSERT_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
             ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, function_definition->name.token.lexeme);
             ASSERT_EQUAL(function_type_id, function_symbol->type_id);
 
-            ASSERT_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
             ASSERT_EQUAL(function_definition->type->function.parameters_count, 1);
 
             const Ast_Function_Parameter* parameter = &function_definition->type->function.parameters[0];
@@ -210,14 +210,14 @@ test_builtin_types_resolving(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
 
             ASSERT_TRUE(variable_definition->has_initial_value);
 
             const Ast_Expression* initial_value = &variable_definition->initial_value;
             ASSERT_EQUAL(initial_value->type_id, parameter_type_id);
-            ASSERT_EQUAL(initial_value->kind, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(initial_value->kind, AST_EXPRESSION_IDENTIFIER);
 
             const Ast_Identifier* identifier = &initial_value->identifier;
             const Symbol* identifier_symbol = get_symbol_for_identifier(&context, identifier);
@@ -229,7 +229,7 @@ test_builtin_types_resolving(Test_Context* test_context)
                          parameter_type_id);
 
             const Ast_Type* type = variable_definition->type;
-            ASSERT_EQUAL(type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(type->kind, AST_TYPE_OMITTED);
             ASSERT_EQUAL(find_root_type_id(&context, type->type_id), parameter_type_id);
         }
 
@@ -270,8 +270,8 @@ test_builtin_types_resolving(Test_Context* test_context)
         ASSERT_TYPE_IS_VALID(function_type_id);
 
         const Type* function_type = get_type_by_id(&context, function_type_id);
-        ASSERT_EQUAL(function_type->kind, TYPE_FUNCTION);
-        ASSERT_EQUAL(function_type->parent_type_id, UNDEFINED_TYPE_ID);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, TYPE_FUNCTION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->parent_type_id, UNDEFINED_TYPE_ID);
 
         const Function_Type_Info* info = &function_type->function_info;
         ASSERT_EQUAL(info->parameter_type_ids_count, 1);
@@ -284,16 +284,16 @@ test_builtin_types_resolving(Test_Context* test_context)
             {
                 ASSERT_TYPE_IS_VALID(parameter_type_id);
                 const Type* parameter_type = get_type_by_id(&context, parameter_type_id);
-                ASSERT_EQUAL(parameter_type->kind, TYPE_INTEGER);
-                ASSERT_EQUAL(parameter_type->parent_type_id, UNDEFINED_TYPE_ID);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(parameter_type->kind, TYPE_INTEGER);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(parameter_type->parent_type_id, UNDEFINED_TYPE_ID);
                 ASSERT_TRUE(parameter_type->integer_info.is_signed);
                 ASSERT_EQUAL(parameter_type->integer_info.width_in_bits, 32);
             }
 
             ASSERT_TYPE_IS_VALID(return_type_id);
             const Type* return_type = get_type_by_id(&context, return_type_id);
-            ASSERT_EQUAL(return_type->kind, TYPE_INTEGER);
-            ASSERT_EQUAL(return_type->parent_type_id, UNDEFINED_TYPE_ID);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_INTEGER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->parent_type_id, UNDEFINED_TYPE_ID);
             ASSERT_TRUE(return_type->integer_info.is_signed);
             ASSERT_EQUAL(return_type->integer_info.width_in_bits, 64);
         }
@@ -301,11 +301,11 @@ test_builtin_types_resolving(Test_Context* test_context)
         // NOTE(vlad): Test that every symbol has a type.
         {
             const Symbol* function_symbol = get_symbol_for_identifier(&context, &function_definition->name);
-            ASSERT_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
             ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, function_definition->name.token.lexeme);
             ASSERT_EQUAL(function_type_id, function_symbol->type_id);
 
-            ASSERT_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
             ASSERT_EQUAL(function_definition->type->function.parameters_count, 1);
 
             const Ast_Function_Parameter* parameter = &function_definition->type->function.parameters[0];
@@ -323,14 +323,14 @@ test_builtin_types_resolving(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
 
             ASSERT_TRUE(variable_definition->has_initial_value);
 
             const Ast_Expression* initial_value = &variable_definition->initial_value;
             ASSERT_EQUAL(initial_value->type_id, parameter_type_id);
-            ASSERT_EQUAL(initial_value->kind, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(initial_value->kind, AST_EXPRESSION_IDENTIFIER);
 
             const Ast_Identifier* identifier = &initial_value->identifier;
             const Symbol* identifier_symbol = get_symbol_for_identifier(&context, identifier);
@@ -342,7 +342,7 @@ test_builtin_types_resolving(Test_Context* test_context)
                          parameter_type_id);
 
             const Ast_Type* type = variable_definition->type;
-            ASSERT_EQUAL(type->kind, AST_TYPE_OMITTED);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(type->kind, AST_TYPE_OMITTED);
             ASSERT_EQUAL(find_root_type_id(&context, type->type_id), parameter_type_id);
         }
 

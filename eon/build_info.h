@@ -76,6 +76,10 @@
 #    define COMPILER_CLANG 0
 #    define COMPILER_GCC 1
 #    define COMPILER_MSVC 0
+#elif defined(_MSC_VER)
+#    define COMPILER_CLANG 0
+#    define COMPILER_GCC 0
+#    define COMPILER_MSVC 1
 #else
 #    error Failed to detect this compiler.
 #endif

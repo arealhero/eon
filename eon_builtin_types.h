@@ -24,21 +24,23 @@ struct Float_Builtin_Type
 };
 typedef struct Float_Builtin_Type Float_Builtin_Type;
 
-static Builtin_Type VOID_BUILTIN_TYPE = (Builtin_Type) { .name = "void" };
-static Builtin_Type BOOLEAN_BUILTIN_TYPE = (Builtin_Type) { .name = "bool" };
+#define VOID_BUILTIN_TYPE (Builtin_Type) { .name = "void" };
+#define BOOLEAN_BUILTIN_TYPE (Builtin_Type) { .name = "bool" };
 
-static Integer_Builtin_Type INTEGER_BUILTIN_TYPES[] = {
-    (Integer_Builtin_Type) { .name = "s8",  .width_in_bits = 8,  .is_signed = true },
-    (Integer_Builtin_Type) { .name = "s16", .width_in_bits = 16, .is_signed = true },
-    (Integer_Builtin_Type) { .name = "s32", .width_in_bits = 32, .is_signed = true },
-    (Integer_Builtin_Type) { .name = "s64", .width_in_bits = 64, .is_signed = true },
-    (Integer_Builtin_Type) { .name = "u8",  .width_in_bits = 8,  .is_signed = false },
-    (Integer_Builtin_Type) { .name = "u16", .width_in_bits = 16, .is_signed = false },
-    (Integer_Builtin_Type) { .name = "u32", .width_in_bits = 32, .is_signed = false },
-    (Integer_Builtin_Type) { .name = "u64", .width_in_bits = 64, .is_signed = false },
-};
+#define INTEGER_BUILTIN_TYPES                                                              \
+    {                                                                                      \
+        (Integer_Builtin_Type) { .name = "s8",  .width_in_bits = 8,  .is_signed = true },  \
+        (Integer_Builtin_Type) { .name = "s16", .width_in_bits = 16, .is_signed = true },  \
+        (Integer_Builtin_Type) { .name = "s32", .width_in_bits = 32, .is_signed = true },  \
+        (Integer_Builtin_Type) { .name = "s64", .width_in_bits = 64, .is_signed = true },  \
+        (Integer_Builtin_Type) { .name = "u8",  .width_in_bits = 8,  .is_signed = false }, \
+        (Integer_Builtin_Type) { .name = "u16", .width_in_bits = 16, .is_signed = false }, \
+        (Integer_Builtin_Type) { .name = "u32", .width_in_bits = 32, .is_signed = false }, \
+        (Integer_Builtin_Type) { .name = "u64", .width_in_bits = 64, .is_signed = false }, \
+    };
 
-static Float_Builtin_Type FLOAT_BUILTIN_TYPES[] = {
-    (Float_Builtin_Type) { .name = "f32",  .width_in_bits = 8 },
-    (Float_Builtin_Type) { .name = "f64", .width_in_bits = 16 },
-};
+#define FLOAT_BUILTIN_TYPES                                         \
+    {                                                               \
+       (Float_Builtin_Type) { .name = "f32",  .width_in_bits = 8 }, \
+       (Float_Builtin_Type) { .name = "f64", .width_in_bits = 16 }, \
+    };

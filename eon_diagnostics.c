@@ -11,6 +11,8 @@ message_level_to_string(const Message_Level level)
         case MESSAGE_LEVEL_NOTE: return string_view("note");
         case MAX_MESSAGE_LEVEL: FAIL("MAX_MESSAGE_LEVEL should not be converted to string.");
     }
+
+    UNREACHABLE();
 }
 
 internal inline String_View
