@@ -142,6 +142,8 @@ pushd build\tests
 !test_name!.exe --hide-stats || exit 1
 popd
 
+endlocal
+
 goto :eof
 
 endlocal
