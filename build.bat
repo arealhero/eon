@@ -64,7 +64,9 @@ call :compile_and_run_unit_test eon_parser_ut.c
 call :compile_and_run_unit_test eon_lexical_scopes_ut.c
 call :compile_and_run_unit_test eon_types_ut.c
 
-rem call :compile_and_run_unit_test eon/sanitizers/asan_ut.c -fsanitize=address -fsanitize-recover=address
+REM FIXME(vlad): Enable this test on Windows (clang-cl's ASAN does not work for some reason;
+REM              also this test does not work for cl.exe because it uses unix-specific headers).
+REM call :compile_and_run_unit_test eon/sanitizers/asan_ut.c -fsanitize=address -fsanitize-recover=address
 
 exit /B %ERRORLEVEL%
 
@@ -141,91 +143,5 @@ pushd build\tests
 popd
 
 goto :eof
-
-rem --- Determine reported_test_name ---
-if "!test_dir!"=="." (
-    set "reported_test_name=!test_name!"
-) else (
-    set "reported_test_name=!test_dir!\!test_name!"
-)
-
-echo Running tests in '!reported_test_name!'
-
-rem --- Run the test executable with --hide-stats ---
-"!out_dir!\!test_name!" --hide-stats
-
-endlocal
-exit /b %ERRORLEVEL%
-
-rem Helper: get_relative_dir <abs_dir> <outvar>
-rem Returns relative path (to current directory) without leading backslash, or full path if not under current dir.
-:get_relative_dir
-setlocal
-set "dir=%~1"
-if "%dir%"=="" (
-    endlocal & set "%2=" & exit /b
-)
-set "cur=%CD%"
-if "%dir:~-1%"=="\" set "dir=%dir:~0,-1%"
-if "%cur:~-1%"=="\" set "cur=%cur:~0,-1%"
-
-if /I "%dir%"=="%cur%" (
-    endlocal & set "%2=." & exit /b
-)
-
-rem Try to strip current dir prefix
-call set "rel=%%dir:%cur%\=%%"
-if "%rel%"=="%dir%" (
-    endlocal & set "%2=%dir%" & exit /b
-) else (
-    endlocal & set "%2=%rel%" & exit /b
-)
-
-exit /b
-
-rem :compile_and_run_test
-
-rem set test_filename=%1
-rem for %%F in ("%test_filename%") do set "test_dir=%%~dpF"
-rem for /f "tokens=1,* delims= " %%a in ("%*") do set additional_flags=%%b
-
-rem set build_dir="build\tests\%test_dir%"
-rem echo %build_dir%
-rem if not exist %build_dir% mkdir %build_dir%
-
-rem exit /B 0
-
-rem compile_and_run_test()
-rem {
-rem     test_filename="$1"
-rem     test_dir=$(dirname "$test_filename")
-rem     test_name=$(basename -s _ut.c "$test_filename")
-
-rem     shift
-rem     additional_flags="$@"
-
-rem     mkdir -p "build/tests/$test_dir"
-
-rem     compile "$test_filename" -o "build/tests/$test_dir/$test_name" \
-rem             $clang_common_flags \
-rem             $clang_warnings \
-rem             $additional_flags
-
-rem     if [ "$test_dir" = "." ];
-rem     then
-rem         reported_test_name="$test_name"
-rem     else
-rem         reported_test_name="$test_dir/$test_name"
-rem     fi
-
-rem     echo "Running tests in '$reported_test_name'"
-rem     "./build/tests/$test_dir/$test_name" --hide-stats
-rem }
-
-rem compile_and_run_test eon/memory_ut.c
-rem compile_and_run_test eon/string_ut.c
-rem compile_and_run_test eon_lexer_ut.c
-rem compile_and_run_test eon_parser_ut.c
-rem compile_and_run_test eon/sanitizers/asan_ut.c -fsanitize=address -fsanitize-recover=address
 
 endlocal
