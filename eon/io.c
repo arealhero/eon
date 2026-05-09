@@ -6,6 +6,8 @@
 #include <eon/platform/memory.h>
 #include <eon/sanitizers/asan.h>
 
+#include <stdlib.h> // NOTE(vlad): For 'atexit()'.
+
 #define STDOUT_BUFFER_SIZE KiB(4)
 
 internal void

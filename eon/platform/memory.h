@@ -8,7 +8,7 @@ internal Size platform_get_page_size(void);
 
 internal Byte* platform_reserve_memory(Size number_of_bytes);
 internal Bool platform_commit_memory(Byte* pointer, Size number_of_bytes);
-internal Bool platform_decommit_memory(Byte* pointer, Size number_of_bytes);
+maybe_unused internal Bool platform_decommit_memory(Byte* pointer, Size number_of_bytes);
 internal Bool platform_release_memory(Byte* pointer, Size number_of_bytes);
 
 #if OS_WINDOWS
