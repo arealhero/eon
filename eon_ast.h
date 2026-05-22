@@ -92,6 +92,8 @@ typedef struct Ast_Call Ast_Call;
 
 struct Ast_Expression
 {
+    Source_Location location;
+
     Ast_Expression_Kind kind;
 
     Type_Id type_id;
@@ -179,6 +181,9 @@ typedef struct Ast_Type Ast_Type;
 
 struct Ast_Code_Block
 {
+    // FIXME(vlad): Change to 'location' with a length.
+    Source_Location end_location;
+
     Lexical_Scope_Id lexical_scope_id;
 
     Type_Id return_type_id;
@@ -223,7 +228,11 @@ typedef struct Ast_Assignment Ast_Assignment;
 struct Ast_Return_Statement
 {
     Bool is_empty;
-    Ast_Expression expression;
+    union
+    {
+        Ast_Expression expression;
+        Source_Location empty_expression_location;
+    };
 };
 typedef struct Ast_Return_Statement Ast_Return_Statement;
 

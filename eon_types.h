@@ -75,4 +75,13 @@ struct Type
 };
 typedef struct Type Type;
 
+maybe_unused internal inline Bool type_id_is_defined(const Type_Id type_id);
+maybe_unused internal inline Bool type_id_is_undefined(const Type_Id type_id);
+
+maybe_unused internal inline Bool type_id_is_valid(Compilation_Context* context, const Type_Id type_id);
+maybe_unused internal inline Bool type_id_is_invalid(Compilation_Context* context, const Type_Id type_id);
+
 maybe_unused internal Bool resolve_and_validate_types(Compilation_Context* context);
+maybe_unused internal String convert_type_to_string(Arena* arena,
+                                                    Compilation_Context* context,
+                                                    const Type_Id type_id);

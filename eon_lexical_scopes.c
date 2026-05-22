@@ -19,16 +19,18 @@ create_new_lexical_scope_with_parent(Compilation_Context* context, const Index p
     return context->lexical_scopes_count - 1;
 }
 
-internal Lexical_Scope_Id
-add_symbol_to_lexical_scope(Compilation_Context* context,
-                            const Index lexical_scope_index,
-                            const Symbol* symbol_to_add)
+internal void
+add_symbol_id_to_lexical_scope(Compilation_Context* context,
+                               const Index lexical_scope_index,
+                               const Symbol_Id symbol_id_to_add)
 {
     ASSERT(0 <= lexical_scope_index && lexical_scope_index < context->lexical_scopes_count);
 
     // TODO(vlad): Forbid shadowing.
 
     Lexical_Scope* lexical_scope = &context->lexical_scopes[lexical_scope_index];
+
+    Symbol* symbol_to_add = get_symbol_by_id(context, symbol_id_to_add);
 
     for (Index symbol_id_index = 0;
          symbol_id_index < lexical_scope->symbol_ids_count;
@@ -57,18 +59,13 @@ add_symbol_to_lexical_scope(Compilation_Context* context,
 
             emit_diagnostic_message(context, &note);
 
-            return INVALID_SYMBOL_ID;
+            // TODO(vlad): Propagate this error to the callee?
         }
     }
 
-    const Symbol_Id this_symbol_id = create_symbol(context);
-    context->symbols[this_symbol_id] = *symbol_to_add;
-
     grow_array_if_needed(lexical_scope->symbol_ids_arena, lexical_scope->symbol_ids, Symbol_Id);
 
-    lexical_scope->symbol_ids[lexical_scope->symbol_ids_count++] = this_symbol_id;
-
-    return this_symbol_id;
+    lexical_scope->symbol_ids[lexical_scope->symbol_ids_count++] = symbol_id_to_add;
 }
 
 internal void set_symbol_ids_for_identifiers_in_expression(Compilation_Context* context,
@@ -186,6 +183,20 @@ set_symbol_ids_for_identifiers_in_type(Compilation_Context* context,
             {
                 Ast_Function_Parameter* parameter = &function->parameters[parameter_index];
 
+                // TODO(vlad): Should we create symbols here? I mean, it looks like a perfectly reasonable place
+                //             to do that, but the function name becomes kind of misleading.
+                {
+                    const Symbol_Id symbol_id = create_symbol(context);
+                    Symbol* symbol = get_symbol_by_id(context, symbol_id);
+
+                    symbol->kind = SYMBOL_VARIABLE;
+                    symbol->name = parameter->name.token.lexeme;
+                    symbol->location = parameter->name.token.location;
+                    symbol->is_mutable = parameter->type->is_mutable;
+
+                    parameter->name.symbol_id = symbol_id;
+                }
+
                 set_symbol_ids_for_identifiers_in_type(context,
                                                        parameter->type,
                                                        this_lexical_scope_id);
@@ -281,19 +292,20 @@ create_lexical_scopes_for_code_block(Compilation_Context* context, Ast_Code_Bloc
             {
                 Ast_Variable_Definition* definition = &statement->variable_definition;
 
-                Symbol symbol = {0};
-                symbol.kind = SYMBOL_VARIABLE;
-                symbol.name = definition->name.token.lexeme;
-                symbol.location = definition->name.token.location;
-                symbol.is_mutable = definition->type->is_mutable;
-
-                const Symbol_Id symbol_id = add_symbol_to_lexical_scope(context,
-                                                                        this_lexical_scope_id,
-                                                                        &symbol);
-                ASSERT(symbol_id != UNDEFINED_SYMBOL_ID);
+                const Symbol_Id symbol_id = create_symbol(context);
+                ASSERT(symbol_id != UNDEFINED_SYMBOL_ID && symbol_id != INVALID_SYMBOL_ID);
 
                 definition->name.symbol_id = symbol_id;
 
+                {
+                    Symbol* symbol = get_symbol_by_id(context, symbol_id);
+                    symbol->kind = SYMBOL_VARIABLE;
+                    symbol->name = definition->name.token.lexeme;
+                    symbol->location = definition->name.token.location;
+                    symbol->is_mutable = definition->type->is_mutable;
+                }
+
+                add_symbol_id_to_lexical_scope(context, this_lexical_scope_id, symbol_id);
                 set_symbol_ids_for_identifiers_in_type(context, definition->type, this_lexical_scope_id);
 
                 if (definition->has_initial_value)
@@ -373,17 +385,18 @@ create_lexical_scopes_for_code_block(Compilation_Context* context, Ast_Code_Bloc
 internal inline void
 add_builtin_type_symbol(Compilation_Context* context, const C_String name)
 {
-    Symbol symbol = {0};
-    symbol.kind = SYMBOL_TYPE;
-    symbol.name = string_view(name);
-    symbol.is_mutable = false;
-    symbol.is_builtin = true;
+    const Symbol_Id symbol_id = create_symbol(context);
+    ASSERT(symbol_id != UNDEFINED_SYMBOL_ID && symbol_id != INVALID_SYMBOL_ID);
 
-    const Symbol_Id symbol_id = add_symbol_to_lexical_scope(context,
-                                                            GLOBAL_LEXICAL_SCOPE_ID,
-                                                            &symbol);
-    ASSERT(symbol_id != UNDEFINED_SYMBOL_ID);
-    ASSERT(symbol_id != INVALID_SYMBOL_ID);
+    {
+        Symbol* symbol = get_symbol_by_id(context, symbol_id);
+        symbol->kind = SYMBOL_TYPE;
+        symbol->name = string_view(name);
+        symbol->is_mutable = false;
+        symbol->is_builtin = true;
+    }
+
+    add_symbol_id_to_lexical_scope(context, GLOBAL_LEXICAL_SCOPE_ID, symbol_id);
 }
 
 internal void
@@ -438,19 +451,20 @@ create_lexical_scopes(Compilation_Context* context)
 
             // FIXME(vlad): Remove this code duplication.
             {
-                Symbol symbol = {0};
-                symbol.kind = SYMBOL_FUNCTION;
-                symbol.name = function_definition->name.token.lexeme;
-                symbol.location = function_definition->name.token.location;
-                symbol.is_mutable = function_definition->type->is_mutable;
-
-                const Symbol_Id symbol_id = add_symbol_to_lexical_scope(context,
-                                                                        global_scope_id,
-                                                                        &symbol);
-
-                ASSERT(symbol_id != UNDEFINED_SYMBOL_ID);
+                const Symbol_Id symbol_id = create_symbol(context);
+                ASSERT(symbol_id != UNDEFINED_SYMBOL_ID && symbol_id != INVALID_SYMBOL_ID);
 
                 function_definition->name.symbol_id = symbol_id;
+
+                {
+                    Symbol* symbol = get_symbol_by_id(context, symbol_id);
+                    symbol->kind = SYMBOL_FUNCTION;
+                    symbol->name = function_definition->name.token.lexeme;
+                    symbol->location = function_definition->name.token.location;
+                    symbol->is_mutable = function_definition->type->is_mutable;
+                }
+
+                add_symbol_id_to_lexical_scope(context, global_scope_id, symbol_id);
             }
         }
     }
@@ -462,12 +476,12 @@ create_lexical_scopes(Compilation_Context* context)
         Ast_Function_Definition* function_definition = &context->ast.function_definitions[function_definition_index];
         Ast_Code_Block* function_body = &function_definition->body;
 
-        const Index function_scope_index = create_new_lexical_scope_with_parent(context, global_scope_id);
-        function_body->lexical_scope_id = function_scope_index;
+        const Lexical_Scope_Id function_scope_id = create_new_lexical_scope_with_parent(context, global_scope_id);
+        function_body->lexical_scope_id = function_scope_id;
 
         ASSERT(function_definition->type->kind == AST_TYPE_FUNCTION);
 
-        set_symbol_ids_for_identifiers_in_type(context, function_definition->type, function_scope_index);
+        set_symbol_ids_for_identifiers_in_type(context, function_definition->type, function_scope_id);
 
         Ast_Function_Type* function_type = &function_definition->type->function;
 
@@ -477,19 +491,20 @@ create_lexical_scopes(Compilation_Context* context)
         {
             Ast_Function_Parameter* parameter = &function_type->parameters[parameter_index];
 
-            Symbol symbol = {0};
-            symbol.kind = SYMBOL_VARIABLE;
-            symbol.name = parameter->name.token.lexeme;
-            symbol.location = parameter->name.token.location;
-            symbol.is_mutable = parameter->type->is_mutable;
-
-            const Symbol_Id symbol_id = add_symbol_to_lexical_scope(context,
-                                                                    function_scope_index,
-                                                                    &symbol);
-            ASSERT(symbol_id != UNDEFINED_SYMBOL_ID);
-            ASSERT(symbol_id != INVALID_SYMBOL_ID);
+            const Symbol_Id symbol_id = create_symbol(context);
+            ASSERT(symbol_id != UNDEFINED_SYMBOL_ID && symbol_id != INVALID_SYMBOL_ID);
 
             parameter->name.symbol_id = symbol_id;
+
+            {
+                Symbol* symbol = get_symbol_by_id(context, symbol_id);
+                symbol->kind = SYMBOL_VARIABLE;
+                symbol->name = parameter->name.token.lexeme;
+                symbol->location = parameter->name.token.location;
+                symbol->is_mutable = parameter->type->is_mutable;
+            }
+
+            add_symbol_id_to_lexical_scope(context, function_scope_id, symbol_id);
         }
 
         create_lexical_scopes_for_code_block(context, function_body);

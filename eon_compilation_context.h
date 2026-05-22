@@ -73,5 +73,9 @@ maybe_unused internal inline struct Symbol* get_symbol_by_id(Compilation_Context
 
 maybe_unused internal Type_Id create_type(Compilation_Context* context);
 maybe_unused internal inline struct Type* get_type_by_id(Compilation_Context* context, const Type_Id type_id);
-maybe_unused internal inline Bool type_id_is_a_root_node(Compilation_Context* context, const Type_Id type_id);
+maybe_unused internal struct Type* get_type_for_identifier(Compilation_Context* context, const Ast_Identifier* identifier);
+
+// FIXME(vlad): Move this to eon_types.
 maybe_unused internal Type_Id find_root_type_id(Compilation_Context* context, const Type_Id type_id);
+
+maybe_unused internal inline Bool type_ids_are_equal(Compilation_Context* context, const Type_Id lhs, const Type_Id rhs);

@@ -37,3 +37,20 @@ release_arena_to_provider(struct Arena_Provider* provider, const Arena* arena)
         create_compilation_context(&context, &test_arena_provider, &source_file); \
     }                                                                   \
     while (0)
+
+#define ASSERT_LOCATION_STRINGS_ARE_EQUAL(location, expected)           \
+    ASSERT_STRINGS_ARE_EQUAL(source_location_to_string(&context, location), expected)
+
+#define ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES()                  \
+    do                                                                  \
+    {                                                                   \
+        if (has_diagnostic_messages(&context))                          \
+        {                                                               \
+            const String dumped_messages = dump_diagnostic_messages(test_context->arena, \
+                                                                    &context, \
+                                                                    MAX_MESSAGE_LEVEL); \
+            ASSERT_STRINGS_ARE_EQUAL(dumped_messages, "");              \
+        }                                                               \
+    } while (0)
+
+// FIXME(vlad): Implement 'ASSERT_DIAGNOSTIC_MESSAGES_ARE_EQUAL("<diagnostic-messages>")'.

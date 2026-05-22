@@ -15,6 +15,8 @@ struct Parser
     Lexer* lexer;
     Token current_token;
     Token lookahead_token;
+
+    Source_Location previous_token_location;
 };
 typedef struct Parser Parser;
 

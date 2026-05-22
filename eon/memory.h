@@ -60,7 +60,22 @@ internal Byte* arena_reallocate(Arena* restrict arena,
 #define allocate_uninitialized_array(arena, number_of_elements, Type)   \
     (Type*)(arena_push_uninitialized((arena), size_of(Type) * (number_of_elements)))
 
-#define grow_array_if_needed(arena, array, Type)                        \
+#if ASAN_ENABLED
+#    define grow_array_if_needed(arena, array, Type)                    \
+    do                                                                  \
+    {                                                                   \
+        /* NOTE(vlad): Always reallocate so we could find all use-after-move bugs. */ \
+        const Size new_capacity = CONCATENATE(array, _capacity) + 1;    \
+        array = reallocate(arena,                                       \
+                           array,                                       \
+                           Type,                                        \
+                           CONCATENATE(array, _capacity),               \
+                           new_capacity);                               \
+        CONCATENATE(array, _capacity) = new_capacity;                   \
+    }                                                                   \
+    while (0)
+#else
+#    define grow_array_if_needed(arena, array, Type)                    \
     do                                                                  \
     {                                                                   \
         if (CONCATENATE(array, _count) == CONCATENATE(array, _capacity)) \
@@ -75,4 +90,5 @@ internal Byte* arena_reallocate(Arena* restrict arena,
             CONCATENATE(array, _capacity) = new_capacity;               \
         }                                                               \
     }                                                                   \
-    while (0)                                                           \
+    while (0)
+#endif

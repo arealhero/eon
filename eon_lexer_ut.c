@@ -14,7 +14,7 @@ test_line_comments(Test_Context* test_context)
 
         Token token = {0};
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
@@ -29,7 +29,7 @@ test_line_comments(Test_Context* test_context)
 
         Token token = {0};
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
@@ -51,7 +51,7 @@ test_line_comments(Test_Context* test_context)
         ASSERT_EQUAL(token.location.column, 0);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
@@ -67,28 +67,28 @@ test_line_comments(Test_Context* test_context)
         Token token = {0};
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "2");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 0);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_PLUS);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "+");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 2);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "2");
         ASSERT_EQUAL(token.location.line, 1);
         ASSERT_EQUAL(token.location.column, 0);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
@@ -106,28 +106,28 @@ test_line_comments(Test_Context* test_context)
         Token token = {0};
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "2");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 0);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_PLUS);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "+");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 2);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "2");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 24);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
@@ -143,28 +143,28 @@ test_line_comments(Test_Context* test_context)
         Token token = {0};
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "2");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 0);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_PLUS);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "+");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 2);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "2");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 44);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
@@ -180,14 +180,14 @@ test_line_comments(Test_Context* test_context)
         Token token = {0};
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "2");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 54);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
@@ -207,28 +207,28 @@ test_numbers(Test_Context* test_context)
         Token token = {0};
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "2");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 0);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_PLUS);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "+");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 2);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "2");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 4);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
@@ -244,28 +244,28 @@ test_numbers(Test_Context* test_context)
         Token token = {0};
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "1234567890");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 0);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_PLUS);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "+");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 11);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "999999999999999");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 13);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
@@ -283,14 +283,14 @@ test_numbers(Test_Context* test_context)
             Token token = {0};
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "0.1");
             ASSERT_EQUAL(token.location.line, 0);
             ASSERT_EQUAL(token.location.column, 0);
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
 
             destroy_lexer(&lexer);
@@ -306,42 +306,42 @@ test_numbers(Test_Context* test_context)
             Token token = {0};
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_IDENTIFIER);
             ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "a");
             ASSERT_EQUAL(token.location.line, 0);
             ASSERT_EQUAL(token.location.column, 0);
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_COLON);
             ASSERT_STRINGS_ARE_EQUAL(token.lexeme, ":");
             ASSERT_EQUAL(token.location.line, 0);
             ASSERT_EQUAL(token.location.column, 2);
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_ASSIGN);
             ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "=");
             ASSERT_EQUAL(token.location.line, 0);
             ASSERT_EQUAL(token.location.column, 3);
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "0.1");
             ASSERT_EQUAL(token.location.line, 0);
             ASSERT_EQUAL(token.location.column, 5);
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_SEMICOLON);
             ASSERT_STRINGS_ARE_EQUAL(token.lexeme, ";");
             ASSERT_EQUAL(token.location.line, 0);
             ASSERT_EQUAL(token.location.column, 8);
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
 
             destroy_lexer(&lexer);
@@ -358,14 +358,14 @@ test_numbers(Test_Context* test_context)
         Token token = {0};
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_AMPERSAND);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "&");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 0);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
@@ -387,28 +387,28 @@ test_identifiers(Test_Context* test_context)
         Token token = {0};
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_IDENTIFIER);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "a");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 0);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_PLUS);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "+");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 2);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_IDENTIFIER);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "b");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 4);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
@@ -424,21 +424,21 @@ test_identifiers(Test_Context* test_context)
         Token token = {0};
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_IDENTIFIER);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "_hello");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 0);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_IDENTIFIER);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "world");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 7);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
@@ -456,56 +456,56 @@ test_identifiers(Test_Context* test_context)
         Token token = {0};
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_IDENTIFIER);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "main");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 0);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_COLON);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, ":");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 4);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_LEFT_PAREN);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "(");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 6);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_RIGHT_PAREN);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, ")");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 7);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_ASSIGN);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "=");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 9);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_LEFT_BRACE);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "{");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 11);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_RIGHT_BRACE);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "}");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 12);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
@@ -523,49 +523,49 @@ test_identifiers(Test_Context* test_context)
             Token token = {0};
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_IDENTIFIER);
             ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "arr");
             ASSERT_EQUAL(token.location.line, 0);
             ASSERT_EQUAL(token.location.column, 0);
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_COLON);
             ASSERT_STRINGS_ARE_EQUAL(token.lexeme, ":");
             ASSERT_EQUAL(token.location.line, 0);
             ASSERT_EQUAL(token.location.column, 3);
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_LEFT_BRACKET);
             ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "[");
             ASSERT_EQUAL(token.location.line, 0);
             ASSERT_EQUAL(token.location.column, 5);
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_RIGHT_BRACKET);
             ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "]");
             ASSERT_EQUAL(token.location.line, 0);
             ASSERT_EQUAL(token.location.column, 6);
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_IDENTIFIER);
             ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "s32");
             ASSERT_EQUAL(token.location.line, 0);
             ASSERT_EQUAL(token.location.column, 8);
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_SEMICOLON);
             ASSERT_STRINGS_ARE_EQUAL(token.lexeme, ";");
             ASSERT_EQUAL(token.location.line, 0);
             ASSERT_EQUAL(token.location.column, 11);
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
 
             destroy_lexer(&lexer);
@@ -581,63 +581,63 @@ test_identifiers(Test_Context* test_context)
             Token token = {0};
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_IDENTIFIER);
             ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "arr");
             ASSERT_EQUAL(token.location.line, 0);
             ASSERT_EQUAL(token.location.column, 0);
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_COLON);
             ASSERT_STRINGS_ARE_EQUAL(token.lexeme, ":");
             ASSERT_EQUAL(token.location.line, 0);
             ASSERT_EQUAL(token.location.column, 3);
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_LEFT_BRACKET);
             ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "[");
             ASSERT_EQUAL(token.location.line, 0);
             ASSERT_EQUAL(token.location.column, 5);
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_RIGHT_BRACKET);
             ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "]");
             ASSERT_EQUAL(token.location.line, 0);
             ASSERT_EQUAL(token.location.column, 6);
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_LEFT_BRACKET);
             ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "[");
             ASSERT_EQUAL(token.location.line, 0);
             ASSERT_EQUAL(token.location.column, 8);
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_RIGHT_BRACKET);
             ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "]");
             ASSERT_EQUAL(token.location.line, 0);
             ASSERT_EQUAL(token.location.column, 9);
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_IDENTIFIER);
             ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "s32");
             ASSERT_EQUAL(token.location.line, 0);
             ASSERT_EQUAL(token.location.column, 11);
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_SEMICOLON);
             ASSERT_STRINGS_ARE_EQUAL(token.lexeme, ";");
             ASSERT_EQUAL(token.location.line, 0);
             ASSERT_EQUAL(token.location.column, 14);
 
             ASSERT_TRUE(get_next_token(&lexer, &token));
-            ASSERT_FALSE(has_diagnostic_messages(&context));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
             ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
 
             destroy_lexer(&lexer);
@@ -658,21 +658,21 @@ test_keywords_and_digraphs(Test_Context* test_context)
         Token token = {0};
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_FOR);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "for");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 0);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_IDENTIFIER);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "a");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 4);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
@@ -688,14 +688,14 @@ test_keywords_and_digraphs(Test_Context* test_context)
         Token token = {0};
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_RETURN);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "return");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 0);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
@@ -711,14 +711,14 @@ test_keywords_and_digraphs(Test_Context* test_context)
         Token token = {0};
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_ARROW);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "->");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 0);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
@@ -734,14 +734,14 @@ test_keywords_and_digraphs(Test_Context* test_context)
         Token token = {0};
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_MUTABLE);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "mutable");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 0);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
@@ -757,14 +757,14 @@ test_keywords_and_digraphs(Test_Context* test_context)
         Token token = {0};
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_WILDCARD);
         ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "_");
         ASSERT_EQUAL(token.location.line, 0);
         ASSERT_EQUAL(token.location.column, 0);
 
         ASSERT_TRUE(get_next_token(&lexer, &token));
-        ASSERT_FALSE(has_diagnostic_messages(&context));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
         ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
 
         destroy_lexer(&lexer);
@@ -811,3 +811,4 @@ REGISTER_TESTS(
 #include "eon_compilation_context.c"
 #include "eon_diagnostics.c"
 #include "eon_lexer.c"
+#include "eon_types.c"

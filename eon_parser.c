@@ -102,6 +102,7 @@ parser_fetch_lookahead_token(Parser* parser)
 internal inline void
 parser_consume_token(Parser* parser)
 {
+    parser->previous_token_location = parser->current_token.location;
     parser->current_token = parser->lookahead_token;
     parser->lookahead_token = (Token){0};
 }
@@ -371,6 +372,20 @@ parse_pointer_type(Parser* parser, Ast_Type* type)
     return true;
 }
 
+internal void
+start_expression(Parser* parser, Ast_Expression* expression)
+{
+    const Source_Location start_location = parser->current_token.location;
+    expression->location = start_location;
+}
+
+internal void
+end_expression(Parser* parser, Ast_Expression* expression)
+{
+    const Source_Location end_location = parser->previous_token_location;
+    extend_location(&expression->location, &end_location);
+}
+
 internal Bool parse_expression(Parser* parser, Ast_Expression* expression);
 
 internal Bool
@@ -445,10 +460,13 @@ parse_primary_expression(Parser* parser, Ast_Expression* expression)
         case TOKEN_LEFT_PAREN:
         {
             parser_consume_token(parser);
+
+            const Source_Location location_with_parens = expression->location;
             if (!parse_expression(parser, expression))
             {
                 return false;
             }
+            expression->location = location_with_parens;
 
             if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_RIGHT_PAREN))
             {
@@ -624,10 +642,13 @@ parse_multiplicative_expression(Parser* parser, Ast_Expression* expression)
 {
     // TODO(vlad): Use 'expression' here, otherwise we would overallocate.
     Ast_Expression* lhs = allocate(parser->context->ast_arena, Ast_Expression);
+
+    start_expression(parser, lhs);
     if (!parse_prefix_unary_expression(parser, lhs))
     {
         return false;
     }
+    end_expression(parser, lhs);
 
     if (!parser_fetch_token(parser))
     {
@@ -685,10 +706,13 @@ parse_additive_expression(Parser* parser, Ast_Expression* expression)
 {
     // TODO(vlad): Use 'expression' here, otherwise we would overallocate.
     Ast_Expression* lhs = allocate(parser->context->ast_arena, Ast_Expression);
+
+    start_expression(parser, lhs);
     if (!parse_multiplicative_expression(parser, lhs))
     {
         return false;
     }
+    end_expression(parser, lhs);
 
     if (!parser_fetch_token(parser))
     {
@@ -746,10 +770,13 @@ parse_comparison_expression(Parser* parser, Ast_Expression* expression)
 {
     // TODO(vlad): Use 'expression' here, otherwise we would overallocate.
     Ast_Expression* lhs = allocate(parser->context->ast_arena, Ast_Expression);
+
+    start_expression(parser, lhs);
     if (!parse_additive_expression(parser, lhs))
     {
         return false;
     }
+    end_expression(parser, lhs);
 
     if (!parser_fetch_token(parser))
     {
@@ -764,10 +791,13 @@ parse_comparison_expression(Parser* parser, Ast_Expression* expression)
             parser_consume_token(parser);
 
             Ast_Expression* rhs = allocate(parser->context->ast_arena, Ast_Expression);
+
+            start_expression(parser, rhs);
             if (!parse_comparison_expression(parser, rhs))
             {
                 return false;
             }
+            end_expression(parser, rhs);
 
             expression->kind = AST_EXPRESSION_EQUAL;
             expression->binary_expression.operator = operator;
@@ -782,10 +812,13 @@ parse_comparison_expression(Parser* parser, Ast_Expression* expression)
             parser_consume_token(parser);
 
             Ast_Expression* rhs = allocate(parser->context->ast_arena, Ast_Expression);
+
+            start_expression(parser, rhs);
             if (!parse_comparison_expression(parser, rhs))
             {
                 return false;
             }
+            end_expression(parser, rhs);
 
             expression->kind = AST_EXPRESSION_NOT_EQUAL;
             expression->binary_expression.operator = operator;
@@ -800,10 +833,13 @@ parse_comparison_expression(Parser* parser, Ast_Expression* expression)
             parser_consume_token(parser);
 
             Ast_Expression* rhs = allocate(parser->context->ast_arena, Ast_Expression);
+
+            start_expression(parser, rhs);
             if (!parse_comparison_expression(parser, rhs))
             {
                 return false;
             }
+            end_expression(parser, rhs);
 
             expression->kind = AST_EXPRESSION_LESS;
             expression->binary_expression.operator = operator;
@@ -818,10 +854,13 @@ parse_comparison_expression(Parser* parser, Ast_Expression* expression)
             parser_consume_token(parser);
 
             Ast_Expression* rhs = allocate(parser->context->ast_arena, Ast_Expression);
+
+            start_expression(parser, rhs);
             if (!parse_comparison_expression(parser, rhs))
             {
                 return false;
             }
+            end_expression(parser, rhs);
 
             expression->kind = AST_EXPRESSION_LESS_OR_EQUAL;
             expression->binary_expression.operator = operator;
@@ -836,10 +875,13 @@ parse_comparison_expression(Parser* parser, Ast_Expression* expression)
             parser_consume_token(parser);
 
             Ast_Expression* rhs = allocate(parser->context->ast_arena, Ast_Expression);
+
+            start_expression(parser, rhs);
             if (!parse_comparison_expression(parser, rhs))
             {
                 return false;
             }
+            end_expression(parser, rhs);
 
             expression->kind = AST_EXPRESSION_GREATER;
             expression->binary_expression.operator = operator;
@@ -854,10 +896,13 @@ parse_comparison_expression(Parser* parser, Ast_Expression* expression)
             parser_consume_token(parser);
 
             Ast_Expression* rhs = allocate(parser->context->ast_arena, Ast_Expression);
+
+            start_expression(parser, rhs);
             if (!parse_comparison_expression(parser, rhs))
             {
                 return false;
             }
+            end_expression(parser, rhs);
 
             expression->kind = AST_EXPRESSION_GREATER_OR_EQUAL;
             expression->binary_expression.operator = operator;
@@ -877,11 +922,20 @@ parse_comparison_expression(Parser* parser, Ast_Expression* expression)
 internal Bool
 parse_expression(Parser* parser, Ast_Expression* expression)
 {
-    return parse_comparison_expression(parser, expression);
+    if (!parser_fetch_token(parser))
+    {
+        return false;
+    }
+
+    start_expression(parser, expression);
+    const Bool result = parse_comparison_expression(parser, expression);
+    end_expression(parser, expression);
+
+    return result;
 }
 
-// FIXME(vlad): Rename to 'parse_code_block'.
-internal Bool parse_statements(Parser* parser, Ast_Code_Block* statements);
+// FIXME(vlad): Inline this function in 'parse_code_block'.
+internal Bool parse_statement(Parser* parser, Ast_Statement* statement);
 
 internal Bool
 parse_optional_variable_assignment(Parser* parser, Ast_Variable_Definition* definition)
@@ -1083,6 +1137,7 @@ parse_return_statement(Parser* parser, Ast_Return_Statement* statement)
     {
         parser_consume_token(parser);
         statement->is_empty = true;
+        statement->empty_expression_location = parser->previous_token_location;
         return true;
     }
 
@@ -1102,22 +1157,43 @@ parse_return_statement(Parser* parser, Ast_Return_Statement* statement)
 }
 
 internal Bool
-parse_code_block(Parser* parser, Ast_Code_Block* statements)
+parse_code_block(Parser* parser, Ast_Code_Block* code_block)
 {
     if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_LEFT_BRACE))
     {
         return false;
     }
 
-    if (!parse_statements(parser, statements))
+    if (!parser_fetch_token(parser))
     {
         return false;
+    }
+
+    while (parser->current_token.type != TOKEN_RIGHT_BRACE)
+    {
+        Ast_Statement statement = {0};
+        if (!parse_statement(parser, &statement))
+        {
+            return false;
+        }
+
+        grow_array_if_needed(parser->context->ast_arena,
+                             code_block->statements,
+                             Ast_Statement);
+        code_block->statements[code_block->statements_count++] = statement;
+
+        if (!parser_fetch_token(parser))
+        {
+            return false;
+        }
     }
 
     if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_RIGHT_BRACE))
     {
         return false;
     }
+
+    code_block->end_location = parser->previous_token_location;
 
     return true;
 }
@@ -1256,34 +1332,6 @@ parse_statement(Parser* parser, Ast_Statement* statement)
             return false;
         } break;
     }
-}
-
-internal Bool
-parse_statements(Parser* parser, Ast_Code_Block* statements)
-{
-    if (!parser_fetch_token(parser))
-    {
-        return false;
-    }
-
-    while (parser->current_token.type != TOKEN_RIGHT_BRACE)
-    {
-        Ast_Statement statement = {0};
-        if (!parse_statement(parser, &statement))
-        {
-            return false;
-        }
-
-        grow_array_if_needed(parser->context->ast_arena, statements->statements, Ast_Statement);
-        statements->statements[statements->statements_count++] = statement;
-
-        if (!parser_fetch_token(parser))
-        {
-            return false;
-        }
-    }
-
-    return true;
 }
 
 internal Bool

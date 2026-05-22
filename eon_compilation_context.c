@@ -200,36 +200,51 @@ internal Type_Id
 create_type(Compilation_Context* context)
 {
     grow_array_if_needed(context->types_arena, context->types, Type);
-    return context->types_count++;
+
+    Type_Id type_id = {0};
+    type_id.index = context->types_count++;
+
+    return type_id;
+}
+
+internal inline Type*
+get_exact_type_by_id(Compilation_Context* context, const Type_Id type_id)
+{
+    ASSERT(0 <= type_id.index && type_id.index < context->types_count);
+    return &context->types[type_id.index];
 }
 
 internal inline Type*
 get_type_by_id(Compilation_Context* context, const Type_Id type_id)
 {
-    ASSERT(type_id != UNDEFINED_TYPE_ID);
-    ASSERT(type_id != INVALID_TYPE_ID);
+    const Type_Id root_type_id = find_root_type_id(context, type_id);
+    return get_exact_type_by_id(context, root_type_id);
+}
 
-    ASSERT(0 <= type_id && type_id < context->types_count);
-    return &context->types[type_id];
+internal Type*
+get_type_for_identifier(Compilation_Context* context, const Ast_Identifier* identifier)
+{
+    const Symbol* symbol = get_symbol_for_identifier(context, identifier);
+    return get_type_by_id(context, symbol->type_id);
 }
 
 internal inline Bool
 type_is_a_root_node(Type* type)
 {
-    return type->parent_type_id == UNDEFINED_TYPE_ID;
+    return type_id_is_undefined(type->parent_type_id);
 }
 
 internal inline Bool
 type_id_is_a_root_node(Compilation_Context* context, const Type_Id type_id)
 {
-    Type* type = get_type_by_id(context, type_id);
+    Type* type = get_exact_type_by_id(context, type_id);
     return type_is_a_root_node(type);
 }
 
 internal Type_Id
 find_root_type_id(Compilation_Context* context, const Type_Id type_id)
 {
-    Type* node = get_type_by_id(context, type_id);
+    Type* node = get_exact_type_by_id(context, type_id);
 
     if (!type_is_a_root_node(node))
     {
@@ -239,4 +254,10 @@ find_root_type_id(Compilation_Context* context, const Type_Id type_id)
     }
 
     return type_id;
+}
+
+internal inline Bool
+type_ids_are_equal(Compilation_Context* context, const Type_Id lhs, const Type_Id rhs)
+{
+    return find_root_type_id(context, lhs).index == find_root_type_id(context, rhs).index;
 }

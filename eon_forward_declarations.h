@@ -12,11 +12,11 @@ enum {
 };
 
 struct Type;
-typedef Index Type_Id;
-enum {
-    UNDEFINED_TYPE_ID = 0,
-    INVALID_TYPE_ID = 1,
+struct Type_Id
+{
+    Index index;
 };
+typedef struct Type_Id Type_Id;
 
 struct Lexical_Scope;
 typedef Index Lexical_Scope_Id;
