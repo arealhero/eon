@@ -1019,4 +1019,6 @@ convert_type_to_string(Arena* arena,
             return result;
         } break;
     }
+
+    UNREACHABLE();
 }
