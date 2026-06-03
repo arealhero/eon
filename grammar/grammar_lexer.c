@@ -204,6 +204,7 @@ lexer_get_next_token(Arena* scratch, Lexer* lexer, Token* token)
 
             case ' ':
             case '\n':
+            case '\r':
             {
                 lexer_advance(lexer);
             } break;

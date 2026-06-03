@@ -3,7 +3,7 @@ setlocal
 
 set ERROR_ON=1
 
-set USE_CLANG=0
+set USE_CLANG=1
 
 set clang_warnings=^
     -pedantic ^
@@ -21,7 +21,7 @@ REM TODO(vlad): Find a way to enable ASAN here.
 set clang_common_flags=^
     -std=gnu11 ^
     -O0 ^
-    -ggdb ^
+    -g ^
     -I. ^
     -fno-omit-frame-pointer ^
     -Wl,/INCREMENTAL:NO
@@ -51,11 +51,9 @@ if not exist build\tests\eon mkdir build\tests\eon
 if not exist build\tests\eon\sanitizers mkdir build\tests\eon\sanitizers
 
 call :compile grammar\check_grammar_soundness.c ^
-              build\grammar\check_grammar_soundness.exe
+              build\grammar\check_grammar_soundness
 
-pushd build\grammar
-check_grammar_soundness.exe grammar\eon-grammar
-popd
+build\grammar\check_grammar_soundness.exe grammar\eon-grammar
 
 call :compile_and_run_unit_test eon\memory_ut.c
 call :compile_and_run_unit_test eon\string_ut.c
@@ -91,7 +89,7 @@ if %USE_CLANG% EQU 1 (
   clang "%source%" -o "%output%.exe" ^
          %clang_warnings% ^
          %clang_common_flags% ^
-         || exit 1
+         || exit /B 1
 ) else (
   cl %cl_common_flags% %cl_warnings% ^
      "%source%" ^
@@ -99,7 +97,7 @@ if %USE_CLANG% EQU 1 (
      /Fe:"%output%.exe" ^
      /Fd:"%output%.pdb" ^
      %cl_link_flags% ^
-     || exit 1
+     || exit /B 1
 )
 
 set endtime="%TIME%"
@@ -139,7 +137,7 @@ call :compile !test_filename! build\tests\!test_name!
 echo Running tests in '%test_name%'
 
 pushd build\tests
-!test_name!.exe --hide-stats || exit 1
+!test_name!.exe --hide-stats || exit /B 1
 popd
 
 endlocal
