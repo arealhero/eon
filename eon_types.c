@@ -45,6 +45,17 @@ get_void_type_id(Compilation_Context* context)
     return void_symbol->type_id;
 }
 
+internal inline Type_Id
+get_boolean_type_id(Compilation_Context* context)
+{
+    const Builtin_Type boolean_builtin_type = BOOLEAN_BUILTIN_TYPE;
+    const Symbol_Id boolean_symbol_id = find_symbol_id(context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       string_view(boolean_builtin_type.name));
+    const Symbol* boolean_symbol = get_symbol_by_id(context, boolean_symbol_id);
+    return boolean_symbol->type_id;
+}
+
 internal Type_Id
 create_new_type_variable(Compilation_Context* context)
 {
@@ -396,7 +407,83 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
         case AST_EXPRESSION_GREATER:
         case AST_EXPRESSION_GREATER_OR_EQUAL:
         {
-            FAIL("[TYPE] Comparisons are not supported yet");
+            Ast_Binary_Expression* comparison = &expression->binary_expression;
+
+            const Type_Id lhs_type_id = resolve_types_in_expression(context, comparison->lhs);
+            const Type_Id rhs_type_id = resolve_types_in_expression(context, comparison->rhs);
+
+            if (!try_to_unify_types(context, lhs_type_id, rhs_type_id))
+            {
+                Diagnostic_Message error = {0};
+                error.level = MESSAGE_LEVEL_ERROR;
+                error.location = expression->location;
+
+                const String lhs_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                      context,
+                                                                      lhs_type_id);
+
+                const String rhs_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                      context,
+                                                                      rhs_type_id);
+
+
+                const String error_text = format_string(context->diagnostic_message_texts_arena,
+                                                        "Cannot compare expressions of different types '{}' and '{}'",
+                                                        lhs_type_string,
+                                                        rhs_type_string);
+
+                error.text = string_view(error_text);
+                emit_diagnostic_message(context, &error);
+
+                expression->type_id.index = INVALID_TYPE_INDEX;
+                return expression->type_id;
+            }
+
+            const Type* expression_type = get_type_by_id(context, lhs_type_id);
+
+            switch (expression_type->kind)
+            {
+                case TYPE_UNDEFINED:
+                {
+                    UNREACHABLE();
+                } break;
+
+                case TYPE_INTEGER:
+                case TYPE_FLOAT:
+                case TYPE_BOOLEAN:
+                {
+                    // NOTE(vlad): These types can be compared.
+                    // TODO(vlad): Forbid 'less/greater than' comparisons for booleans.
+                } break;
+
+                case TYPE_VOID:
+                case TYPE_VARIABLE:
+                case TYPE_POINTER:
+                case TYPE_FUNCTION:
+                {
+                    Diagnostic_Message error = {0};
+                    error.level = MESSAGE_LEVEL_ERROR;
+                    error.location = expression->location;
+
+                    const String lhs_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                          context,
+                                                                          lhs_type_id);
+
+
+                    const String error_text = format_string(context->diagnostic_message_texts_arena,
+                                                            "Expressions of type '{}' cannot be compared.",
+                                                            lhs_type_string);
+
+                    error.text = string_view(error_text);
+                    emit_diagnostic_message(context, &error);
+
+                    expression->type_id.index = INVALID_TYPE_INDEX;
+                    return expression->type_id;
+                } break;
+            }
+
+            const Type_Id boolean_type_id = get_boolean_type_id(context);
+            expression->type_id = boolean_type_id;
         } break;
 
         case AST_EXPRESSION_NEGATE:
