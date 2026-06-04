@@ -253,7 +253,7 @@ typedef struct Ast_While_Statement Ast_While_Statement;
 
 struct Ast_Call_Statement
 {
-    Ast_Call call;
+    Ast_Expression call_expression;
 };
 typedef struct Ast_Call_Statement Ast_Call_Statement;
 

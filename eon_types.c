@@ -827,7 +827,20 @@ resolve_types_in_code_block(Compilation_Context* context,
 
             case AST_STATEMENT_CALL:
             {
-                FAIL("[TYPE] Call statements are not yet supported");
+                Ast_Call_Statement* call_statement = &statement->call_statement;
+
+                const Type_Id return_type_id = resolve_types_in_expression(context, &call_statement->call_expression);
+
+                if (!type_id_is_valid(context, return_type_id))
+                {
+                    return false;
+                }
+
+                const Type_Id void_type_id = get_void_type_id(context);
+                if (!try_to_unify_types(context, return_type_id, void_type_id))
+                {
+                    // FIXME(vlad): Test if returned value is discardable.
+                }
             } break;
         }
     }

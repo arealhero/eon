@@ -1344,7 +1344,7 @@ test_if_statements(Test_Context* test_context)
 }
 
 internal void
-test_function_calls(Test_Context* test_context)
+test_calls(Test_Context* test_context)
 {
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (parameter: * () -> s32) -> s32 = {\n"
@@ -1709,6 +1709,146 @@ test_function_calls(Test_Context* test_context)
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    bar();\n"
+                                                 "}\n"
+                                                 "bar: () -> void = {}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        ASSERT_EQUAL(context.ast.function_definitions_count, 2);
+
+        // NOTE(vlad): Testing 'foo'.
+
+        const Ast_Function_Definition* first_function = &context.ast.function_definitions[0];
+
+        const Type_Id first_function_type_id = first_function->type->type_id;
+        ASSERT_TYPE_IS_VALID(first_function_type_id);
+
+        const Type* first_function_type = get_type_by_id(&context, first_function_type_id);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(first_function_type->kind, TYPE_FUNCTION);
+        ASSERT_TYPE_STRINGS_ARE_EQUAL(first_function_type_id, "() -> void");
+
+        const Function_Type_Info* first_function_type_info = &first_function_type->function_info;
+        ASSERT_EQUAL(first_function_type_info->parameter_type_ids_count, 0);
+
+        {
+            const Type_Id return_type_id = first_function_type_info->return_type_id;
+            ASSERT_TYPE_IS_VALID(return_type_id);
+
+            const Type* return_type = get_type_by_id(&context, return_type_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_VOID);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(return_type_id, "void");
+        }
+
+        // NOTE(vlad): Test that every symbol has a type.
+        {
+            const Symbol* function_symbol = get_symbol_for_identifier(&context, &first_function->name);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
+            ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, first_function->name.token.lexeme);
+            ASSERT_TYPE_IDS_ARE_EQUAL(first_function_type_id, function_symbol->type_id);
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_function->type->kind, AST_TYPE_FUNCTION);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(function_symbol->type_id, "() -> void");
+        }
+
+        {
+            const Ast_Code_Block* body = &first_function->body;
+
+            ASSERT_EQUAL(body->statements_count, 1);
+            ASSERT_EQUAL(body->every_path_returns, true);
+
+            {
+                const Ast_Statement* statement = &body->statements[0];
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_CALL);
+                const Ast_Call_Statement* call_statement = &statement->call_statement;
+
+                const Ast_Expression* call_expression = &call_statement->call_expression;
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(call_expression->kind, AST_EXPRESSION_CALL);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(call_expression->type_id, "void");
+
+                const Ast_Expression* called_expression = call_expression->call.called_expression;
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(called_expression->kind, AST_EXPRESSION_IDENTIFIER);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(called_expression->type_id, "() -> void");
+
+                const Ast_Identifier* identifier = &called_expression->identifier;
+
+                const Symbol* identifier_symbol = get_symbol_for_identifier(&context, identifier);
+
+                ASSERT_TYPE_IS_VALID(identifier_symbol->type_id);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(identifier_symbol->type_id, "() -> void");
+            }
+
+            ASSERT_TYPE_IS_VALID(body->return_type_id);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(body->return_type_id, "void");
+        }
+
+        // NOTE(vlad): Testing 'bar'.
+
+        const Ast_Function_Definition* second_function = &context.ast.function_definitions[1];
+
+        const Type_Id second_function_type_id = second_function->type->type_id;
+        ASSERT_TYPE_IS_VALID(second_function_type_id);
+
+        const Type* second_function_type = get_type_by_id(&context, second_function_type_id);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(second_function_type->kind, TYPE_FUNCTION);
+        ASSERT_TYPE_STRINGS_ARE_EQUAL(second_function_type_id, "() -> void");
+
+        const Function_Type_Info* second_function_type_info = &second_function_type->function_info;
+        ASSERT_EQUAL(second_function_type_info->parameter_type_ids_count, 0);
+
+        {
+            const Type_Id return_type_id = second_function_type_info->return_type_id;
+            ASSERT_TYPE_IS_VALID(return_type_id);
+
+            const Type* return_type = get_type_by_id(&context, return_type_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_VOID);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(return_type_id, "void");
+        }
+
+        // NOTE(vlad): Test that every symbol has a type.
+        {
+            const Symbol* function_symbol = get_symbol_for_identifier(&context, &second_function->name);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
+            ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, second_function->name.token.lexeme);
+            ASSERT_TYPE_IDS_ARE_EQUAL(second_function_type_id, function_symbol->type_id);
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_function->type->kind, AST_TYPE_FUNCTION);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(function_symbol->type_id, "() -> void");
+        }
+
+        {
+            const Ast_Code_Block* body = &second_function->body;
+
+            ASSERT_EQUAL(body->statements_count, 0);
+            ASSERT_EQUAL(body->every_path_returns, true);
+
+            ASSERT_TYPE_IS_VALID(body->return_type_id);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(body->return_type_id, "void");
+        }
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
 }
 
 internal void
@@ -1928,6 +2068,39 @@ test_types_mismatches(Test_Context* test_context)
     }
 
     {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (parameter: s32) -> void = {\n"
+                                                 "    parameter();\n"
+                                                 "}\n");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:2:5: error: Expression of type 's32' is not callable\n"
+                                                        "  2 |     parameter();\n"
+                                                        "    |     ^~~~~~~~~");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (parameter: s32) -> s32 = {\n"
                                                  "    return bar(parameter);\n"
                                                  "}\n"
@@ -2105,7 +2278,7 @@ REGISTER_TESTS(
     test_pointers,
     test_comparisons,
     test_if_statements,
-    test_function_calls,
+    test_calls,
     test_types_mismatches
 )
 

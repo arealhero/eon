@@ -1037,11 +1037,22 @@ parse_call_statement(Parser* parser,
                      Ast_Identifier* identifier,
                      Ast_Call_Statement* call_statement)
 {
-    Ast_Call* call = &call_statement->call;
+    Ast_Expression* call_expression = &call_statement->call_expression;
+    call_expression->kind = AST_EXPRESSION_CALL;
+
+    if (!parser_fetch_token(parser))
+    {
+        return false;
+    }
+
+    call_expression->location = identifier->token.location;
+
+    Ast_Call* call = &call_expression->call;
 
     call->called_expression = allocate(parser->context->ast_arena, Ast_Expression);
     call->called_expression->kind = AST_EXPRESSION_IDENTIFIER;
     call->called_expression->identifier = *identifier;
+    call->called_expression->location = identifier->token.location;
 
     if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_LEFT_PAREN))
     {
@@ -1065,6 +1076,8 @@ parse_call_statement(Parser* parser,
     {
         return false;
     }
+
+    end_expression(parser, call_expression);
 
     // TODO(vlad): Move the semicolon parsing to 'parse_statement' or 'parse_expression_statement'
     //             or something more high-level.

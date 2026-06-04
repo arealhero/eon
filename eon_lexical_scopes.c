@@ -376,7 +376,9 @@ create_lexical_scopes_for_code_block(Compilation_Context* context, Ast_Code_Bloc
             case AST_STATEMENT_CALL:
             {
                 Ast_Call_Statement* call_statement = &statement->call_statement;
-                set_symbol_ids_for_identifiers_in_call_expression(context, &call_statement->call, this_lexical_scope_id);
+                set_symbol_ids_for_identifiers_in_call_expression(context,
+                                                                  &call_statement->call_expression.call,
+                                                                  this_lexical_scope_id);
             } break;
         }
     }

@@ -3773,7 +3773,9 @@ test_call_statements(Test_Context* test_context)
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_CALL);
 
             const Ast_Call_Statement* call_statement = &statement->call_statement;
-            const Ast_Call* call = &call_statement->call;
+            const Ast_Expression* call_expression = &call_statement->call_expression;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(call_expression->kind, AST_EXPRESSION_CALL);
+            const Ast_Call* call = &call_expression->call;
 
             const Ast_Expression* called_expression = call->called_expression;
             ASSERT_ENUM_VALUES_ARE_EQUAL(called_expression->kind, AST_EXPRESSION_IDENTIFIER);
