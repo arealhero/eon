@@ -757,7 +757,51 @@ resolve_types_in_code_block(Compilation_Context* context,
 
             case AST_STATEMENT_WHILE:
             {
-                FAIL("[TYPE] While loops are not yet supported");
+                Ast_While_Statement* while_statement = &statement->while_statement;
+
+                {
+                    Ast_Expression* condition = &while_statement->condition;
+                    const Type_Id condition_type_id = resolve_types_in_expression(context, condition);
+                    const Type_Id boolean_type_id = get_boolean_type_id(context);
+
+                    if (!try_to_unify_types(context, condition_type_id, boolean_type_id))
+                    {
+                        Diagnostic_Message error = {0};
+                        error.level = MESSAGE_LEVEL_ERROR;
+
+                        error.location = condition->location;
+
+                        const String expected_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                                   context,
+                                                                                   boolean_type_id);
+                        const String actual_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                                 context,
+                                                                                 condition_type_id);
+
+                        const String error_text = format_string(context->diagnostic_message_texts_arena,
+                                                                "Implicit conversion from '{}' to '{}' is forbidden.",
+                                                                actual_type_string,
+                                                                expected_type_string);
+
+                        error.text = string_view(error_text);
+                        emit_diagnostic_message(context, &error);
+
+                        return false;
+                    }
+                }
+
+                Ast_Code_Block* body = &while_statement->body;
+                if (!resolve_types_in_code_block(context, body, expected_return_type_id))
+                {
+                    return false;
+                }
+
+                if (body->every_path_returns)
+                {
+                    ASSERT(try_to_unify_types(context, body->return_type_id, expected_return_type_id));
+                    code_block->every_path_returns = true;
+                    code_block->return_type_id = expected_return_type_id;
+                }
             } break;
 
             case AST_STATEMENT_IF:
