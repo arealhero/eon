@@ -6,7 +6,7 @@
 
 3. global variables' capture list for functions (like it is for lambdas and outer scopes)
    - functions and types must be visible implicitly
-   - should we declare global variables of the functions that we're using inside our oun?
+   - should we declare global variables of functions that we're using inside our own?
      - if yes then what about input/output streams with global buffers?
      - а если буферизация включается/выключается на этапе компиляции?
 
