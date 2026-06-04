@@ -430,6 +430,20 @@ parse_primary_expression(Parser* parser, Ast_Expression* expression)
         {
             expression->kind = AST_EXPRESSION_NUMBER;
             expression->number.token = parser->current_token;
+            expression->number.is_a_floating_point_number = false;
+
+            for (Index i = 0;
+                 i < expression->number.token.lexeme.length;
+                 ++i)
+            {
+                const char c = expression->number.token.lexeme.data[i];
+                if (c == '.')
+                {
+                    expression->number.is_a_floating_point_number = true;
+                    break;
+                }
+            }
+
             parser_consume_token(parser);
             return true;
         } break;

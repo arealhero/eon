@@ -39,8 +39,8 @@ typedef struct Float_Builtin_Type Float_Builtin_Type;
         (Integer_Builtin_Type) { .name = "u64", .width_in_bits = 64, .is_signed = false }, \
     };
 
-#define FLOAT_BUILTIN_TYPES                                         \
-    {                                                               \
-       (Float_Builtin_Type) { .name = "f32",  .width_in_bits = 8 }, \
-       (Float_Builtin_Type) { .name = "f64", .width_in_bits = 16 }, \
+#define FLOAT_BUILTIN_TYPES                                          \
+    {                                                                \
+        (Float_Builtin_Type) { .name = "f32", .width_in_bits = 32 }, \
+        (Float_Builtin_Type) { .name = "f64", .width_in_bits = 64 }, \
     };

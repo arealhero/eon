@@ -882,6 +882,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_TRUE(definition->has_initial_value);
         ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.number.token.lexeme, "123");
+        ASSERT_FALSE(definition->initial_value.number.is_a_floating_point_number);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -936,6 +937,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_TRUE(definition->has_initial_value);
         ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.number.token.lexeme, "123");
+        ASSERT_FALSE(definition->initial_value.number.is_a_floating_point_number);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -991,6 +993,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_TRUE(definition->has_initial_value);
             ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.number.token.lexeme, "123");
+            ASSERT_FALSE(definition->initial_value.number.is_a_floating_point_number);
         }
 
         {
@@ -1115,6 +1118,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_TRUE(definition->has_initial_value);
             ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.number.token.lexeme, "123");
+            ASSERT_FALSE(definition->initial_value.number.is_a_floating_point_number);
         }
 
         {
@@ -1461,6 +1465,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_TRUE(statement->variable_definition.has_initial_value);
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->variable_definition.initial_value.kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(statement->variable_definition.initial_value.number.token.lexeme, "123");
+            ASSERT_FALSE(statement->variable_definition.initial_value.number.is_a_floating_point_number);
 
             destroy_parser(&parser);
             destroy_lexer(&lexer);
@@ -1557,6 +1562,7 @@ test_return_statement_parsing(Test_Context* test_context)
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->return_statement.expression.kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(statement->return_statement.expression.number.token.lexeme,
                                  "123");
+        ASSERT_FALSE(statement->return_statement.expression.number.is_a_floating_point_number);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -1683,6 +1689,7 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_TRUE(variable_definition->has_initial_value);
         ASSERT_ENUM_VALUES_ARE_EQUAL(variable_definition->initial_value.kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(variable_definition->initial_value.number.token.lexeme, "1");
+        ASSERT_FALSE(variable_definition->initial_value.number.is_a_floating_point_number);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -1732,6 +1739,7 @@ test_if_statement_parsing(Test_Context* test_context)
         const Ast_If_Statement* if_statement = &statement->if_statement;
         ASSERT_ENUM_VALUES_ARE_EQUAL(if_statement->condition.kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(if_statement->condition.number.token.lexeme, "1");
+        ASSERT_FALSE(if_statement->condition.number.is_a_floating_point_number);
 
         const Ast_Code_Block* then_code_block = &if_statement->if_statements;
         ASSERT_EQUAL(then_code_block->statements_count, 1);
@@ -1741,6 +1749,7 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_FALSE(first_return->is_empty);
         ASSERT_ENUM_VALUES_ARE_EQUAL(first_return->expression.kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(first_return->expression.number.token.lexeme, "1");
+        ASSERT_FALSE(first_return->expression.number.is_a_floating_point_number);
 
         const Ast_Code_Block* else_code_block = &if_statement->else_statements;
         ASSERT_EQUAL(else_code_block->statements_count, 1);
@@ -1749,6 +1758,7 @@ test_if_statement_parsing(Test_Context* test_context)
         const Ast_If_Statement* else_if_statement = &else_code_block->statements[0].if_statement;
         ASSERT_ENUM_VALUES_ARE_EQUAL(else_if_statement->condition.kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(else_if_statement->condition.number.token.lexeme, "2");
+        ASSERT_FALSE(else_if_statement->condition.number.is_a_floating_point_number);
 
         const Ast_Code_Block* else_if_true_code_block = &else_if_statement->if_statements;
         ASSERT_EQUAL(else_if_true_code_block->statements_count, 1);
@@ -1758,6 +1768,7 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_FALSE(second_return->is_empty);
         ASSERT_ENUM_VALUES_ARE_EQUAL(second_return->expression.kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(second_return->expression.number.token.lexeme, "2");
+        ASSERT_FALSE(second_return->expression.number.is_a_floating_point_number);
 
         const Ast_Code_Block* else_if_false_code_block = &else_if_statement->else_statements;
         ASSERT_EQUAL(else_if_false_code_block->statements_count, 1);
@@ -1767,6 +1778,7 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_FALSE(third_return->is_empty);
         ASSERT_ENUM_VALUES_ARE_EQUAL(third_return->expression.kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(third_return->expression.number.token.lexeme, "3");
+        ASSERT_FALSE(third_return->expression.number.is_a_floating_point_number);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -1825,6 +1837,8 @@ test_expressions(Test_Context* test_context)
             ASSERT_TRUE(definition->has_initial_value);
             ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.number.token.lexeme, "0");
+            ASSERT_FALSE(definition->initial_value.number.is_a_floating_point_number);
+
             ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "0");
         }
 
@@ -1899,8 +1913,12 @@ test_expressions(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme, "+");
         ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.lhs->number.token.lexeme, "2");
+        ASSERT_FALSE(definition->initial_value.binary_expression.lhs->number.is_a_floating_point_number);
+
         ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.rhs->number.token.lexeme, "2");
+        ASSERT_FALSE(definition->initial_value.binary_expression.rhs->number.is_a_floating_point_number);
+
         ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "2 + 2");
 
         destroy_parser(&parser);
@@ -1956,8 +1974,12 @@ test_expressions(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme, "-");
         ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.lhs->number.token.lexeme, "2");
+        ASSERT_FALSE(definition->initial_value.binary_expression.lhs->number.is_a_floating_point_number);
+
         ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.rhs->number.token.lexeme, "2");
+        ASSERT_FALSE(definition->initial_value.binary_expression.rhs->number.is_a_floating_point_number);
+
         ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "2 - 2");
 
         destroy_parser(&parser);
@@ -2013,8 +2035,12 @@ test_expressions(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme, "*");
         ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.lhs->number.token.lexeme, "2");
+        ASSERT_FALSE(definition->initial_value.binary_expression.lhs->number.is_a_floating_point_number);
+
         ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.rhs->number.token.lexeme, "2");
+        ASSERT_FALSE(definition->initial_value.binary_expression.rhs->number.is_a_floating_point_number);
+
         ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "2 * 2");
 
         destroy_parser(&parser);
@@ -2073,15 +2099,271 @@ test_expressions(Test_Context* test_context)
             const Ast_Expression* lhs = definition->initial_value.binary_expression.lhs;
             ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(lhs->number.token.lexeme, "2");
+            ASSERT_FALSE(lhs->number.is_a_floating_point_number);
         }
 
         {
             const Ast_Expression* rhs = definition->initial_value.binary_expression.rhs;
             ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(rhs->number.token.lexeme, "2");
+            ASSERT_FALSE(rhs->number.is_a_floating_point_number);
         }
 
         ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "2 / 2");
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    var := 2.0 + 2.0;"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+        ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
+
+        const Ast_Type* function_type = function_definition->type;
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_FALSE(function_type->is_mutable);
+        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location, "() -> void");
+
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
+
+        const Ast_Type* return_type = function_type->function.return_type;
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_FALSE(return_type->is_mutable);
+        ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
+        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
+
+        ASSERT_EQUAL(function_definition->body.statements_count, 1);
+
+        const Ast_Statement* statement = &function_definition->body.statements[0];
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+
+        const Ast_Variable_Definition* definition = &statement->variable_definition;
+        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+        ASSERT_FALSE(definition->type->is_mutable);
+        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
+
+        ASSERT_TRUE(definition->has_initial_value);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_ADD);
+        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme, "+");
+
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
+        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.lhs->number.token.lexeme, "2.0");
+        ASSERT_TRUE(definition->initial_value.binary_expression.lhs->number.is_a_floating_point_number);
+
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
+        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.rhs->number.token.lexeme, "2.0");
+        ASSERT_TRUE(definition->initial_value.binary_expression.rhs->number.is_a_floating_point_number);
+
+        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "2.0 + 2.0");
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    var := 2.0 - 2.0;"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+        ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
+
+        const Ast_Type* function_type = function_definition->type;
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_FALSE(function_type->is_mutable);
+        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location, "() -> void");
+
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
+
+        const Ast_Type* return_type = function_type->function.return_type;
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_FALSE(return_type->is_mutable);
+        ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
+        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
+
+        ASSERT_EQUAL(function_definition->body.statements_count, 1);
+
+        const Ast_Statement* statement = &function_definition->body.statements[0];
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+
+        const Ast_Variable_Definition* definition = &statement->variable_definition;
+        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+        ASSERT_FALSE(definition->type->is_mutable);
+        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
+
+        ASSERT_TRUE(definition->has_initial_value);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_SUBTRACT);
+        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme, "-");
+
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
+        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.lhs->number.token.lexeme, "2.0");
+        ASSERT_TRUE(definition->initial_value.binary_expression.lhs->number.is_a_floating_point_number);
+
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
+        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.rhs->number.token.lexeme, "2.0");
+        ASSERT_TRUE(definition->initial_value.binary_expression.rhs->number.is_a_floating_point_number);
+
+        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "2.0 - 2.0");
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    var := 2.0 * 2.0;"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+        ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
+
+        const Ast_Type* function_type = function_definition->type;
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_FALSE(function_type->is_mutable);
+        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location, "() -> void");
+
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
+
+        const Ast_Type* return_type = function_type->function.return_type;
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_FALSE(return_type->is_mutable);
+        ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
+        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
+
+        ASSERT_EQUAL(function_definition->body.statements_count, 1);
+
+        const Ast_Statement* statement = &function_definition->body.statements[0];
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+
+        const Ast_Variable_Definition* definition = &statement->variable_definition;
+        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+        ASSERT_FALSE(definition->type->is_mutable);
+        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
+
+        ASSERT_TRUE(definition->has_initial_value);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_MULTIPLY);
+        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme, "*");
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
+
+        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.lhs->number.token.lexeme, "2.0");
+        ASSERT_TRUE(definition->initial_value.binary_expression.lhs->number.is_a_floating_point_number);
+
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
+        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.rhs->number.token.lexeme, "2.0");
+        ASSERT_TRUE(definition->initial_value.binary_expression.rhs->number.is_a_floating_point_number);
+
+        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "2.0 * 2.0");
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    var := 2.0 / 2.0;"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+        ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
+
+        const Ast_Type* function_type = function_definition->type;
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_FALSE(function_type->is_mutable);
+        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location, "() -> void");
+
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
+
+        const Ast_Type* return_type = function_type->function.return_type;
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_FALSE(return_type->is_mutable);
+        ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
+        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
+
+        ASSERT_EQUAL(function_definition->body.statements_count, 1);
+
+        const Ast_Statement* statement = &function_definition->body.statements[0];
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+
+        const Ast_Variable_Definition* definition = &statement->variable_definition;
+        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+        ASSERT_FALSE(definition->type->is_mutable);
+        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
+        ASSERT_TRUE(definition->has_initial_value);
+
+        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_DIVIDE);
+        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme, "/");
+
+        {
+            const Ast_Expression* lhs = definition->initial_value.binary_expression.lhs;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_STRINGS_ARE_EQUAL(lhs->number.token.lexeme, "2.0");
+            ASSERT_TRUE(lhs->number.is_a_floating_point_number);
+        }
+
+        {
+            const Ast_Expression* rhs = definition->initial_value.binary_expression.rhs;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_STRINGS_ARE_EQUAL(rhs->number.token.lexeme, "2.0");
+            ASSERT_TRUE(rhs->number.is_a_floating_point_number);
+        }
+
+        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "2.0 / 2.0");
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -2131,6 +2413,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->return_statement.expression.kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(statement->return_statement.expression.number.token.lexeme,
                                      "123");
+            ASSERT_FALSE(statement->return_statement.expression.number.is_a_floating_point_number);
 
             ASSERT_LOCATION_STRINGS_ARE_EQUAL(&statement->return_statement.expression.location, "123");
         }
@@ -2234,12 +2517,14 @@ test_expressions(Test_Context* test_context)
                 const Ast_Expression* first_argument = call->arguments[0];
                 ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, AST_EXPRESSION_NUMBER);
                 ASSERT_STRINGS_ARE_EQUAL(first_argument->number.token.lexeme, "10");
+                ASSERT_FALSE(first_argument->number.is_a_floating_point_number);
             }
 
             {
                 const Ast_Expression* second_argument = call->arguments[1];
                 ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, AST_EXPRESSION_NUMBER);
                 ASSERT_STRINGS_ARE_EQUAL(second_argument->number.token.lexeme, "20");
+                ASSERT_FALSE(second_argument->number.is_a_floating_point_number);
             }
 
             ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "foo(10, 20)");
@@ -2313,6 +2598,7 @@ test_expressions(Test_Context* test_context)
                     const Ast_Expression* lhs = first_argument->binary_expression.lhs;
                     ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_NUMBER);
                     ASSERT_STRINGS_ARE_EQUAL(lhs->number.token.lexeme, "10");
+                    ASSERT_FALSE(lhs->number.is_a_floating_point_number);
                 }
 
                 {
@@ -2325,6 +2611,7 @@ test_expressions(Test_Context* test_context)
 
                     ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
                     ASSERT_STRINGS_ARE_EQUAL(rhs->binary_expression.rhs->number.token.lexeme, "30");
+                    ASSERT_FALSE(rhs->binary_expression.rhs->number.is_a_floating_point_number);
                 }
             }
 
@@ -2341,9 +2628,11 @@ test_expressions(Test_Context* test_context)
 
                 ASSERT_ENUM_VALUES_ARE_EQUAL(nested_call->arguments[0]->kind, AST_EXPRESSION_NUMBER);
                 ASSERT_STRINGS_ARE_EQUAL(nested_call->arguments[0]->number.token.lexeme, "10");
+                ASSERT_FALSE(nested_call->arguments[0]->number.is_a_floating_point_number);
 
                 ASSERT_ENUM_VALUES_ARE_EQUAL(nested_call->arguments[1]->kind, AST_EXPRESSION_NUMBER);
                 ASSERT_STRINGS_ARE_EQUAL(nested_call->arguments[1]->number.token.lexeme, "20");
+                ASSERT_FALSE(nested_call->arguments[1]->number.is_a_floating_point_number);
             }
 
             ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location,
@@ -2408,9 +2697,11 @@ test_expressions(Test_Context* test_context)
 
             ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->lhs->number.token.lexeme, "1");
+            ASSERT_FALSE(binary_expression->lhs->number.is_a_floating_point_number);
 
             ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->rhs->number.token.lexeme, "1");
+            ASSERT_FALSE(binary_expression->rhs->number.is_a_floating_point_number);
 
             destroy_parser(&parser);
             destroy_lexer(&lexer);
@@ -2468,9 +2759,11 @@ test_expressions(Test_Context* test_context)
 
             ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->lhs->number.token.lexeme, "1");
+            ASSERT_FALSE(binary_expression->lhs->number.is_a_floating_point_number);
 
             ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->rhs->number.token.lexeme, "1");
+            ASSERT_FALSE(binary_expression->rhs->number.is_a_floating_point_number);
 
             destroy_parser(&parser);
             destroy_lexer(&lexer);
@@ -2528,9 +2821,11 @@ test_expressions(Test_Context* test_context)
 
             ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->lhs->number.token.lexeme, "1");
+            ASSERT_FALSE(binary_expression->lhs->number.is_a_floating_point_number);
 
             ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->rhs->number.token.lexeme, "1");
+            ASSERT_FALSE(binary_expression->rhs->number.is_a_floating_point_number);
 
             destroy_parser(&parser);
             destroy_lexer(&lexer);
@@ -2588,9 +2883,11 @@ test_expressions(Test_Context* test_context)
 
             ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->lhs->number.token.lexeme, "1");
+            ASSERT_FALSE(binary_expression->lhs->number.is_a_floating_point_number);
 
             ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->rhs->number.token.lexeme, "1");
+            ASSERT_FALSE(binary_expression->rhs->number.is_a_floating_point_number);
 
             destroy_parser(&parser);
             destroy_lexer(&lexer);
@@ -2648,9 +2945,11 @@ test_expressions(Test_Context* test_context)
 
             ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->lhs->number.token.lexeme, "1");
+            ASSERT_FALSE(binary_expression->lhs->number.is_a_floating_point_number);
 
             ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->rhs->number.token.lexeme, "1");
+            ASSERT_FALSE(binary_expression->rhs->number.is_a_floating_point_number);
 
             destroy_parser(&parser);
             destroy_lexer(&lexer);
@@ -2708,9 +3007,11 @@ test_expressions(Test_Context* test_context)
 
             ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->lhs->number.token.lexeme, "1");
+            ASSERT_FALSE(binary_expression->lhs->number.is_a_floating_point_number);
 
             ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(binary_expression->rhs->number.token.lexeme, "1");
+            ASSERT_FALSE(binary_expression->rhs->number.is_a_floating_point_number);
 
             destroy_parser(&parser);
             destroy_lexer(&lexer);
@@ -2771,6 +3072,7 @@ test_expressions(Test_Context* test_context)
 
             ASSERT_ENUM_VALUES_ARE_EQUAL(unary_expression->operand->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(unary_expression->operand->number.token.lexeme, "1");
+            ASSERT_FALSE(unary_expression->operand->number.is_a_floating_point_number);
 
             destroy_parser(&parser);
             destroy_lexer(&lexer);
@@ -2856,6 +3158,7 @@ test_expressions(Test_Context* test_context)
                 const Ast_Expression* rhs = binary_expression->rhs;
                 ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
                 ASSERT_LOCATION_STRINGS_ARE_EQUAL(&rhs->location, "2");
+                ASSERT_FALSE(rhs->number.is_a_floating_point_number);
 
                 ASSERT_STRINGS_ARE_EQUAL(rhs->number.token.lexeme, "2");
                 ASSERT_LOCATION_STRINGS_ARE_EQUAL(&rhs->number.token.location, "2");
@@ -2939,6 +3242,7 @@ test_expressions(Test_Context* test_context)
                 const Ast_Expression* rhs = binary_expression->rhs;
                 ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
                 ASSERT_STRINGS_ARE_EQUAL(rhs->number.token.lexeme, "2");
+                ASSERT_FALSE(rhs->number.is_a_floating_point_number);
             }
 
             destroy_parser(&parser);
@@ -3031,6 +3335,7 @@ test_expressions(Test_Context* test_context)
                 const Ast_Expression* rhs = binary_expression->rhs;
                 ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
                 ASSERT_STRINGS_ARE_EQUAL(rhs->number.token.lexeme, "2");
+                ASSERT_FALSE(rhs->number.is_a_floating_point_number);
             }
 
             destroy_parser(&parser);
@@ -3124,6 +3429,7 @@ test_expressions(Test_Context* test_context)
                 const Ast_Expression* rhs = binary_expression->rhs;
                 ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
                 ASSERT_STRINGS_ARE_EQUAL(rhs->number.token.lexeme, "2");
+                ASSERT_FALSE(rhs->number.is_a_floating_point_number);
             }
 
             destroy_parser(&parser);
@@ -3272,6 +3578,7 @@ test_expressions(Test_Context* test_context)
                 const Ast_Expression* rhs = binary_expression->rhs;
                 ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
                 ASSERT_STRINGS_ARE_EQUAL(rhs->number.token.lexeme, "2");
+                ASSERT_FALSE(rhs->number.is_a_floating_point_number);
             }
 
             destroy_parser(&parser);
@@ -3335,16 +3642,21 @@ test_operator_precedence(Test_Context* test_context)
             const Ast_Expression* lhs = definition->initial_value.binary_expression.lhs;
             ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(lhs->number.token.lexeme, "1");
+            ASSERT_FALSE(lhs->number.is_a_floating_point_number);
         }
 
         {
             const Ast_Expression* rhs = definition->initial_value.binary_expression.rhs;
             ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_MULTIPLY);
             ASSERT_STRINGS_ARE_EQUAL(rhs->binary_expression.operator.lexeme, "*");
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(rhs->binary_expression.lhs->number.token.lexeme, "2");
+            ASSERT_FALSE(rhs->binary_expression.lhs->number.is_a_floating_point_number);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(rhs->binary_expression.rhs->number.token.lexeme, "3");
+            ASSERT_FALSE(rhs->binary_expression.rhs->number.is_a_floating_point_number);
         }
 
         destroy_parser(&parser);
@@ -3404,16 +3716,21 @@ test_operator_precedence(Test_Context* test_context)
             const Ast_Expression* lhs = definition->initial_value.binary_expression.lhs;
             ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_ADD);
             ASSERT_STRINGS_ARE_EQUAL(lhs->binary_expression.operator.lexeme, "+");
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(lhs->binary_expression.lhs->number.token.lexeme, "1");
+            ASSERT_FALSE(lhs->binary_expression.lhs->number.is_a_floating_point_number);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(lhs->binary_expression.rhs->number.token.lexeme, "2");
+            ASSERT_FALSE(lhs->binary_expression.rhs->number.is_a_floating_point_number);
         }
 
         {
             const Ast_Expression* rhs = definition->initial_value.binary_expression.rhs;
             ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(rhs->number.token.lexeme, "3");
+            ASSERT_FALSE(rhs->number.is_a_floating_point_number);
         }
 
         destroy_parser(&parser);
@@ -3472,6 +3789,7 @@ test_operator_precedence(Test_Context* test_context)
             const Ast_Expression* lhs = definition->initial_value.binary_expression.lhs;
             ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(lhs->number.token.lexeme, "3");
+            ASSERT_FALSE(lhs->number.is_a_floating_point_number);
         }
 
         {
@@ -3542,6 +3860,7 @@ test_assignments(Test_Context* test_context)
             ASSERT_TRUE(definition->has_initial_value);
             ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.number.token.lexeme, "1");
+            ASSERT_FALSE(definition->initial_value.number.is_a_floating_point_number);
         }
 
         {
@@ -3552,6 +3871,7 @@ test_assignments(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(assignment->name.token.lexeme, "var");
             ASSERT_ENUM_VALUES_ARE_EQUAL(assignment->expression.kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(assignment->expression.number.token.lexeme, "2");
+            ASSERT_FALSE(assignment->expression.number.is_a_floating_point_number);
         }
 
         destroy_parser(&parser);
@@ -3607,6 +3927,7 @@ test_assignments(Test_Context* test_context)
             ASSERT_TRUE(definition->has_initial_value);
             ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.number.token.lexeme, "1");
+            ASSERT_FALSE(definition->initial_value.number.is_a_floating_point_number);
         }
 
         {
@@ -3628,6 +3949,7 @@ test_assignments(Test_Context* test_context)
                 const Ast_Expression* rhs = assignment->expression.binary_expression.rhs;
                 ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
                 ASSERT_STRINGS_ARE_EQUAL(rhs->number.token.lexeme, "1");
+                ASSERT_FALSE(rhs->number.is_a_floating_point_number);
             }
         }
 
@@ -3691,6 +4013,7 @@ test_while_statements(Test_Context* test_context)
             ASSERT_TRUE(definition->has_initial_value);
             ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.number.token.lexeme, "10");
+            ASSERT_FALSE(definition->initial_value.number.is_a_floating_point_number);
         }
 
         {
@@ -3708,6 +4031,7 @@ test_while_statements(Test_Context* test_context)
 
             ASSERT_ENUM_VALUES_ARE_EQUAL(condition->binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(condition->binary_expression.rhs->number.token.lexeme, "0");
+            ASSERT_FALSE(condition->binary_expression.rhs->number.is_a_floating_point_number);
 
             ASSERT_EQUAL(while_statement->body.statements_count, 1);
 
@@ -3722,6 +4046,7 @@ test_while_statements(Test_Context* test_context)
 
             ASSERT_ENUM_VALUES_ARE_EQUAL(assignment->expression.binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(assignment->expression.binary_expression.rhs->number.token.lexeme, "1");
+            ASSERT_FALSE(assignment->expression.binary_expression.rhs->number.is_a_floating_point_number);
         }
 
         destroy_parser(&parser);
@@ -3786,6 +4111,7 @@ test_call_statements(Test_Context* test_context)
                 const Ast_Expression* argument = call->arguments[0];
                 ASSERT_ENUM_VALUES_ARE_EQUAL(argument->kind, AST_EXPRESSION_NUMBER);
                 ASSERT_STRINGS_ARE_EQUAL(argument->number.token.lexeme, "10");
+                ASSERT_FALSE(argument->number.is_a_floating_point_number);
             }
         }
 

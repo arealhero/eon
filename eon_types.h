@@ -14,6 +14,7 @@ enum Type_Kind
     TYPE_VARIABLE, // NOTE(vlad): Think of it as a variable in an equation,
                    //             but the type system's "equation" is a set
                    //             of constraints that must be fulfilled.
+    TYPE_NUMBER_VARIABLE,
 
     TYPE_INTEGER,
     TYPE_FLOAT,
@@ -56,6 +57,23 @@ struct Function_Type_Info
 };
 typedef struct Function_Type_Info Function_Type_Info;
 
+enum Sign_Constraint
+{
+    SIGN_UNKNOWN = 0,
+    SIGN_SIGNED,
+    SIGN_UNSIGNED,
+};
+typedef enum Sign_Constraint Sign_Constraint;
+
+struct Number_Constraints
+{
+    Bool must_be_a_floating_point_number;
+    Sign_Constraint sign;
+    Index min_bit_width;
+    u64 integer_value;
+};
+typedef struct Number_Constraints Number_Constraints;
+
 // NOTE(vlad): Type is a node in a disjoint-set.
 struct Type
 {
@@ -71,6 +89,8 @@ struct Type
         Float_Type_Info float_info;
         Pointer_Type_Info pointer_info;
         Function_Type_Info function_info;
+
+        Number_Constraints number_constraints;
     };
 };
 typedef struct Type Type;

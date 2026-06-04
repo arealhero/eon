@@ -2045,7 +2045,943 @@ test_calls(Test_Context* test_context)
 }
 
 internal void
-test_types_mismatches(Test_Context* test_context)
+test_signed_integers(Test_Context* test_context)
+{
+    // NOTE(vlad): Testing positive signed integers.
+    {
+        {
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s8 = {\n"
+                                                     "    return 1;\n"
+                                                     "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
+
+            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            create_lexical_scopes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            resolve_and_validate_types(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+
+            const Type_Id function_type_id = function_definition->type->type_id;
+            ASSERT_TYPE_IS_VALID(function_type_id);
+
+            const Type* function_type = get_type_by_id(&context, function_type_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, TYPE_FUNCTION);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(function_type_id, "() -> s8");
+
+            const Function_Type_Info* info = &function_type->function_info;
+            ASSERT_EQUAL(info->parameter_type_ids_count, 0);
+
+            {
+                const Type_Id return_type_id = info->return_type_id;
+                ASSERT_TYPE_IS_VALID(return_type_id);
+                const Type* return_type = get_type_by_id(&context, return_type_id);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_INTEGER);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(return_type_id, "s8");
+            }
+
+            {
+                const Symbol* function_symbol = get_symbol_for_identifier(&context, &function_definition->name);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, function_definition->name.token.lexeme);
+                ASSERT_TYPE_IDS_ARE_EQUAL(function_type_id, function_symbol->type_id);
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+                ASSERT_EQUAL(function_definition->type->function.parameters_count, 0);
+            }
+
+            const Ast_Code_Block* body = &function_definition->body;
+
+            ASSERT_EQUAL(body->statements_count, 1);
+            ASSERT_EQUAL(body->every_path_returns, true);
+
+            {
+                const Ast_Statement* statement = &body->statements[0];
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                const Ast_Return_Statement* return_statement = &statement->return_statement;
+
+                ASSERT_FALSE(return_statement->is_empty);
+
+                const Ast_Expression* returned_expression = &return_statement->expression;
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(returned_expression->kind, AST_EXPRESSION_NUMBER);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "s8");
+            }
+
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
+        }
+
+        {
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s16 = {\n"
+                                                     "    return 1;\n"
+                                                     "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
+
+            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            create_lexical_scopes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            resolve_and_validate_types(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+
+            const Type_Id function_type_id = function_definition->type->type_id;
+            ASSERT_TYPE_IS_VALID(function_type_id);
+
+            const Type* function_type = get_type_by_id(&context, function_type_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, TYPE_FUNCTION);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(function_type_id, "() -> s16");
+
+            const Function_Type_Info* info = &function_type->function_info;
+            ASSERT_EQUAL(info->parameter_type_ids_count, 0);
+
+            {
+                const Type_Id return_type_id = info->return_type_id;
+                ASSERT_TYPE_IS_VALID(return_type_id);
+                const Type* return_type = get_type_by_id(&context, return_type_id);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_INTEGER);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(return_type_id, "s16");
+            }
+
+            {
+                const Symbol* function_symbol = get_symbol_for_identifier(&context, &function_definition->name);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, function_definition->name.token.lexeme);
+                ASSERT_TYPE_IDS_ARE_EQUAL(function_type_id, function_symbol->type_id);
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+                ASSERT_EQUAL(function_definition->type->function.parameters_count, 0);
+            }
+
+            const Ast_Code_Block* body = &function_definition->body;
+
+            ASSERT_EQUAL(body->statements_count, 1);
+            ASSERT_EQUAL(body->every_path_returns, true);
+
+            {
+                const Ast_Statement* statement = &body->statements[0];
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                const Ast_Return_Statement* return_statement = &statement->return_statement;
+
+                ASSERT_FALSE(return_statement->is_empty);
+
+                const Ast_Expression* returned_expression = &return_statement->expression;
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(returned_expression->kind, AST_EXPRESSION_NUMBER);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "s16");
+            }
+
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
+        }
+
+        {
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {\n"
+                                                     "    return 1;\n"
+                                                     "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
+
+            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            create_lexical_scopes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            resolve_and_validate_types(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+
+            const Type_Id function_type_id = function_definition->type->type_id;
+            ASSERT_TYPE_IS_VALID(function_type_id);
+
+            const Type* function_type = get_type_by_id(&context, function_type_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, TYPE_FUNCTION);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(function_type_id, "() -> s32");
+
+            const Function_Type_Info* info = &function_type->function_info;
+            ASSERT_EQUAL(info->parameter_type_ids_count, 0);
+
+            {
+                const Type_Id return_type_id = info->return_type_id;
+                ASSERT_TYPE_IS_VALID(return_type_id);
+                const Type* return_type = get_type_by_id(&context, return_type_id);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_INTEGER);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(return_type_id, "s32");
+            }
+
+            {
+                const Symbol* function_symbol = get_symbol_for_identifier(&context, &function_definition->name);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, function_definition->name.token.lexeme);
+                ASSERT_TYPE_IDS_ARE_EQUAL(function_type_id, function_symbol->type_id);
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+                ASSERT_EQUAL(function_definition->type->function.parameters_count, 0);
+            }
+
+            const Ast_Code_Block* body = &function_definition->body;
+
+            ASSERT_EQUAL(body->statements_count, 1);
+            ASSERT_EQUAL(body->every_path_returns, true);
+
+            {
+                const Ast_Statement* statement = &body->statements[0];
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                const Ast_Return_Statement* return_statement = &statement->return_statement;
+
+                ASSERT_FALSE(return_statement->is_empty);
+
+                const Ast_Expression* returned_expression = &return_statement->expression;
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(returned_expression->kind, AST_EXPRESSION_NUMBER);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "s32");
+            }
+
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
+        }
+
+        {
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s64 = {\n"
+                                                     "    return 1;\n"
+                                                     "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
+
+            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            create_lexical_scopes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            resolve_and_validate_types(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+
+            const Type_Id function_type_id = function_definition->type->type_id;
+            ASSERT_TYPE_IS_VALID(function_type_id);
+
+            const Type* function_type = get_type_by_id(&context, function_type_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, TYPE_FUNCTION);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(function_type_id, "() -> s64");
+
+            const Function_Type_Info* info = &function_type->function_info;
+            ASSERT_EQUAL(info->parameter_type_ids_count, 0);
+
+            {
+                const Type_Id return_type_id = info->return_type_id;
+                ASSERT_TYPE_IS_VALID(return_type_id);
+                const Type* return_type = get_type_by_id(&context, return_type_id);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_INTEGER);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(return_type_id, "s64");
+            }
+
+            {
+                const Symbol* function_symbol = get_symbol_for_identifier(&context, &function_definition->name);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, function_definition->name.token.lexeme);
+                ASSERT_TYPE_IDS_ARE_EQUAL(function_type_id, function_symbol->type_id);
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+                ASSERT_EQUAL(function_definition->type->function.parameters_count, 0);
+            }
+
+            const Ast_Code_Block* body = &function_definition->body;
+
+            ASSERT_EQUAL(body->statements_count, 1);
+            ASSERT_EQUAL(body->every_path_returns, true);
+
+            {
+                const Ast_Statement* statement = &body->statements[0];
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                const Ast_Return_Statement* return_statement = &statement->return_statement;
+
+                ASSERT_FALSE(return_statement->is_empty);
+
+                const Ast_Expression* returned_expression = &return_statement->expression;
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(returned_expression->kind, AST_EXPRESSION_NUMBER);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "s64");
+            }
+
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
+        }
+    }
+}
+
+internal void
+test_unsigned_integers(Test_Context* test_context)
+{
+    // NOTE(vlad): Testing unsigned integers.
+    {
+        {
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> u8 = {\n"
+                                                     "    return 1;\n"
+                                                     "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
+
+            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            create_lexical_scopes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            resolve_and_validate_types(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+
+            const Type_Id function_type_id = function_definition->type->type_id;
+            ASSERT_TYPE_IS_VALID(function_type_id);
+
+            const Type* function_type = get_type_by_id(&context, function_type_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, TYPE_FUNCTION);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(function_type_id, "() -> u8");
+
+            const Function_Type_Info* info = &function_type->function_info;
+            ASSERT_EQUAL(info->parameter_type_ids_count, 0);
+
+            {
+                const Type_Id return_type_id = info->return_type_id;
+                ASSERT_TYPE_IS_VALID(return_type_id);
+                const Type* return_type = get_type_by_id(&context, return_type_id);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_INTEGER);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(return_type_id, "u8");
+            }
+
+            {
+                const Symbol* function_symbol = get_symbol_for_identifier(&context, &function_definition->name);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, function_definition->name.token.lexeme);
+                ASSERT_TYPE_IDS_ARE_EQUAL(function_type_id, function_symbol->type_id);
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+                ASSERT_EQUAL(function_definition->type->function.parameters_count, 0);
+            }
+
+            const Ast_Code_Block* body = &function_definition->body;
+
+            ASSERT_EQUAL(body->statements_count, 1);
+            ASSERT_EQUAL(body->every_path_returns, true);
+
+            {
+                const Ast_Statement* statement = &body->statements[0];
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                const Ast_Return_Statement* return_statement = &statement->return_statement;
+
+                ASSERT_FALSE(return_statement->is_empty);
+
+                const Ast_Expression* returned_expression = &return_statement->expression;
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(returned_expression->kind, AST_EXPRESSION_NUMBER);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "u8");
+            }
+
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
+        }
+
+        {
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> u16 = {\n"
+                                                     "    return 1;\n"
+                                                     "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
+
+            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            create_lexical_scopes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            resolve_and_validate_types(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+
+            const Type_Id function_type_id = function_definition->type->type_id;
+            ASSERT_TYPE_IS_VALID(function_type_id);
+
+            const Type* function_type = get_type_by_id(&context, function_type_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, TYPE_FUNCTION);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(function_type_id, "() -> u16");
+
+            const Function_Type_Info* info = &function_type->function_info;
+            ASSERT_EQUAL(info->parameter_type_ids_count, 0);
+
+            {
+                const Type_Id return_type_id = info->return_type_id;
+                ASSERT_TYPE_IS_VALID(return_type_id);
+                const Type* return_type = get_type_by_id(&context, return_type_id);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_INTEGER);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(return_type_id, "u16");
+            }
+
+            {
+                const Symbol* function_symbol = get_symbol_for_identifier(&context, &function_definition->name);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, function_definition->name.token.lexeme);
+                ASSERT_TYPE_IDS_ARE_EQUAL(function_type_id, function_symbol->type_id);
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+                ASSERT_EQUAL(function_definition->type->function.parameters_count, 0);
+            }
+
+            const Ast_Code_Block* body = &function_definition->body;
+
+            ASSERT_EQUAL(body->statements_count, 1);
+            ASSERT_EQUAL(body->every_path_returns, true);
+
+            {
+                const Ast_Statement* statement = &body->statements[0];
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                const Ast_Return_Statement* return_statement = &statement->return_statement;
+
+                ASSERT_FALSE(return_statement->is_empty);
+
+                const Ast_Expression* returned_expression = &return_statement->expression;
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(returned_expression->kind, AST_EXPRESSION_NUMBER);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "u16");
+            }
+
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
+        }
+
+        {
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> u32 = {\n"
+                                                     "    return 1;\n"
+                                                     "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
+
+            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            create_lexical_scopes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            resolve_and_validate_types(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+
+            const Type_Id function_type_id = function_definition->type->type_id;
+            ASSERT_TYPE_IS_VALID(function_type_id);
+
+            const Type* function_type = get_type_by_id(&context, function_type_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, TYPE_FUNCTION);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(function_type_id, "() -> u32");
+
+            const Function_Type_Info* info = &function_type->function_info;
+            ASSERT_EQUAL(info->parameter_type_ids_count, 0);
+
+            {
+                const Type_Id return_type_id = info->return_type_id;
+                ASSERT_TYPE_IS_VALID(return_type_id);
+                const Type* return_type = get_type_by_id(&context, return_type_id);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_INTEGER);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(return_type_id, "u32");
+            }
+
+            {
+                const Symbol* function_symbol = get_symbol_for_identifier(&context, &function_definition->name);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, function_definition->name.token.lexeme);
+                ASSERT_TYPE_IDS_ARE_EQUAL(function_type_id, function_symbol->type_id);
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+                ASSERT_EQUAL(function_definition->type->function.parameters_count, 0);
+            }
+
+            const Ast_Code_Block* body = &function_definition->body;
+
+            ASSERT_EQUAL(body->statements_count, 1);
+            ASSERT_EQUAL(body->every_path_returns, true);
+
+            {
+                const Ast_Statement* statement = &body->statements[0];
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                const Ast_Return_Statement* return_statement = &statement->return_statement;
+
+                ASSERT_FALSE(return_statement->is_empty);
+
+                const Ast_Expression* returned_expression = &return_statement->expression;
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(returned_expression->kind, AST_EXPRESSION_NUMBER);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "u32");
+            }
+
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
+        }
+
+        {
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s64 = {\n"
+                                                     "    return 1;\n"
+                                                     "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
+
+            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            create_lexical_scopes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            resolve_and_validate_types(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+
+            const Type_Id function_type_id = function_definition->type->type_id;
+            ASSERT_TYPE_IS_VALID(function_type_id);
+
+            const Type* function_type = get_type_by_id(&context, function_type_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, TYPE_FUNCTION);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(function_type_id, "() -> s64");
+
+            const Function_Type_Info* info = &function_type->function_info;
+            ASSERT_EQUAL(info->parameter_type_ids_count, 0);
+
+            {
+                const Type_Id return_type_id = info->return_type_id;
+                ASSERT_TYPE_IS_VALID(return_type_id);
+                const Type* return_type = get_type_by_id(&context, return_type_id);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_INTEGER);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(return_type_id, "s64");
+            }
+
+            {
+                const Symbol* function_symbol = get_symbol_for_identifier(&context, &function_definition->name);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, function_definition->name.token.lexeme);
+                ASSERT_TYPE_IDS_ARE_EQUAL(function_type_id, function_symbol->type_id);
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+                ASSERT_EQUAL(function_definition->type->function.parameters_count, 0);
+            }
+
+            const Ast_Code_Block* body = &function_definition->body;
+
+            ASSERT_EQUAL(body->statements_count, 1);
+            ASSERT_EQUAL(body->every_path_returns, true);
+
+            {
+                const Ast_Statement* statement = &body->statements[0];
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                const Ast_Return_Statement* return_statement = &statement->return_statement;
+
+                ASSERT_FALSE(return_statement->is_empty);
+
+                const Ast_Expression* returned_expression = &return_statement->expression;
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(returned_expression->kind, AST_EXPRESSION_NUMBER);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "s64");
+            }
+
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
+        }
+    }
+}
+
+internal void
+test_floats(Test_Context* test_context)
+{
+    // NOTE(vlad): Testing integer literals.
+    {
+        {
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> f32 = {\n"
+                                                     "    return 1;\n"
+                                                     "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
+
+            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            create_lexical_scopes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            resolve_and_validate_types(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+
+            const Type_Id function_type_id = function_definition->type->type_id;
+            ASSERT_TYPE_IS_VALID(function_type_id);
+
+            const Type* function_type = get_type_by_id(&context, function_type_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, TYPE_FUNCTION);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(function_type_id, "() -> f32");
+
+            const Function_Type_Info* info = &function_type->function_info;
+            ASSERT_EQUAL(info->parameter_type_ids_count, 0);
+
+            {
+                const Type_Id return_type_id = info->return_type_id;
+                ASSERT_TYPE_IS_VALID(return_type_id);
+                const Type* return_type = get_type_by_id(&context, return_type_id);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_FLOAT);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(return_type_id, "f32");
+            }
+
+            {
+                const Symbol* function_symbol = get_symbol_for_identifier(&context, &function_definition->name);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, function_definition->name.token.lexeme);
+                ASSERT_TYPE_IDS_ARE_EQUAL(function_type_id, function_symbol->type_id);
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+                ASSERT_EQUAL(function_definition->type->function.parameters_count, 0);
+            }
+
+            const Ast_Code_Block* body = &function_definition->body;
+
+            ASSERT_EQUAL(body->statements_count, 1);
+            ASSERT_EQUAL(body->every_path_returns, true);
+
+            {
+                const Ast_Statement* statement = &body->statements[0];
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                const Ast_Return_Statement* return_statement = &statement->return_statement;
+
+                ASSERT_FALSE(return_statement->is_empty);
+
+                const Ast_Expression* returned_expression = &return_statement->expression;
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(returned_expression->kind, AST_EXPRESSION_NUMBER);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "f32");
+            }
+
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
+        }
+
+        {
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> f64 = {\n"
+                                                     "    return 1;\n"
+                                                     "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
+
+            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            create_lexical_scopes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            resolve_and_validate_types(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+
+            const Type_Id function_type_id = function_definition->type->type_id;
+            ASSERT_TYPE_IS_VALID(function_type_id);
+
+            const Type* function_type = get_type_by_id(&context, function_type_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, TYPE_FUNCTION);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(function_type_id, "() -> f64");
+
+            const Function_Type_Info* info = &function_type->function_info;
+            ASSERT_EQUAL(info->parameter_type_ids_count, 0);
+
+            {
+                const Type_Id return_type_id = info->return_type_id;
+                ASSERT_TYPE_IS_VALID(return_type_id);
+                const Type* return_type = get_type_by_id(&context, return_type_id);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_FLOAT);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(return_type_id, "f64");
+            }
+
+            {
+                const Symbol* function_symbol = get_symbol_for_identifier(&context, &function_definition->name);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, function_definition->name.token.lexeme);
+                ASSERT_TYPE_IDS_ARE_EQUAL(function_type_id, function_symbol->type_id);
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+                ASSERT_EQUAL(function_definition->type->function.parameters_count, 0);
+            }
+
+            const Ast_Code_Block* body = &function_definition->body;
+
+            ASSERT_EQUAL(body->statements_count, 1);
+            ASSERT_EQUAL(body->every_path_returns, true);
+
+            {
+                const Ast_Statement* statement = &body->statements[0];
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                const Ast_Return_Statement* return_statement = &statement->return_statement;
+
+                ASSERT_FALSE(return_statement->is_empty);
+
+                const Ast_Expression* returned_expression = &return_statement->expression;
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(returned_expression->kind, AST_EXPRESSION_NUMBER);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "f64");
+            }
+
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
+        }
+    }
+
+    // NOTE(vlad): Testing floating-point literals.
+    {
+        {
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> f32 = {\n"
+                                                     "    return 1.0;\n"
+                                                     "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
+
+            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            create_lexical_scopes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            resolve_and_validate_types(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+
+            const Type_Id function_type_id = function_definition->type->type_id;
+            ASSERT_TYPE_IS_VALID(function_type_id);
+
+            const Type* function_type = get_type_by_id(&context, function_type_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, TYPE_FUNCTION);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(function_type_id, "() -> f32");
+
+            const Function_Type_Info* info = &function_type->function_info;
+            ASSERT_EQUAL(info->parameter_type_ids_count, 0);
+
+            {
+                const Type_Id return_type_id = info->return_type_id;
+                ASSERT_TYPE_IS_VALID(return_type_id);
+                const Type* return_type = get_type_by_id(&context, return_type_id);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_FLOAT);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(return_type_id, "f32");
+            }
+
+            {
+                const Symbol* function_symbol = get_symbol_for_identifier(&context, &function_definition->name);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, function_definition->name.token.lexeme);
+                ASSERT_TYPE_IDS_ARE_EQUAL(function_type_id, function_symbol->type_id);
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+                ASSERT_EQUAL(function_definition->type->function.parameters_count, 0);
+            }
+
+            const Ast_Code_Block* body = &function_definition->body;
+
+            ASSERT_EQUAL(body->statements_count, 1);
+            ASSERT_EQUAL(body->every_path_returns, true);
+
+            {
+                const Ast_Statement* statement = &body->statements[0];
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                const Ast_Return_Statement* return_statement = &statement->return_statement;
+
+                ASSERT_FALSE(return_statement->is_empty);
+
+                const Ast_Expression* returned_expression = &return_statement->expression;
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(returned_expression->kind, AST_EXPRESSION_NUMBER);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "f32");
+            }
+
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
+        }
+
+        {
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> f64 = {\n"
+                                                     "    return 1.0;\n"
+                                                     "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
+
+            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            create_lexical_scopes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            resolve_and_validate_types(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+
+            const Type_Id function_type_id = function_definition->type->type_id;
+            ASSERT_TYPE_IS_VALID(function_type_id);
+
+            const Type* function_type = get_type_by_id(&context, function_type_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, TYPE_FUNCTION);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(function_type_id, "() -> f64");
+
+            const Function_Type_Info* info = &function_type->function_info;
+            ASSERT_EQUAL(info->parameter_type_ids_count, 0);
+
+            {
+                const Type_Id return_type_id = info->return_type_id;
+                ASSERT_TYPE_IS_VALID(return_type_id);
+                const Type* return_type = get_type_by_id(&context, return_type_id);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_FLOAT);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(return_type_id, "f64");
+            }
+
+            {
+                const Symbol* function_symbol = get_symbol_for_identifier(&context, &function_definition->name);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, function_definition->name.token.lexeme);
+                ASSERT_TYPE_IDS_ARE_EQUAL(function_type_id, function_symbol->type_id);
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+                ASSERT_EQUAL(function_definition->type->function.parameters_count, 0);
+            }
+
+            const Ast_Code_Block* body = &function_definition->body;
+
+            ASSERT_EQUAL(body->statements_count, 1);
+            ASSERT_EQUAL(body->every_path_returns, true);
+
+            {
+                const Ast_Statement* statement = &body->statements[0];
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                const Ast_Return_Statement* return_statement = &statement->return_statement;
+
+                ASSERT_FALSE(return_statement->is_empty);
+
+                const Ast_Expression* returned_expression = &return_statement->expression;
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(returned_expression->kind, AST_EXPRESSION_NUMBER);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "f64");
+            }
+
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
+        }
+    }
+}
+
+internal void
+test_type_mismatches(Test_Context* test_context)
 {
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (parameter: s64) -> s32 = {\n"
@@ -2466,6 +3402,112 @@ test_types_mismatches(Test_Context* test_context)
     }
 }
 
+internal void
+test_number_type_mismatches(Test_Context* test_context)
+{
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {\n"
+                                                 "    a := 10;\n"
+                                                 "    b: f32 = a;\n"
+                                                 "    return a;\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:4:12: error: Return type mismatch: expected 's32', got 'f32'\n"
+                                                        "  4 |     return a;\n"
+                                                        "    |            ^");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {\n"
+                                                 "    return 10.0;\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:2:12: error: Return type mismatch: expected 's32', got '<floating-point number>'\n"
+                                                        "  2 |     return 10.0;\n"
+                                                        "    |            ^~~~");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s8 = {\n"
+                                                 "    return 128;\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        // FIXME(vlad): Come up with a better error message like "value '128' do not fit into 's8' (max s8 value = 127)"
+        const String_View expected_output = string_view("<test-input>:2:12: error: Return type mismatch: expected 's8', got '<number>'\n"
+                                                        "  2 |     return 128;\n"
+                                                        "    |            ^~~");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+}
+
 REGISTER_TESTS(
     test_builtin_types_resolving,
     test_pointers,
@@ -2473,7 +3515,11 @@ REGISTER_TESTS(
     test_if_statements,
     test_while_statements,
     test_calls,
-    test_types_mismatches
+    test_signed_integers,
+    test_unsigned_integers,
+    test_floats,
+    test_type_mismatches,
+    test_number_type_mismatches
 )
 
 #include "eon_compilation_context.c"

@@ -3,6 +3,8 @@
 #include "eon_builtin_types.h"
 #include "eon_lexical_scopes.h"
 
+#include <eon/string.h>
+
 enum
 {
     UNDEFINED_TYPE_INDEX = 0,
@@ -163,6 +165,41 @@ create_builtin_types(Compilation_Context* context)
     }
 }
 
+internal u64
+get_max_integer_value(const Integer_Type_Info* type_info)
+{
+    if (type_info->is_signed)
+    {
+        switch (type_info->width_in_bits)
+        {
+            case 8:  return MAX_VALUE(s8);
+            case 16: return MAX_VALUE(s16);
+            case 32: return MAX_VALUE(s32);
+            case 64: return MAX_VALUE(s64);
+
+            default:
+            {
+                FAIL("[TYPE] Unexpected integer width encountered.");
+            } break;
+        }
+    }
+    else
+    {
+        switch (type_info->width_in_bits)
+        {
+            case 8:  return MAX_VALUE(s8);
+            case 16: return MAX_VALUE(s16);
+            case 32: return MAX_VALUE(s32);
+            case 64: return MAX_VALUE(s64);
+
+            default:
+            {
+                FAIL("[TYPE] Unexpected integer width encountered.");
+            } break;
+        }
+    }
+}
+
 // FIXME(vlad): Add Source_Location that triggered this unification.
 internal Bool
 try_to_unify_types(Compilation_Context* context,
@@ -195,6 +232,84 @@ try_to_unify_types(Compilation_Context* context,
         return true;
     }
 
+    if (lhs_root_type->kind == TYPE_NUMBER_VARIABLE && rhs_root_type->kind == TYPE_NUMBER_VARIABLE)
+    {
+        Number_Constraints* lhs_constraints = &lhs_root_type->number_constraints;
+        Number_Constraints* rhs_constraints = &rhs_root_type->number_constraints;
+
+        Type unified_type = {0};
+        unified_type.kind = TYPE_NUMBER_VARIABLE;
+
+        Number_Constraints* unified_constraints = &unified_type.number_constraints;
+
+        if (lhs_constraints->sign == SIGN_UNKNOWN)
+        {
+            unified_constraints->sign = rhs_constraints->sign;
+        }
+        else if (rhs_constraints->sign == SIGN_UNKNOWN)
+        {
+            unified_constraints->sign = lhs_constraints->sign;
+        }
+        else if (lhs_constraints->sign == rhs_constraints->sign)
+        {
+            unified_constraints->sign = lhs_constraints->sign;
+        }
+        else
+        {
+            return false;
+        }
+
+        unified_constraints->must_be_a_floating_point_number = lhs_constraints->must_be_a_floating_point_number
+                                                               || rhs_constraints->must_be_a_floating_point_number;
+
+        unified_constraints->min_bit_width = MAX(lhs_constraints->min_bit_width, rhs_constraints->min_bit_width);
+
+        const Type_Id unified_type_id = create_type(context);
+        Type* created_type = get_type_by_id(context, unified_type_id);
+
+        *created_type = unified_type;
+        lhs_root_type->parent_type_id = unified_type_id;
+        rhs_root_type->parent_type_id = unified_type_id;
+
+        return true;
+    }
+    else if (lhs_root_type->kind == TYPE_NUMBER_VARIABLE || rhs_root_type->kind == TYPE_NUMBER_VARIABLE)
+    {
+        const Type_Id other_type_id = lhs_root_type->kind != TYPE_NUMBER_VARIABLE ? lhs_type_id : rhs_type_id;
+
+        Type* number_variable_type = lhs_root_type->kind == TYPE_NUMBER_VARIABLE ? lhs_root_type : rhs_root_type;
+        Type* other_type           = lhs_root_type->kind != TYPE_NUMBER_VARIABLE ? lhs_root_type : rhs_root_type;
+
+        if (other_type->kind == TYPE_INTEGER)
+        {
+            if (number_variable_type->number_constraints.must_be_a_floating_point_number)
+            {
+                return false;
+            }
+
+            const u64 max_value = get_max_integer_value(&other_type->integer_info);
+            if (number_variable_type->number_constraints.integer_value > max_value)
+            {
+                return false;
+            }
+
+            // TODO(vlad): Should we support negative numbers here? I guess not because number lexemes are unsigned
+            //             due to the unary minus is being treated as a separate unary operation and not as a
+            //             part of a number literal.
+        }
+        else if (other_type->kind == TYPE_FLOAT)
+        {
+            // TODO(vlad): Test 'min_bit_width' here? But we don't fill this field in for floats.
+        }
+        else
+        {
+            return false;
+        }
+
+        number_variable_type->parent_type_id = other_type_id;
+        return true;
+    }
+
     // NOTE(vlad): Both types are concrete so their kinds should match.
     if (lhs_root_type->kind != rhs_root_type->kind)
     {
@@ -215,6 +330,7 @@ try_to_unify_types(Compilation_Context* context,
         } break;
 
         case TYPE_VARIABLE:
+        case TYPE_NUMBER_VARIABLE:
         {
             // NOTE(vlad): Type variables were handled earlier in this function.
             UNREACHABLE();
@@ -358,7 +474,65 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
 
         case AST_EXPRESSION_NUMBER:
         {
-            FAIL("[TYPE] Numbers are not supported yet");
+            Ast_Number* number = &expression->number;
+
+            const Type_Id number_type_id = create_type(context);
+
+            Type* expression_type = get_type_by_id(context, number_type_id);
+            expression_type->kind = TYPE_NUMBER_VARIABLE;
+
+            Number_Constraints* constraints = &expression_type->number_constraints;
+
+            if (number->is_a_floating_point_number)
+            {
+                constraints->must_be_a_floating_point_number = true;
+            }
+            else
+            {
+                constraints->must_be_a_floating_point_number = false;
+                constraints->sign = SIGN_UNKNOWN;
+
+                u64 value;
+                if (!parse_integer(number->token.lexeme, &value))
+                {
+                    Diagnostic_Message error = {0};
+                    error.level = MESSAGE_LEVEL_ERROR;
+                    error.location = expression->location;
+
+                    const String error_text = format_string(context->diagnostic_message_texts_arena,
+                                                            "Number '{}' requires more than 64 bits to store it.",
+                                                            number->token.lexeme);
+
+                    error.text = string_view(error_text);
+                    emit_diagnostic_message(context, &error);
+
+                    expression->type_id.index = INVALID_TYPE_INDEX;
+                    return expression->type_id;
+                }
+
+                constraints->integer_value = value;
+
+                if (value > MAX_VALUE(s64))
+                {
+                    // NOTE(vlad): We know that the only u64 can fit this value, but it might as well be a
+                    //             floating-point number thus we are not inferring the concrete type here.
+                    constraints->min_bit_width = 64;
+                }
+                else if (value > MAX_VALUE(u32))
+                {
+                    constraints->min_bit_width = 64;
+                }
+                else if (value > MAX_VALUE(u16))
+                {
+                    constraints->min_bit_width = 32;
+                }
+                else if (value > MAX_VALUE(u8))
+                {
+                    constraints->min_bit_width = 16;
+                }
+            }
+
+            expression->type_id = number_type_id;
         } break;
 
         case AST_EXPRESSION_STRING_LITERAL:
@@ -454,6 +628,11 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
                 {
                     // NOTE(vlad): These types can be compared.
                     // TODO(vlad): Forbid 'less/greater than' comparisons for booleans.
+                } break;
+
+                case TYPE_NUMBER_VARIABLE:
+                {
+                    FAIL("[TYPE] Number variables are not yet supported in this context.");
                 } break;
 
                 case TYPE_VOID:
@@ -1074,6 +1253,23 @@ convert_type_to_string(Arena* arena,
             return copy_string(arena, string_view("_"));
         } break;
 
+        case TYPE_NUMBER_VARIABLE:
+        {
+            // FIXME(vlad): I don't know what information should we return here.
+            //              I mean, this function is used for error messages only,
+            //              but number type variables should be treated separately.
+            //
+            //              That said, I guess we should just 'FAIL()' here.
+            const Number_Constraints* constraints = &type->number_constraints;
+
+            if (constraints->must_be_a_floating_point_number)
+            {
+                return copy_string(arena, string_view("<floating-point number>"));
+            }
+
+            return copy_string(arena, string_view("<number>"));
+        } break;
+
         case TYPE_INTEGER:
         {
             String result = {0};
@@ -1120,7 +1316,34 @@ convert_type_to_string(Arena* arena,
 
         case TYPE_FLOAT:
         {
-            FAIL("[TYPE] Floats are not supported yet.");
+            const Float_Type_Info* type_info = &type->float_info;
+
+            String result = {0};
+            result.data = allocate_uninitialized_array(arena, 3, char);
+            result.length = 3;
+
+            result.data[0] = 'f';
+            switch (type_info->width_in_bits)
+            {
+                case 32:
+                {
+                    result.data[1] = '3';
+                    result.data[2] = '2';
+                } break;
+
+                case 64:
+                {
+                    result.data[1] = '6';
+                    result.data[2] = '4';
+                } break;
+
+                default:
+                {
+                    FAIL("[TYPE] Unsupported floating-point number width encountered.");
+                } break;
+            }
+
+            return result;
         } break;
 
         case TYPE_BOOLEAN:
