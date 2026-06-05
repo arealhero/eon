@@ -59,6 +59,20 @@ internal void reverse_string(String string);
 // TODO(vlad): Use '_Generic' to overload 'Bool' and 'Bool8'?
 #define BOOL_TO_STRING(value) string_view(((value) ? "true" : "false"))
 
+struct String_Builder
+{
+    struct Arena* data_arena;
+
+    char* data;
+    Size data_count;
+    Size data_capacity;
+};
+typedef struct String_Builder String_Builder;
+
+maybe_unused internal void create_string_builder(String_Builder* builder, struct Arena* arena);
+maybe_unused internal void append_string(String_Builder* builder, const String_View string_view);
+maybe_unused internal inline String_View string_builder_to_string(String_Builder* builder);
+
 enum Number_Base
 {
     NUMBER_BASE_BINARY = 2,

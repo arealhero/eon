@@ -428,10 +428,26 @@ resolve_type_by_ast_type(Compilation_Context* context,
             ASSERT(ast_type->symbol_id != UNDEFINED_SYMBOL_ID && ast_type->symbol_id != INVALID_SYMBOL_ID);
 
             Symbol* symbol = get_symbol_by_id(context, ast_type->symbol_id);
-            ASSERT(symbol->kind == SYMBOL_TYPE);
-            ASSERT(type_id_is_valid(context, symbol->type_id));
+            if (symbol->kind == SYMBOL_PLACEHOLDER)
+            {
+                const Type_Id type_id = create_new_type_variable(context);
+                ast_type->type_id = type_id;
+            }
+            else if (symbol->kind == SYMBOL_TYPE)
+            {
+                ASSERT(type_id_is_valid(context, symbol->type_id));
 
-            ast_type->type_id = symbol->type_id;
+                const Type_Id this_type_id = create_new_type_variable(context);
+                const Bool unification_result = try_to_unify_types(context,
+                                                                   this_type_id,
+                                                                   symbol->type_id);
+                ASSERT(unification_result);
+                ast_type->type_id = this_type_id;
+            }
+            else
+            {
+                UNREACHABLE();
+            }
         } break;
 
         case AST_TYPE_POINTER:
@@ -516,7 +532,10 @@ resolve_type_by_ast_type(Compilation_Context* context,
             case TYPE_BOOLEAN:
             case TYPE_POINTER:
             {
-                type->is_mutable = ast_type->is_mutable;
+                if (ast_type->is_mutable)
+                {
+                    make_this_type_mutable(context, ast_type->type_id);
+                }
             } break;
 
             case TYPE_VOID:
@@ -657,12 +676,19 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
             Symbol* symbol = get_symbol_for_identifier(context, identifier);
             ASSERT(type_id_is_defined(symbol->type_id));
 
-            const Type_Id expression_type_id = create_new_type_variable(context);
+            const Type_Id this_type_id = create_new_type_variable(context);
             const Bool unification_result = try_to_unify_types(context,
-                                                               expression_type_id,
+                                                               this_type_id,
                                                                symbol->type_id);
             ASSERT(unification_result);
-            expression->type_id = expression_type_id;
+
+            // FIXME(vlad): Remove this ad-hoc "solution".
+            if (symbol->is_mutable)
+            {
+                make_this_type_mutable(context, this_type_id);
+            }
+
+            expression->type_id = this_type_id;
         } break;
 
         case AST_EXPRESSION_ADD:
@@ -703,13 +729,13 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
                 error.level = MESSAGE_LEVEL_ERROR;
                 error.location = expression->location;
 
-                const String lhs_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
-                                                                      context,
-                                                                      lhs_type_id);
+                const String_View lhs_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                           context,
+                                                                           lhs_type_id);
 
-                const String rhs_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
-                                                                      context,
-                                                                      rhs_type_id);
+                const String_View rhs_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                           context,
+                                                                           rhs_type_id);
 
 
                 const String error_text = format_string(context->diagnostic_message_texts_arena,
@@ -755,10 +781,9 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
                     error.level = MESSAGE_LEVEL_ERROR;
                     error.location = expression->location;
 
-                    const String lhs_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
-                                                                          context,
-                                                                          lhs_type_id);
-
+                    const String_View lhs_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                               context,
+                                                                               lhs_type_id);
 
                     const String error_text = format_string(context->diagnostic_message_texts_arena,
                                                             "Expressions of type '{}' cannot be compared.",
@@ -798,9 +823,9 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
                 error.level = MESSAGE_LEVEL_ERROR;
                 error.location = dereference->operand->location;
 
-                const String expression_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
-                                                                             context,
-                                                                             expression_type_id);
+                const String_View expression_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                                  context,
+                                                                                  expression_type_id);
 
                 const String error_text = format_string(context->diagnostic_message_texts_arena,
                                                         "Cannot dereference a non-pointer type '{}'",
@@ -855,9 +880,9 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
                 error.level = MESSAGE_LEVEL_ERROR;
                 error.location = call->called_expression->location;
 
-                const String expression_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
-                                                                             context,
-                                                                             called_type_id);
+                const String_View expression_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                                  context,
+                                                                                  called_type_id);
 
                 const String error_text = format_string(context->diagnostic_message_texts_arena,
                                                         "Expression of type '{}' is not callable",
@@ -912,12 +937,12 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
                     error.level = MESSAGE_LEVEL_ERROR;
                     error.location = parameter->location;
 
-                    const String actual_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
-                                                                             context,
-                                                                             parameter_type_id);
-                    const String expected_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
-                                                                               context,
-                                                                               expected_type_id);
+                    const String_View actual_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                                  context,
+                                                                                  parameter_type_id);
+                    const String_View expected_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                                    context,
+                                                                                    expected_type_id);
 
                     const String error_text = format_string(context->diagnostic_message_texts_arena,
                                                             "Passing expression of type '{}' to parameter of type '{}'",
@@ -1005,12 +1030,12 @@ resolve_types_in_code_block(Compilation_Context* context,
                     error.level = MESSAGE_LEVEL_ERROR;
                     error.location = assignment->rhs.location;
 
-                    const String expected_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
-                                                                               context,
-                                                                               lhs_type_id);
-                    const String actual_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
-                                                                             context,
-                                                                             rhs_type_id);
+                    const String_View expected_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                                    context,
+                                                                                    lhs_type_id);
+                    const String_View actual_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                                  context,
+                                                                                  rhs_type_id);
 
                     const String error_text = format_string(context->diagnostic_message_texts_arena,
                                                             "Type mismatch: expected '{}', got '{}'",
@@ -1023,8 +1048,7 @@ resolve_types_in_code_block(Compilation_Context* context,
                 }
 
                 {
-                    const Type* lhs_type = get_type_by_id(context, lhs_type_id);
-                    if (!lhs_type->is_mutable)
+                    if (!type_is_mutable(context, lhs_type_id))
                     {
                         Diagnostic_Message error = {0};
                         error.level = MESSAGE_LEVEL_ERROR;
@@ -1066,12 +1090,12 @@ resolve_types_in_code_block(Compilation_Context* context,
                             error.location = return_statement->expression.location;
                         }
 
-                        const String expected_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
-                                                                                   context,
-                                                                                   expected_return_type_id);
-                        const String actual_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
-                                                                                 context,
-                                                                                 return_type_id);
+                        const String_View expected_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                                        context,
+                                                                                        expected_return_type_id);
+                        const String_View actual_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                                      context,
+                                                                                      return_type_id);
 
                         const String error_text = format_string(context->diagnostic_message_texts_arena,
                                                                 "Return type mismatch: expected '{}', got '{}'",
@@ -1113,12 +1137,12 @@ resolve_types_in_code_block(Compilation_Context* context,
 
                         error.location = condition->location;
 
-                        const String expected_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
-                                                                                   context,
-                                                                                   boolean_type_id);
-                        const String actual_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
-                                                                                 context,
-                                                                                 condition_type_id);
+                        const String_View expected_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                                        context,
+                                                                                        boolean_type_id);
+                        const String_View actual_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                                      context,
+                                                                                      condition_type_id);
 
                         const String error_text = format_string(context->diagnostic_message_texts_arena,
                                                                 "Implicit conversion from '{}' to '{}' is forbidden.",
@@ -1162,12 +1186,12 @@ resolve_types_in_code_block(Compilation_Context* context,
 
                         error.location = condition->location;
 
-                        const String expected_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
-                                                                                   context,
-                                                                                   boolean_type_id);
-                        const String actual_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
-                                                                                 context,
-                                                                                 condition_type_id);
+                        const String_View expected_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                                        context,
+                                                                                        boolean_type_id);
+                        const String_View actual_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                                      context,
+                                                                                      condition_type_id);
 
                         const String error_text = format_string(context->diagnostic_message_texts_arena,
                                                                 "Implicit conversion from '{}' to '{}' is forbidden.",
@@ -1314,12 +1338,12 @@ resolve_and_validate_types(Compilation_Context* context)
                 error.level = MESSAGE_LEVEL_ERROR;
                 error.location = body->end_location;
 
-                const String expected_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
-                                                                           context,
-                                                                           expected_return_type_id);
-                const String actual_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
-                                                                         context,
-                                                                         body->return_type_id);
+                const String_View expected_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                                context,
+                                                                                expected_return_type_id);
+                const String_View actual_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                              context,
+                                                                              body->return_type_id);
 
                 const String error_text = format_string(context->diagnostic_message_texts_arena,
                                                         "Return type mismatch: expected '{}', got '{}'",
@@ -1356,12 +1380,12 @@ resolve_and_validate_types(Compilation_Context* context)
                 error.level = MESSAGE_LEVEL_ERROR;
                 error.location = body->end_location;
 
-                const String expected_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
-                                                                           context,
-                                                                           expected_return_type_id);
-                const String actual_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
-                                                                         context,
-                                                                         body->return_type_id);
+                const String_View expected_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                                context,
+                                                                                expected_return_type_id);
+                const String_View actual_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                              context,
+                                                                              body->return_type_id);
 
                 const String error_text = format_string(context->diagnostic_message_texts_arena,
                                                         "Return type mismatch: expected '{}', got '{}'",
@@ -1389,7 +1413,7 @@ resolve_and_validate_types(Compilation_Context* context)
     return true;
 }
 
-internal String
+internal String_View
 convert_type_to_string(Arena* arena,
                        Compilation_Context* context,
                        const Type_Id type_id)
@@ -1398,6 +1422,14 @@ convert_type_to_string(Arena* arena,
 
     const Type_Id root_type_id = find_root_type_id(context, type_id);
     const Type* type = get_type_by_id(context, root_type_id);
+
+    String_Builder builder = {0};
+    create_string_builder(&builder, arena);
+
+    if (type_is_mutable(context, type_id))
+    {
+        append_string(&builder, string_view("mutable "));
+    }
 
     switch (type->kind)
     {
@@ -1408,12 +1440,12 @@ convert_type_to_string(Arena* arena,
 
         case TYPE_VOID:
         {
-            return copy_string(arena, string_view("void"));
+            append_string(&builder, string_view("void"));
         } break;
 
         case TYPE_VARIABLE:
         {
-            return copy_string(arena, string_view("_"));
+            append_string(&builder, string_view("_"));
         } break;
 
         case TYPE_NUMBER_VARIABLE:
@@ -1427,10 +1459,12 @@ convert_type_to_string(Arena* arena,
 
             if (constraints->must_be_a_floating_point_number)
             {
-                return copy_string(arena, string_view("<floating-point number>"));
+                append_string(&builder, string_view("<floating-point number>"));
             }
-
-            return copy_string(arena, string_view("<number>"));
+            else
+            {
+                append_string(&builder, string_view("<number>"));
+            }
         } break;
 
         case TYPE_INTEGER:
@@ -1474,7 +1508,7 @@ convert_type_to_string(Arena* arena,
                 } break;
             }
 
-            return result;
+            append_string(&builder, string_view(result));
         } break;
 
         case TYPE_FLOAT:
@@ -1506,12 +1540,12 @@ convert_type_to_string(Arena* arena,
                 } break;
             }
 
-            return result;
+            append_string(&builder, string_view(result));
         } break;
 
         case TYPE_BOOLEAN:
         {
-            return copy_string(arena, string_view("bool"));
+            append_string(&builder, string_view("bool"));
         } break;
 
         case TYPE_POINTER:
@@ -1519,7 +1553,7 @@ convert_type_to_string(Arena* arena,
             String result = {0};
 
             const Pointer_Type_Info* type_info = &type->pointer_info;
-            const String points_to_type = convert_type_to_string(arena, context, type_info->points_to_type_id);
+            const String_View points_to_type = convert_type_to_string(arena, context, type_info->points_to_type_id);
 
             // NOTE(vlad): Length of '* ' is 2.
             const Size total_result_length = 2 + points_to_type.length;
@@ -1534,7 +1568,7 @@ convert_type_to_string(Arena* arena,
                         as_bytes(points_to_type.data),
                         points_to_type.length);
 
-            return result;
+            append_string(&builder, string_view(result));
         } break;
 
         case TYPE_FUNCTION:
@@ -1546,7 +1580,7 @@ convert_type_to_string(Arena* arena,
             // NOTE(vlad): Length of '() -> ' is 6.
             Size total_result_length = 6;
 
-            String* parameter_types = NULL;
+            String_View* parameter_types = NULL;
 
             if (type_info->parameter_type_ids_count != 0)
             {
@@ -1554,7 +1588,7 @@ convert_type_to_string(Arena* arena,
 
                 parameter_types = allocate_array(arena,
                                                  type_info->parameter_type_ids_count,
-                                                 String);
+                                                 String_View);
                 for (Index i = 0;
                      i < type_info->parameter_type_ids_count;
                      ++i)
@@ -1568,9 +1602,9 @@ convert_type_to_string(Arena* arena,
                 }
             }
 
-            const String result_type = convert_type_to_string(arena,
-                                                              context,
-                                                              type_info->return_type_id);
+            const String_View result_type = convert_type_to_string(arena,
+                                                                   context,
+                                                                   type_info->return_type_id);
             total_result_length += result_type.length;
 
             result.data = allocate_uninitialized_array(arena, total_result_length, char);
@@ -1606,9 +1640,9 @@ convert_type_to_string(Arena* arena,
                         as_bytes(result_type.data),
                         result_type.length);
 
-            return result;
+            append_string(&builder, string_view(result));
         } break;
     }
 
-    UNREACHABLE();
+    return string_builder_to_string(&builder);
 }

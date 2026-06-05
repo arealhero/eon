@@ -75,6 +75,9 @@ maybe_unused internal Type_Id create_type(Compilation_Context* context);
 maybe_unused internal inline struct Type* get_type_by_id(Compilation_Context* context, const Type_Id type_id);
 maybe_unused internal struct Type* get_type_for_identifier(Compilation_Context* context, const Ast_Identifier* identifier);
 
+internal inline Bool type_is_mutable(Compilation_Context* context, const Type_Id type_id);
+internal inline void make_this_type_mutable(Compilation_Context* context, const Type_Id type_id);
+
 // FIXME(vlad): Move this to eon_types.
 maybe_unused internal Type_Id find_root_type_id(Compilation_Context* context, const Type_Id type_id);
 

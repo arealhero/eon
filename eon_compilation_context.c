@@ -217,6 +217,7 @@ get_exact_type_by_id(Compilation_Context* context, const Type_Id type_id)
 internal inline Type*
 get_type_by_id(Compilation_Context* context, const Type_Id type_id)
 {
+    // FIXME(vlad): Do not return builtin types by a pointer to a non-const Type.
     const Type_Id root_type_id = find_root_type_id(context, type_id);
     return get_exact_type_by_id(context, root_type_id);
 }
@@ -226,6 +227,20 @@ get_type_for_identifier(Compilation_Context* context, const Ast_Identifier* iden
 {
     const Symbol* symbol = get_symbol_for_identifier(context, identifier);
     return get_type_by_id(context, symbol->type_id);
+}
+
+internal inline Bool
+type_is_mutable(Compilation_Context* context, const Type_Id type_id)
+{
+    const Type* this_type = get_exact_type_by_id(context, type_id);
+    return this_type->is_mutable;
+}
+
+internal inline void
+make_this_type_mutable(Compilation_Context* context, const Type_Id type_id)
+{
+    Type* this_type = get_exact_type_by_id(context, type_id);
+    this_type->is_mutable = true;
 }
 
 internal inline Bool

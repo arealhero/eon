@@ -136,6 +136,32 @@ reverse_string(String string)
     }
 }
 
+internal void
+create_string_builder(String_Builder* builder, struct Arena* arena)
+{
+    *builder = (String_Builder){0};
+    builder->data_arena = arena;
+}
+
+internal void
+append_string(String_Builder* builder, const String_View string_view)
+{
+    ensure_array_has_enough_capacity(builder->data_arena, builder->data, char, string_view.length);
+    copy_memory(as_bytes(builder->data + builder->data_count),
+                as_bytes(string_view.data),
+                string_view.length);
+    builder->data_count += string_view.length;
+}
+
+internal inline String_View
+string_builder_to_string(String_Builder* builder)
+{
+    String_View string = {0};
+    string.data = builder->data;
+    string.length = builder->data_count;
+    return string;
+}
+
 // TODO(vlad): Change 'NUMBER' to 'INTEGER' here.
 #define NUMBER_TO_STRING_ALPHABET "fedcba9876543210123456789abcdef"
 #define DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(Integer_Type)          \

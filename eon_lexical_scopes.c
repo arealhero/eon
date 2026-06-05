@@ -417,6 +417,22 @@ create_lexical_scopes(Compilation_Context* context)
         const Symbol_Id invalid_symbol_id = create_symbol(context);
         ASSERT(invalid_symbol_id == INVALID_SYMBOL_ID);
 
+        // NOTE(vlad): Creating symbol for a placeholder.
+        {
+            const Symbol_Id symbol_id = create_symbol(context);
+            ASSERT(symbol_id != UNDEFINED_SYMBOL_ID && symbol_id != INVALID_SYMBOL_ID);
+
+            {
+                Symbol* symbol = get_symbol_by_id(context, symbol_id);
+                symbol->kind = SYMBOL_PLACEHOLDER;
+                symbol->name = string_view("_");
+                symbol->is_mutable = false;
+                symbol->is_builtin = true;
+            }
+
+            add_symbol_id_to_lexical_scope(context, GLOBAL_LEXICAL_SCOPE_ID, symbol_id);
+        }
+
         const Builtin_Type void_builtin_type = VOID_BUILTIN_TYPE;
         add_builtin_type_symbol(context, void_builtin_type.name);
 

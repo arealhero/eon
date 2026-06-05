@@ -61,11 +61,11 @@ internal Byte* arena_reallocate(Arena* restrict arena,
     (Type*)(arena_push_uninitialized((arena), size_of(Type) * (number_of_elements)))
 
 #if ASAN_ENABLED
-#    define grow_array_if_needed(arena, array, Type)                    \
+#    define ensure_array_has_enough_capacity(arena, array, Type, requested_size) \
     do                                                                  \
     {                                                                   \
         /* NOTE(vlad): Always reallocate so we could find all use-after-move bugs. */ \
-        const Size new_capacity = CONCATENATE(array, _capacity) + 1;    \
+        const Size new_capacity = CONCATENATE(array, _capacity) + requested_size; \
         array = reallocate(arena,                                       \
                            array,                                       \
                            Type,                                        \
@@ -75,13 +75,12 @@ internal Byte* arena_reallocate(Arena* restrict arena,
     }                                                                   \
     while (0)
 #else
-#    define grow_array_if_needed(arena, array, Type)                    \
+#    define ensure_array_has_enough_capacity(arena, array, Type, requested_size) \
     do                                                                  \
     {                                                                   \
-        if (CONCATENATE(array, _count) == CONCATENATE(array, _capacity)) \
+        if (CONCATENATE(array, _count) + requested_size > CONCATENATE(array, _capacity)) \
         {                                                               \
-            /* XXX(vlad): We can change 'MAX(1, 2 * capacity)' to '(2 * capacity) | 1'. */ \
-            const Size new_capacity = MAX(1, 2 * CONCATENATE(array, _capacity)); \
+            const Size new_capacity = MAX(requested_size, 2 * CONCATENATE(array, _capacity)); \
             array = reallocate(arena,                                   \
                                array,                                   \
                                Type,                                    \
@@ -92,3 +91,5 @@ internal Byte* arena_reallocate(Arena* restrict arena,
     }                                                                   \
     while (0)
 #endif
+
+#define grow_array_if_needed(arena, array, Type) ensure_array_has_enough_capacity(arena, array, Type, 1)

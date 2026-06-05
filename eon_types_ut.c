@@ -1614,10 +1614,9 @@ test_assignments(Test_Context* test_context)
 
             const Ast_Identifier* variable = &definition->name;
             const Symbol* variable_symbol = get_symbol_for_identifier(&context, variable);
-            ASSERT_TYPE_STRINGS_ARE_EQUAL(variable_symbol->type_id, "s32");
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(variable_symbol->type_id, "mutable s32");
 
-            const Type* variable_type = get_type_by_id(&context, variable_symbol->type_id);
-            ASSERT_TRUE(variable_type->is_mutable);
+            ASSERT_TRUE(type_is_mutable(&context, variable_symbol->type_id));
         }
 
         {
@@ -1626,7 +1625,7 @@ test_assignments(Test_Context* test_context)
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_ASSIGNMENT);
             const Ast_Assignment* assignment = &statement->assignment;
 
-            ASSERT_TYPE_STRINGS_ARE_EQUAL(assignment->lhs.type_id, "s32");
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(assignment->lhs.type_id, "mutable s32");
             ASSERT_TYPE_STRINGS_ARE_EQUAL(assignment->rhs.type_id, "s32");
         }
 
@@ -3174,6 +3173,123 @@ test_floats(Test_Context* test_context)
             destroy_compilation_context(&context);
         }
     }
+
+    // NOTE(vlad): Testing that number types are determined correctly.
+    {
+        {
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                     "    a: mutable _ = 10;\n"
+                                                     "    b: f64 = 10.0;\n"
+                                                     "    a = b;\n"
+                                                     "}\n");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
+
+            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            create_lexical_scopes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            resolve_and_validate_types(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+
+            const Type_Id function_type_id = function_definition->type->type_id;
+            ASSERT_TYPE_IS_VALID(function_type_id);
+
+            const Type* function_type = get_type_by_id(&context, function_type_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, TYPE_FUNCTION);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(function_type_id, "() -> void");
+
+            const Function_Type_Info* info = &function_type->function_info;
+            ASSERT_EQUAL(info->parameter_type_ids_count, 0);
+
+            {
+                const Type_Id return_type_id = info->return_type_id;
+                ASSERT_TYPE_IS_VALID(return_type_id);
+                const Type* return_type = get_type_by_id(&context, return_type_id);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_VOID);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(return_type_id, "void");
+            }
+
+            {
+                const Symbol* function_symbol = get_symbol_for_identifier(&context, &function_definition->name);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, function_definition->name.token.lexeme);
+                ASSERT_TYPE_IDS_ARE_EQUAL(function_type_id, function_symbol->type_id);
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+                ASSERT_EQUAL(function_definition->type->function.parameters_count, 0);
+            }
+
+            const Ast_Code_Block* body = &function_definition->body;
+
+            ASSERT_EQUAL(body->statements_count, 3);
+            ASSERT_EQUAL(body->every_path_returns, true);
+
+            {
+                const Ast_Statement* statement = &body->statements[0];
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+                const Ast_Variable_Definition* definition = &statement->variable_definition;
+
+                ASSERT_FALSE(definition->has_initial_value);
+
+                const Ast_Type* ast_type = definition->type;
+                ASSERT_ENUM_VALUES_ARE_EQUAL(ast_type->kind, AST_TYPE_OMITTED);
+                ASSERT_LOCATION_STRINGS_ARE_EQUAL(&ast_type->location, "mutable _");
+
+                const Ast_Identifier* variable = &definition->name;
+                const Symbol* variable_symbol = get_symbol_for_identifier(&context, variable);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(variable_symbol->type_id, "f64");
+
+                const Type* variable_type = get_type_by_id(&context, variable_symbol->type_id);
+                ASSERT_TRUE(variable_type->is_mutable);
+            }
+
+            {
+                const Ast_Statement* statement = &body->statements[1];
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+                const Ast_Variable_Definition* definition = &statement->variable_definition;
+
+                ASSERT_FALSE(definition->has_initial_value);
+
+                const Ast_Type* ast_type = definition->type;
+                ASSERT_ENUM_VALUES_ARE_EQUAL(ast_type->kind, AST_TYPE_OMITTED);
+                ASSERT_LOCATION_STRINGS_ARE_EQUAL(&ast_type->location, "f64");
+
+                const Ast_Identifier* variable = &definition->name;
+                const Symbol* variable_symbol = get_symbol_for_identifier(&context, variable);
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(variable_symbol->type_id, "f64");
+
+                const Type* variable_type = get_type_by_id(&context, variable_symbol->type_id);
+                ASSERT_FALSE(variable_type->is_mutable);
+            }
+
+            {
+                const Ast_Statement* statement = &body->statements[2];
+
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_ASSIGNMENT);
+                const Ast_Assignment* assignment = &statement->assignment;
+
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(assignment->lhs.type_id, "f64");
+                ASSERT_TYPE_STRINGS_ARE_EQUAL(assignment->rhs.type_id, "f64");
+            }
+
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
+        }
+    }
 }
 
 internal void
@@ -3596,6 +3712,41 @@ test_type_mismatches(Test_Context* test_context)
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
+
+    // NOTE(vlad): Testing assignment mismatches.
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    a: s32 = 10;\n"
+                                                 "    a = 2.0;\n"
+                                                 "}\n");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:3:9: error: Type mismatch: expected 's32', got '<floating-point number>'\n"
+                                                        "  3 |     a = 2.0;\n"
+                                                        "    |         ^~~");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
 }
 
 internal void
@@ -3704,6 +3855,111 @@ test_number_type_mismatches(Test_Context* test_context)
     }
 }
 
+internal void
+test_lvalue_mismatches(Test_Context* test_context)
+{
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    10 = 10;\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:2:5: error: lvalue is required as a LHS of assignment\n"
+                                                        "  2 |     10 = 10;\n"
+                                                        "    |     ^~");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    a := 10;\n"
+                                                 "    a + 1 = 10;\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:3:5: error: lvalue is required as a LHS of assignment\n"
+                                                        "  3 |     a + 1 = 10;\n"
+                                                        "    |     ^~~~~");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    a := 10;\n"
+                                                 "    a& = 10;\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:3:5: error: lvalue is required as a LHS of assignment\n"
+                                                        "  3 |     a& = 10;\n"
+                                                        "    |     ^~");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+}
+
 REGISTER_TESTS(
     test_builtin_types_resolving,
     test_pointers,
@@ -3716,7 +3972,8 @@ REGISTER_TESTS(
     test_unsigned_integers,
     test_floats,
     test_type_mismatches,
-    test_number_type_mismatches
+    test_number_type_mismatches,
+    test_lvalue_mismatches
 )
 
 #include "eon_compilation_context.c"
