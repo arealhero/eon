@@ -55,12 +55,12 @@ call :compile grammar\check_grammar_soundness.c ^
 
 build\grammar\check_grammar_soundness.exe grammar\eon-grammar
 
-call :compile_and_run_unit_test eon\memory_ut.c
-call :compile_and_run_unit_test eon\string_ut.c
-call :compile_and_run_unit_test eon_lexer_ut.c
-call :compile_and_run_unit_test eon_parser_ut.c
-call :compile_and_run_unit_test eon_lexical_scopes_ut.c
-call :compile_and_run_unit_test eon_types_ut.c
+call :compile_and_run_unit_test eon\memory_ut.c || exit /B 1
+call :compile_and_run_unit_test eon\string_ut.c || exit /B 1
+call :compile_and_run_unit_test eon_lexer_ut.c || exit /B 1
+call :compile_and_run_unit_test eon_parser_ut.c || exit /B 1
+call :compile_and_run_unit_test eon_lexical_scopes_ut.c || exit /B 1
+call :compile_and_run_unit_test eon_types_ut.c || exit /B 1
 
 REM FIXME(vlad): Enable this test on Windows (clang-cl's ASAN does not work for some reason;
 REM              also this test does not work for cl.exe because it uses unix-specific headers).
