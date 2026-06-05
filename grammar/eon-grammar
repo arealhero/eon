@@ -47,8 +47,7 @@ optional_variable_type: EPS | type;
 // TODO(vlad): Rename to 'optional_variable_initialisation' or something.
 optional_variable_assignment: EPS | "=" expression; // TODO(vlad): Support 'uninitialized' keyword or something.
 
-// TODO(vlad): Support arrays. @tag(eon-grammar)
-assignment_statement: identifier "=" expression ";";
+assignment_statement: expression "=" expression ";";
 
 while_statement: "while" expression code_block;
 

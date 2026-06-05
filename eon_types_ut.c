@@ -1537,6 +1537,202 @@ test_while_statements(Test_Context* test_context)
 }
 
 internal void
+test_assignments(Test_Context* test_context)
+{
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    a: mutable s32;\n"
+                                                 "    a = 10;\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+
+        const Type_Id function_type_id = function_definition->type->type_id;
+        ASSERT_TYPE_IS_VALID(function_type_id);
+
+        const Type* function_type = get_type_by_id(&context, function_type_id);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, TYPE_FUNCTION);
+        ASSERT_TYPE_STRINGS_ARE_EQUAL(function_type_id, "() -> void");
+
+        const Function_Type_Info* info = &function_type->function_info;
+        ASSERT_EQUAL(info->parameter_type_ids_count, 0);
+
+        {
+            const Type_Id return_type_id = info->return_type_id;
+            ASSERT_TYPE_IS_VALID(return_type_id);
+
+            const Type* return_type = get_type_by_id(&context, return_type_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_VOID);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(return_type_id, "void");
+        }
+
+        // NOTE(vlad): Test that every symbol has a type.
+        {
+            const Symbol* function_symbol = get_symbol_for_identifier(&context, &function_definition->name);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
+            ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, function_definition->name.token.lexeme);
+            ASSERT_TYPE_IDS_ARE_EQUAL(function_type_id, function_symbol->type_id);
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            ASSERT_EQUAL(function_definition->type->function.parameters_count, 0);
+        }
+
+        const Ast_Code_Block* body = &function_definition->body;
+
+        ASSERT_EQUAL(body->statements_count, 2);
+        ASSERT_EQUAL(body->every_path_returns, true);
+
+        {
+            const Ast_Statement* statement = &body->statements[0];
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            const Ast_Variable_Definition* definition = &statement->variable_definition;
+
+            ASSERT_FALSE(definition->has_initial_value);
+
+            const Ast_Type* ast_type = definition->type;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(ast_type->kind, AST_TYPE_NAME);
+            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&ast_type->location,
+                                              "mutable s32");
+
+            const Ast_Identifier* variable = &definition->name;
+            const Symbol* variable_symbol = get_symbol_for_identifier(&context, variable);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(variable_symbol->type_id, "s32");
+
+            const Type* variable_type = get_type_by_id(&context, variable_symbol->type_id);
+            ASSERT_TRUE(variable_type->is_mutable);
+        }
+
+        {
+            const Ast_Statement* statement = &body->statements[1];
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_ASSIGNMENT);
+            const Ast_Assignment* assignment = &statement->assignment;
+
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(assignment->lhs.type_id, "s32");
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(assignment->rhs.type_id, "s32");
+        }
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    a: mutable s32;\n"
+                                                 "    a&* = 10;\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+
+        const Type_Id function_type_id = function_definition->type->type_id;
+        ASSERT_TYPE_IS_VALID(function_type_id);
+
+        const Type* function_type = get_type_by_id(&context, function_type_id);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, TYPE_FUNCTION);
+        ASSERT_TYPE_STRINGS_ARE_EQUAL(function_type_id, "() -> void");
+
+        const Function_Type_Info* info = &function_type->function_info;
+        ASSERT_EQUAL(info->parameter_type_ids_count, 0);
+
+        {
+            const Type_Id return_type_id = info->return_type_id;
+            ASSERT_TYPE_IS_VALID(return_type_id);
+
+            const Type* return_type = get_type_by_id(&context, return_type_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_VOID);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(return_type_id, "void");
+        }
+
+        // NOTE(vlad): Test that every symbol has a type.
+        {
+            const Symbol* function_symbol = get_symbol_for_identifier(&context, &function_definition->name);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
+            ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, function_definition->name.token.lexeme);
+            ASSERT_TYPE_IDS_ARE_EQUAL(function_type_id, function_symbol->type_id);
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            ASSERT_EQUAL(function_definition->type->function.parameters_count, 0);
+        }
+
+        const Ast_Code_Block* body = &function_definition->body;
+
+        ASSERT_EQUAL(body->statements_count, 2);
+        ASSERT_EQUAL(body->every_path_returns, true);
+
+        {
+            const Ast_Statement* statement = &body->statements[0];
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            const Ast_Variable_Definition* definition = &statement->variable_definition;
+
+            ASSERT_FALSE(definition->has_initial_value);
+
+            const Ast_Type* ast_type = definition->type;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(ast_type->kind, AST_TYPE_NAME);
+            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&ast_type->location,
+                                              "mutable s32");
+
+            const Ast_Identifier* variable = &definition->name;
+            const Symbol* variable_symbol = get_symbol_for_identifier(&context, variable);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(variable_symbol->type_id, "s32");
+
+            const Type* variable_type = get_type_by_id(&context, variable_symbol->type_id);
+            ASSERT_TRUE(variable_type->is_mutable);
+        }
+
+        {
+            const Ast_Statement* statement = &body->statements[1];
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_ASSIGNMENT);
+            const Ast_Assignment* assignment = &statement->assignment;
+
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(assignment->lhs.type_id, "s32");
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(assignment->rhs.type_id, "s32");
+        }
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+}
+
+internal void
 test_calls(Test_Context* test_context)
 {
     {
@@ -3514,6 +3710,7 @@ REGISTER_TESTS(
     test_comparisons,
     test_if_statements,
     test_while_statements,
+    test_assignments,
     test_calls,
     test_signed_integers,
     test_unsigned_integers,

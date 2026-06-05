@@ -220,8 +220,8 @@ typedef struct Ast_Variable_Definition Ast_Variable_Definition;
 
 struct Ast_Assignment
 {
-    Ast_Identifier name;
-    Ast_Expression expression;
+    Ast_Expression lhs;
+    Ast_Expression rhs;
 };
 typedef struct Ast_Assignment Ast_Assignment;
 

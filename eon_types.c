@@ -200,6 +200,50 @@ get_max_integer_value(const Integer_Type_Info* type_info)
     }
 }
 
+internal Bool
+expression_is_an_lvalue(const Ast_Expression* expression)
+{
+    // TODO(vlad): Support pointer arithmetic? E.g. in C++ this code should compile just fine:
+    //
+    //                 int arr[] = {10, 20};
+    //                 *(arr + 1) = 40;
+    //
+    switch (expression->kind)
+    {
+        case AST_EXPRESSION_UNDEFINED:
+        {
+            UNREACHABLE();
+        } break;
+
+        case AST_EXPRESSION_IDENTIFIER:
+        case AST_EXPRESSION_DEREFERENCE:
+        {
+            return true;
+        } break;
+
+        case AST_EXPRESSION_NUMBER:
+        case AST_EXPRESSION_STRING_LITERAL:
+        case AST_EXPRESSION_ADD:
+        case AST_EXPRESSION_SUBTRACT:
+        case AST_EXPRESSION_MULTIPLY:
+        case AST_EXPRESSION_DIVIDE:
+        case AST_EXPRESSION_EQUAL:
+        case AST_EXPRESSION_NOT_EQUAL:
+        case AST_EXPRESSION_LESS:
+        case AST_EXPRESSION_LESS_OR_EQUAL:
+        case AST_EXPRESSION_GREATER:
+        case AST_EXPRESSION_GREATER_OR_EQUAL:
+        case AST_EXPRESSION_NEGATE:
+        case AST_EXPRESSION_ADDRESS_OF:
+        case AST_EXPRESSION_CALL:
+        {
+            return false;
+        } break;
+    }
+
+    UNREACHABLE();
+}
+
 // FIXME(vlad): Add Source_Location that triggered this unification.
 internal Bool
 try_to_unify_types(Compilation_Context* context,
@@ -370,14 +414,9 @@ try_to_unify_types(Compilation_Context* context,
 
 internal Type_Id
 resolve_type_by_ast_type(Compilation_Context* context,
-                         Ast_Type* type)
+                         Ast_Type* ast_type)
 {
-    if (type->is_mutable)
-    {
-        FAIL("[TYPE] mutable types are not supported yet");
-    }
-
-    switch (type->kind)
+    switch (ast_type->kind)
     {
         case AST_TYPE_UNDEFINED:
         {
@@ -386,21 +425,21 @@ resolve_type_by_ast_type(Compilation_Context* context,
 
         case AST_TYPE_NAME:
         {
-            ASSERT(type->symbol_id != UNDEFINED_SYMBOL_ID && type->symbol_id != INVALID_SYMBOL_ID);
+            ASSERT(ast_type->symbol_id != UNDEFINED_SYMBOL_ID && ast_type->symbol_id != INVALID_SYMBOL_ID);
 
-            Symbol* symbol = get_symbol_by_id(context, type->symbol_id);
+            Symbol* symbol = get_symbol_by_id(context, ast_type->symbol_id);
             ASSERT(symbol->kind == SYMBOL_TYPE);
             ASSERT(type_id_is_valid(context, symbol->type_id));
 
-            type->type_id = symbol->type_id;
-            return type->type_id;
+            ast_type->type_id = symbol->type_id;
         } break;
 
         case AST_TYPE_POINTER:
         {
-            Ast_Pointer_Type* ast_type = &type->pointer;
+            Ast_Pointer_Type* ast_pointer_type = &ast_type->pointer;
 
-            const Type_Id points_to_type_id = resolve_type_by_ast_type(context, ast_type->pointed_to);
+            const Type_Id points_to_type_id = resolve_type_by_ast_type(context,
+                                                                       ast_pointer_type->pointed_to);
 
             const Type_Id pointer_type_id = create_type(context);
 
@@ -408,27 +447,26 @@ resolve_type_by_ast_type(Compilation_Context* context,
             pointer_type->kind = TYPE_POINTER;
             pointer_type->pointer_info.points_to_type_id = points_to_type_id;
 
-            type->type_id = pointer_type_id;
-            return pointer_type_id;
+            ast_type->type_id = pointer_type_id;
         } break;
 
         case AST_TYPE_FUNCTION:
         {
-            Ast_Function_Type* ast_type = &type->function;
+            Ast_Function_Type* ast_function_type = &ast_type->function;
 
             Type_Id* parameter_type_ids = NULL;
 
-            if (ast_type->parameters_count != 0)
+            if (ast_function_type->parameters_count != 0)
             {
                 parameter_type_ids = allocate_array(context->parameter_type_ids_arena,
-                                                    ast_type->parameters_count,
+                                                    ast_function_type->parameters_count,
                                                     Type_Id);
 
                 for (Index parameter_index = 0;
-                     parameter_index < ast_type->parameters_count;
+                     parameter_index < ast_function_type->parameters_count;
                      ++parameter_index)
                 {
-                    Ast_Function_Parameter* parameter = &ast_type->parameters[parameter_index];
+                    Ast_Function_Parameter* parameter = &ast_function_type->parameters[parameter_index];
 
                     const Type_Id parameter_type_id = resolve_type_by_ast_type(context, parameter->type);
                     bind_type_id_to_a_symbol(context, parameter->name.symbol_id, parameter_type_id);
@@ -437,7 +475,8 @@ resolve_type_by_ast_type(Compilation_Context* context,
                 }
             }
 
-            const Type_Id return_type_id = resolve_type_by_ast_type(context, ast_type->return_type);
+            const Type_Id return_type_id = resolve_type_by_ast_type(context,
+                                                                    ast_function_type->return_type);
 
             const Type_Id function_type_id = create_type(context);
             Type* function_type = get_type_by_id(context, function_type_id);
@@ -445,21 +484,93 @@ resolve_type_by_ast_type(Compilation_Context* context,
 
             Function_Type_Info* type_info = &function_type->function_info;
             type_info->parameter_type_ids = parameter_type_ids;
-            type_info->parameter_type_ids_count = ast_type->parameters_count;
+            type_info->parameter_type_ids_count = ast_function_type->parameters_count;
             type_info->return_type_id = return_type_id;
 
-            return function_type_id;
+            ast_type->type_id = function_type_id;
         } break;
 
         case AST_TYPE_OMITTED:
         {
             const Type_Id type_id = create_new_type_variable(context);
-            type->type_id = type_id;
-            return type_id;
+            ast_type->type_id = type_id;
         } break;
     }
 
-    UNREACHABLE();
+    ASSERT(type_id_is_defined(ast_type->type_id));
+
+    // NOTE(vlad): Handling type mutability.
+    {
+        Type* type = get_type_by_id(context, ast_type->type_id);
+        switch (type->kind)
+        {
+            case TYPE_UNDEFINED:
+            {
+                UNREACHABLE();
+            } break;
+
+            case TYPE_VARIABLE:
+            case TYPE_NUMBER_VARIABLE:
+            case TYPE_INTEGER:
+            case TYPE_FLOAT:
+            case TYPE_BOOLEAN:
+            case TYPE_POINTER:
+            {
+                type->is_mutable = ast_type->is_mutable;
+            } break;
+
+            case TYPE_VOID:
+            case TYPE_FUNCTION:
+            {
+                if (ast_type->is_mutable)
+                {
+                    Diagnostic_Message error = {0};
+                    error.level = MESSAGE_LEVEL_ERROR;
+                    error.location = ast_type->location;
+
+                    String_View type_name = {0};
+                    switch (type->kind)
+                    {
+                        case TYPE_UNDEFINED:
+                        {
+                            UNREACHABLE();
+                        } break;
+
+                        case TYPE_VOID:
+                        {
+                            type_name = string_view("void");
+                        } break;
+
+                        case TYPE_FUNCTION:
+                        {
+                            type_name = string_view("function");
+                        } break;
+
+                        case TYPE_VARIABLE:
+                        case TYPE_NUMBER_VARIABLE:
+                        case TYPE_INTEGER:
+                        case TYPE_FLOAT:
+                        case TYPE_BOOLEAN:
+                        case TYPE_POINTER:
+                        {
+                            FAIL("[TYPE] Unexpected type encountered.");
+                        }
+                    }
+
+                    const String error_text = format_string(context->diagnostic_message_texts_arena,
+                                                            "Type '{}' cannot be mutable.",
+                                                            type_name);
+
+                    error.text = string_view(error_text);
+                    emit_diagnostic_message(context, &error);
+
+                    ast_type->type_id.index = INVALID_TYPE_INDEX;
+                }
+            } break;
+        }
+    }
+
+    return ast_type->type_id;
 }
 
 internal Type_Id
@@ -714,6 +825,9 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
         {
             Ast_Unary_Expression* address_of = &expression->unary_expression;
 
+            // FIXME(vlad): Test that the operand actually has an address.
+            //              For example, 'ptr := 10&;' makes no sense.
+
             // FIXME(vlad): Support 'is_mutable'.
             const Type_Id points_to_type_id = resolve_types_in_expression(context, address_of->operand);
 
@@ -870,7 +984,56 @@ resolve_types_in_code_block(Compilation_Context* context,
 
             case AST_STATEMENT_ASSIGNMENT:
             {
-                FAIL("[TYPE] Assignments are not yet supported");
+                Ast_Assignment* assignment = &statement->assignment;
+
+                if (!expression_is_an_lvalue(&assignment->lhs))
+                {
+                    Diagnostic_Message error = {0};
+                    error.level = MESSAGE_LEVEL_ERROR;
+                    error.location = assignment->lhs.location;
+                    error.text = string_view("lvalue is required as a LHS of assignment");
+                    emit_diagnostic_message(context, &error);
+                    return false;
+                }
+
+                const Type_Id lhs_type_id = resolve_types_in_expression(context, &assignment->lhs);
+                const Type_Id rhs_type_id = resolve_types_in_expression(context, &assignment->rhs);
+
+                if (!try_to_unify_types(context, lhs_type_id, rhs_type_id))
+                {
+                    Diagnostic_Message error = {0};
+                    error.level = MESSAGE_LEVEL_ERROR;
+                    error.location = assignment->rhs.location;
+
+                    const String expected_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                               context,
+                                                                               lhs_type_id);
+                    const String actual_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                             context,
+                                                                             rhs_type_id);
+
+                    const String error_text = format_string(context->diagnostic_message_texts_arena,
+                                                            "Type mismatch: expected '{}', got '{}'",
+                                                            expected_type_string,
+                                                            actual_type_string);
+
+                    error.text = string_view(error_text);
+                    emit_diagnostic_message(context, &error);
+                    return false;
+                }
+
+                {
+                    const Type* lhs_type = get_type_by_id(context, lhs_type_id);
+                    if (!lhs_type->is_mutable)
+                    {
+                        Diagnostic_Message error = {0};
+                        error.level = MESSAGE_LEVEL_ERROR;
+                        error.location = assignment->lhs.location;
+                        error.text = string_view("Read-only location is not assignable");
+                        emit_diagnostic_message(context, &error);
+                        return false;
+                    }
+                }
             } break;
 
             case AST_STATEMENT_RETURN:

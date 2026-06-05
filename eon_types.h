@@ -80,8 +80,7 @@ struct Type
     Type_Kind kind;
 
     Type_Id parent_type_id;
-
-    // FIXME(vlad): Add 'is_mutable'.
+    Bool is_mutable;
 
     union
     {

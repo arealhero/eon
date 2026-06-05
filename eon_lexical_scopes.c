@@ -320,12 +320,11 @@ create_lexical_scopes_for_code_block(Compilation_Context* context, Ast_Code_Bloc
             {
                 Ast_Assignment* assignment = &statement->assignment;
 
-                set_symbol_id_for_identifier(context,
-                                             &assignment->name,
-                                             this_lexical_scope_id);
-
                 set_symbol_ids_for_identifiers_in_expression(context,
-                                                             &assignment->expression,
+                                                             &assignment->lhs,
+                                                             this_lexical_scope_id);
+                set_symbol_ids_for_identifiers_in_expression(context,
+                                                             &assignment->rhs,
                                                              this_lexical_scope_id);
             } break;
 

@@ -1021,17 +1021,17 @@ parse_variable_definition(Parser* parser,
 
 internal Bool
 parse_assignment(Parser* parser,
-                 Ast_Identifier* identifier,
+                 Ast_Expression* expression,
                  Ast_Assignment* assignment)
 {
-    assignment->name = *identifier;
+    assignment->lhs = *expression;
 
     if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_ASSIGN))
     {
         return false;
     }
 
-    if (!parse_expression(parser, &assignment->expression))
+    if (!parse_expression(parser, &assignment->rhs))
     {
         return false;
     }
@@ -1047,67 +1047,10 @@ parse_assignment(Parser* parser,
 }
 
 internal Bool
-parse_call_statement(Parser* parser,
-                     Ast_Identifier* identifier,
-                     Ast_Call_Statement* call_statement)
+parse_assignment_or_definition_or_call(Parser* parser, Ast_Statement* statement)
 {
-    Ast_Expression* call_expression = &call_statement->call_expression;
-    call_expression->kind = AST_EXPRESSION_CALL;
-
-    if (!parser_fetch_token(parser))
-    {
-        return false;
-    }
-
-    call_expression->location = identifier->token.location;
-
-    Ast_Call* call = &call_expression->call;
-
-    call->called_expression = allocate(parser->context->ast_arena, Ast_Expression);
-    call->called_expression->kind = AST_EXPRESSION_IDENTIFIER;
-    call->called_expression->identifier = *identifier;
-    call->called_expression->location = identifier->token.location;
-
-    if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_LEFT_PAREN))
-    {
-        return false;
-    }
-
-    if (!parser_fetch_token(parser))
-    {
-        return false;
-    }
-
-    if (parser->current_token.type != TOKEN_RIGHT_PAREN)
-    {
-        if (!parse_arguments(parser, call))
-        {
-            return false;
-        }
-    }
-
-    if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_RIGHT_PAREN))
-    {
-        return false;
-    }
-
-    end_expression(parser, call_expression);
-
-    // TODO(vlad): Move the semicolon parsing to 'parse_statement' or 'parse_expression_statement'
-    //             or something more high-level.
-    if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_SEMICOLON))
-    {
-        return false;
-    }
-
-    return true;
-}
-
-internal Bool
-parse_variable_assignment_or_definition_or_call(Parser* parser, Ast_Statement* statement)
-{
-    Ast_Identifier identifier = {0};
-    if (!parse_identifier(parser, &identifier))
+    Ast_Expression expression = {0};
+    if (!parse_expression(parser, &expression))
     {
         return false;
     }
@@ -1121,20 +1064,51 @@ parse_variable_assignment_or_definition_or_call(Parser* parser, Ast_Statement* s
     {
         case TOKEN_COLON:
         {
+            if (expression.kind != AST_EXPRESSION_IDENTIFIER)
+            {
+
+                Diagnostic_Message error = {0};
+                error.level = MESSAGE_LEVEL_ERROR;
+                error.location = expression.location;
+                error.text = string_view("Expected identifier, found expression.");
+                emit_diagnostic_message(parser->context, &error);
+
+                return false;
+            }
+
+            Ast_Identifier* identifier = &expression.identifier;
+
             statement->type = AST_STATEMENT_VARIABLE_DEFINITION;
-            return parse_variable_definition(parser, &identifier, &statement->variable_definition);
+            return parse_variable_definition(parser, identifier, &statement->variable_definition);
         } break;
 
         case TOKEN_ASSIGN:
         {
             statement->type = AST_STATEMENT_ASSIGNMENT;
-            return parse_assignment(parser, &identifier, &statement->assignment);
+            return parse_assignment(parser, &expression, &statement->assignment);
         } break;
 
-        case TOKEN_LEFT_PAREN:
+        case TOKEN_SEMICOLON:
         {
+            if (expression.kind != AST_EXPRESSION_CALL)
+            {
+                Diagnostic_Message error = {0};
+                error.level = MESSAGE_LEVEL_ERROR;
+                error.location = expression.location;
+                // TODO(vlad): Change error description to 'Expression result is unused'?
+                //             An what if this expression's type is 'void'? We won't know that until the type system
+                //             checks.
+                error.text = string_view("Standalone expressions are not allowed.");
+                emit_diagnostic_message(parser->context, &error);
+
+                return false;
+            }
+
             statement->type = AST_STATEMENT_CALL;
-            return parse_call_statement(parser, &identifier, &statement->call_statement);
+            statement->call_statement.call_expression = expression;
+
+            ASSERT(parser_fetch_and_consume_token_with_type(parser, TOKEN_SEMICOLON));
+            return true;
         } break;
 
         default:
@@ -1329,11 +1303,6 @@ parse_statement(Parser* parser, Ast_Statement* statement)
 
     switch (parser->current_token.type)
     {
-        case TOKEN_IDENTIFIER:
-        {
-            return parse_variable_assignment_or_definition_or_call(parser, statement);
-        } break;
-
         case TOKEN_RETURN:
         {
             statement->type = AST_STATEMENT_RETURN;
@@ -1354,9 +1323,7 @@ parse_statement(Parser* parser, Ast_Statement* statement)
 
         default:
         {
-            // TODO(vlad): Ensure that token has one of these types and report an error if it does not.
-            println("Failed to parse statement");
-            return false;
+            return parse_assignment_or_definition_or_call(parser, statement);
         } break;
     }
 }
