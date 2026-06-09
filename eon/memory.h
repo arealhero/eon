@@ -80,7 +80,7 @@ internal Byte* arena_reallocate(Arena* restrict arena,
     {                                                                   \
         if (CONCATENATE(array, _count) + requested_size > CONCATENATE(array, _capacity)) \
         {                                                               \
-            const Size new_capacity = MAX(requested_size, 2 * CONCATENATE(array, _capacity)); \
+            const Size new_capacity = CONCATENATE(array, _count) + requested_size; \
             array = reallocate(arena,                                   \
                                array,                                   \
                                Type,                                    \

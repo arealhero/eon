@@ -723,6 +723,21 @@ test_floating_point_numbers_parsing(Test_Context* test_context)
     }
 }
 
+internal void
+test_string_builder(Test_Context* test_context)
+{
+    {
+        String_Builder builder = {0};
+        create_string_builder(&builder, test_context->arena);
+
+        append_string(&builder, string_view("* "));
+        append_string(&builder, string_view("mutable "));
+        append_string(&builder, string_view("s32"));
+
+        ASSERT_STRINGS_ARE_EQUAL(string_builder_to_string(&builder), "* mutable s32");
+    }
+}
+
 REGISTER_TESTS(
     test_string_formatting,
     test_signed_integers_formatting,
@@ -730,5 +745,6 @@ REGISTER_TESTS(
     test_formatting_corner_cases,
     test_floating_point_numbers_formatting,
     test_integer_parsing,
-    test_floating_point_numbers_parsing
+    test_floating_point_numbers_parsing,
+    test_string_builder
 )
