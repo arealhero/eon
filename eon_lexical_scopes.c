@@ -192,7 +192,7 @@ set_symbol_ids_for_identifiers_in_type(Compilation_Context* context,
                     symbol->kind = SYMBOL_VARIABLE;
                     symbol->name = parameter->name.token.lexeme;
                     symbol->location = parameter->name.token.location;
-                    symbol->is_mutable = parameter->type->is_mutable;
+                    symbol->binding_is_mutable = parameter->type->is_mutable;
 
                     parameter->name.symbol_id = symbol_id;
                 }
@@ -302,7 +302,7 @@ create_lexical_scopes_for_code_block(Compilation_Context* context, Ast_Code_Bloc
                     symbol->kind = SYMBOL_VARIABLE;
                     symbol->name = definition->name.token.lexeme;
                     symbol->location = definition->name.token.location;
-                    symbol->is_mutable = definition->type->is_mutable;
+                    symbol->binding_is_mutable = definition->type->is_mutable;
                 }
 
                 add_symbol_id_to_lexical_scope(context, this_lexical_scope_id, symbol_id);
@@ -393,7 +393,7 @@ add_builtin_type_symbol(Compilation_Context* context, const C_String name)
         Symbol* symbol = get_symbol_by_id(context, symbol_id);
         symbol->kind = SYMBOL_TYPE;
         symbol->name = string_view(name);
-        symbol->is_mutable = false;
+        symbol->binding_is_mutable = false;
         symbol->is_builtin = true;
     }
 
@@ -424,9 +424,9 @@ create_lexical_scopes(Compilation_Context* context)
 
             {
                 Symbol* symbol = get_symbol_by_id(context, symbol_id);
-                symbol->kind = SYMBOL_PLACEHOLDER;
+                symbol->kind = SYMBOL_WILDCARD;
                 symbol->name = string_view("_");
-                symbol->is_mutable = false;
+                symbol->binding_is_mutable = false;
                 symbol->is_builtin = true;
             }
 
@@ -478,7 +478,7 @@ create_lexical_scopes(Compilation_Context* context)
                     symbol->kind = SYMBOL_FUNCTION;
                     symbol->name = function_definition->name.token.lexeme;
                     symbol->location = function_definition->name.token.location;
-                    symbol->is_mutable = function_definition->type->is_mutable;
+                    symbol->binding_is_mutable = function_definition->type->is_mutable;
                 }
 
                 add_symbol_id_to_lexical_scope(context, global_scope_id, symbol_id);
@@ -518,7 +518,7 @@ create_lexical_scopes(Compilation_Context* context)
                 symbol->kind = SYMBOL_VARIABLE;
                 symbol->name = parameter->name.token.lexeme;
                 symbol->location = parameter->name.token.location;
-                symbol->is_mutable = parameter->type->is_mutable;
+                symbol->binding_is_mutable = parameter->type->is_mutable;
             }
 
             add_symbol_id_to_lexical_scope(context, function_scope_id, symbol_id);

@@ -78,9 +78,7 @@ typedef struct Number_Constraints Number_Constraints;
 struct Type
 {
     Type_Kind kind;
-
     Type_Id parent_type_id;
-    Bool is_mutable;
 
     union
     {

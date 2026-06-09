@@ -230,20 +230,6 @@ get_type_for_identifier(Compilation_Context* context, const Ast_Identifier* iden
 }
 
 internal inline Bool
-type_is_mutable(Compilation_Context* context, const Type_Id type_id)
-{
-    const Type* this_type = get_exact_type_by_id(context, type_id);
-    return this_type->is_mutable;
-}
-
-internal inline void
-make_this_type_mutable(Compilation_Context* context, const Type_Id type_id)
-{
-    Type* this_type = get_exact_type_by_id(context, type_id);
-    this_type->is_mutable = true;
-}
-
-internal inline Bool
 type_is_a_root_node(Type* type)
 {
     return type_id_is_undefined(type->parent_type_id);

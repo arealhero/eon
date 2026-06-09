@@ -11,7 +11,7 @@ enum Symbol_Kind
 
     SYMBOL_UNKNOWN,
 
-    SYMBOL_PLACEHOLDER,
+    SYMBOL_WILDCARD,
     SYMBOL_FUNCTION,
     SYMBOL_VARIABLE,
     SYMBOL_TYPE,
@@ -26,7 +26,7 @@ struct Symbol
     Source_Location location;
 
     Type_Id type_id;
-    Bool is_mutable;
+    Bool binding_is_mutable;
     Bool is_builtin;
 };
 typedef struct Symbol Symbol;

@@ -1614,9 +1614,7 @@ test_assignments(Test_Context* test_context)
 
             const Ast_Identifier* variable = &definition->name;
             const Symbol* variable_symbol = get_symbol_for_identifier(&context, variable);
-            ASSERT_TYPE_STRINGS_ARE_EQUAL(variable_symbol->type_id, "mutable s32");
-
-            ASSERT_TRUE(type_is_mutable(&context, variable_symbol->type_id));
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(variable_symbol->type_id, "s32");
         }
 
         {
@@ -1625,7 +1623,7 @@ test_assignments(Test_Context* test_context)
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_ASSIGNMENT);
             const Ast_Assignment* assignment = &statement->assignment;
 
-            ASSERT_TYPE_STRINGS_ARE_EQUAL(assignment->lhs.type_id, "mutable s32");
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(assignment->lhs.type_id, "s32");
             ASSERT_TYPE_STRINGS_ARE_EQUAL(assignment->rhs.type_id, "s32");
         }
 
@@ -1710,9 +1708,6 @@ test_assignments(Test_Context* test_context)
             const Ast_Identifier* variable = &definition->name;
             const Symbol* variable_symbol = get_symbol_for_identifier(&context, variable);
             ASSERT_TYPE_STRINGS_ARE_EQUAL(variable_symbol->type_id, "s32");
-
-            const Type* variable_type = get_type_by_id(&context, variable_symbol->type_id);
-            ASSERT_TRUE(variable_type->is_mutable);
         }
 
         {
@@ -3241,18 +3236,15 @@ test_floats(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
                 const Ast_Variable_Definition* definition = &statement->variable_definition;
 
-                ASSERT_FALSE(definition->has_initial_value);
+                ASSERT_TRUE(definition->has_initial_value);
 
                 const Ast_Type* ast_type = definition->type;
-                ASSERT_ENUM_VALUES_ARE_EQUAL(ast_type->kind, AST_TYPE_OMITTED);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(ast_type->kind, AST_TYPE_NAME);
                 ASSERT_LOCATION_STRINGS_ARE_EQUAL(&ast_type->location, "mutable _");
 
                 const Ast_Identifier* variable = &definition->name;
                 const Symbol* variable_symbol = get_symbol_for_identifier(&context, variable);
                 ASSERT_TYPE_STRINGS_ARE_EQUAL(variable_symbol->type_id, "f64");
-
-                const Type* variable_type = get_type_by_id(&context, variable_symbol->type_id);
-                ASSERT_TRUE(variable_type->is_mutable);
             }
 
             {
@@ -3261,18 +3253,15 @@ test_floats(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
                 const Ast_Variable_Definition* definition = &statement->variable_definition;
 
-                ASSERT_FALSE(definition->has_initial_value);
+                ASSERT_TRUE(definition->has_initial_value);
 
                 const Ast_Type* ast_type = definition->type;
-                ASSERT_ENUM_VALUES_ARE_EQUAL(ast_type->kind, AST_TYPE_OMITTED);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(ast_type->kind, AST_TYPE_NAME);
                 ASSERT_LOCATION_STRINGS_ARE_EQUAL(&ast_type->location, "f64");
 
                 const Ast_Identifier* variable = &definition->name;
                 const Symbol* variable_symbol = get_symbol_for_identifier(&context, variable);
                 ASSERT_TYPE_STRINGS_ARE_EQUAL(variable_symbol->type_id, "f64");
-
-                const Type* variable_type = get_type_by_id(&context, variable_symbol->type_id);
-                ASSERT_FALSE(variable_type->is_mutable);
             }
 
             {

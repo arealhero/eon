@@ -398,6 +398,21 @@ try_to_unify_types(Compilation_Context* context,
 
         case TYPE_POINTER:
         {
+            if (lhs_root_type->pointer_info.pointee_is_mutable != rhs_root_type->pointer_info.pointee_is_mutable)
+            {
+                // FIXME(vlad): Support mutability decay here. E.g. this code should be correct:
+                //
+                //                  a: mutable s32 = 10;
+                //                  b: * s32 = a&;
+                //
+                //              but this should not:
+                //
+                //                  a: s32 = 10;
+                //                  b: * mutable s32 = a&;
+                //
+                return false;
+            }
+
             return try_to_unify_types(context,
                                       lhs_root_type->pointer_info.points_to_type_id,
                                       rhs_root_type->pointer_info.points_to_type_id);
@@ -428,7 +443,7 @@ resolve_type_by_ast_type(Compilation_Context* context,
             ASSERT(ast_type->symbol_id != UNDEFINED_SYMBOL_ID && ast_type->symbol_id != INVALID_SYMBOL_ID);
 
             Symbol* symbol = get_symbol_by_id(context, ast_type->symbol_id);
-            if (symbol->kind == SYMBOL_PLACEHOLDER)
+            if (symbol->kind == SYMBOL_WILDCARD)
             {
                 const Type_Id type_id = create_new_type_variable(context);
                 ast_type->type_id = type_id;
@@ -534,7 +549,8 @@ resolve_type_by_ast_type(Compilation_Context* context,
             {
                 if (ast_type->is_mutable)
                 {
-                    make_this_type_mutable(context, ast_type->type_id);
+                    // FIXME
+                    // make_this_type_mutable(context, ast_type->type_id);
                 }
             } break;
 
@@ -592,9 +608,19 @@ resolve_type_by_ast_type(Compilation_Context* context,
     return ast_type->type_id;
 }
 
-internal Type_Id
+struct Expression_Result
+{
+    Type_Id type_id;
+    Bool is_lvalue;
+    Bool is_mutable;
+};
+typedef struct Expression_Result Expression_Result;
+
+internal Expression_Result
 resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expression)
 {
+    Expression_Result result = {0};
+
     switch (expression->kind)
     {
         case AST_EXPRESSION_UNDEFINED:
@@ -637,7 +663,8 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
                     emit_diagnostic_message(context, &error);
 
                     expression->type_id.index = INVALID_TYPE_INDEX;
-                    return expression->type_id;
+                    result.type_id.index = INVALID_TYPE_INDEX;
+                    return result;
                 }
 
                 constraints->integer_value = value;
@@ -663,6 +690,7 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
             }
 
             expression->type_id = number_type_id;
+            result.type_id = number_type_id;
         } break;
 
         case AST_EXPRESSION_STRING_LITERAL:
@@ -682,13 +710,10 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
                                                                symbol->type_id);
             ASSERT(unification_result);
 
-            // FIXME(vlad): Remove this ad-hoc "solution".
-            if (symbol->is_mutable)
-            {
-                make_this_type_mutable(context, this_type_id);
-            }
-
             expression->type_id = this_type_id;
+            result.type_id = this_type_id;
+            result.is_lvalue = true;
+            result.is_mutable = symbol->binding_is_mutable;
         } break;
 
         case AST_EXPRESSION_ADD:
@@ -720,10 +745,10 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
         {
             Ast_Binary_Expression* comparison = &expression->binary_expression;
 
-            const Type_Id lhs_type_id = resolve_types_in_expression(context, comparison->lhs);
-            const Type_Id rhs_type_id = resolve_types_in_expression(context, comparison->rhs);
+            const Expression_Result lhs_result = resolve_types_in_expression(context, comparison->lhs);
+            const Expression_Result rhs_result = resolve_types_in_expression(context, comparison->rhs);
 
-            if (!try_to_unify_types(context, lhs_type_id, rhs_type_id))
+            if (!try_to_unify_types(context, lhs_result.type_id, rhs_result.type_id))
             {
                 Diagnostic_Message error = {0};
                 error.level = MESSAGE_LEVEL_ERROR;
@@ -731,12 +756,11 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
 
                 const String_View lhs_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
                                                                            context,
-                                                                           lhs_type_id);
+                                                                           lhs_result.type_id);
 
                 const String_View rhs_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
                                                                            context,
-                                                                           rhs_type_id);
-
+                                                                           rhs_result.type_id);
 
                 const String error_text = format_string(context->diagnostic_message_texts_arena,
                                                         "Cannot compare expressions of different types '{}' and '{}'",
@@ -747,10 +771,11 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
                 emit_diagnostic_message(context, &error);
 
                 expression->type_id.index = INVALID_TYPE_INDEX;
-                return expression->type_id;
+                result.type_id.index = INVALID_TYPE_INDEX;
+                return result;
             }
 
-            const Type* expression_type = get_type_by_id(context, lhs_type_id);
+            const Type* expression_type = get_type_by_id(context, lhs_result.type_id);
 
             switch (expression_type->kind)
             {
@@ -783,7 +808,7 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
 
                     const String_View lhs_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
                                                                                context,
-                                                                               lhs_type_id);
+                                                                               lhs_result.type_id);
 
                     const String error_text = format_string(context->diagnostic_message_texts_arena,
                                                             "Expressions of type '{}' cannot be compared.",
@@ -793,12 +818,14 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
                     emit_diagnostic_message(context, &error);
 
                     expression->type_id.index = INVALID_TYPE_INDEX;
-                    return expression->type_id;
+                    result.type_id.index = INVALID_TYPE_INDEX;
+                    return result;
                 } break;
             }
 
             const Type_Id boolean_type_id = get_boolean_type_id(context);
             expression->type_id = boolean_type_id;
+            result.type_id = boolean_type_id;
         } break;
 
         case AST_EXPRESSION_NEGATE:
@@ -813,10 +840,10 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
 
             const Type_Id dereferenced_type_id = create_new_type_variable(context);
 
-            const Type_Id expression_type_id = resolve_types_in_expression(context, dereference->operand);
-            ASSERT(type_id_is_valid(context, expression_type_id));
+            const Expression_Result expression_result = resolve_types_in_expression(context, dereference->operand);
+            ASSERT(type_id_is_valid(context, expression_result.type_id));
 
-            const Type* expression_type = get_type_by_id(context, expression_type_id);
+            const Type* expression_type = get_type_by_id(context, expression_result.type_id);
             if (expression_type->kind != TYPE_POINTER)
             {
                 Diagnostic_Message error = {0};
@@ -825,7 +852,7 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
 
                 const String_View expression_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
                                                                                   context,
-                                                                                  expression_type_id);
+                                                                                  expression_result.type_id);
 
                 const String error_text = format_string(context->diagnostic_message_texts_arena,
                                                         "Cannot dereference a non-pointer type '{}'",
@@ -835,7 +862,8 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
                 emit_diagnostic_message(context, &error);
 
                 expression->type_id.index = INVALID_TYPE_INDEX;
-                return expression->type_id;
+                result.type_id.index = INVALID_TYPE_INDEX;
+                return result;
             }
 
             const Bool unification_result = try_to_unify_types(context,
@@ -844,35 +872,47 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
             ASSERT(unification_result);
 
             expression->type_id = dereferenced_type_id;
+            result.type_id = dereferenced_type_id;
+            result.is_lvalue = true;
+            result.is_mutable = expression_type->pointer_info.pointee_is_mutable;
         } break;
 
         case AST_EXPRESSION_ADDRESS_OF:
         {
             Ast_Unary_Expression* address_of = &expression->unary_expression;
 
-            // FIXME(vlad): Test that the operand actually has an address.
-            //              For example, 'ptr := 10&;' makes no sense.
+            const Expression_Result points_to_result = resolve_types_in_expression(context, address_of->operand);
+            if (!points_to_result.is_lvalue)
+            {
+                Diagnostic_Message error = {0};
+                error.level = MESSAGE_LEVEL_ERROR;
+                error.location = address_of->operand->location;
+                error.text = string_view("Cannot take address of a non-lvalue expression");
+                emit_diagnostic_message(context, &error);
 
-            // FIXME(vlad): Support 'is_mutable'.
-            const Type_Id points_to_type_id = resolve_types_in_expression(context, address_of->operand);
+                expression->type_id.index = INVALID_TYPE_INDEX;
+                result.type_id.index = INVALID_TYPE_INDEX;
+                return result;
+            }
 
             const Type_Id pointer_type_id = create_type(context);
             Type* pointer_type = get_type_by_id(context, pointer_type_id);
             pointer_type->kind = TYPE_POINTER;
-            pointer_type->pointer_info.points_to_type_id = points_to_type_id;
+            pointer_type->pointer_info.points_to_type_id = points_to_result.type_id;
+            pointer_type->pointer_info.pointee_is_mutable = points_to_result.is_mutable;
 
             expression->type_id = pointer_type_id;
+            result.type_id = pointer_type_id;
         } break;
 
         case AST_EXPRESSION_CALL:
         {
             Ast_Call* call = &expression->call;
 
-            const Type_Id called_type_id = resolve_types_in_expression(context, call->called_expression);
-            ASSERT(type_id_is_valid(context, called_type_id));
+            const Expression_Result called_result = resolve_types_in_expression(context, call->called_expression);
+            ASSERT(type_id_is_valid(context, called_result.type_id));
 
-            // FIXME(vlad): Remove this 'find_root_type_id' nonsense here.
-            const Type* called_type = get_type_by_id(context, find_root_type_id(context, called_type_id));
+            const Type* called_type = get_type_by_id(context, called_result.type_id);
 
             if (called_type->kind != TYPE_FUNCTION)
             {
@@ -882,7 +922,7 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
 
                 const String_View expression_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
                                                                                   context,
-                                                                                  called_type_id);
+                                                                                  called_result.type_id);
 
                 const String error_text = format_string(context->diagnostic_message_texts_arena,
                                                         "Expression of type '{}' is not callable",
@@ -892,7 +932,8 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
                 emit_diagnostic_message(context, &error);
 
                 expression->type_id.index = INVALID_TYPE_INDEX;
-                return expression->type_id;
+                result.type_id.index = INVALID_TYPE_INDEX;
+                return result;
             }
 
             const Function_Type_Info* function_info = &called_type->function_info;
@@ -912,7 +953,8 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
                 emit_diagnostic_message(context, &error);
 
                 expression->type_id.index = INVALID_TYPE_INDEX;
-                return expression->type_id;
+                result.type_id.index = INVALID_TYPE_INDEX;
+                return result;
             }
 
             const Type_Id return_type_id = function_info->return_type_id;
@@ -928,10 +970,10 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
             {
                 Ast_Expression* parameter = call->arguments[parameter_index];
 
-                const Type_Id parameter_type_id = resolve_types_in_expression(context, parameter);
+                const Expression_Result parameter_result = resolve_types_in_expression(context, parameter);
                 const Type_Id expected_type_id = parameter_type_ids[parameter_index];
 
-                if (!try_to_unify_types(context, parameter_type_id, expected_type_id))
+                if (!try_to_unify_types(context, parameter_result.type_id, expected_type_id))
                 {
                     Diagnostic_Message error = {0};
                     error.level = MESSAGE_LEVEL_ERROR;
@@ -939,7 +981,7 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
 
                     const String_View actual_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
                                                                                   context,
-                                                                                  parameter_type_id);
+                                                                                  parameter_result.type_id);
                     const String_View expected_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
                                                                                     context,
                                                                                     expected_type_id);
@@ -953,16 +995,19 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
                     emit_diagnostic_message(context, &error);
 
                     expression->type_id.index = INVALID_TYPE_INDEX;
-                    return expression->type_id;
+                    result.type_id.index = INVALID_TYPE_INDEX;
+                    return result;
                 }
             }
 
             expression->type_id = return_type_id;
+            result.type_id = return_type_id;
         } break;
     }
 
     ASSERT(type_id_is_defined(expression->type_id));
-    return expression->type_id;
+    ASSERT(type_id_is_defined(result.type_id));
+    return result;
 }
 
 internal Bool
@@ -991,10 +1036,10 @@ resolve_types_in_code_block(Compilation_Context* context,
 
                 if (definition->has_initial_value)
                 {
-                    const Type_Id initial_value_type_id = resolve_types_in_expression(context,
-                                                                                      &definition->initial_value);
+                    const Expression_Result initial_value = resolve_types_in_expression(context,
+                                                                                        &definition->initial_value);
 
-                    if (!try_to_unify_types(context, variable_symbol->type_id, initial_value_type_id))
+                    if (!try_to_unify_types(context, variable_symbol->type_id, initial_value.type_id))
                     {
                         // FIXME(vlad): Emit an error.
                         return false;
@@ -1021,10 +1066,10 @@ resolve_types_in_code_block(Compilation_Context* context,
                     return false;
                 }
 
-                const Type_Id lhs_type_id = resolve_types_in_expression(context, &assignment->lhs);
-                const Type_Id rhs_type_id = resolve_types_in_expression(context, &assignment->rhs);
+                const Expression_Result lhs = resolve_types_in_expression(context, &assignment->lhs);
+                const Expression_Result rhs = resolve_types_in_expression(context, &assignment->rhs);
 
-                if (!try_to_unify_types(context, lhs_type_id, rhs_type_id))
+                if (!try_to_unify_types(context, lhs.type_id, rhs.type_id))
                 {
                     Diagnostic_Message error = {0};
                     error.level = MESSAGE_LEVEL_ERROR;
@@ -1032,10 +1077,10 @@ resolve_types_in_code_block(Compilation_Context* context,
 
                     const String_View expected_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
                                                                                     context,
-                                                                                    lhs_type_id);
+                                                                                    lhs.type_id);
                     const String_View actual_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
                                                                                   context,
-                                                                                  rhs_type_id);
+                                                                                  rhs.type_id);
 
                     const String error_text = format_string(context->diagnostic_message_texts_arena,
                                                             "Type mismatch: expected '{}', got '{}'",
@@ -1047,16 +1092,14 @@ resolve_types_in_code_block(Compilation_Context* context,
                     return false;
                 }
 
+                if (!lhs.is_lvalue)
                 {
-                    if (!type_is_mutable(context, lhs_type_id))
-                    {
-                        Diagnostic_Message error = {0};
-                        error.level = MESSAGE_LEVEL_ERROR;
-                        error.location = assignment->lhs.location;
-                        error.text = string_view("Read-only location is not assignable");
-                        emit_diagnostic_message(context, &error);
-                        return false;
-                    }
+                    Diagnostic_Message error = {0};
+                    error.level = MESSAGE_LEVEL_ERROR;
+                    error.location = assignment->lhs.location;
+                    error.text = string_view("Read-only location is not assignable");
+                    emit_diagnostic_message(context, &error);
+                    return false;
                 }
             } break;
 
@@ -1064,19 +1107,19 @@ resolve_types_in_code_block(Compilation_Context* context,
             {
                 Ast_Return_Statement* return_statement = &statement->return_statement;
 
-                Type_Id return_type_id = {0};
+                Expression_Result return_result = {0};
                 if (return_statement->is_empty)
                 {
-                    return_type_id = get_void_type_id(context);
+                    return_result.type_id = get_void_type_id(context);
                 }
                 else
                 {
-                    return_type_id = resolve_types_in_expression(context, &return_statement->expression);
+                    return_result = resolve_types_in_expression(context, &return_statement->expression);
                 }
 
-                if (type_id_is_valid(context, return_type_id))
+                if (type_id_is_valid(context, return_result.type_id))
                 {
-                    if (!try_to_unify_types(context, return_type_id, expected_return_type_id))
+                    if (!try_to_unify_types(context, return_result.type_id, expected_return_type_id))
                     {
                         Diagnostic_Message error = {0};
                         error.level = MESSAGE_LEVEL_ERROR;
@@ -1095,7 +1138,7 @@ resolve_types_in_code_block(Compilation_Context* context,
                                                                                         expected_return_type_id);
                         const String_View actual_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
                                                                                       context,
-                                                                                      return_type_id);
+                                                                                      return_result.type_id);
 
                         const String error_text = format_string(context->diagnostic_message_texts_arena,
                                                                 "Return type mismatch: expected '{}', got '{}'",
@@ -1111,11 +1154,11 @@ resolve_types_in_code_block(Compilation_Context* context,
 
                 if (type_id_is_undefined(code_block->return_type_id))
                 {
-                    code_block->return_type_id = return_type_id;
+                    code_block->return_type_id = return_result.type_id;
                 }
                 else
                 {
-                    ASSERT(try_to_unify_types(context, code_block->return_type_id, return_type_id));
+                    ASSERT(try_to_unify_types(context, code_block->return_type_id, return_result.type_id));
                 }
 
                 code_block->every_path_returns = true;
@@ -1127,10 +1170,11 @@ resolve_types_in_code_block(Compilation_Context* context,
 
                 {
                     Ast_Expression* condition = &while_statement->condition;
-                    const Type_Id condition_type_id = resolve_types_in_expression(context, condition);
+
+                    const Expression_Result condition_result = resolve_types_in_expression(context, condition);
                     const Type_Id boolean_type_id = get_boolean_type_id(context);
 
-                    if (!try_to_unify_types(context, condition_type_id, boolean_type_id))
+                    if (!try_to_unify_types(context, condition_result.type_id, boolean_type_id))
                     {
                         Diagnostic_Message error = {0};
                         error.level = MESSAGE_LEVEL_ERROR;
@@ -1142,7 +1186,7 @@ resolve_types_in_code_block(Compilation_Context* context,
                                                                                         boolean_type_id);
                         const String_View actual_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
                                                                                       context,
-                                                                                      condition_type_id);
+                                                                                      condition_result.type_id);
 
                         const String error_text = format_string(context->diagnostic_message_texts_arena,
                                                                 "Implicit conversion from '{}' to '{}' is forbidden.",
@@ -1176,10 +1220,10 @@ resolve_types_in_code_block(Compilation_Context* context,
 
                 {
                     Ast_Expression* condition = &if_statement->condition;
-                    const Type_Id condition_type_id = resolve_types_in_expression(context, condition);
+                    const Expression_Result condition_result = resolve_types_in_expression(context, condition);
                     const Type_Id boolean_type_id = get_boolean_type_id(context);
 
-                    if (!try_to_unify_types(context, condition_type_id, boolean_type_id))
+                    if (!try_to_unify_types(context, condition_result.type_id, boolean_type_id))
                     {
                         Diagnostic_Message error = {0};
                         error.level = MESSAGE_LEVEL_ERROR;
@@ -1191,7 +1235,7 @@ resolve_types_in_code_block(Compilation_Context* context,
                                                                                         boolean_type_id);
                         const String_View actual_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
                                                                                       context,
-                                                                                      condition_type_id);
+                                                                                      condition_result.type_id);
 
                         const String error_text = format_string(context->diagnostic_message_texts_arena,
                                                                 "Implicit conversion from '{}' to '{}' is forbidden.",
@@ -1239,15 +1283,14 @@ resolve_types_in_code_block(Compilation_Context* context,
             {
                 Ast_Call_Statement* call_statement = &statement->call_statement;
 
-                const Type_Id return_type_id = resolve_types_in_expression(context, &call_statement->call_expression);
-
-                if (!type_id_is_valid(context, return_type_id))
+                const Expression_Result return_result = resolve_types_in_expression(context, &call_statement->call_expression);
+                if (!type_id_is_valid(context, return_result.type_id))
                 {
                     return false;
                 }
 
                 const Type_Id void_type_id = get_void_type_id(context);
-                if (!try_to_unify_types(context, return_type_id, void_type_id))
+                if (!try_to_unify_types(context, return_result.type_id, void_type_id))
                 {
                     // FIXME(vlad): Test if returned value is discardable.
                 }
@@ -1426,10 +1469,10 @@ convert_type_to_string(Arena* arena,
     String_Builder builder = {0};
     create_string_builder(&builder, arena);
 
-    if (type_is_mutable(context, type_id))
-    {
-        append_string(&builder, string_view("mutable "));
-    }
+    // if (type_is_mutable(context, type_id))
+    // {
+    //     append_string(&builder, string_view("mutable "));
+    // }
 
     switch (type->kind)
     {
