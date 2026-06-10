@@ -480,7 +480,6 @@ resolve_type_by_ast_type(Compilation_Context* context,
 
     ASSERT(type_id_is_defined(ast_type->type_id));
 
-    // NOTE(vlad): Handling type mutability.
     {
         Type* type = get_type_by_id(context, ast_type->type_id);
         switch (type->kind)
@@ -497,11 +496,7 @@ resolve_type_by_ast_type(Compilation_Context* context,
             case TYPE_BOOLEAN:
             case TYPE_POINTER:
             {
-                if (ast_type->is_mutable)
-                {
-                    // FIXME
-                    // make_this_type_mutable(context, ast_type->type_id);
-                }
+                // NOTE(vlad): These types can be marked as mutable.
             } break;
 
             case TYPE_VOID:
@@ -516,11 +511,6 @@ resolve_type_by_ast_type(Compilation_Context* context,
                     String_View type_name = {0};
                     switch (type->kind)
                     {
-                        case TYPE_UNDEFINED:
-                        {
-                            UNREACHABLE();
-                        } break;
-
                         case TYPE_VOID:
                         {
                             type_name = string_view("void");
@@ -531,14 +521,9 @@ resolve_type_by_ast_type(Compilation_Context* context,
                             type_name = string_view("function");
                         } break;
 
-                        case TYPE_VARIABLE:
-                        case TYPE_NUMBER_VARIABLE:
-                        case TYPE_INTEGER:
-                        case TYPE_FLOAT:
-                        case TYPE_BOOLEAN:
-                        case TYPE_POINTER:
+                        default:
                         {
-                            FAIL("[TYPE] Unexpected type encountered.");
+                            UNREACHABLE();
                         }
                     }
 
@@ -837,14 +822,11 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
                 case TYPE_INTEGER:
                 case TYPE_FLOAT:
                 case TYPE_BOOLEAN:
+                case TYPE_NUMBER_VARIABLE:
                 {
                     // NOTE(vlad): These types can be compared.
                     // TODO(vlad): Forbid 'less/greater than' comparisons for booleans.
-                } break;
-
-                case TYPE_NUMBER_VARIABLE:
-                {
-                    FAIL("[TYPE] Number variables are not yet supported in this context.");
+                    // TODO(vlad): Think about number variables: maybe we can add constraints here?
                 } break;
 
                 case TYPE_VOID:
@@ -1091,7 +1073,6 @@ resolve_types_in_code_block(Compilation_Context* context,
 
                     if (!try_to_unify_types(context, variable_symbol->type_id, initial_value.type_id))
                     {
-                        // FIXME(vlad): Emit an error.
                         Diagnostic_Message error = {0};
                         error.level = MESSAGE_LEVEL_ERROR;
                         error.location = definition->initial_value.location;
