@@ -132,7 +132,7 @@ if "!test_name:~-5!"=="_ut.c" (
     for %%E in ("!test_name!") do set "test_name=%%~nE"
 )
 
-call :compile !test_filename! build\tests\!test_name!
+call :compile !test_filename! build\tests\!test_name! || exit /B 1
 
 echo Running tests in '%test_name%'
 
