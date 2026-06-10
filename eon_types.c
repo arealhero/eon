@@ -200,50 +200,6 @@ get_max_integer_value(const Integer_Type_Info* type_info)
     }
 }
 
-internal Bool
-expression_is_an_lvalue(const Ast_Expression* expression)
-{
-    // TODO(vlad): Support pointer arithmetic? E.g. in C++ this code should compile just fine:
-    //
-    //                 int arr[] = {10, 20};
-    //                 *(arr + 1) = 40;
-    //
-    switch (expression->kind)
-    {
-        case AST_EXPRESSION_UNDEFINED:
-        {
-            UNREACHABLE();
-        } break;
-
-        case AST_EXPRESSION_IDENTIFIER:
-        case AST_EXPRESSION_DEREFERENCE:
-        {
-            return true;
-        } break;
-
-        case AST_EXPRESSION_NUMBER:
-        case AST_EXPRESSION_STRING_LITERAL:
-        case AST_EXPRESSION_ADD:
-        case AST_EXPRESSION_SUBTRACT:
-        case AST_EXPRESSION_MULTIPLY:
-        case AST_EXPRESSION_DIVIDE:
-        case AST_EXPRESSION_EQUAL:
-        case AST_EXPRESSION_NOT_EQUAL:
-        case AST_EXPRESSION_LESS:
-        case AST_EXPRESSION_LESS_OR_EQUAL:
-        case AST_EXPRESSION_GREATER:
-        case AST_EXPRESSION_GREATER_OR_EQUAL:
-        case AST_EXPRESSION_NEGATE:
-        case AST_EXPRESSION_ADDRESS_OF:
-        case AST_EXPRESSION_CALL:
-        {
-            return false;
-        } break;
-    }
-
-    UNREACHABLE();
-}
-
 // FIXME(vlad): Add Source_Location that triggered this unification.
 internal Bool
 try_to_unify_types(Compilation_Context* context,
@@ -398,24 +354,17 @@ try_to_unify_types(Compilation_Context* context,
 
         case TYPE_POINTER:
         {
-            if (lhs_root_type->pointer_info.pointee_is_mutable != rhs_root_type->pointer_info.pointee_is_mutable)
+            const Pointer_Type_Info* lhs_pointer_info = &lhs_root_type->pointer_info;
+            const Pointer_Type_Info* rhs_pointer_info = &rhs_root_type->pointer_info;
+
+            if (lhs_pointer_info->pointee_is_mutable && !rhs_pointer_info->pointee_is_mutable)
             {
-                // FIXME(vlad): Support mutability decay here. E.g. this code should be correct:
-                //
-                //                  a: mutable s32 = 10;
-                //                  b: * s32 = a&;
-                //
-                //              but this should not:
-                //
-                //                  a: s32 = 10;
-                //                  b: * mutable s32 = a&;
-                //
                 return false;
             }
 
             return try_to_unify_types(context,
-                                      lhs_root_type->pointer_info.points_to_type_id,
-                                      rhs_root_type->pointer_info.points_to_type_id);
+                                      lhs_pointer_info->points_to_type_id,
+                                      rhs_pointer_info->points_to_type_id);
         } break;
 
         case TYPE_FUNCTION:
@@ -477,6 +426,7 @@ resolve_type_by_ast_type(Compilation_Context* context,
             Type* pointer_type = get_type_by_id(context, pointer_type_id);
             pointer_type->kind = TYPE_POINTER;
             pointer_type->pointer_info.points_to_type_id = points_to_type_id;
+            pointer_type->pointer_info.pointee_is_mutable = ast_pointer_type->pointed_to->is_mutable;
 
             ast_type->type_id = pointer_type_id;
         } break;
@@ -717,23 +667,123 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
         } break;
 
         case AST_EXPRESSION_ADD:
-        {
-            FAIL("[TYPE] Additions are not supported yet");
-        } break;
-
         case AST_EXPRESSION_SUBTRACT:
-        {
-            FAIL("[TYPE] Subtractions are not supported yet");
-        } break;
-
         case AST_EXPRESSION_MULTIPLY:
-        {
-            FAIL("[TYPE] Multiplications are not supported yet");
-        } break;
-
         case AST_EXPRESSION_DIVIDE:
         {
-            FAIL("[TYPE] Divisions are not supported yet");
+            Ast_Binary_Expression* comparison = &expression->binary_expression;
+
+            const Expression_Result lhs_result = resolve_types_in_expression(context, comparison->lhs);
+            const Expression_Result rhs_result = resolve_types_in_expression(context, comparison->rhs);
+
+            String_View operation = {0};
+            switch (expression->kind)
+            {
+                case AST_EXPRESSION_ADD:
+                {
+                    operation = string_view("add");
+                } break;
+
+                case AST_EXPRESSION_SUBTRACT:
+                {
+                    operation = string_view("subtract");
+                } break;
+
+                case AST_EXPRESSION_MULTIPLY:
+                {
+                    operation = string_view("multiply");
+                } break;
+
+                case AST_EXPRESSION_DIVIDE:
+                {
+                    operation = string_view("divide");
+                } break;
+
+                default:
+                {
+                    UNREACHABLE();
+                } break;
+            }
+
+            if (!try_to_unify_types(context, lhs_result.type_id, rhs_result.type_id))
+            {
+                Diagnostic_Message error = {0};
+                error.level = MESSAGE_LEVEL_ERROR;
+                error.location = expression->location;
+
+                const String_View lhs_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                           context,
+                                                                           lhs_result.type_id);
+
+                const String_View rhs_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                           context,
+                                                                           rhs_result.type_id);
+
+                const String error_text = format_string(context->diagnostic_message_texts_arena,
+                                                        "Cannot {} expressions of different types '{}' and '{}'",
+                                                        operation,
+                                                        lhs_type_string,
+                                                        rhs_type_string);
+
+                error.text = string_view(error_text);
+                emit_diagnostic_message(context, &error);
+
+                expression->type_id.index = INVALID_TYPE_INDEX;
+                result.type_id.index = INVALID_TYPE_INDEX;
+                return result;
+            }
+
+            const Type* expression_type = get_type_by_id(context, lhs_result.type_id);
+
+            switch (expression_type->kind)
+            {
+                case TYPE_UNDEFINED:
+                {
+                    UNREACHABLE();
+                } break;
+
+                case TYPE_INTEGER:
+                case TYPE_FLOAT:
+                case TYPE_BOOLEAN:
+                case TYPE_NUMBER_VARIABLE:
+                {
+                    // NOTE(vlad): These types can be added/subtracted/multiplied/divided.
+                    // TODO(vlad): Think about number variables: maybe we can add constraints here?
+                } break;
+
+                case TYPE_VOID:
+                case TYPE_VARIABLE:
+                case TYPE_POINTER:
+                case TYPE_FUNCTION:
+                {
+                    Diagnostic_Message error = {0};
+                    error.level = MESSAGE_LEVEL_ERROR;
+                    error.location = expression->location;
+
+                    const String_View lhs_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                               context,
+                                                                               lhs_result.type_id);
+
+                    const String error_text = format_string(context->diagnostic_message_texts_arena,
+                                                            "Cannot {} expressions of type '{}'",
+                                                            operation,
+                                                            lhs_type_string);
+
+                    error.text = string_view(error_text);
+                    emit_diagnostic_message(context, &error);
+
+                    expression->type_id.index = INVALID_TYPE_INDEX;
+                    result.type_id.index = INVALID_TYPE_INDEX;
+                    return result;
+                } break;
+            }
+
+            const Type_Id result_type_id = create_new_type_variable(context);
+            const Bool unification_result = try_to_unify_types(context, result_type_id, lhs_result.type_id);
+            ASSERT(unification_result);
+
+            expression->type_id = result_type_id;
+            result.type_id = result_type_id;
         } break;
 
         case AST_EXPRESSION_EQUAL:
@@ -973,7 +1023,7 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
                 const Expression_Result parameter_result = resolve_types_in_expression(context, parameter);
                 const Type_Id expected_type_id = parameter_type_ids[parameter_index];
 
-                if (!try_to_unify_types(context, parameter_result.type_id, expected_type_id))
+                if (!try_to_unify_types(context, expected_type_id, parameter_result.type_id))
                 {
                     Diagnostic_Message error = {0};
                     error.level = MESSAGE_LEVEL_ERROR;
@@ -1042,6 +1092,24 @@ resolve_types_in_code_block(Compilation_Context* context,
                     if (!try_to_unify_types(context, variable_symbol->type_id, initial_value.type_id))
                     {
                         // FIXME(vlad): Emit an error.
+                        Diagnostic_Message error = {0};
+                        error.level = MESSAGE_LEVEL_ERROR;
+                        error.location = definition->initial_value.location;
+
+                        const String_View expected_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                                        context,
+                                                                                        variable_symbol->type_id);
+                        const String_View actual_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                                      context,
+                                                                                      initial_value.type_id);
+
+                        const String error_text = format_string(context->diagnostic_message_texts_arena,
+                                                                "Cannot initialise variable of type '{}' with expression of type '{}'",
+                                                                expected_type_string,
+                                                                actual_type_string);
+
+                        error.text = string_view(error_text);
+                        emit_diagnostic_message(context, &error);
                         return false;
                     }
                 }
@@ -1055,16 +1123,6 @@ resolve_types_in_code_block(Compilation_Context* context,
             case AST_STATEMENT_ASSIGNMENT:
             {
                 Ast_Assignment* assignment = &statement->assignment;
-
-                if (!expression_is_an_lvalue(&assignment->lhs))
-                {
-                    Diagnostic_Message error = {0};
-                    error.level = MESSAGE_LEVEL_ERROR;
-                    error.location = assignment->lhs.location;
-                    error.text = string_view("lvalue is required as a LHS of assignment");
-                    emit_diagnostic_message(context, &error);
-                    return false;
-                }
 
                 const Expression_Result lhs = resolve_types_in_expression(context, &assignment->lhs);
                 const Expression_Result rhs = resolve_types_in_expression(context, &assignment->rhs);
@@ -1093,6 +1151,16 @@ resolve_types_in_code_block(Compilation_Context* context,
                 }
 
                 if (!lhs.is_lvalue)
+                {
+                    Diagnostic_Message error = {0};
+                    error.level = MESSAGE_LEVEL_ERROR;
+                    error.location = assignment->lhs.location;
+                    error.text = string_view("lvalue is required as a LHS of assignment");
+                    emit_diagnostic_message(context, &error);
+                    return false;
+                }
+
+                if (!lhs.is_mutable)
                 {
                     Diagnostic_Message error = {0};
                     error.level = MESSAGE_LEVEL_ERROR;
@@ -1469,11 +1537,6 @@ convert_type_to_string(Arena* arena,
     String_Builder builder = {0};
     create_string_builder(&builder, arena);
 
-    // if (type_is_mutable(context, type_id))
-    // {
-    //     append_string(&builder, string_view("mutable "));
-    // }
-
     switch (type->kind)
     {
         case TYPE_UNDEFINED:
@@ -1493,20 +1556,70 @@ convert_type_to_string(Arena* arena,
 
         case TYPE_NUMBER_VARIABLE:
         {
-            // FIXME(vlad): I don't know what information should we return here.
-            //              I mean, this function is used for error messages only,
-            //              but number type variables should be treated separately.
-            //
-            //              That said, I guess we should just 'FAIL()' here.
+            // TODO(vlad): Create a function that would accept 'Number_Constraints' and return a most suitable type.
+
             const Number_Constraints* constraints = &type->number_constraints;
 
             if (constraints->must_be_a_floating_point_number)
             {
-                append_string(&builder, string_view("<floating-point number>"));
+                switch (constraints->min_bit_width)
+                {
+                    case 0:
+                    case 32:
+                    {
+                        append_string(&builder, string_view("f32"));
+                    } break;
+
+                    case 64:
+                    {
+                        append_string(&builder, string_view("f64"));
+                    } break;
+
+                    default:
+                    {
+                        UNREACHABLE();
+                    } break;
+                }
             }
             else
             {
-                append_string(&builder, string_view("<number>"));
+                if (constraints->sign == SIGN_UNSIGNED)
+                {
+                    append_string(&builder, string_view("u"));
+                }
+                else
+                {
+                    append_string(&builder, string_view("s"));
+                }
+
+                switch (constraints->min_bit_width)
+                {
+                    case 8:
+                    {
+                        append_string(&builder, string_view("8"));
+                    } break;
+
+                    case 16:
+                    {
+                        append_string(&builder, string_view("16"));
+                    } break;
+
+                    case 0:
+                    case 32:
+                    {
+                        append_string(&builder, string_view("32"));
+                    } break;
+
+                    case 64:
+                    {
+                        append_string(&builder, string_view("64"));
+                    } break;
+
+                    default:
+                    {
+                        UNREACHABLE();
+                    } break;
+                }
             }
         } break;
 
@@ -1593,25 +1706,16 @@ convert_type_to_string(Arena* arena,
 
         case TYPE_POINTER:
         {
-            String result = {0};
-
             const Pointer_Type_Info* type_info = &type->pointer_info;
+
+            append_string(&builder, string_view("* "));
+            if (type_info->pointee_is_mutable)
+            {
+                append_string(&builder, string_view("mutable "));
+            }
+
             const String_View points_to_type = convert_type_to_string(arena, context, type_info->points_to_type_id);
-
-            // NOTE(vlad): Length of '* ' is 2.
-            const Size total_result_length = 2 + points_to_type.length;
-
-            result.data = allocate_uninitialized_array(arena, total_result_length, char);
-            result.length = total_result_length;
-
-            result.data[0] = '*';
-            result.data[1] = ' ';
-
-            copy_memory(as_bytes(result.data) + 2,
-                        as_bytes(points_to_type.data),
-                        points_to_type.length);
-
-            append_string(&builder, string_view(result));
+            append_string(&builder, points_to_type);
         } break;
 
         case TYPE_FUNCTION:
