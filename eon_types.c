@@ -266,8 +266,11 @@ try_to_unify_types(Compilation_Context* context,
 
         const Type_Id unified_type_id = create_type(context);
         Type* created_type = get_type_by_id(context, unified_type_id);
-
         *created_type = unified_type;
+
+        // NOTE(vlad): Fetching root types again because they can be invalidated after the 'create_type()' function call.
+        lhs_root_type = get_type_by_id(context, lhs_root_type_id);
+        rhs_root_type = get_type_by_id(context, rhs_root_type_id);
         lhs_root_type->parent_type_id = unified_type_id;
         rhs_root_type->parent_type_id = unified_type_id;
 
