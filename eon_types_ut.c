@@ -3974,12 +3974,12 @@ test_number_types_inference_in_arithmetic_expressions(Test_Context* test_context
                 } break;
             }
 
-            const Ast_Binary_Expression* add = &rhs->binary_expression;
-            ASSERT_ENUM_VALUES_ARE_EQUAL(add->lhs->kind, AST_EXPRESSION_NUMBER);
-            ASSERT_TYPE_STRINGS_ARE_EQUAL(add->lhs->type_id, test_info.expected_type);
+            const Ast_Binary_Expression* binary_expression = &rhs->binary_expression;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(binary_expression->lhs->type_id, test_info.expected_type);
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(add->rhs->kind, AST_EXPRESSION_NUMBER);
-            ASSERT_TYPE_STRINGS_ARE_EQUAL(add->rhs->type_id, test_info.expected_type);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(binary_expression->rhs->type_id, test_info.expected_type);
         }
 
         destroy_parser(&parser);
