@@ -1720,6 +1720,109 @@ test_assignments(Test_Context* test_context)
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    a: mutable _ = 20;\n"
+                                                 "    b := a;\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+
+        const Type_Id function_type_id = function_definition->type->type_id;
+        ASSERT_TYPE_IS_VALID(function_type_id);
+
+        const Type* function_type = get_type_by_id(&context, function_type_id);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, TYPE_FUNCTION);
+        ASSERT_TYPE_STRINGS_ARE_EQUAL(function_type_id, "() -> void");
+
+        const Function_Type_Info* info = &function_type->function_info;
+        ASSERT_EQUAL(info->parameter_type_ids_count, 0);
+
+        {
+            const Type_Id return_type_id = info->return_type_id;
+            ASSERT_TYPE_IS_VALID(return_type_id);
+
+            const Type* return_type = get_type_by_id(&context, return_type_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_VOID);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(return_type_id, "void");
+        }
+
+        // NOTE(vlad): Test that every symbol has a type.
+        {
+            const Symbol* function_symbol = get_symbol_for_identifier(&context, &function_definition->name);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
+            ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, function_definition->name.token.lexeme);
+            ASSERT_TYPE_IDS_ARE_EQUAL(function_type_id, function_symbol->type_id);
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            ASSERT_EQUAL(function_definition->type->function.parameters_count, 0);
+        }
+
+        const Ast_Code_Block* body = &function_definition->body;
+
+        ASSERT_EQUAL(body->statements_count, 2);
+        ASSERT_EQUAL(body->every_path_returns, true);
+
+        {
+            const Ast_Statement* statement = &body->statements[0];
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            const Ast_Variable_Definition* definition = &statement->variable_definition;
+
+            const Ast_Type* ast_type = definition->type;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(ast_type->kind, AST_TYPE_NAME);
+            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&ast_type->location,
+                                              "mutable _");
+
+            const Ast_Identifier* variable = &definition->name;
+            const Symbol* variable_symbol = get_symbol_for_identifier(&context, variable);
+            ASSERT_TRUE(variable_symbol->binding_is_mutable);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(variable_symbol->type_id, "s32");
+
+            ASSERT_TRUE(definition->has_initial_value);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(definition->initial_value.type_id, "s32");
+        }
+
+        {
+            const Ast_Statement* statement = &body->statements[1];
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            const Ast_Variable_Definition* definition = &statement->variable_definition;
+
+            const Ast_Type* ast_type = definition->type;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(ast_type->kind, AST_TYPE_OMITTED);
+
+            const Ast_Identifier* variable = &definition->name;
+            const Symbol* variable_symbol = get_symbol_for_identifier(&context, variable);
+            ASSERT_FALSE(variable_symbol->binding_is_mutable);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(variable_symbol->type_id, "s32");
+
+            ASSERT_TRUE(definition->has_initial_value);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(definition->initial_value.type_id, "s32");
+        }
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
 }
 
 internal void
@@ -5062,6 +5165,76 @@ test_mutability_mismatches(Test_Context* test_context)
         const String_View expected_output = string_view("<test-input>:3:24: error: Cannot initialise variable of type '* mutable _' with expression of type '* s32'\n"
                                                         "  3 |     ptr: * mutable _ = a&;\n"
                                                         "    |                        ^~");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    a: mutable _ = 10;\n"
+                                                 "    b := a;\n"
+                                                 "    ptr: * mutable _ = b&;\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:4:24: error: Cannot initialise variable of type '* mutable _' with expression of type '* s32'\n"
+                                                        "  4 |     ptr: * mutable _ = b&;\n"
+                                                        "    |                        ^~");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    a: mutable _ = 10;\n"
+                                                 "    immutable_ptr: * _ = a&;\n"
+                                                 "    mutable_ptr: * mutable _ = immutable_ptr;\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:4:32: error: Cannot initialise variable of type '* mutable _' with expression of type '* s32'\n"
+                                                        "  4 |     mutable_ptr: * mutable _ = immutable_ptr;\n"
+                                                        "    |                                ^~~~~~~~~~~~~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_parser(&parser);
