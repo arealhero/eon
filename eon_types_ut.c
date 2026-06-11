@@ -3847,6 +3847,8 @@ test_number_types_inference_in_arithmetic_expressions(Test_Context* test_context
     };
     typedef struct Number_Test_Info Number_Test_Info;
 
+    // NOTE(vlad): Testing that number type inference works correctly in assignments.
+
 #define DECLARE_BINARY_OPERATION_TEST_INFO(Type, operation)         \
     (Number_Test_Info){                                             \
         .source_code = string_view("foo: () -> void = {\n"          \
@@ -3856,7 +3858,7 @@ test_number_types_inference_in_arithmetic_expressions(Test_Context* test_context
         .expected_type = string_view(#Type),                        \
     },
 
-    const Number_Test_Info infos[] = {
+    const Number_Test_Info assignment_test_infos[] = {
         FOR_EACH_INTEGER_TYPE(DECLARE_BINARY_OPERATION_TEST_INFO, "+")
         FOR_EACH_FLOAT_TYPE(DECLARE_BINARY_OPERATION_TEST_INFO, "+")
 
@@ -3872,10 +3874,10 @@ test_number_types_inference_in_arithmetic_expressions(Test_Context* test_context
 #undef DECLARE_BINARY_OPERATION_TEST_INFO
 
     for (Index i = 0;
-         i < NUMBER_OF_STATIC_ARRAY_ELEMENTS(infos);
+         i < NUMBER_OF_STATIC_ARRAY_ELEMENTS(assignment_test_infos);
          ++i)
     {
-        Number_Test_Info test_info = infos[i];
+        Number_Test_Info test_info = assignment_test_infos[i];
 
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE(test_info.source_code);
 
@@ -3975,6 +3977,134 @@ test_number_types_inference_in_arithmetic_expressions(Test_Context* test_context
             }
 
             const Ast_Binary_Expression* binary_expression = &rhs->binary_expression;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(binary_expression->lhs->type_id, test_info.expected_type);
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(binary_expression->rhs->type_id, test_info.expected_type);
+        }
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    // NOTE(vlad): Testing that number type inference works correctly in return statements.
+
+#define DECLARE_RETURN_TEST_INFO(Type, operation)                    \
+    (Number_Test_Info){                                              \
+        .source_code = string_view("foo: () -> " #Type " = {\n"      \
+                                   "    return 2 " operation " 2;\n" \
+                                   "}"),                             \
+        .expected_type = string_view(#Type),                         \
+    },
+
+    const Number_Test_Info return_test_infos[] = {
+        FOR_EACH_INTEGER_TYPE(DECLARE_RETURN_TEST_INFO, "+")
+        FOR_EACH_FLOAT_TYPE(DECLARE_RETURN_TEST_INFO, "+")
+
+        FOR_EACH_INTEGER_TYPE(DECLARE_RETURN_TEST_INFO, "-")
+        FOR_EACH_FLOAT_TYPE(DECLARE_RETURN_TEST_INFO, "-")
+
+        FOR_EACH_INTEGER_TYPE(DECLARE_RETURN_TEST_INFO, "*")
+        FOR_EACH_FLOAT_TYPE(DECLARE_RETURN_TEST_INFO, "*")
+
+        FOR_EACH_INTEGER_TYPE(DECLARE_RETURN_TEST_INFO, "/")
+        FOR_EACH_FLOAT_TYPE(DECLARE_RETURN_TEST_INFO, "/")
+    };
+#undef DECLARE_RETURN_TEST_INFO
+
+    for (Index i = 0;
+         i < NUMBER_OF_STATIC_ARRAY_ELEMENTS(return_test_infos);
+         ++i)
+    {
+        Number_Test_Info test_info = return_test_infos[i];
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE(test_info.source_code);
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+
+        const Type_Id function_type_id = function_definition->type->type_id;
+        ASSERT_TYPE_IS_VALID(function_type_id);
+
+        const Type* function_type = get_type_by_id(&context, function_type_id);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, TYPE_FUNCTION);
+
+        {
+            String_Builder builder = {0};
+            create_string_builder(&builder, test_context->arena);
+
+            append_string(&builder, string_view("() -> "));
+            append_string(&builder, test_info.expected_type);
+
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(function_type_id, string_builder_to_string(&builder));
+        }
+
+        const Function_Type_Info* info = &function_type->function_info;
+        ASSERT_EQUAL(info->parameter_type_ids_count, 0);
+
+        {
+            const Type_Id return_type_id = info->return_type_id;
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(return_type_id, test_info.expected_type);
+        }
+
+        {
+            const Symbol* function_symbol = get_symbol_for_identifier(&context, &function_definition->name);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
+            ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, function_definition->name.token.lexeme);
+            ASSERT_TYPE_IDS_ARE_EQUAL(function_type_id, function_symbol->type_id);
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            ASSERT_EQUAL(function_definition->type->function.parameters_count, 0);
+        }
+
+        const Ast_Code_Block* body = &function_definition->body;
+
+        ASSERT_EQUAL(body->statements_count, 1);
+        ASSERT_EQUAL(body->every_path_returns, true);
+
+        {
+            const Ast_Statement* statement = &body->statements[0];
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+            const Ast_Return_Statement* return_statement = &statement->return_statement;
+
+            ASSERT_FALSE(return_statement->is_empty);
+
+            const Ast_Expression* returned_expression = &return_statement->expression;
+
+            switch (returned_expression->kind)
+            {
+                case AST_EXPRESSION_ADD:
+                case AST_EXPRESSION_SUBTRACT:
+                case AST_EXPRESSION_MULTIPLY:
+                case AST_EXPRESSION_DIVIDE:
+                {
+                } break;
+
+                default:
+                {
+                    UNREACHABLE();
+                } break;
+            }
+
+            const Ast_Binary_Expression* binary_expression = &returned_expression->binary_expression;
             ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
             ASSERT_TYPE_STRINGS_ARE_EQUAL(binary_expression->lhs->type_id, test_info.expected_type);
 
