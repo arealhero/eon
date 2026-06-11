@@ -49,9 +49,7 @@ main(int argc, const char* argv[])
 
 struct Identifiers_Array
 {
-    const Token** tokens;
-    Size tokens_count;
-    Size tokens_capacity;
+    array(const Token*, tokens);
 };
 typedef struct Identifiers_Array Identifiers_Array;
 
@@ -60,19 +58,7 @@ add_identifier(Arena* arena,
                Identifiers_Array* array,
                const Token* identifier_token)
 {
-    if (array->tokens_count == array->tokens_capacity)
-    {
-        const Size new_capacity = MAX(1, 2 * array->tokens_capacity);
-        array->tokens = reallocate(arena,
-                                   array->tokens,
-                                   const Token*,
-                                   array->tokens_capacity,
-                                   new_capacity);
-        array->tokens_capacity = new_capacity;
-    }
-
-    array->tokens[array->tokens_count] = identifier_token;
-    array->tokens_count += 1;
+    append_array(arena, array->tokens, const Token*, identifier_token);
 }
 
 internal Bool

@@ -5,10 +5,10 @@
 internal Index
 create_new_lexical_scope_with_parent(Compilation_Context* context, const Index parent_scope_index)
 {
-    grow_array_if_needed(context->lexical_scopes_arena, context->lexical_scopes, Lexical_Scope);
-
-    context->lexical_scopes[context->lexical_scopes_count] = (Lexical_Scope){0};
-    context->lexical_scopes_count += 1;
+    append_array(context->lexical_scopes_arena,
+                 context->lexical_scopes,
+                 Lexical_Scope,
+                 (Lexical_Scope){0});
 
     Lexical_Scope* created_scope = &context->lexical_scopes[context->lexical_scopes_count - 1];
     created_scope->symbol_ids_arena = acquire_arena_from_provider(context->arena_provider,
@@ -63,9 +63,10 @@ add_symbol_id_to_lexical_scope(Compilation_Context* context,
         }
     }
 
-    grow_array_if_needed(lexical_scope->symbol_ids_arena, lexical_scope->symbol_ids, Symbol_Id);
-
-    lexical_scope->symbol_ids[lexical_scope->symbol_ids_count++] = symbol_id_to_add;
+    append_array(lexical_scope->symbol_ids_arena,
+                 lexical_scope->symbol_ids,
+                 Symbol_Id,
+                 symbol_id_to_add);
 }
 
 internal void set_symbol_ids_for_identifiers_in_expression(Compilation_Context* context,

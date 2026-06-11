@@ -39,9 +39,7 @@ struct Lexical_Scope
 
     Type_Id required_return_type_index;
 
-    Symbol_Id* symbol_ids;
-    Size symbol_ids_count;
-    Size symbol_ids_capacity;
+    array(Symbol_Id, symbol_ids);
 };
 typedef struct Lexical_Scope Lexical_Scope;
 

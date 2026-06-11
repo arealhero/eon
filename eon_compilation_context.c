@@ -67,10 +67,10 @@ has_diagnostic_messages(const Compilation_Context* context)
 internal void
 emit_diagnostic_message(Compilation_Context* context, const Diagnostic_Message* message)
 {
-    grow_array_if_needed(context->diagnostic_messages_arena,
-                         context->diagnostic_messages,
-                         Diagnostic_Message);
-    context->diagnostic_messages[context->diagnostic_messages_count++] = *message;
+    append_array(context->diagnostic_messages_arena,
+                 context->diagnostic_messages,
+                 Diagnostic_Message,
+                 *message);
 }
 
 internal String
@@ -148,8 +148,8 @@ dump_diagnostic_messages(Arena* messages_arena,
 internal Symbol_Id
 create_symbol(Compilation_Context* context)
 {
-    grow_array_if_needed(context->symbols_arena, context->symbols, Symbol);
-    return context->symbols_count++;
+    append_array(context->symbols_arena, context->symbols, Symbol, (Symbol){0});
+    return context->symbols_count - 1;
 }
 
 internal Symbol_Id
@@ -199,11 +199,10 @@ get_symbol_by_id(Compilation_Context* context, const Symbol_Id symbol_id)
 internal Type_Id
 create_type(Compilation_Context* context)
 {
-    grow_array_if_needed(context->types_arena, context->types, Type);
+    append_array(context->types_arena, context->types, Type, (Type){0});
 
     Type_Id type_id = {0};
-    type_id.index = context->types_count++;
-
+    type_id.index = context->types_count - 1;
     return type_id;
 }
 

@@ -278,8 +278,10 @@ parse_parameters_declaration(Parser* parser, Ast_Function_Type* function)
             return false;
         }
 
-        grow_array_if_needed(parser->context->ast_arena, function->parameters, Ast_Function_Parameter);
-        function->parameters[function->parameters_count++] = parameter;
+        append_array(parser->context->ast_arena,
+                     function->parameters,
+                     Ast_Function_Parameter,
+                     parameter);
 
         if (!parser_fetch_token(parser))
         {
@@ -399,8 +401,7 @@ parse_arguments(Parser* parser, Ast_Call* call)
             return false;
         }
 
-        grow_array_if_needed(parser->context->ast_arena, call->arguments, Ast_Expression*);
-        call->arguments[call->arguments_count++] = argument;
+        append_array(parser->context->ast_arena, call->arguments, Ast_Expression*, argument);
 
         if (!parser_fetch_token(parser))
         {
@@ -1178,10 +1179,7 @@ parse_code_block(Parser* parser, Ast_Code_Block* code_block)
             return false;
         }
 
-        grow_array_if_needed(parser->context->ast_arena,
-                             code_block->statements,
-                             Ast_Statement);
-        code_block->statements[code_block->statements_count++] = statement;
+        append_array(parser->context->ast_arena, code_block->statements, Ast_Statement, statement);
 
         if (!parser_fetch_token(parser))
         {
@@ -1374,8 +1372,10 @@ parse_ast(Parser* parser)
             return false;
         }
 
-        grow_array_if_needed(parser->context->ast_arena, ast->function_definitions, Ast_Function_Definition);
-        ast->function_definitions[ast->function_definitions_count++] = function_definition;
+        append_array(parser->context->ast_arena,
+                     ast->function_definitions,
+                     Ast_Function_Definition,
+                     function_definition);
 
         // NOTE(vlad): Prefetching the next token to check if its type is EOF.
         if (!parser_fetch_token(parser))

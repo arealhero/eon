@@ -84,9 +84,7 @@ struct Ast_Call
 {
     struct Ast_Expression* called_expression;
 
-    struct Ast_Expression** arguments;
-    Size arguments_count;
-    Size arguments_capacity;
+    array(struct Ast_Expression*, arguments);
 };
 typedef struct Ast_Call Ast_Call;
 
@@ -149,9 +147,7 @@ typedef struct Ast_Function_Parameter Ast_Function_Parameter;
 
 struct Ast_Function_Type
 {
-    Ast_Function_Parameter* parameters;
-    Size parameters_count;
-    Size parameters_capacity;
+    array(Ast_Function_Parameter, parameters);
 
     struct Ast_Type* return_type;
 };
@@ -189,9 +185,7 @@ struct Ast_Code_Block
     Type_Id return_type_id;
     Bool every_path_returns;
 
-    struct Ast_Statement* statements;
-    Size statements_count;
-    Size statements_capacity;
+    array(struct Ast_Statement, statements);
 };
 typedef struct Ast_Code_Block Ast_Code_Block;
 
@@ -283,9 +277,7 @@ typedef struct Ast_Function_Definition Ast_Function_Definition;
 
 struct Ast
 {
-    Ast_Function_Definition* function_definitions;
-    Size function_definitions_count;
-    Size function_definitions_capacity;
+    array(Ast_Function_Definition, function_definitions);
 };
 typedef struct Ast Ast;
 

@@ -44,10 +44,8 @@ struct Tests_Registry
 {
     String_View tests_filename;
 
-    Test_Info* tests;
-    Size tests_capacity;
+    array(Test_Info, tests);
 
-    Size total_tests_count;
     Size failed_tests_count;
 };
 typedef struct Tests_Registry Tests_Registry;
@@ -79,7 +77,7 @@ main(const int argc, const char* argv[])
     const Timestamp tests_start_timestamp = platform_get_current_monotonic_timestamp();
 
     for (Index i = 0;
-         i < registry.total_tests_count;
+         i < registry.tests_count;
          ++i)
     {
         Test_Context test_context = {0};
@@ -114,7 +112,7 @@ main(const int argc, const char* argv[])
                 "  - Total tests count:  {}\n"
                 "  - Failed tests count: {}",
                 registry.tests_filename,
-                registry.total_tests_count,
+                registry.tests_count,
                 registry.failed_tests_count);
     }
 
@@ -148,22 +146,11 @@ registry_register_test(Arena* arena,
                        const Unit_Test test,
                        const String_View test_name)
 {
-    if (registry->total_tests_count == registry->tests_capacity)
-    {
-        const Size new_capacity = MAX(1, 2 * registry->tests_capacity);
-        registry->tests = (Test_Info*) arena_reallocate(arena,
-                                                        as_bytes(registry->tests),
-                                                        size_of(Test_Info) * registry->tests_capacity,
-                                                        size_of(Test_Info) * new_capacity);
-        ASSERT(registry->tests != NULL);
-        registry->tests_capacity = new_capacity;
-    }
+    Test_Info new_test = {0};
+    new_test.run = test;
+    new_test.name = test_name;
 
-    Test_Info* new_test = &registry->tests[registry->total_tests_count];
-    new_test->run = test;
-    new_test->name = test_name;
-
-    registry->total_tests_count += 1;
+    append_array(arena, registry->tests, Test_Info, new_test);
 }
 
 #define MARK_UNIT_TEST_AS_FAILED_IMPL(comment, file, line)      \

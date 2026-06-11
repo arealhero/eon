@@ -130,19 +130,7 @@ parse_identifier_expressions(Arena* arena,
                 break;
             }
 
-            if (current_expression.identifiers_count == current_expression.identifiers_capacity)
-            {
-                const Size new_capacity = MAX(1, 2 * current_expression.identifiers_capacity);
-                current_expression.identifiers = reallocate(arena,
-                                                            current_expression.identifiers,
-                                                            Ast_Identifier,
-                                                            current_expression.identifiers_capacity,
-                                                            new_capacity);
-                current_expression.identifiers_capacity = new_capacity;
-            }
-
-            current_expression.identifiers[current_expression.identifiers_count] = next_identifier;
-            current_expression.identifiers_count += 1;
+            append_array(arena, current_expression.identifiers, Ast_Identifier, next_identifier);
         }
 
         const Bool has_next_possible_expression = parser_try_to_consume_token_with_type(parser, TOKEN_OR);
@@ -151,19 +139,7 @@ parse_identifier_expressions(Arena* arena,
 
         if (has_next_possible_expression || all_expressions_parsed)
         {
-            if (definition->possible_expressions_count == definition->possible_expressions_capacity)
-            {
-                const Size new_capacity = MAX(1, 2 * definition->possible_expressions_capacity);
-                definition->possible_expressions = reallocate(arena,
-                                                              definition->possible_expressions,
-                                                              Ast_Expression,
-                                                              definition->possible_expressions_capacity,
-                                                              new_capacity);
-                definition->possible_expressions_capacity = new_capacity;
-            }
-
-            definition->possible_expressions[definition->possible_expressions_count] = current_expression;
-            definition->possible_expressions_count += 1;
+            append_array(arena, definition->possible_expressions, Ast_Expression, current_expression);
 
             if (has_next_possible_expression)
             {
@@ -226,20 +202,7 @@ parse_ast(Arena* arena,
             return false;
         }
 
-        if (ast->definitions_count == ast->definitions_capacity)
-        {
-            // XXX(vlad): We can change 'MAX(1, 2 * capacity)' to '(2 * capacity) | 1'.
-            const Size new_capacity = MAX(1, 2 * ast->definitions_capacity);
-            ast->definitions = reallocate(arena,
-                                          ast->definitions,
-                                          Ast_Identifier_Definition,
-                                          ast->definitions_capacity,
-                                          new_capacity);
-            ast->definitions_capacity = new_capacity;
-        }
-
-        ast->definitions[ast->definitions_count] = definition;
-        ast->definitions_count += 1;
+        append_array(arena, ast->definitions, Ast_Identifier_Definition, definition);
 
         // NOTE(vlad): Prefetching the next token to check if its type is EOF.
         parser_get_next_token(scratch, parser);

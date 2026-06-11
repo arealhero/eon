@@ -13,9 +13,7 @@ typedef struct Ast_Identifier Ast_Identifier;
 
 struct Ast_Expression
 {
-    Ast_Identifier* identifiers;
-    Size identifiers_count;
-    Size identifiers_capacity;
+    array(Ast_Identifier, identifiers);
 };
 typedef struct Ast_Expression Ast_Expression;
 
@@ -23,17 +21,13 @@ struct Ast_Identifier_Definition
 {
     Ast_Identifier identifier;
 
-    Ast_Expression* possible_expressions;
-    Size possible_expressions_count;
-    Size possible_expressions_capacity;
+    array(Ast_Expression, possible_expressions);
 };
 typedef struct Ast_Identifier_Definition Ast_Identifier_Definition;
 
 struct Ast
 {
-    Ast_Identifier_Definition* definitions;
-    Size definitions_count;
-    Size definitions_capacity;
+    array(Ast_Identifier_Definition, definitions);
 };
 typedef struct Ast Ast;
 

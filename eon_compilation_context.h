@@ -28,23 +28,14 @@ struct Compilation_Context
 
     Source_File source_file;
 
-    Diagnostic_Message* diagnostic_messages;
-    Size diagnostic_messages_count;
-    Size diagnostic_messages_capacity;
+    array(Diagnostic_Message, diagnostic_messages);
 
     Ast ast;
 
-    struct Symbol* symbols;
-    Size symbols_count;
-    Size symbols_capacity;
+    array(struct Symbol, symbols);
+    array(struct Lexical_Scope, lexical_scopes);
+    array(struct Type, types);
 
-    struct Lexical_Scope* lexical_scopes;
-    Size lexical_scopes_count;
-    Size lexical_scopes_capacity;
-
-    struct Type* types;
-    Size types_count;
-    Size types_capacity;
 };
 typedef struct Compilation_Context Compilation_Context;
 
