@@ -2672,6 +2672,114 @@ test_calls(Test_Context* test_context)
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    foo_ptr := foo&;"
+                                                 "    (foo_ptr*)();\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+
+        const Type_Id function_type_id = function_definition->type->type_id;
+        ASSERT_TYPE_IS_VALID(function_type_id);
+
+        const Type* function_type = get_type_by_id(&context, function_type_id);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, TYPE_FUNCTION);
+        ASSERT_TYPE_STRINGS_ARE_EQUAL(function_type_id, "() -> void");
+
+        const Function_Type_Info* info = &function_type->function_info;
+        ASSERT_EQUAL(info->parameter_type_ids_count, 0);
+
+        const Type_Id return_type_id = info->return_type_id;
+
+        {
+            ASSERT_TYPE_IS_VALID(return_type_id);
+            const Type* return_type = get_type_by_id(&context, return_type_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_VOID);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(return_type_id, "void");
+        }
+
+        // NOTE(vlad): Test that every symbol has a type.
+        {
+            const Symbol* function_symbol = get_symbol_for_identifier(&context, &function_definition->name);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_FUNCTION);
+            ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, function_definition->name.token.lexeme);
+            ASSERT_TYPE_IDS_ARE_EQUAL(function_type_id, function_symbol->type_id);
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            ASSERT_EQUAL(function_definition->type->function.parameters_count, 0);
+        }
+
+        const Ast_Code_Block* body = &function_definition->body;
+
+        ASSERT_EQUAL(body->statements_count, 2);
+        ASSERT_EQUAL(body->every_path_returns, true);
+
+        {
+            const Ast_Statement* statement = &body->statements[0];
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
+
+            const Ast_Identifier* name = &variable_definition->name;
+            const Symbol* name_symbol = get_symbol_for_identifier(&context, name);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(name_symbol->type_id, "* () -> void");
+
+            ASSERT_TRUE(variable_definition->has_initial_value);
+
+            const Ast_Expression* initial_value = &variable_definition->initial_value;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(initial_value->kind, AST_EXPRESSION_ADDRESS_OF);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(initial_value->type_id, "* () -> void");
+
+            const Ast_Unary_Expression* address_of = &initial_value->unary_expression;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(address_of->operand->kind, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(address_of->operand->type_id, "() -> void");
+        }
+
+        {
+            const Ast_Statement* statement = &body->statements[1];
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_CALL);
+            const Ast_Expression* call_expression = &statement->call_statement.call_expression;
+
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(call_expression->type_id, "void");
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(call_expression->kind, AST_EXPRESSION_CALL);
+            const Ast_Call* call = &call_expression->call;
+
+            ASSERT_EQUAL(call->arguments_count, 0);
+
+            const Ast_Expression* called_expression = call->called_expression;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(called_expression->kind, AST_EXPRESSION_DEREFERENCE);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(called_expression->type_id, "() -> void");
+
+            const Ast_Unary_Expression* dereference = &called_expression->unary_expression;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(dereference->operand->kind, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(dereference->operand->type_id, "* () -> void");
+        }
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
 }
 
 internal void
