@@ -65,8 +65,7 @@ internal Byte* arena_reallocate(Arena* restrict arena,
     do                                                                  \
     {                                                                   \
         /* NOTE(vlad): Always reallocate so we could find all use-after-move bugs. */ \
-        const Size new_capacity = MAX(CONCATENATE(array, _count) + requested_size, \
-                                      2 * CONCATENATE(array, _capacity)); \
+        const Size new_capacity = CONCATENATE(array, _count) + requested_size; \
         array = reallocate(arena,                                       \
                            array,                                       \
                            Type,                                        \
