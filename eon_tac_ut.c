@@ -728,6 +728,14 @@ test_return_statements_lowering(Test_Context* test_context)
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
         }
 
+        // NOTE(vlad): Testing that variable symbol has a non-empty TAC instruction id.
+        {
+            const Symbol* variable_symbol = get_symbol_by_id(&context, variable_symbol_id);
+
+            ASSERT_EQUAL(variable_symbol->tac_instruction_id.function_label_id.index, 1);
+            ASSERT_EQUAL(variable_symbol->tac_instruction_id.instruction_index, 0);
+        }
+
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
