@@ -189,7 +189,7 @@ struct Ast_Code_Block
 };
 typedef struct Ast_Code_Block Ast_Code_Block;
 
-enum Ast_Statement_Type
+enum Ast_Statement_Kind
 {
     AST_STATEMENT_UNDEFINED = 0,
 
@@ -200,7 +200,7 @@ enum Ast_Statement_Type
     AST_STATEMENT_IF,
     AST_STATEMENT_CALL,
 };
-typedef enum Ast_Statement_Type Ast_Statement_Type;
+typedef enum Ast_Statement_Kind Ast_Statement_Kind;
 
 struct Ast_Variable_Definition
 {
@@ -253,7 +253,7 @@ typedef struct Ast_Call_Statement Ast_Call_Statement;
 
 struct Ast_Statement
 {
-    Ast_Statement_Type type;
+    Ast_Statement_Kind kind;
     union
     {
         Ast_Variable_Definition variable_definition;

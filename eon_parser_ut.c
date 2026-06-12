@@ -818,7 +818,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &definition->body.statements[0];
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
         ASSERT_STRINGS_ARE_EQUAL(statement->variable_definition.name.token.lexeme, "variable");
 
         const Ast_Type* variable_type = statement->variable_definition.type;
@@ -870,7 +870,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "variable");
@@ -926,7 +926,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "variable");
@@ -983,7 +983,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var1");
@@ -998,7 +998,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[1];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var2");
@@ -1051,7 +1051,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -1108,7 +1108,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var1");
@@ -1123,7 +1123,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[1];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var2");
@@ -1176,7 +1176,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "pointer");
@@ -1232,7 +1232,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "pointer");
@@ -1292,7 +1292,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             ASSERT_STRINGS_ARE_EQUAL(statement->variable_definition.name.token.lexeme, "variable");
 
@@ -1343,7 +1343,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "pointer");
@@ -1398,7 +1398,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "pointer");
@@ -1453,7 +1453,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_EQUAL(definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
             ASSERT_STRINGS_ARE_EQUAL(statement->variable_definition.name.token.lexeme, "variable");
 
             const Ast_Type* variable_type = statement->variable_definition.type;
@@ -1513,7 +1513,7 @@ test_return_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &definition->body.statements[0];
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_RETURN);
         ASSERT_TRUE(statement->return_statement.is_empty);
 
         destroy_parser(&parser);
@@ -1557,7 +1557,7 @@ test_return_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &definition->body.statements[0];
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_RETURN);
         ASSERT_FALSE(statement->return_statement.is_empty);
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->return_statement.expression.kind, AST_EXPRESSION_NUMBER);
         ASSERT_STRINGS_ARE_EQUAL(statement->return_statement.expression.number.token.lexeme,
@@ -1609,14 +1609,14 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &definition->body.statements[0];
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_IF);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_IF);
         const Ast_If_Statement* if_statement = &statement->if_statement;
         ASSERT_ENUM_VALUES_ARE_EQUAL(if_statement->condition.kind, AST_EXPRESSION_IDENTIFIER);
         ASSERT_ENUM_VALUES_ARE_EQUAL(if_statement->condition.identifier.token.type, TOKEN_TRUE);
 
         const Ast_Code_Block* then_code_block = &if_statement->if_statements;
         ASSERT_EQUAL(then_code_block->statements_count, 1);
-        ASSERT_ENUM_VALUES_ARE_EQUAL(then_code_block->statements[0].type, AST_STATEMENT_RETURN);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(then_code_block->statements[0].kind, AST_STATEMENT_RETURN);
         ASSERT_TRUE(then_code_block->statements[0].return_statement.is_empty);
 
         const Ast_Code_Block* else_code_block = &if_statement->else_statements;
@@ -1664,21 +1664,21 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &definition->body.statements[0];
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_IF);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_IF);
         const Ast_If_Statement* if_statement = &statement->if_statement;
         ASSERT_ENUM_VALUES_ARE_EQUAL(if_statement->condition.kind, AST_EXPRESSION_IDENTIFIER);
         ASSERT_ENUM_VALUES_ARE_EQUAL(if_statement->condition.identifier.token.type, TOKEN_TRUE);
 
         const Ast_Code_Block* then_code_block = &if_statement->if_statements;
         ASSERT_EQUAL(then_code_block->statements_count, 1);
-        ASSERT_ENUM_VALUES_ARE_EQUAL(then_code_block->statements[0].type, AST_STATEMENT_RETURN);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(then_code_block->statements[0].kind, AST_STATEMENT_RETURN);
         ASSERT_TRUE(then_code_block->statements[0].return_statement.is_empty);
         ASSERT_LOCATION_STRINGS_ARE_EQUAL(&then_code_block->statements[0].return_statement.empty_expression_location,
                                           ";");
 
         const Ast_Code_Block* else_code_block = &if_statement->else_statements;
         ASSERT_EQUAL(else_code_block->statements_count, 1);
-        ASSERT_ENUM_VALUES_ARE_EQUAL(else_code_block->statements[0].type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(else_code_block->statements[0].kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* variable_definition = &else_code_block->statements[0].variable_definition;
 
@@ -1734,7 +1734,7 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &definition->body.statements[0];
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_IF);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_IF);
 
         const Ast_If_Statement* if_statement = &statement->if_statement;
         ASSERT_ENUM_VALUES_ARE_EQUAL(if_statement->condition.kind, AST_EXPRESSION_NUMBER);
@@ -1743,7 +1743,7 @@ test_if_statement_parsing(Test_Context* test_context)
 
         const Ast_Code_Block* then_code_block = &if_statement->if_statements;
         ASSERT_EQUAL(then_code_block->statements_count, 1);
-        ASSERT_ENUM_VALUES_ARE_EQUAL(then_code_block->statements[0].type, AST_STATEMENT_RETURN);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(then_code_block->statements[0].kind, AST_STATEMENT_RETURN);
 
         const Ast_Return_Statement* first_return = &then_code_block->statements[0].return_statement;
         ASSERT_FALSE(first_return->is_empty);
@@ -1753,7 +1753,7 @@ test_if_statement_parsing(Test_Context* test_context)
 
         const Ast_Code_Block* else_code_block = &if_statement->else_statements;
         ASSERT_EQUAL(else_code_block->statements_count, 1);
-        ASSERT_ENUM_VALUES_ARE_EQUAL(else_code_block->statements[0].type, AST_STATEMENT_IF);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(else_code_block->statements[0].kind, AST_STATEMENT_IF);
 
         const Ast_If_Statement* else_if_statement = &else_code_block->statements[0].if_statement;
         ASSERT_ENUM_VALUES_ARE_EQUAL(else_if_statement->condition.kind, AST_EXPRESSION_NUMBER);
@@ -1762,7 +1762,7 @@ test_if_statement_parsing(Test_Context* test_context)
 
         const Ast_Code_Block* else_if_true_code_block = &else_if_statement->if_statements;
         ASSERT_EQUAL(else_if_true_code_block->statements_count, 1);
-        ASSERT_ENUM_VALUES_ARE_EQUAL(else_if_true_code_block->statements[0].type, AST_STATEMENT_RETURN);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(else_if_true_code_block->statements[0].kind, AST_STATEMENT_RETURN);
 
         const Ast_Return_Statement* second_return = &else_if_true_code_block->statements[0].return_statement;
         ASSERT_FALSE(second_return->is_empty);
@@ -1772,7 +1772,7 @@ test_if_statement_parsing(Test_Context* test_context)
 
         const Ast_Code_Block* else_if_false_code_block = &else_if_statement->else_statements;
         ASSERT_EQUAL(else_if_false_code_block->statements_count, 1);
-        ASSERT_ENUM_VALUES_ARE_EQUAL(else_if_false_code_block->statements[0].type, AST_STATEMENT_RETURN);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(else_if_false_code_block->statements[0].kind, AST_STATEMENT_RETURN);
 
         const Ast_Return_Statement* third_return = &else_if_false_code_block->statements[0].return_statement;
         ASSERT_FALSE(third_return->is_empty);
@@ -1826,7 +1826,7 @@ test_expressions(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var1");
@@ -1844,7 +1844,7 @@ test_expressions(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[1];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var2");
@@ -1900,7 +1900,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -1961,7 +1961,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -2022,7 +2022,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -2083,7 +2083,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -2151,7 +2151,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -2213,7 +2213,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -2275,7 +2275,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -2337,7 +2337,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -2408,7 +2408,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_RETURN);
             ASSERT_FALSE(statement->return_statement.is_empty);
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->return_statement.expression.kind, AST_EXPRESSION_NUMBER);
             ASSERT_STRINGS_ARE_EQUAL(statement->return_statement.expression.number.token.lexeme,
@@ -2438,7 +2438,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -2498,7 +2498,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -2572,7 +2572,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -2681,7 +2681,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -2743,7 +2743,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -2805,7 +2805,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -2867,7 +2867,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -2929,7 +2929,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -2991,7 +2991,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -3056,7 +3056,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -3128,7 +3128,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -3218,7 +3218,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -3304,7 +3304,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -3398,7 +3398,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -3482,7 +3482,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -3547,7 +3547,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -3627,7 +3627,7 @@ test_operator_precedence(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -3700,7 +3700,7 @@ test_operator_precedence(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -3774,7 +3774,7 @@ test_operator_precedence(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -3850,7 +3850,7 @@ test_assignments(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -3865,7 +3865,7 @@ test_assignments(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[1];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_ASSIGNMENT);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_ASSIGNMENT);
 
             const Ast_Assignment* assignment = &statement->assignment;
 
@@ -3920,7 +3920,7 @@ test_assignments(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -3935,7 +3935,7 @@ test_assignments(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[1];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_ASSIGNMENT);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_ASSIGNMENT);
 
             const Ast_Assignment* assignment = &statement->assignment;
 
@@ -4017,7 +4017,7 @@ test_assignments(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_ASSIGNMENT);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_ASSIGNMENT);
 
             const Ast_Assignment* assignment = &statement->assignment;
 
@@ -4089,7 +4089,7 @@ test_assignments(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_ASSIGNMENT);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_ASSIGNMENT);
 
             const Ast_Assignment* assignment = &statement->assignment;
 
@@ -4162,7 +4162,7 @@ test_while_statements(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -4177,7 +4177,7 @@ test_while_statements(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[1];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_WHILE);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_WHILE);
 
             const Ast_While_Statement* while_statement = &statement->while_statement;
 
@@ -4195,7 +4195,7 @@ test_while_statements(Test_Context* test_context)
             ASSERT_EQUAL(while_statement->body.statements_count, 1);
 
             const Ast_Statement* inner_statement = &while_statement->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(inner_statement->type, AST_STATEMENT_ASSIGNMENT);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(inner_statement->kind, AST_STATEMENT_ASSIGNMENT);
 
             const Ast_Assignment* assignment = &inner_statement->assignment;
 
@@ -4257,7 +4257,7 @@ test_call_statements(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_CALL);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_CALL);
 
             const Ast_Call_Statement* call_statement = &statement->call_statement;
             const Ast_Expression* call_expression = &call_statement->call_expression;

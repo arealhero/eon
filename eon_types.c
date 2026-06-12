@@ -1056,7 +1056,7 @@ resolve_types_in_code_block(Compilation_Context* context,
     {
         Ast_Statement* statement = &code_block->statements[statement_index];
 
-        switch (statement->type)
+        switch (statement->kind)
         {
             case AST_STATEMENT_UNDEFINED:
             {

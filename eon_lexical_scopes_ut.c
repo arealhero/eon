@@ -266,7 +266,7 @@ test_function_scopes(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
             ASSERT_EQUAL(variable_definition->name.symbol_id, scope->symbol_ids[0]);
@@ -633,7 +633,7 @@ test_if_statements_scopes(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
             ASSERT_EQUAL(variable_definition->name.symbol_id, scope->symbol_ids[0]);
@@ -641,7 +641,7 @@ test_if_statements_scopes(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[1];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_IF);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_IF);
 
             const Ast_If_Statement* if_statement = &statement->if_statement;
 
@@ -650,7 +650,7 @@ test_if_statements_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(then_code_block->lexical_scope_id, function_scope_id + 1);
 
                 ASSERT_EQUAL(then_code_block->statements_count, 1);
-                ASSERT_ENUM_VALUES_ARE_EQUAL(then_code_block->statements[0].type, AST_STATEMENT_VARIABLE_DEFINITION);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(then_code_block->statements[0].kind, AST_STATEMENT_VARIABLE_DEFINITION);
                 const Ast_Variable_Definition* variable_definition = &then_code_block->statements[0].variable_definition;
 
                 const Lexical_Scope* then_code_block_scope = &context.lexical_scopes[then_code_block->lexical_scope_id];
@@ -762,7 +762,7 @@ test_if_statements_scopes(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
             ASSERT_EQUAL(variable_definition->name.symbol_id, scope->symbol_ids[0]);
@@ -770,7 +770,7 @@ test_if_statements_scopes(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[1];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_IF);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_IF);
 
             const Ast_If_Statement* if_statement = &statement->if_statement;
 
@@ -788,7 +788,7 @@ test_if_statements_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(else_code_block->lexical_scope_id, function_scope_id + 2);
 
                 ASSERT_EQUAL(else_code_block->statements_count, 1);
-                ASSERT_ENUM_VALUES_ARE_EQUAL(else_code_block->statements[0].type, AST_STATEMENT_VARIABLE_DEFINITION);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(else_code_block->statements[0].kind, AST_STATEMENT_VARIABLE_DEFINITION);
                 const Ast_Variable_Definition* variable_definition = &else_code_block->statements[0].variable_definition;
 
                 const Lexical_Scope* else_code_block_scope = &context.lexical_scopes[else_code_block->lexical_scope_id];
@@ -893,7 +893,7 @@ test_while_loops_scopes(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
             ASSERT_EQUAL(variable_definition->name.symbol_id, scope->symbol_ids[0]);
@@ -901,7 +901,7 @@ test_while_loops_scopes(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[1];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_WHILE);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_WHILE);
 
             const Ast_While_Statement* while_statement = &statement->while_statement;
 
@@ -1000,7 +1000,7 @@ test_while_loops_scopes(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
             ASSERT_EQUAL(variable_definition->name.symbol_id, scope->symbol_ids[0]);
@@ -1008,7 +1008,7 @@ test_while_loops_scopes(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[1];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_WHILE);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_WHILE);
 
             const Ast_While_Statement* while_statement = &statement->while_statement;
 
@@ -1017,7 +1017,7 @@ test_while_loops_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(while_code_block->lexical_scope_id, function_scope_id + 1);
 
                 ASSERT_EQUAL(while_code_block->statements_count, 1);
-                ASSERT_ENUM_VALUES_ARE_EQUAL(while_code_block->statements[0].type, AST_STATEMENT_VARIABLE_DEFINITION);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(while_code_block->statements[0].kind, AST_STATEMENT_VARIABLE_DEFINITION);
                 const Ast_Variable_Definition* variable_definition = &while_code_block->statements[0].variable_definition;
 
                 const Lexical_Scope* then_code_block_scope = &context.lexical_scopes[while_code_block->lexical_scope_id];
@@ -1120,7 +1120,7 @@ test_while_loops_scopes(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
             ASSERT_EQUAL(variable_definition->name.symbol_id, scope->symbol_ids[0]);
@@ -1128,7 +1128,7 @@ test_while_loops_scopes(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[1];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_WHILE);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_WHILE);
 
             const Ast_While_Statement* while_statement = &statement->while_statement;
 
@@ -1137,7 +1137,7 @@ test_while_loops_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(while_code_block->lexical_scope_id, function_scope_id + 1);
 
                 ASSERT_EQUAL(while_code_block->statements_count, 1);
-                ASSERT_ENUM_VALUES_ARE_EQUAL(while_code_block->statements[0].type, AST_STATEMENT_VARIABLE_DEFINITION);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(while_code_block->statements[0].kind, AST_STATEMENT_VARIABLE_DEFINITION);
                 const Ast_Variable_Definition* variable_definition = &while_code_block->statements[0].variable_definition;
 
                 const Lexical_Scope* then_code_block_scope = &context.lexical_scopes[while_code_block->lexical_scope_id];
@@ -1271,7 +1271,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
 
@@ -1445,7 +1445,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
             ASSERT_EQUAL(variable_definition->name.symbol_id, var_symbol_id);
@@ -1565,7 +1565,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
 
         {
             const Ast_Statement* statement = &baz_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
             ASSERT_EQUAL(variable_definition->name.symbol_id, var_symbol_id);
@@ -1683,7 +1683,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
 
         {
             const Ast_Statement* statement = &baz_definition->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
             ASSERT_EQUAL(variable_definition->name.symbol_id, var_symbol_id);

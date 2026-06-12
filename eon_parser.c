@@ -1079,13 +1079,13 @@ parse_assignment_or_definition_or_call(Parser* parser, Ast_Statement* statement)
 
             Ast_Identifier* identifier = &expression.identifier;
 
-            statement->type = AST_STATEMENT_VARIABLE_DEFINITION;
+            statement->kind = AST_STATEMENT_VARIABLE_DEFINITION;
             return parse_variable_definition(parser, identifier, &statement->variable_definition);
         } break;
 
         case TOKEN_ASSIGN:
         {
-            statement->type = AST_STATEMENT_ASSIGNMENT;
+            statement->kind = AST_STATEMENT_ASSIGNMENT;
             return parse_assignment(parser, &expression, &statement->assignment);
         } break;
 
@@ -1105,7 +1105,7 @@ parse_assignment_or_definition_or_call(Parser* parser, Ast_Statement* statement)
                 return false;
             }
 
-            statement->type = AST_STATEMENT_CALL;
+            statement->kind = AST_STATEMENT_CALL;
             statement->call_statement.call_expression = expression;
 
             ASSERT(parser_fetch_and_consume_token_with_type(parser, TOKEN_SEMICOLON));
@@ -1266,7 +1266,7 @@ parse_if_statement(Parser* parser, Ast_If_Statement* if_statement)
             else_statements->statements_capacity = 1;
 
             Ast_Statement* next_branch_statement = &else_statements->statements[0];
-            next_branch_statement->type = AST_STATEMENT_IF;
+            next_branch_statement->kind = AST_STATEMENT_IF;
 
             if (!parse_if_statement(parser, &next_branch_statement->if_statement))
             {
@@ -1303,19 +1303,19 @@ parse_statement(Parser* parser, Ast_Statement* statement)
     {
         case TOKEN_RETURN:
         {
-            statement->type = AST_STATEMENT_RETURN;
+            statement->kind = AST_STATEMENT_RETURN;
             return parse_return_statement(parser, &statement->return_statement);
         } break;
 
         case TOKEN_WHILE:
         {
-            statement->type = AST_STATEMENT_WHILE;
+            statement->kind = AST_STATEMENT_WHILE;
             return parse_while_statement(parser, &statement->while_statement);
         } break;
 
         case TOKEN_IF:
         {
-            statement->type = AST_STATEMENT_IF;
+            statement->kind = AST_STATEMENT_IF;
             return parse_if_statement(parser, &statement->if_statement);
         } break;
 

@@ -181,7 +181,7 @@ test_expression_lowering(Test_Context* test_context)
             {
                 ASSERT_EQUAL(ast_function->body.statements_count, 1);
                 const Ast_Statement* statement = &ast_function->body.statements[0];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
                 const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
                 ASSERT_VARIABLE_POINTS_TO_SYMBOL(destination->variable_id,
@@ -280,7 +280,7 @@ test_expression_lowering(Test_Context* test_context)
             {
                 ASSERT_EQUAL(ast_function->body.statements_count, 1);
                 const Ast_Statement* statement = &ast_function->body.statements[0];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
                 const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
                 ASSERT_VARIABLE_POINTS_TO_SYMBOL(destination->variable_id,
@@ -357,7 +357,7 @@ test_expression_lowering(Test_Context* test_context)
         {
             ASSERT_EQUAL(ast_function->body.statements_count, 2);
             const Ast_Statement* statement = &ast_function->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
             variable_symbol_id = variable_definition->name.symbol_id;
@@ -628,7 +628,7 @@ test_return_statements_lowering(Test_Context* test_context)
         {
             ASSERT_EQUAL(ast_function->body.statements_count, 2);
             const Ast_Statement* statement = &ast_function->body.statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
             variable_symbol_id = variable_definition->name.symbol_id;

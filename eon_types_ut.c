@@ -84,7 +84,7 @@ test_builtin_types_resolving(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
 
             ASSERT_TRUE(variable_definition->has_initial_value);
@@ -197,7 +197,7 @@ test_builtin_types_resolving(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
 
             ASSERT_TRUE(variable_definition->has_initial_value);
@@ -318,7 +318,7 @@ test_pointers(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
 
             ASSERT_TRUE(variable_definition->has_initial_value);
@@ -394,7 +394,7 @@ test_pointers(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
 
             ASSERT_TRUE(variable_definition->has_initial_value);
@@ -490,7 +490,7 @@ test_comparisons(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
 
             ASSERT_TRUE(variable_definition->has_initial_value);
@@ -587,7 +587,7 @@ test_comparisons(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
 
             ASSERT_TRUE(variable_definition->has_initial_value);
@@ -684,7 +684,7 @@ test_comparisons(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
 
             ASSERT_TRUE(variable_definition->has_initial_value);
@@ -781,7 +781,7 @@ test_comparisons(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
 
             ASSERT_TRUE(variable_definition->has_initial_value);
@@ -878,7 +878,7 @@ test_comparisons(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
 
             ASSERT_TRUE(variable_definition->has_initial_value);
@@ -975,7 +975,7 @@ test_comparisons(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
 
             ASSERT_TRUE(variable_definition->has_initial_value);
@@ -1076,7 +1076,7 @@ test_if_statements(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_IF);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_IF);
             const Ast_If_Statement* if_statement = &statement->if_statement;
 
             ASSERT_TYPE_STRINGS_ARE_EQUAL(if_statement->condition.type_id, "bool");
@@ -1179,7 +1179,7 @@ test_if_statements(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_IF);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_IF);
             const Ast_If_Statement* if_statement = &statement->if_statement;
 
             ASSERT_TYPE_STRINGS_ARE_EQUAL(if_statement->condition.type_id, "bool");
@@ -1281,7 +1281,7 @@ test_if_statements(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_IF);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_IF);
             const Ast_If_Statement* if_statement = &statement->if_statement;
 
             ASSERT_TYPE_STRINGS_ARE_EQUAL(if_statement->condition.type_id, "bool");
@@ -1296,7 +1296,7 @@ test_if_statements(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[1];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_RETURN);
             const Ast_Return_Statement* return_statement = &statement->return_statement;
 
             ASSERT_FALSE(return_statement->is_empty);
@@ -1402,7 +1402,7 @@ test_while_statements(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_WHILE);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_WHILE);
             const Ast_While_Statement* while_statement = &statement->while_statement;
 
             ASSERT_TYPE_STRINGS_ARE_EQUAL(while_statement->condition.type_id, "bool");
@@ -1498,7 +1498,7 @@ test_while_statements(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_WHILE);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_WHILE);
             const Ast_While_Statement* while_statement = &statement->while_statement;
 
             ASSERT_TYPE_STRINGS_ARE_EQUAL(while_statement->condition.type_id, "bool");
@@ -1581,7 +1581,7 @@ test_assignments(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
             const Ast_Variable_Definition* definition = &statement->variable_definition;
 
             ASSERT_FALSE(definition->has_initial_value);
@@ -1599,7 +1599,7 @@ test_assignments(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[1];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_ASSIGNMENT);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_ASSIGNMENT);
             const Ast_Assignment* assignment = &statement->assignment;
 
             ASSERT_TYPE_STRINGS_ARE_EQUAL(assignment->lhs.type_id, "s32");
@@ -1674,7 +1674,7 @@ test_assignments(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
             const Ast_Variable_Definition* definition = &statement->variable_definition;
 
             ASSERT_FALSE(definition->has_initial_value);
@@ -1692,7 +1692,7 @@ test_assignments(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[1];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_ASSIGNMENT);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_ASSIGNMENT);
             const Ast_Assignment* assignment = &statement->assignment;
 
             ASSERT_TYPE_STRINGS_ARE_EQUAL(assignment->lhs.type_id, "s32");
@@ -1767,7 +1767,7 @@ test_assignments(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
             const Ast_Variable_Definition* definition = &statement->variable_definition;
 
             const Ast_Type* ast_type = definition->type;
@@ -1787,7 +1787,7 @@ test_assignments(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[1];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
             const Ast_Variable_Definition* definition = &statement->variable_definition;
 
             const Ast_Type* ast_type = definition->type;
@@ -1875,7 +1875,7 @@ test_pointers_to_mutable_binding(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
             const Ast_Variable_Definition* definition = &statement->variable_definition;
 
             ASSERT_FALSE(definition->has_initial_value);
@@ -1893,7 +1893,7 @@ test_pointers_to_mutable_binding(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[1];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
             const Ast_Variable_Definition* definition = &statement->variable_definition;
 
             ASSERT_TRUE(definition->has_initial_value);
@@ -1920,7 +1920,7 @@ test_pointers_to_mutable_binding(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[2];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_ASSIGNMENT);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_ASSIGNMENT);
             const Ast_Assignment* assignment = &statement->assignment;
 
             ASSERT_TYPE_STRINGS_ARE_EQUAL(assignment->lhs.type_id, "s32");
@@ -2043,7 +2043,7 @@ test_pointers_to_mutable_binding(Test_Context* test_context)
             {
                 const Ast_Statement* statement = &body->statements[0];
 
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
                 const Ast_Variable_Definition* definition = &statement->variable_definition;
 
                 ASSERT_FALSE(definition->has_initial_value);
@@ -2061,7 +2061,7 @@ test_pointers_to_mutable_binding(Test_Context* test_context)
             {
                 const Ast_Statement* statement = &body->statements[1];
 
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_CALL);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_CALL);
 
                 const Ast_Call_Statement* call_statement = &statement->call_statement;
                 const Ast_Expression* call_expression = &call_statement->call_expression;
@@ -2203,7 +2203,7 @@ test_pointers_to_mutable_binding(Test_Context* test_context)
             {
                 const Ast_Statement* statement = &body->statements[0];
 
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
                 const Ast_Variable_Definition* definition = &statement->variable_definition;
 
                 ASSERT_FALSE(definition->has_initial_value);
@@ -2221,7 +2221,7 @@ test_pointers_to_mutable_binding(Test_Context* test_context)
             {
                 const Ast_Statement* statement = &body->statements[1];
 
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_CALL);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_CALL);
 
                 const Ast_Call_Statement* call_statement = &statement->call_statement;
                 const Ast_Expression* call_expression = &call_statement->call_expression;
@@ -2331,7 +2331,7 @@ test_calls(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_RETURN);
             const Ast_Return_Statement* return_statement = &statement->return_statement;
 
             ASSERT_FALSE(return_statement->is_empty);
@@ -2448,7 +2448,7 @@ test_calls(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_RETURN);
             const Ast_Return_Statement* return_statement = &statement->return_statement;
 
             ASSERT_FALSE(return_statement->is_empty);
@@ -2543,7 +2543,7 @@ test_calls(Test_Context* test_context)
             {
                 const Ast_Statement* statement = &body->statements[0];
 
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_RETURN);
                 const Ast_Return_Statement* return_statement = &statement->return_statement;
 
                 ASSERT_FALSE(return_statement->is_empty);
@@ -2685,7 +2685,7 @@ test_calls(Test_Context* test_context)
             {
                 const Ast_Statement* statement = &body->statements[0];
 
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_CALL);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_CALL);
                 const Ast_Call_Statement* call_statement = &statement->call_statement;
 
                 const Ast_Expression* call_expression = &call_statement->call_expression;
@@ -2822,7 +2822,7 @@ test_calls(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
             const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
 
             const Ast_Identifier* name = &variable_definition->name;
@@ -2843,7 +2843,7 @@ test_calls(Test_Context* test_context)
         {
             const Ast_Statement* statement = &body->statements[1];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_CALL);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_CALL);
             const Ast_Expression* call_expression = &statement->call_statement.call_expression;
 
             ASSERT_TYPE_STRINGS_ARE_EQUAL(call_expression->type_id, "void");
@@ -2933,7 +2933,7 @@ test_signed_integers(Test_Context* test_context)
             {
                 const Ast_Statement* statement = &body->statements[0];
 
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_RETURN);
                 const Ast_Return_Statement* return_statement = &statement->return_statement;
 
                 ASSERT_FALSE(return_statement->is_empty);
@@ -3009,7 +3009,7 @@ test_signed_integers(Test_Context* test_context)
             {
                 const Ast_Statement* statement = &body->statements[0];
 
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_RETURN);
                 const Ast_Return_Statement* return_statement = &statement->return_statement;
 
                 ASSERT_FALSE(return_statement->is_empty);
@@ -3085,7 +3085,7 @@ test_signed_integers(Test_Context* test_context)
             {
                 const Ast_Statement* statement = &body->statements[0];
 
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_RETURN);
                 const Ast_Return_Statement* return_statement = &statement->return_statement;
 
                 ASSERT_FALSE(return_statement->is_empty);
@@ -3161,7 +3161,7 @@ test_signed_integers(Test_Context* test_context)
             {
                 const Ast_Statement* statement = &body->statements[0];
 
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_RETURN);
                 const Ast_Return_Statement* return_statement = &statement->return_statement;
 
                 ASSERT_FALSE(return_statement->is_empty);
@@ -3244,7 +3244,7 @@ test_unsigned_integers(Test_Context* test_context)
             {
                 const Ast_Statement* statement = &body->statements[0];
 
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_RETURN);
                 const Ast_Return_Statement* return_statement = &statement->return_statement;
 
                 ASSERT_FALSE(return_statement->is_empty);
@@ -3320,7 +3320,7 @@ test_unsigned_integers(Test_Context* test_context)
             {
                 const Ast_Statement* statement = &body->statements[0];
 
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_RETURN);
                 const Ast_Return_Statement* return_statement = &statement->return_statement;
 
                 ASSERT_FALSE(return_statement->is_empty);
@@ -3396,7 +3396,7 @@ test_unsigned_integers(Test_Context* test_context)
             {
                 const Ast_Statement* statement = &body->statements[0];
 
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_RETURN);
                 const Ast_Return_Statement* return_statement = &statement->return_statement;
 
                 ASSERT_FALSE(return_statement->is_empty);
@@ -3472,7 +3472,7 @@ test_unsigned_integers(Test_Context* test_context)
             {
                 const Ast_Statement* statement = &body->statements[0];
 
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_RETURN);
                 const Ast_Return_Statement* return_statement = &statement->return_statement;
 
                 ASSERT_FALSE(return_statement->is_empty);
@@ -3555,7 +3555,7 @@ test_floats(Test_Context* test_context)
             {
                 const Ast_Statement* statement = &body->statements[0];
 
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_RETURN);
                 const Ast_Return_Statement* return_statement = &statement->return_statement;
 
                 ASSERT_FALSE(return_statement->is_empty);
@@ -3631,7 +3631,7 @@ test_floats(Test_Context* test_context)
             {
                 const Ast_Statement* statement = &body->statements[0];
 
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_RETURN);
                 const Ast_Return_Statement* return_statement = &statement->return_statement;
 
                 ASSERT_FALSE(return_statement->is_empty);
@@ -3710,7 +3710,7 @@ test_floats(Test_Context* test_context)
             {
                 const Ast_Statement* statement = &body->statements[0];
 
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_RETURN);
                 const Ast_Return_Statement* return_statement = &statement->return_statement;
 
                 ASSERT_FALSE(return_statement->is_empty);
@@ -3786,7 +3786,7 @@ test_floats(Test_Context* test_context)
             {
                 const Ast_Statement* statement = &body->statements[0];
 
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_RETURN);
                 const Ast_Return_Statement* return_statement = &statement->return_statement;
 
                 ASSERT_FALSE(return_statement->is_empty);
@@ -3867,7 +3867,7 @@ test_floats(Test_Context* test_context)
             {
                 const Ast_Statement* statement = &body->statements[0];
 
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
                 const Ast_Variable_Definition* definition = &statement->variable_definition;
 
                 ASSERT_TRUE(definition->has_initial_value);
@@ -3888,7 +3888,7 @@ test_floats(Test_Context* test_context)
             {
                 const Ast_Statement* statement = &body->statements[1];
 
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
                 const Ast_Variable_Definition* definition = &statement->variable_definition;
 
                 ASSERT_TRUE(definition->has_initial_value);
@@ -3909,7 +3909,7 @@ test_floats(Test_Context* test_context)
             {
                 const Ast_Statement* statement = &body->statements[2];
 
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_ASSIGNMENT);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_ASSIGNMENT);
                 const Ast_Assignment* assignment = &statement->assignment;
 
                 ASSERT_TYPE_STRINGS_ARE_EQUAL(assignment->lhs.type_id, "f64");
@@ -4023,7 +4023,7 @@ test_number_types_inference_in_arithmetic_expressions(Test_Context* test_context
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
             const Ast_Variable_Definition* definition = &statement->variable_definition;
 
             ASSERT_FALSE(definition->has_initial_value);
@@ -4040,7 +4040,7 @@ test_number_types_inference_in_arithmetic_expressions(Test_Context* test_context
         {
             const Ast_Statement* statement = &body->statements[1];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_ASSIGNMENT);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_ASSIGNMENT);
             const Ast_Assignment* assignment = &statement->assignment;
 
             ASSERT_TYPE_STRINGS_ARE_EQUAL(assignment->lhs.type_id, test_info.expected_type);
@@ -4168,7 +4168,7 @@ test_number_types_inference_in_arithmetic_expressions(Test_Context* test_context
         {
             const Ast_Statement* statement = &body->statements[0];
 
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->type, AST_STATEMENT_RETURN);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_RETURN);
             const Ast_Return_Statement* return_statement = &statement->return_statement;
 
             ASSERT_FALSE(return_statement->is_empty);

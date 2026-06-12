@@ -287,7 +287,7 @@ lower_statement_to_tac(Compilation_Context* context,
                        Tac_Function* tac_function,
                        const Ast_Statement* statement)
 {
-    switch (statement->type)
+    switch (statement->kind)
     {
         case AST_STATEMENT_UNDEFINED:
         {
@@ -450,7 +450,7 @@ lower_ast_to_tac(Compilation_Context* context)
             lower_statement_to_tac(context, tac_function, statement);
 
             // NOTE(vlad): Basic dead code elimination.
-            if (statement->type == AST_STATEMENT_RETURN)
+            if (statement->kind == AST_STATEMENT_RETURN)
             {
                 should_emit_empty_return_statement = false;
                 break;
