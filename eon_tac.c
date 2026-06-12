@@ -333,7 +333,19 @@ lower_statement_to_tac(Compilation_Context* context,
 
         case AST_STATEMENT_RETURN:
         {
-            FAIL("[TAC] Return statements are not supported yet");
+            const Ast_Return_Statement* return_statement = &statement->return_statement;
+
+            Tac_Instruction instruction = {0};
+            instruction.operation = TAC_RETURN;
+
+            if (!return_statement->is_empty)
+            {
+                instruction.first_argument = lower_expression_to_tac(context,
+                                                                     tac_function,
+                                                                     &return_statement->expression);
+            }
+
+            emit_tac_instruction(tac_function, instruction);
         } break;
 
         case AST_STATEMENT_WHILE:
