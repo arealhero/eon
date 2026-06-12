@@ -177,7 +177,7 @@ lower_expression_to_tac(Compilation_Context* context,
 
         case AST_EXPRESSION_STRING_LITERAL:
         {
-            FAIL("[TAC] String literals are not support yet");
+            FAIL("[TAC] String literals are not supported yet");
         } break;
 
         case AST_EXPRESSION_IDENTIFIER:
@@ -257,27 +257,27 @@ lower_expression_to_tac(Compilation_Context* context,
         case AST_EXPRESSION_GREATER:
         case AST_EXPRESSION_GREATER_OR_EQUAL:
         {
-            FAIL("[TAC] Comparisons are not support yet");
+            FAIL("[TAC] Comparisons are not supported yet");
         } break;
 
         case AST_EXPRESSION_NEGATE:
         {
-            FAIL("[TAC] Negations are not support yet");
+            FAIL("[TAC] Negations are not supported yet");
         } break;
 
         case AST_EXPRESSION_DEREFERENCE:
         {
-            FAIL("[TAC] Dereferences are not support yet");
+            FAIL("[TAC] Dereferences are not supported yet");
         } break;
 
         case AST_EXPRESSION_ADDRESS_OF:
         {
-            FAIL("[TAC] Address-of expressions are not support yet");
+            FAIL("[TAC] Address-of expressions are not supported yet");
         } break;
 
         case AST_EXPRESSION_CALL:
         {
-            FAIL("[TAC] Calls are not support yet");
+            FAIL("[TAC] Calls are not supported yet");
         } break;
     }
 }
@@ -333,22 +333,22 @@ lower_statement_to_tac(Compilation_Context* context,
 
         case AST_STATEMENT_RETURN:
         {
-            FAIL("[TAC] Return statements are not support yet");
+            FAIL("[TAC] Return statements are not supported yet");
         } break;
 
         case AST_STATEMENT_WHILE:
         {
-            FAIL("[TAC] While loops are not support yet");
+            FAIL("[TAC] While loops are not supported yet");
         } break;
 
         case AST_STATEMENT_IF:
         {
-            FAIL("[TAC] If statements are not support yet");
+            FAIL("[TAC] If statements are not supported yet");
         } break;
 
         case AST_STATEMENT_CALL:
         {
-            FAIL("[TAC] Call statements are not support yet");
+            FAIL("[TAC] Call statements are not supported yet");
         } break;
     }
 }
@@ -450,11 +450,11 @@ lower_ast_to_tac(Compilation_Context* context)
             //             implicit TAC_RETURN instruction for void functions) and eliminate dead code somewhere else
             //             (e.g. in SSA passes).
             //
-            //             Also if we do that here, maybe we can do that before that, e.g. as a part of the type system
+            //             Also if we do that here, maybe we can do that eariler, e.g. as a part of the type system
             //             pass. That said, it's hard to properly access this question and come up with a good solution
             //             right now.
             //
-            //             (FYI I am writing this comment before the TAC lowering is completed, let alone TAC & SSA
+            //             (FYI I am writing this comment before the TAC lowering is complete, let alone TAC & SSA
             //             passes).
         }
 
