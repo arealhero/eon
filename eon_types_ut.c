@@ -4,23 +4,6 @@
 #include "eon_parser.h"
 #include "eon_types.h"
 
-#define ASSERT_TYPE_IS_VALID(type_id)           \
-    ASSERT_TRUE(type_id_is_valid(&context, type_id))
-
-#define ASSERT_TYPE_IDS_ARE_EQUAL(lhs, rhs) \
-    ASSERT_TRUE(type_ids_are_equal(&context, (lhs), (rhs)))
-
-#define ASSERT_TYPE_STRINGS_ARE_EQUAL(type_id, expected)                \
-    do                                                                  \
-    {                                                                   \
-        ASSERT_TYPE_IS_VALID(type_id);                                  \
-        ASSERT_STRINGS_ARE_EQUAL(convert_type_to_string(test_context->arena, \
-                                                        &context,       \
-                                                        type_id),       \
-                                 expected);                             \
-    }                                                                   \
-    while (0)
-
 internal void
 test_builtin_types_resolving(Test_Context* test_context)
 {

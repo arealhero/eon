@@ -53,4 +53,21 @@ release_arena_to_provider(struct Arena_Provider* provider, const Arena* arena)
         }                                                               \
     } while (0)
 
+#define ASSERT_TYPE_IS_VALID(type_id)           \
+    ASSERT_TRUE(type_id_is_valid(&context, type_id))
+
+#define ASSERT_TYPE_IDS_ARE_EQUAL(lhs, rhs) \
+    ASSERT_TRUE(type_ids_are_equal(&context, (lhs), (rhs)))
+
+#define ASSERT_TYPE_STRINGS_ARE_EQUAL(type_id, expected)                \
+    do                                                                  \
+    {                                                                   \
+        ASSERT_TYPE_IS_VALID(type_id);                                  \
+        ASSERT_STRINGS_ARE_EQUAL(convert_type_to_string(test_context->arena, \
+                                                        &context,       \
+                                                        type_id),       \
+                                 expected);                             \
+    }                                                                   \
+    while (0)
+
 // FIXME(vlad): Implement 'ASSERT_DIAGNOSTIC_MESSAGES_ARE_EQUAL("<diagnostic-messages>")'.

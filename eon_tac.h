@@ -4,16 +4,19 @@
 #include <eon/types.h>
 
 #include "eon_ast.h"
+#include "eon_forward_declarations.h"
 
 enum Tac_Operation
 {
     TAC_NOP = 0,
 
-    TAC_MOVE,
+    TAC_ASSIGN,
+
     TAC_ADD,
     TAC_SUBTRACT,
     TAC_MULTIPLY,
     TAC_DIVIDE,
+    // FIXME(vlad): Add 'TAC_MOD'.
 
     TAC_EQUAL,
     TAC_NOT_EQUAL,
@@ -22,12 +25,15 @@ enum Tac_Operation
     TAC_GREATER,
     TAC_GREATER_OR_EQUAL,
 
-    TAC_LABEL,
+    // FIXME(vlad): Add logical operations.
 
+    TAC_LABEL,
     TAC_JUMP,
     TAC_JUMP_IF_FALSE,
 
-    TAC_PARAMETER,
+    TAC_SET_PARAMETER,
+    TAC_GET_PARAMETER,
+
     TAC_CALL,
     TAC_RETURN,
 };
@@ -36,37 +42,34 @@ typedef enum Tac_Operation Tac_Operation;
 enum Tac_Operand_Kind
 {
     TAC_OPERAND_NONE = 0,
-    TAC_OPERAND_TEMP,
+
+    TAC_OPERAND_FUNCTION_LABEL,
+    TAC_OPERAND_VARIABLE,
     TAC_OPERAND_LABEL,
     TAC_OPERAND_CONSTANT,
+    TAC_OPERAND_PARAMETER_INDEX,
 };
 typedef enum Tac_Operand_Kind Tac_Operand_Kind;
 
-enum Tac_Operand_Type
+struct Tac_Function_Label
 {
-    TAC_TYPE_UNDEFINED = 0,
-
-    TAC_TYPE_BOOL,
-    TAC_TYPE_INT32,
-};
-typedef enum Tac_Operand_Type Tac_Operand_Type;
-
-struct Tac_Temp
-{
-    Tac_Operand_Type type;
     Index id;
+    Symbol_Id symbol_id;
 };
-typedef struct Tac_Temp Tac_Temp;
+typedef struct Tac_Function_Label Tac_Function_Label;
 
-struct Tac_Constant
+struct Tac_Variable
 {
-    Tac_Operand_Type type;
+    Index id;
+    Type_Id type_id;
+
+    Bool is_temporary;
     union
     {
-        s32 int32;
+        Symbol_Id symbol_id;
     };
 };
-typedef struct Tac_Constant Tac_Constant;
+typedef struct Tac_Variable Tac_Variable;
 
 struct Tac_Label
 {
@@ -74,15 +77,36 @@ struct Tac_Label
 };
 typedef struct Tac_Label Tac_Label;
 
+struct Tac_Constant
+{
+    Index id;
+    Type_Id type_id;
+
+    union
+    {
+        // TODO(vlad): Support string literals.
+        const Ast_Number* ast_number;
+    };
+};
+typedef struct Tac_Constant Tac_Constant;
+
+struct Tac_Parameter_Index
+{
+    Index index;
+};
+typedef struct Tac_Parameter_Index Tac_Parameter_Index;
+
 struct Tac_Operand
 {
     Tac_Operand_Kind kind;
 
     union
     {
-        Tac_Temp temp;
+        Tac_Function_Label function_label;
+        Tac_Variable variable;
         Tac_Constant constant;
         Tac_Label label;
+        Tac_Parameter_Index parameter_index;
     };
 };
 typedef struct Tac_Operand Tac_Operand;
@@ -96,21 +120,33 @@ struct Tac_Instruction
 };
 typedef struct Tac_Instruction Tac_Instruction;
 
-struct Tac_Builder
+struct Tac_Function
 {
     Arena* instructions_arena;
+
+    Tac_Function_Label label;
 
     Tac_Instruction* instructions;
     Size instructions_count;
     Size instructions_capacity;
+};
+typedef struct Tac_Function Tac_Function;
 
-    Index next_temp_id;
+struct Tac
+{
+    Tac_Function* functions;
+    Size functions_count;
+    Size functions_capacity;
+
+    Tac_Function_Label* function_labels;
+    Size function_labels_count;
+    Size function_labels_capacity;
+
+    Index next_function_label_id;
+    Index next_variable_id;
     Index next_constant_id;
     Index next_label_id;
 };
-typedef struct Tac_Builder Tac_Builder;
+typedef struct Tac Tac;
 
-internal void create_tac_builder(Tac_Builder* builder, Arena* instructions_arena);
-
-internal Tac_Temp lower_expression_to_tac(Tac_Builder* builder,
-                                          const Ast_Expression* expression);
+maybe_unused internal void lower_ast_to_tac(struct Compilation_Context* context);

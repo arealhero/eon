@@ -1,252 +1,244 @@
-#include <eon/unit_test.h>
+#include "eon_unit_test.h"
 
-#include "eon_parser.h"
-#include "eon_semantics.h"
 #include "eon_tac.h"
 
-internal void
-test_expression_lowering(Test_Context* context)
-{
-    Errors errors = {0};
-    create_errors(&errors, context->arena);
+#include "eon_lexical_scopes.h"
+#include "eon_parser.h"
+#include "eon_types.h"
 
+internal void
+test_function_parameters_lowering(Test_Context* test_context)
+{
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    x := 1 + 2 * 3;"
-                                              "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (parameter: s32) -> void = {"
+                                                 "}");
 
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
-        Ast ast = {0};
-        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
-        ASSERT_EQUAL(ast.function_definitions_count, 1);
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
-        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
-        const Ast_Function_Definition* function_definition = &ast.function_definitions[0];
-        const Ast_Statements* statements = &function_definition->statements;
+        lower_ast_to_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
-        ASSERT_EQUAL(statements->statements_count, 1);
-        const Ast_Statement* statement = &statements->statements[0];
+        const Ast* ast = &context.ast;
+        ASSERT_EQUAL(ast->function_definitions_count, 1);
 
-        ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        const Ast_Function_Definition* ast_function = &ast->function_definitions[0];
 
-        const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
+        const Tac* tac = &context.tac;
+        ASSERT_EQUAL(tac->functions_count, 1);
 
-        ASSERT_EQUAL(variable_definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
+        const Tac_Function* tac_function = &tac->functions[0];
+        ASSERT_EQUAL(tac_function->label.id, 1);
+        ASSERT_EQUAL(tac_function->label.symbol_id, ast_function->name.symbol_id);
 
-        const Ast_Expression* expression = &variable_definition->initial_value;
-
-        Tac_Builder tac_builder = {0};
-        create_tac_builder(&tac_builder, context->arena);
-
-        const Tac_Temp expression_temp = lower_expression_to_tac(&tac_builder, expression);
-        ASSERT_EQUAL(expression_temp.type, TAC_TYPE_INT32);
-        ASSERT_EQUAL(expression_temp.id, 4);
-
-        ASSERT_EQUAL(tac_builder.instructions_count, 5);
-
-        const Tac_Instruction* instruction = tac_builder.instructions;
-        {
-            ASSERT_EQUAL(instruction->operation, TAC_MOVE);
-
-            ASSERT_EQUAL(instruction->destination.kind, TAC_OPERAND_TEMP);
-            ASSERT_EQUAL(instruction->destination.temp.type, TAC_TYPE_INT32);
-            ASSERT_EQUAL(instruction->destination.temp.id, 0);
-
-            ASSERT_EQUAL(instruction->first_argument.kind, TAC_OPERAND_CONSTANT);
-            ASSERT_EQUAL(instruction->first_argument.constant.type, TAC_TYPE_INT32);
-            ASSERT_EQUAL(instruction->first_argument.constant.int32, 1);
-
-            ASSERT_EQUAL(instruction->second_argument.kind, TAC_OPERAND_NONE);
-
-            ++instruction;
-        }
+        ASSERT_EQUAL(tac_function->instructions_count, 1);
 
         {
-            ASSERT_EQUAL(instruction->operation, TAC_MOVE);
+            const Tac_Instruction* instruction = &tac_function->instructions[0];
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_GET_PARAMETER);
 
-            ASSERT_EQUAL(instruction->destination.kind, TAC_OPERAND_TEMP);
-            ASSERT_EQUAL(instruction->destination.temp.type, TAC_TYPE_INT32);
-            ASSERT_EQUAL(instruction->destination.temp.id, 1);
+            const Tac_Operand* destination = &instruction->destination;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_VARIABLE);
+            ASSERT_EQUAL(destination->variable.id, 1);
+            ASSERT_FALSE(destination->variable.is_temporary);
 
-            ASSERT_EQUAL(instruction->first_argument.kind, TAC_OPERAND_CONSTANT);
-            ASSERT_EQUAL(instruction->first_argument.constant.type, TAC_TYPE_INT32);
-            ASSERT_EQUAL(instruction->first_argument.constant.int32, 2);
+            const Symbol_Id first_parameter_symbol_id = ast_function->type->function.parameters[0].name.symbol_id;
+            const Symbol* first_parameter_symbol = get_symbol_by_id(&context, first_parameter_symbol_id);
 
-            ASSERT_EQUAL(instruction->second_argument.kind, TAC_OPERAND_NONE);
+            ASSERT_EQUAL(destination->variable.type_id.index, first_parameter_symbol->type_id.index);
 
-            ++instruction;
-        }
+            const Tac_Operand* first_argument = &instruction->first_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_PARAMETER_INDEX);
+            ASSERT_EQUAL(first_argument->parameter_index.index, 0);
 
-        {
-            ASSERT_EQUAL(instruction->operation, TAC_MOVE);
-
-            ASSERT_EQUAL(instruction->destination.kind, TAC_OPERAND_TEMP);
-            ASSERT_EQUAL(instruction->destination.temp.type, TAC_TYPE_INT32);
-            ASSERT_EQUAL(instruction->destination.temp.id, 2);
-
-            ASSERT_EQUAL(instruction->first_argument.kind, TAC_OPERAND_CONSTANT);
-            ASSERT_EQUAL(instruction->first_argument.constant.type, TAC_TYPE_INT32);
-            ASSERT_EQUAL(instruction->first_argument.constant.int32, 3);
-
-            ASSERT_EQUAL(instruction->second_argument.kind, TAC_OPERAND_NONE);
-
-            ++instruction;
-        }
-
-        {
-            ASSERT_EQUAL(instruction->operation, TAC_MULTIPLY);
-
-            ASSERT_EQUAL(instruction->destination.kind, TAC_OPERAND_TEMP);
-            ASSERT_EQUAL(instruction->destination.temp.type, TAC_TYPE_INT32);
-            ASSERT_EQUAL(instruction->destination.temp.id, 3);
-
-            ASSERT_EQUAL(instruction->first_argument.kind, TAC_OPERAND_TEMP);
-            ASSERT_EQUAL(instruction->first_argument.temp.type, TAC_TYPE_INT32);
-            ASSERT_EQUAL(instruction->first_argument.temp.id, 1);
-
-            ASSERT_EQUAL(instruction->second_argument.kind, TAC_OPERAND_TEMP);
-            ASSERT_EQUAL(instruction->second_argument.temp.type, TAC_TYPE_INT32);
-            ASSERT_EQUAL(instruction->second_argument.temp.id, 2);
-
-            ++instruction;
-        }
-
-        {
-            ASSERT_EQUAL(instruction->operation, TAC_ADD);
-
-            ASSERT_EQUAL(instruction->destination.kind, TAC_OPERAND_TEMP);
-            ASSERT_EQUAL(instruction->destination.temp.type, TAC_TYPE_INT32);
-            ASSERT_EQUAL(instruction->destination.temp.id, 4);
-
-            ASSERT_EQUAL(instruction->first_argument.kind, TAC_OPERAND_TEMP);
-            ASSERT_EQUAL(instruction->first_argument.temp.type, TAC_TYPE_INT32);
-            ASSERT_EQUAL(instruction->first_argument.temp.id, 0);
-
-            ASSERT_EQUAL(instruction->second_argument.kind, TAC_OPERAND_TEMP);
-            ASSERT_EQUAL(instruction->second_argument.temp.type, TAC_TYPE_INT32);
-            ASSERT_EQUAL(instruction->second_argument.temp.id, 3);
+            const Tac_Operand* second_argument = &instruction->second_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
         }
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+}
 
-        clear_errors(&errors);
+internal void
+test_expression_lowering(Test_Context* test_context)
+{
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    a := 10;"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        lower_ast_to_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        const Ast* ast = &context.ast;
+        ASSERT_EQUAL(ast->function_definitions_count, 1);
+
+        const Ast_Function_Definition* ast_function = &ast->function_definitions[0];
+
+        const Tac* tac = &context.tac;
+        ASSERT_EQUAL(tac->functions_count, 1);
+
+        const Tac_Function* tac_function = &tac->functions[0];
+        ASSERT_EQUAL(tac_function->label.id, 1);
+        ASSERT_EQUAL(tac_function->label.symbol_id, ast_function->name.symbol_id);
+
+        ASSERT_EQUAL(tac_function->instructions_count, 1);
+
+        {
+            const Tac_Instruction* instruction = &tac_function->instructions[0];
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
+
+            const Tac_Operand* destination = &instruction->destination;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_VARIABLE);
+            ASSERT_EQUAL(destination->variable.id, 1);
+            ASSERT_FALSE(destination->variable.is_temporary);
+
+            const Symbol* variable_symbol = get_symbol_by_id(&context, destination->variable.symbol_id);
+            ASSERT_STRINGS_ARE_EQUAL(variable_symbol->name, "a");
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(variable_symbol->type_id, "s32");
+
+            const Tac_Operand* first_argument = &instruction->first_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
+            ASSERT_EQUAL(first_argument->constant.id, 1);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(first_argument->constant.type_id, "s32");
+            ASSERT_STRINGS_ARE_EQUAL(first_argument->constant.ast_number->token.lexeme, "10");
+
+            const Tac_Operand* second_argument = &instruction->second_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+        }
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
     }
 
     {
-        const String_View input = string_view("foo: () -> void = {"
-                                              "    x := 1 != 2;"
-                                              "}");
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    a := 10 + 20;"
+                                                 "}");
 
         Lexer lexer = {0};
         Parser parser = {0};
 
-        create_lexer(&lexer, string_view("<input>"), input);
-        create_parser(&parser, context->arena, &lexer, &errors);
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
 
-        Ast ast = {0};
-        ASSERT_TRUE(parse_ast(context->arena, &parser, &ast));
-        ASSERT_EQUAL(errors.errors_count, 0);
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
-        ASSERT_EQUAL(ast.function_definitions_count, 1);
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
-        ASSERT_TRUE(create_lexical_scopes_and_infer_types(context->arena, &ast));
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
-        const Ast_Function_Definition* function_definition = &ast.function_definitions[0];
-        const Ast_Statements* statements = &function_definition->statements;
+        lower_ast_to_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
-        ASSERT_EQUAL(statements->statements_count, 1);
-        const Ast_Statement* statement = &statements->statements[0];
+        const Ast* ast = &context.ast;
+        ASSERT_EQUAL(ast->function_definitions_count, 1);
 
-        ASSERT_EQUAL(statement->type, AST_STATEMENT_VARIABLE_DEFINITION);
+        const Ast_Function_Definition* ast_function = &ast->function_definitions[0];
 
-        const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
+        const Tac* tac = &context.tac;
+        ASSERT_EQUAL(tac->functions_count, 1);
 
-        ASSERT_EQUAL(variable_definition->initialisation_type, AST_INITIALISATION_WITH_VALUE);
+        const Tac_Function* tac_function = &tac->functions[0];
+        ASSERT_EQUAL(tac_function->label.id, 1);
+        ASSERT_EQUAL(tac_function->label.symbol_id, ast_function->name.symbol_id);
 
-        const Ast_Expression* expression = &variable_definition->initial_value;
+        ASSERT_EQUAL(tac_function->instructions_count, 2);
 
-        Tac_Builder tac_builder = {0};
-        create_tac_builder(&tac_builder, context->arena);
-
-        const Tac_Temp expression_temp = lower_expression_to_tac(&tac_builder, expression);
-        ASSERT_EQUAL(expression_temp.type, TAC_TYPE_BOOL);
-        ASSERT_EQUAL(expression_temp.id, 2);
-
-        ASSERT_EQUAL(tac_builder.instructions_count, 3);
-
-        const Tac_Instruction* instruction = tac_builder.instructions;
         {
-            ASSERT_EQUAL(instruction->operation, TAC_MOVE);
+            const Tac_Instruction* instruction = &tac_function->instructions[0];
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ADD);
 
-            ASSERT_EQUAL(instruction->destination.kind, TAC_OPERAND_TEMP);
-            ASSERT_EQUAL(instruction->destination.temp.type, TAC_TYPE_INT32);
-            ASSERT_EQUAL(instruction->destination.temp.id, 0);
+            const Tac_Operand* destination = &instruction->destination;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_VARIABLE);
+            ASSERT_EQUAL(destination->variable.id, 1);
+            ASSERT_TRUE(destination->variable.is_temporary);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(destination->variable.type_id, "s32");
 
-            ASSERT_EQUAL(instruction->first_argument.kind, TAC_OPERAND_CONSTANT);
-            ASSERT_EQUAL(instruction->first_argument.constant.type, TAC_TYPE_INT32);
-            ASSERT_EQUAL(instruction->first_argument.constant.int32, 1);
+            const Tac_Operand* first_argument = &instruction->first_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
+            ASSERT_EQUAL(first_argument->constant.id, 1);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(first_argument->constant.type_id, "s32");
+            ASSERT_STRINGS_ARE_EQUAL(first_argument->constant.ast_number->token.lexeme, "10");
 
-            ASSERT_EQUAL(instruction->second_argument.kind, TAC_OPERAND_NONE);
-
-            ++instruction;
+            const Tac_Operand* second_argument = &instruction->second_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_CONSTANT);
+            ASSERT_EQUAL(second_argument->constant.id, 2);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(second_argument->constant.type_id, "s32");
+            ASSERT_STRINGS_ARE_EQUAL(second_argument->constant.ast_number->token.lexeme, "20");
         }
 
         {
-            ASSERT_EQUAL(instruction->operation, TAC_MOVE);
+            const Tac_Instruction* instruction = &tac_function->instructions[1];
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
 
-            ASSERT_EQUAL(instruction->destination.kind, TAC_OPERAND_TEMP);
-            ASSERT_EQUAL(instruction->destination.temp.type, TAC_TYPE_INT32);
-            ASSERT_EQUAL(instruction->destination.temp.id, 1);
+            const Tac_Operand* destination = &instruction->destination;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_VARIABLE);
+            ASSERT_EQUAL(destination->variable.id, 2);
+            ASSERT_FALSE(destination->variable.is_temporary);
 
-            ASSERT_EQUAL(instruction->first_argument.kind, TAC_OPERAND_CONSTANT);
-            ASSERT_EQUAL(instruction->first_argument.constant.type, TAC_TYPE_INT32);
-            ASSERT_EQUAL(instruction->first_argument.constant.int32, 2);
+            const Symbol* variable_symbol = get_symbol_by_id(&context, destination->variable.symbol_id);
+            ASSERT_STRINGS_ARE_EQUAL(variable_symbol->name, "a");
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(variable_symbol->type_id, "s32");
 
-            ASSERT_EQUAL(instruction->second_argument.kind, TAC_OPERAND_NONE);
+            const Tac_Operand* first_argument = &instruction->first_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_VARIABLE);
+            ASSERT_EQUAL(first_argument->variable.id, 1);
+            ASSERT_TRUE(first_argument->variable.is_temporary);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(destination->variable.type_id, "s32");
 
-            ++instruction;
-        }
-
-        {
-            ASSERT_EQUAL(instruction->operation, TAC_NOT_EQUAL);
-
-            ASSERT_EQUAL(instruction->destination.kind, TAC_OPERAND_TEMP);
-            ASSERT_EQUAL(instruction->destination.temp.type, TAC_TYPE_BOOL);
-            ASSERT_EQUAL(instruction->destination.temp.id, 2);
-
-            ASSERT_EQUAL(instruction->first_argument.kind, TAC_OPERAND_TEMP);
-            ASSERT_EQUAL(instruction->first_argument.temp.type, TAC_TYPE_INT32);
-            ASSERT_EQUAL(instruction->first_argument.temp.id, 0);
-
-            ASSERT_EQUAL(instruction->second_argument.kind, TAC_OPERAND_TEMP);
-            ASSERT_EQUAL(instruction->second_argument.temp.type, TAC_TYPE_INT32);
-            ASSERT_EQUAL(instruction->second_argument.temp.id, 1);
-
-            ++instruction;
+            const Tac_Operand* second_argument = &instruction->second_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
         }
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
-
-        clear_errors(&errors);
+        destroy_compilation_context(&context);
     }
 }
 
 REGISTER_TESTS(
+    test_function_parameters_lowering,
     test_expression_lowering
 )
 
-#include "eon_errors.c"
+#include "eon_compilation_context.c"
+#include "eon_diagnostics.c"
 #include "eon_lexer.c"
+#include "eon_lexical_scopes.c"
 #include "eon_parser.c"
-#include "eon_semantics.c"
 #include "eon_tac.c"
+#include "eon_types.c"

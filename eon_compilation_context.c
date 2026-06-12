@@ -17,6 +17,7 @@ create_compilation_context(Compilation_Context* context,
     context->symbols_arena = acquire_arena_from_provider(arena_provider, string_view("symbols"), GiB(1), MiB(1));
     context->types_arena = acquire_arena_from_provider(arena_provider, string_view("types"), GiB(1), MiB(1));
     context->parameter_type_ids_arena = acquire_arena_from_provider(arena_provider, string_view("function-parameter-type-ids"), GiB(1), MiB(1));
+    context->tac_functions_arena = acquire_arena_from_provider(arena_provider, string_view("tac-functions"), GiB(1), MiB(1));
 
     context->source_file = *source_file;
 }
@@ -39,6 +40,7 @@ destroy_compilation_context(Compilation_Context* context)
     release_arena_to_provider(context->arena_provider, context->symbols_arena);
     release_arena_to_provider(context->arena_provider, context->types_arena);
     release_arena_to_provider(context->arena_provider, context->parameter_type_ids_arena);
+    release_arena_to_provider(context->arena_provider, context->tac_functions_arena);
 }
 
 internal Bool

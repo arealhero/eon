@@ -6,6 +6,7 @@
 
 #include "eon_ast.h"
 #include "eon_diagnostics.h"
+#include "eon_tac.h"
 
 struct Arena_Provider;
 internal Arena* acquire_arena_from_provider(struct Arena_Provider* provider,
@@ -25,6 +26,7 @@ struct Compilation_Context
     Arena* symbols_arena;
     Arena* types_arena;
     Arena* parameter_type_ids_arena;
+    Arena* tac_functions_arena;
 
     Source_File source_file;
 
@@ -36,6 +38,7 @@ struct Compilation_Context
     array(struct Lexical_Scope, lexical_scopes);
     array(struct Type, types);
 
+    Tac tac;
 };
 typedef struct Compilation_Context Compilation_Context;
 
