@@ -56,6 +56,7 @@ release_arena_to_provider(struct Arena_Provider* provider, const Arena* arena)
 #define ASSERT_TYPE_IS_VALID(type_id)           \
     ASSERT_TRUE(type_id_is_valid(&context, type_id))
 
+// XXX(vlad): Test that type strings are equal?
 #define ASSERT_TYPE_IDS_ARE_EQUAL(lhs, rhs) \
     ASSERT_TRUE(type_ids_are_equal(&context, (lhs), (rhs)))
 

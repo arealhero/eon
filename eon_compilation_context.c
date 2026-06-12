@@ -18,6 +18,9 @@ create_compilation_context(Compilation_Context* context,
     context->types_arena = acquire_arena_from_provider(arena_provider, string_view("types"), GiB(1), MiB(1));
     context->parameter_type_ids_arena = acquire_arena_from_provider(arena_provider, string_view("function-parameter-type-ids"), GiB(1), MiB(1));
     context->tac_functions_arena = acquire_arena_from_provider(arena_provider, string_view("tac-functions"), GiB(1), MiB(1));
+    context->tac_function_labels_arena = acquire_arena_from_provider(arena_provider, string_view("tac-function-labels"), GiB(1), MiB(1));
+    context->tac_variables_arena = acquire_arena_from_provider(arena_provider, string_view("tac-variables"), GiB(1), MiB(1));
+    context->tac_constants_arena = acquire_arena_from_provider(arena_provider, string_view("tac-constants"), GiB(1), MiB(1));
 
     context->source_file = *source_file;
 }
@@ -40,7 +43,11 @@ destroy_compilation_context(Compilation_Context* context)
     release_arena_to_provider(context->arena_provider, context->symbols_arena);
     release_arena_to_provider(context->arena_provider, context->types_arena);
     release_arena_to_provider(context->arena_provider, context->parameter_type_ids_arena);
+
     release_arena_to_provider(context->arena_provider, context->tac_functions_arena);
+    release_arena_to_provider(context->arena_provider, context->tac_function_labels_arena);
+    release_arena_to_provider(context->arena_provider, context->tac_variables_arena);
+    release_arena_to_provider(context->arena_provider, context->tac_constants_arena);
 }
 
 internal Bool
@@ -258,8 +265,12 @@ find_root_type_id(Compilation_Context* context, const Type_Id type_id)
     return type_id;
 }
 
+// TODO(vlad): This test would fail for non-unified types like pointers with
+//             different type_ids. We should probably fix this.
 internal inline Bool
 type_ids_are_equal(Compilation_Context* context, const Type_Id lhs, const Type_Id rhs)
 {
-    return find_root_type_id(context, lhs).index == find_root_type_id(context, rhs).index;
+    const Type_Id lhs_root_type_id = find_root_type_id(context, lhs);
+    const Type_Id rhs_root_type_id = find_root_type_id(context, rhs);
+    return lhs_root_type_id.index == rhs_root_type_id.index;
 }

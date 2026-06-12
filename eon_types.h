@@ -102,3 +102,5 @@ maybe_unused internal Bool resolve_and_validate_types(Compilation_Context* conte
 maybe_unused internal String_View convert_type_to_string(Arena* arena,
                                                          Compilation_Context* context,
                                                          const Type_Id type_id);
+
+maybe_unused internal inline Type_Id get_void_type_id(Compilation_Context* context);

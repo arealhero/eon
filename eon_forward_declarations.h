@@ -24,3 +24,16 @@ enum {
     INVALID_LEXICAL_SCOPE_ID = 0,
     GLOBAL_LEXICAL_SCOPE_ID = 1,
 };
+
+struct Tac_Function_Label_Id
+{
+    Index index;
+};
+typedef struct Tac_Function_Label_Id Tac_Function_Label_Id;
+
+struct Tac_Instruction_Id
+{
+    Tac_Function_Label_Id function_label_id;
+    Index instruction_index;
+};
+typedef struct Tac_Instruction_Id Tac_Instruction_Id;

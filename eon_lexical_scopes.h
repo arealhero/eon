@@ -28,6 +28,8 @@ struct Symbol
     Type_Id type_id;
     Bool binding_is_mutable;
     Bool is_builtin;
+
+    Tac_Instruction_Id tac_instruction_id;
 };
 typedef struct Symbol Symbol;
 

@@ -6,6 +6,13 @@
 #include "eon_ast.h"
 #include "eon_forward_declarations.h"
 
+#define DEFINE_TAC_ID_FOR(name)                                         \
+    struct CONCATENATE(name, _Id)                                       \
+    {                                                                   \
+        Index index;                                                    \
+    };                                                                  \
+    typedef struct CONCATENATE(name, _Id) CONCATENATE(name, _Id)
+
 enum Tac_Operation
 {
     TAC_NOP = 0,
@@ -53,14 +60,13 @@ typedef enum Tac_Operand_Kind Tac_Operand_Kind;
 
 struct Tac_Function_Label
 {
-    Index id;
     Symbol_Id symbol_id;
 };
 typedef struct Tac_Function_Label Tac_Function_Label;
+// NOTE(vlad): "Tac_Function_Label_Id" is defined inside 'eon_forward_declarations.h'.
 
 struct Tac_Variable
 {
-    Index id;
     Type_Id type_id;
 
     Bool is_temporary;
@@ -70,16 +76,10 @@ struct Tac_Variable
     };
 };
 typedef struct Tac_Variable Tac_Variable;
-
-struct Tac_Label
-{
-    Index id;
-};
-typedef struct Tac_Label Tac_Label;
+DEFINE_TAC_ID_FOR(Tac_Variable);
 
 struct Tac_Constant
 {
-    Index id;
     Type_Id type_id;
 
     union
@@ -89,6 +89,9 @@ struct Tac_Constant
     };
 };
 typedef struct Tac_Constant Tac_Constant;
+DEFINE_TAC_ID_FOR(Tac_Constant);
+
+DEFINE_TAC_ID_FOR(Tac_Label);
 
 struct Tac_Parameter_Index
 {
@@ -102,10 +105,10 @@ struct Tac_Operand
 
     union
     {
-        Tac_Function_Label function_label;
-        Tac_Variable variable;
-        Tac_Constant constant;
-        Tac_Label label;
+        Tac_Function_Label_Id function_label_id;
+        Tac_Variable_Id variable_id;
+        Tac_Constant_Id constant_id;
+        Tac_Label_Id label_id;
         Tac_Parameter_Index parameter_index;
     };
 };
@@ -124,29 +127,26 @@ struct Tac_Function
 {
     Arena* instructions_arena;
 
-    Tac_Function_Label label;
+    Tac_Function_Label_Id label_id;
 
-    Tac_Instruction* instructions;
-    Size instructions_count;
-    Size instructions_capacity;
+    array(Tac_Instruction, instructions);
 };
 typedef struct Tac_Function Tac_Function;
 
 struct Tac
 {
-    Tac_Function* functions;
-    Size functions_count;
-    Size functions_capacity;
+    array(Tac_Function, functions);
 
-    Tac_Function_Label* function_labels;
-    Size function_labels_count;
-    Size function_labels_capacity;
-
-    Index next_function_label_id;
-    Index next_variable_id;
-    Index next_constant_id;
-    Index next_label_id;
+    array(Tac_Function_Label, function_labels);
+    array(Tac_Variable, variables);
+    array(Tac_Constant, constants);
 };
 typedef struct Tac Tac;
 
 maybe_unused internal void lower_ast_to_tac(struct Compilation_Context* context);
+
+maybe_unused internal inline Tac_Function_Label* get_tac_function_label_by_id(Tac* tac, const Tac_Function_Label_Id id);
+maybe_unused internal inline Tac_Variable* get_tac_variable_by_id(Tac* tac, const Tac_Variable_Id id);
+maybe_unused internal inline Tac_Constant* get_tac_constant_by_id(Tac* tac, const Tac_Constant_Id id);
+
+#undef DEFINE_TAC_ID_FOR
