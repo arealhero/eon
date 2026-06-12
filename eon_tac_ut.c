@@ -238,8 +238,6 @@ test_expression_lowering(Test_Context* test_context)
         };
         typedef struct Number_Test_Info Number_Test_Info;
 
-        // NOTE(vlad): Testing that number type inference works correctly in assignments.
-
 #define DECLARE_BINARY_OPERATION_TEST_INFO(operator, tac_operation)     \
         (Number_Test_Info){                                             \
             .source_code = string_view("foo: () -> void = {\n"          \
