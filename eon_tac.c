@@ -142,14 +142,14 @@ set_tac_instruction_id_by_variable_id(Compilation_Context* context,
 }
 
 internal Tac_Operand
-create_tac_variable_for_expression(Compilation_Context* context,
-                                   const Ast_Expression* expression)
+create_tac_temporary_variable(Compilation_Context* context,
+                              const Type_Id type_id)
 {
     const Tac_Variable_Id id = create_tac_variable(context);
 
     Tac_Variable* variable = get_tac_variable_by_id(&context->tac, id);
 
-    variable->type_id = expression->type_id;
+    variable->type_id = type_id;
     variable->is_temporary = true;
 
     Tac_Operand operand = {0};
@@ -306,7 +306,7 @@ lower_expression_to_tac(Compilation_Context* context,
                 } break;
             }
 
-            instruction.destination = create_tac_variable_for_expression(context, expression);
+            instruction.destination = create_tac_temporary_variable(context, expression->type_id);
             instruction.first_argument = lhs;
             instruction.second_argument = rhs;
 
@@ -367,7 +367,7 @@ lower_expression_to_tac(Compilation_Context* context,
 
                 if (!type_ids_are_equal(context, return_type_id, void_type_id))
                 {
-                    call_instruction.destination = create_tac_variable_for_expression(context, expression);
+                    call_instruction.destination = create_tac_temporary_variable(context, expression->type_id);
                 }
             }
 
