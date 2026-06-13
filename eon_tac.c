@@ -216,6 +216,12 @@ lower_expression_to_tac(Compilation_Context* context,
         case AST_EXPRESSION_SUBTRACT:
         case AST_EXPRESSION_MULTIPLY:
         case AST_EXPRESSION_DIVIDE:
+        case AST_EXPRESSION_EQUAL:
+        case AST_EXPRESSION_NOT_EQUAL:
+        case AST_EXPRESSION_LESS:
+        case AST_EXPRESSION_LESS_OR_EQUAL:
+        case AST_EXPRESSION_GREATER:
+        case AST_EXPRESSION_GREATER_OR_EQUAL:
         {
             const Ast_Binary_Expression* binary_expression = &expression->binary_expression;
             const Tac_Operand lhs = lower_expression_to_tac(context, tac_function, binary_expression->lhs);
@@ -245,6 +251,36 @@ lower_expression_to_tac(Compilation_Context* context,
                     instruction.operation = TAC_DIVIDE;
                 } break;
 
+                case AST_EXPRESSION_EQUAL:
+                {
+                    instruction.operation = TAC_EQUAL;
+                } break;
+
+                case AST_EXPRESSION_NOT_EQUAL:
+                {
+                    instruction.operation = TAC_NOT_EQUAL;
+                } break;
+
+                case AST_EXPRESSION_LESS:
+                {
+                    instruction.operation = TAC_LESS;
+                } break;
+
+                case AST_EXPRESSION_LESS_OR_EQUAL:
+                {
+                    instruction.operation = TAC_LESS_OR_EQUAL;
+                } break;
+
+                case AST_EXPRESSION_GREATER:
+                {
+                    instruction.operation = TAC_GREATER;
+                } break;
+
+                case AST_EXPRESSION_GREATER_OR_EQUAL:
+                {
+                    instruction.operation = TAC_GREATER_OR_EQUAL;
+                } break;
+
                 default:
                 {
                     UNREACHABLE();
@@ -257,16 +293,6 @@ lower_expression_to_tac(Compilation_Context* context,
 
             emit_tac_instruction(tac_function, instruction);
             return instruction.destination;
-        } break;
-
-        case AST_EXPRESSION_EQUAL:
-        case AST_EXPRESSION_NOT_EQUAL:
-        case AST_EXPRESSION_LESS:
-        case AST_EXPRESSION_LESS_OR_EQUAL:
-        case AST_EXPRESSION_GREATER:
-        case AST_EXPRESSION_GREATER_OR_EQUAL:
-        {
-            FAIL("[TAC] Comparisons are not supported yet");
         } break;
 
         case AST_EXPRESSION_NEGATE:

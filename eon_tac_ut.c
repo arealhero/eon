@@ -961,11 +961,158 @@ test_calls(Test_Context* test_context)
     }
 }
 
+internal void
+test_comparisons_lowering(Test_Context* test_context)
+{
+    struct Number_Test_Info
+    {
+        String_View source_code;
+        Tac_Operation expected_operation;
+    };
+    typedef struct Number_Test_Info Number_Test_Info;
+
+#define DECLARE_BINARY_OPERATION_TEST_INFO(operator, tac_operation) \
+    (Number_Test_Info){                                             \
+        .source_code = string_view("foo: () -> void = {\n"          \
+                                   "    a := 10 " operator " 20;\n" \
+                                   "}"),                            \
+        .expected_operation = tac_operation,                        \
+    }
+
+    const Number_Test_Info assignment_test_infos[] = {
+        DECLARE_BINARY_OPERATION_TEST_INFO("==", TAC_EQUAL),
+        DECLARE_BINARY_OPERATION_TEST_INFO("!=", TAC_NOT_EQUAL),
+        DECLARE_BINARY_OPERATION_TEST_INFO("<", TAC_LESS),
+        DECLARE_BINARY_OPERATION_TEST_INFO("<=", TAC_LESS_OR_EQUAL),
+        DECLARE_BINARY_OPERATION_TEST_INFO(">", TAC_GREATER),
+        DECLARE_BINARY_OPERATION_TEST_INFO(">=", TAC_GREATER_OR_EQUAL),
+    };
+#undef DECLARE_BINARY_OPERATION_TEST_INFO
+
+    for (Index i = 0;
+         i < NUMBER_OF_STATIC_ARRAY_ELEMENTS(assignment_test_infos);
+         ++i)
+    {
+        Number_Test_Info test_info = assignment_test_infos[i];
+
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE(test_info.source_code);
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        lower_ast_to_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        const Ast* ast = &context.ast;
+        ASSERT_EQUAL(ast->function_definitions_count, 1);
+
+        const Ast_Function_Definition* ast_function = &ast->function_definitions[0];
+
+        const Tac* tac = &context.tac;
+        ASSERT_EQUAL(tac->functions_count, 1);
+
+        const Tac_Function* tac_function = &tac->functions[0];
+        ASSERT_FUNCTION_LABEL_POINTS_TO_FUNCTION(tac_function->label_id, ast_function);
+
+        ASSERT_EQUAL(tac_function->instructions_count, 3);
+
+        {
+            const Tac_Instruction* instruction = &tac_function->instructions[0];
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, test_info.expected_operation);
+
+            const Tac_Operand* destination = &instruction->destination;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_VARIABLE);
+            ASSERT_TEMPORARY_VARIABLE_HAS_TYPE(destination->variable_id, "bool");
+
+            const Tac_Operand* first_argument = &instruction->first_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", "10");
+
+            const Tac_Operand* second_argument = &instruction->second_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_CONSTANT);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(second_argument->constant_id, "s32", "20");
+        }
+
+        {
+            const Tac_Instruction* instruction = &tac_function->instructions[1];
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
+
+            const Tac_Operand* destination = &instruction->destination;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_VARIABLE);
+
+            {
+                ASSERT_EQUAL(ast_function->body.statements_count, 1);
+                const Ast_Statement* statement = &ast_function->body.statements[0];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+
+                const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
+                ASSERT_VARIABLE_POINTS_TO_SYMBOL(destination->variable_id,
+                                                 variable_definition->name.symbol_id);
+            }
+
+            const Tac_Operand* first_argument = &instruction->first_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_VARIABLE);
+            ASSERT_TEMPORARY_VARIABLE_HAS_TYPE(first_argument->variable_id, "bool");
+            ASSERT_EQUAL(first_argument->variable_id.index,
+                         tac_function->instructions[0].destination.variable_id.index);
+
+            const Tac_Operand* second_argument = &instruction->second_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+        }
+
+        {
+            const Tac_Instruction* instruction = &tac_function->instructions[2];
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
+
+            const Tac_Operand* destination = &instruction->destination;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_NONE);
+
+            const Tac_Operand* first_argument = &instruction->first_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_NONE);
+
+            const Tac_Operand* second_argument = &instruction->second_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+        }
+
+        // NOTE(vlad): Testing that variable symbol has a non-empty TAC instruction id.
+        {
+            ASSERT_EQUAL(ast_function->body.statements_count, 1);
+            const Ast_Statement* statement = &ast_function->body.statements[0];
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+
+            const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
+            const Symbol_Id variable_symbol_id = variable_definition->name.symbol_id;
+            const Symbol* variable_symbol = get_symbol_by_id(&context, variable_symbol_id);
+
+            ASSERT_EQUAL(variable_symbol->tac_instruction_id.function_label_id.index, 1);
+            ASSERT_EQUAL(variable_symbol->tac_instruction_id.instruction_index, 1);
+        }
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+}
+
+
 REGISTER_TESTS(
     test_function_parameters_lowering,
     test_expression_lowering,
     test_return_statements_lowering,
-    test_calls
+    test_calls,
+    test_comparisons_lowering
 )
 
 #include "eon_compilation_context.c"
