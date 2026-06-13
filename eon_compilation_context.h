@@ -31,6 +31,7 @@ struct Compilation_Context
     Arena* tac_function_labels_arena;
     Arena* tac_variables_arena;
     Arena* tac_constants_arena;
+    Arena* tac_labels_arena;
 
     Source_File source_file;
 

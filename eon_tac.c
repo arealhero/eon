@@ -50,6 +50,17 @@ create_tac_constant(Compilation_Context* context)
     return id;
 }
 
+internal Tac_Label_Id
+create_tac_label(Compilation_Context* context)
+{
+    Tac* tac = &context->tac;
+    append_array(context->tac_labels_arena, tac->labels, Tac_Label, (Tac_Label){0});
+
+    Tac_Label_Id id = {0};
+    id.index = tac->labels_count - 1;
+    return id;
+}
+
 internal inline Tac_Function_Label*
 get_tac_function_label_by_id(Tac* tac, const Tac_Function_Label_Id id)
 {
@@ -72,6 +83,14 @@ get_tac_constant_by_id(Tac* tac, const Tac_Constant_Id id)
     ASSERT(0 <= id.index && id.index < tac->constants_count);
     ASSERT(id.index != INVALID_TAC_INDEX);
     return &tac->constants[id.index];
+}
+
+internal inline Tac_Label*
+get_tac_label_by_id(Tac* tac, const Tac_Label_Id id)
+{
+    ASSERT(0 <= id.index && id.index < tac->labels_count);
+    ASSERT(id.index != INVALID_TAC_INDEX);
+    return &tac->labels[id.index];
 }
 
 internal Tac_Operand
@@ -428,7 +447,70 @@ lower_statement_to_tac(Compilation_Context* context,
 
         case AST_STATEMENT_WHILE:
         {
-            FAIL("[TAC] While loops are not supported yet");
+            const Ast_While_Statement* while_statement = &statement->while_statement;
+
+            const Tac_Label_Id start_label_id = create_tac_label(context);
+            const Tac_Label_Id end_label_id = create_tac_label(context);
+
+            {
+                Tac_Instruction start_label_instruction = {0};
+                start_label_instruction.operation = TAC_LABEL;
+                start_label_instruction.destination.kind = TAC_OPERAND_LABEL;
+                start_label_instruction.destination.label_id = start_label_id;
+
+                const Index instruction_index = emit_tac_instruction(tac_function, start_label_instruction);
+
+                Tac_Label* start_label = get_tac_label_by_id(&context->tac, start_label_id);
+                start_label->instruction_id.function_label_id = tac_function->label_id;
+                start_label->instruction_id.instruction_index = instruction_index;
+            }
+
+            {
+                const Tac_Operand condition_operand = lower_expression_to_tac(context,
+                                                                              tac_function,
+                                                                              &while_statement->condition);
+
+                Tac_Instruction condition_instruction = {0};
+                condition_instruction.operation = TAC_JUMP_IF_FALSE;
+                condition_instruction.destination.kind = TAC_OPERAND_LABEL;
+                condition_instruction.destination.label_id = end_label_id;
+                condition_instruction.first_argument = condition_operand;
+
+                emit_tac_instruction(tac_function, condition_instruction);
+            }
+
+            {
+                const Ast_Code_Block* body = &while_statement->body;
+                for (Index statement_index = 0;
+                     statement_index < body->statements_count;
+                     ++statement_index)
+                {
+                    const Ast_Statement* body_statement = &body->statements[0];
+                    lower_statement_to_tac(context, tac_function, body_statement);
+                }
+            }
+
+            {
+                Tac_Instruction loop_instruction = {0};
+                loop_instruction.operation = TAC_JUMP;
+                loop_instruction.destination.kind = TAC_OPERAND_LABEL;
+                loop_instruction.destination.label_id = start_label_id;
+
+                emit_tac_instruction(tac_function, loop_instruction);
+            }
+
+            {
+                Tac_Instruction end_label_instruction = {0};
+                end_label_instruction.operation = TAC_LABEL;
+                end_label_instruction.destination.kind = TAC_OPERAND_LABEL;
+                end_label_instruction.destination.label_id = end_label_id;
+
+                const Index instruction_index = emit_tac_instruction(tac_function, end_label_instruction);
+
+                Tac_Label* end_label = get_tac_label_by_id(&context->tac, end_label_id);
+                end_label->instruction_id.function_label_id = tac_function->label_id;
+                end_label->instruction_id.instruction_index = instruction_index;
+            }
         } break;
 
         case AST_STATEMENT_IF:
@@ -461,6 +543,9 @@ lower_ast_to_tac(Compilation_Context* context)
 
         const Tac_Constant_Id constant_id = create_tac_constant(context);
         ASSERT(constant_id.index == INVALID_TAC_INDEX);
+
+        const Tac_Label_Id label_id = create_tac_label(context);
+        ASSERT(label_id.index == INVALID_TAC_INDEX);
     }
 
     // NOTE(vlad): Creating variable ids for functions.

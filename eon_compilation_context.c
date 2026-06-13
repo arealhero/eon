@@ -21,6 +21,7 @@ create_compilation_context(Compilation_Context* context,
     context->tac_function_labels_arena = acquire_arena_from_provider(arena_provider, string_view("tac-function-labels"), GiB(1), MiB(1));
     context->tac_variables_arena = acquire_arena_from_provider(arena_provider, string_view("tac-variables"), GiB(1), MiB(1));
     context->tac_constants_arena = acquire_arena_from_provider(arena_provider, string_view("tac-constants"), GiB(1), MiB(1));
+    context->tac_labels_arena = acquire_arena_from_provider(arena_provider, string_view("tac-labels"), GiB(1), MiB(1));
 
     context->source_file = *source_file;
 }
@@ -48,6 +49,7 @@ destroy_compilation_context(Compilation_Context* context)
     release_arena_to_provider(context->arena_provider, context->tac_function_labels_arena);
     release_arena_to_provider(context->arena_provider, context->tac_variables_arena);
     release_arena_to_provider(context->arena_provider, context->tac_constants_arena);
+    release_arena_to_provider(context->arena_provider, context->tac_labels_arena);
 }
 
 internal Bool

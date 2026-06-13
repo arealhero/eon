@@ -36,6 +36,7 @@ enum Tac_Operation
 
     TAC_LABEL,
     TAC_JUMP,
+    TAC_JUMP_IF_TRUE,
     TAC_JUMP_IF_FALSE,
 
     TAC_SET_PARAMETER,
@@ -91,6 +92,11 @@ struct Tac_Constant
 typedef struct Tac_Constant Tac_Constant;
 DEFINE_TAC_ID_FOR(Tac_Constant);
 
+struct Tac_Label
+{
+    Tac_Instruction_Id instruction_id;
+};
+typedef struct Tac_Label Tac_Label;
 DEFINE_TAC_ID_FOR(Tac_Label);
 
 struct Tac_Parameter_Index
@@ -140,6 +146,7 @@ struct Tac
     array(Tac_Function_Label, function_labels);
     array(Tac_Variable, variables);
     array(Tac_Constant, constants);
+    array(Tac_Label, labels);
 };
 typedef struct Tac Tac;
 
@@ -148,5 +155,6 @@ maybe_unused internal void lower_ast_to_tac(struct Compilation_Context* context)
 maybe_unused internal inline Tac_Function_Label* get_tac_function_label_by_id(Tac* tac, const Tac_Function_Label_Id id);
 maybe_unused internal inline Tac_Variable* get_tac_variable_by_id(Tac* tac, const Tac_Variable_Id id);
 maybe_unused internal inline Tac_Constant* get_tac_constant_by_id(Tac* tac, const Tac_Constant_Id id);
+maybe_unused internal inline Tac_Label* get_tac_label_by_id(Tac* tac, const Tac_Label_Id id);
 
 #undef DEFINE_TAC_ID_FOR
