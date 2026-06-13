@@ -399,6 +399,8 @@ lower_expression_to_tac(Compilation_Context* context,
             return call_instruction.destination;
         } break;
     }
+
+    UNREACHABLE();
 }
 
 internal void
