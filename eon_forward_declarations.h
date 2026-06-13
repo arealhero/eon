@@ -34,6 +34,11 @@ typedef struct Tac_Function_Label_Id Tac_Function_Label_Id;
 struct Tac_Instruction_Id
 {
     Tac_Function_Label_Id function_label_id;
-    Index instruction_index;
+
+    Bool is_a_global_function; // FIXME(vlad): Come up with a better solution.
+    union
+    {
+        Index instruction_index;
+    };
 };
 typedef struct Tac_Instruction_Id Tac_Instruction_Id;

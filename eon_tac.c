@@ -7,6 +7,7 @@
 enum
 {
     INVALID_TAC_INDEX = 0,
+    GLOBAL_TAC_FUNCTION_LABEL_INDEX = 1,
 };
 
 internal inline Index
@@ -186,6 +187,14 @@ lower_expression_to_tac(Compilation_Context* context,
             const Symbol* identifier_symbol = get_symbol_by_id(context, identifier->symbol_id);
             const Tac_Instruction_Id* instruction_id = &identifier_symbol->tac_instruction_id;
 
+            if (instruction_id->is_a_global_function)
+            {
+                Tac_Operand operand = {0};
+                operand.kind = TAC_OPERAND_FUNCTION_LABEL;
+                operand.function_label_id = instruction_id->function_label_id;
+                return operand;
+            }
+
             // TODO(vlad): Support global variables.
             ASSERT(instruction_id->function_label_id.index == tac_function->label_id.index);
             const Tac_Instruction* instruction = &tac_function->instructions[instruction_id->instruction_index];
@@ -277,7 +286,50 @@ lower_expression_to_tac(Compilation_Context* context,
 
         case AST_EXPRESSION_CALL:
         {
-            FAIL("[TAC] Calls are not supported yet");
+            const Ast_Call* call = &expression->call;
+
+            const Tac_Operand called_expression_operand = lower_expression_to_tac(context,
+                                                                                  tac_function,
+                                                                                  call->called_expression);
+
+            for (Index argument_index = 0;
+                 argument_index < call->arguments_count;
+                 ++argument_index)
+            {
+                const Ast_Expression* argument = call->arguments[argument_index];
+
+                const Tac_Operand argument_operand = lower_expression_to_tac(context,
+                                                                             tac_function,
+                                                                             argument);
+
+                Tac_Instruction instruction = {0};
+                instruction.operation = TAC_SET_PARAMETER;
+                instruction.first_argument = argument_operand;
+
+                emit_tac_instruction(tac_function, instruction);
+            }
+
+            Tac_Instruction call_instruction = {0};
+            call_instruction.operation = TAC_CALL;
+
+            {
+                const Type* called_expression_type = get_type_by_id(context,
+                                                                    call->called_expression->type_id);
+                ASSERT(called_expression_type->kind == TYPE_FUNCTION);
+
+                const Type_Id return_type_id = called_expression_type->function_info.return_type_id;
+                const Type_Id void_type_id = get_void_type_id(context);
+
+                if (!type_ids_are_equal(context, return_type_id, void_type_id))
+                {
+                    call_instruction.destination = create_tac_variable_for_expression(context, expression);
+                }
+            }
+
+            call_instruction.first_argument = called_expression_operand;
+
+            emit_tac_instruction(tac_function, call_instruction);
+            return call_instruction.destination;
         } break;
     }
 }
@@ -360,7 +412,9 @@ lower_statement_to_tac(Compilation_Context* context,
 
         case AST_STATEMENT_CALL:
         {
-            FAIL("[TAC] Call statements are not supported yet");
+            const Ast_Call_Statement* call_statement = &statement->call_statement;
+            ASSERT(call_statement->call_expression.kind == AST_EXPRESSION_CALL);
+            lower_expression_to_tac(context, tac_function, &call_statement->call_expression);
         } break;
     }
 }
@@ -383,6 +437,26 @@ lower_ast_to_tac(Compilation_Context* context)
         ASSERT(constant_id.index == INVALID_TAC_INDEX);
     }
 
+    // NOTE(vlad): Creating variable ids for functions.
+    {
+        for (Index function_index = 0;
+             function_index < ast->function_definitions_count;
+             ++function_index)
+        {
+            const Ast_Function_Definition* ast_function = &ast->function_definitions[function_index];
+
+            Symbol* function_symbol = get_symbol_by_id(context, ast_function->name.symbol_id);
+            function_symbol->tac_instruction_id.function_label_id.index = GLOBAL_TAC_FUNCTION_LABEL_INDEX;
+
+            const Tac_Operand operand = create_tac_function_label_for_function(context, ast_function);
+            ASSERT(operand.kind == TAC_OPERAND_FUNCTION_LABEL);
+            ASSERT(operand.function_label_id.index != INVALID_TAC_INDEX);
+
+            function_symbol->tac_instruction_id.function_label_id = operand.function_label_id;
+            function_symbol->tac_instruction_id.is_a_global_function = true;
+        }
+    }
+
     for (Index function_index = 0;
          function_index < ast->function_definitions_count;
          ++function_index)
@@ -396,10 +470,11 @@ lower_ast_to_tac(Compilation_Context* context)
 
         Tac_Function* tac_function = &tac->functions[tac->functions_count - 1];
         {
-            const Tac_Operand operand = create_tac_function_label_for_function(context, ast_function);
-            ASSERT(operand.kind == TAC_OPERAND_FUNCTION_LABEL);
-            ASSERT(operand.function_label_id.index != INVALID_TAC_INDEX);
-            tac_function->label_id = operand.function_label_id;
+            const Symbol* function_symbol = get_symbol_by_id(context, ast_function->name.symbol_id);
+            ASSERT(function_symbol->tac_instruction_id.function_label_id.index != INVALID_TAC_INDEX);
+            ASSERT(function_symbol->tac_instruction_id.is_a_global_function == true);
+
+            tac_function->label_id = function_symbol->tac_instruction_id.function_label_id;
         }
 
         tac_function->instructions_arena = acquire_arena_from_provider(context->arena_provider,
