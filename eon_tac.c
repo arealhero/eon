@@ -321,12 +321,34 @@ lower_expression_to_tac(Compilation_Context* context,
 
         case AST_EXPRESSION_DEREFERENCE:
         {
-            FAIL("[TAC] Dereferences are not supported yet");
+            const Ast_Unary_Expression* address_of_expression = &expression->unary_expression;
+
+            const Tac_Operand operand = lower_expression_to_tac(context, tac_function, address_of_expression->operand);
+            ASSERT(operand.kind == TAC_OPERAND_VARIABLE);
+
+            Tac_Instruction instruction = {0};
+            instruction.operation = TAC_LOAD_BY_ADDRESS;
+            instruction.destination = create_tac_temporary_variable(context, expression->type_id);
+            instruction.first_argument = operand;
+
+            emit_tac_instruction(tac_function, instruction);
+            return instruction.destination;
         } break;
 
         case AST_EXPRESSION_ADDRESS_OF:
         {
-            FAIL("[TAC] Address-of expressions are not supported yet");
+            const Ast_Unary_Expression* address_of_expression = &expression->unary_expression;
+
+            const Tac_Operand operand = lower_expression_to_tac(context, tac_function, address_of_expression->operand);
+            ASSERT(operand.kind == TAC_OPERAND_VARIABLE);
+
+            Tac_Instruction instruction = {0};
+            instruction.operation = TAC_GET_ADDRESS;
+            instruction.destination = create_tac_temporary_variable(context, expression->type_id);
+            instruction.first_argument = operand;
+
+            emit_tac_instruction(tac_function, instruction);
+            return instruction.destination;
         } break;
 
         case AST_EXPRESSION_CALL:
@@ -417,15 +439,32 @@ lower_statement_to_tac(Compilation_Context* context,
         case AST_STATEMENT_ASSIGNMENT:
         {
             const Ast_Assignment* assignment = &statement->assignment;
-            const Tac_Operand lhs = lower_expression_to_tac(context, tac_function, &assignment->lhs);
+
             const Tac_Operand rhs = lower_expression_to_tac(context, tac_function, &assignment->rhs);
 
-            Tac_Instruction instruction = {0};
-            instruction.operation = TAC_ASSIGN;
-            instruction.destination = lhs;
-            instruction.first_argument = rhs;
+            if (assignment->lhs.kind == AST_EXPRESSION_DEREFERENCE)
+            {
+                const Ast_Unary_Expression* lhs_dereference = &assignment->lhs.unary_expression;
+                const Tac_Operand lhs_dereference_operand = lower_expression_to_tac(context, tac_function, lhs_dereference->operand);
 
-            emit_tac_instruction(tac_function, instruction);
+                Tac_Instruction instruction = {0};
+                instruction.operation = TAC_STORE_BY_ADDRESS;
+                instruction.destination = lhs_dereference_operand;
+                instruction.first_argument = rhs;
+
+                emit_tac_instruction(tac_function, instruction);
+            }
+            else
+            {
+                const Tac_Operand lhs = lower_expression_to_tac(context, tac_function, &assignment->lhs);
+
+                Tac_Instruction instruction = {0};
+                instruction.operation = TAC_ASSIGN;
+                instruction.destination = lhs;
+                instruction.first_argument = rhs;
+
+                emit_tac_instruction(tac_function, instruction);
+            }
         } break;
 
         case AST_STATEMENT_RETURN:

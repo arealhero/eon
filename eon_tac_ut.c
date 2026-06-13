@@ -1615,6 +1615,356 @@ test_if_statements_lowering(Test_Context* test_context)
     }
 }
 
+
+internal void
+test_indirect_memory_access(Test_Context* test_context)
+{
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {"
+                                                 "    a := 10;"
+                                                 "    ptr := a&;"
+                                                 "    return ptr*;"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        lower_ast_to_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        const Ast* ast = &context.ast;
+        ASSERT_EQUAL(ast->function_definitions_count, 1);
+
+        const Tac* tac = &context.tac;
+        ASSERT_EQUAL(tac->functions_count, 1);
+
+        const Ast_Function_Definition* ast_function = &ast->function_definitions[0];
+
+        const Tac_Function* tac_function = &tac->functions[0];
+        ASSERT_FUNCTION_LABEL_POINTS_TO_FUNCTION(tac_function->label_id, ast_function);
+
+        ASSERT_EQUAL(ast_function->body.statements_count, 3);
+        ASSERT_EQUAL(tac_function->instructions_count, 5);
+
+        const Tac_Instruction* instruction = &tac_function->instructions[0];
+
+        {
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
+
+            const Tac_Operand* destination = &instruction->destination;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_VARIABLE);
+
+            {
+                const Ast_Statement* statement = &ast_function->body.statements[0];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+
+                const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
+                ASSERT_STRINGS_ARE_EQUAL(variable_definition->name.token.lexeme, "a");
+                ASSERT_VARIABLE_POINTS_TO_SYMBOL(destination->variable_id,
+                                                 variable_definition->name.symbol_id);
+            }
+
+            const Tac_Operand* first_argument = &instruction->first_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", "10");
+
+            const Tac_Operand* second_argument = &instruction->second_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+        }
+
+        instruction += 1;
+
+        {
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_GET_ADDRESS);
+
+            const Tac_Operand* destination = &instruction->destination;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_VARIABLE);
+            ASSERT_TEMPORARY_VARIABLE_HAS_TYPE(destination->variable_id, "* s32");
+
+            const Tac_Operand* first_argument = &instruction->first_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_VARIABLE);
+            {
+                const Ast_Statement* statement = &ast_function->body.statements[0];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+
+                const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
+                ASSERT_STRINGS_ARE_EQUAL(variable_definition->name.token.lexeme, "a");
+                ASSERT_VARIABLE_POINTS_TO_SYMBOL(first_argument->variable_id,
+                                                 variable_definition->name.symbol_id);
+            }
+
+            const Tac_Operand* second_argument = &instruction->second_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+        }
+
+        instruction += 1;
+
+        {
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
+
+            const Tac_Operand* destination = &instruction->destination;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_VARIABLE);
+
+            {
+                const Ast_Statement* statement = &ast_function->body.statements[1];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+
+                const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
+                ASSERT_STRINGS_ARE_EQUAL(variable_definition->name.token.lexeme, "ptr");
+                ASSERT_VARIABLE_POINTS_TO_SYMBOL(destination->variable_id,
+                                                 variable_definition->name.symbol_id);
+            }
+
+            const Tac_Operand* first_argument = &instruction->first_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_VARIABLE);
+            ASSERT_TEMPORARY_VARIABLE_HAS_TYPE(first_argument->variable_id, "* s32");
+            {
+                const Tac_Instruction* previous_instruction = instruction - 1;
+                ASSERT_EQUAL(first_argument->variable_id.index, previous_instruction->destination.variable_id.index);
+            }
+
+            const Tac_Operand* second_argument = &instruction->second_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+        }
+
+        instruction += 1;
+
+        {
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_LOAD_BY_ADDRESS);
+
+            const Tac_Operand* destination = &instruction->destination;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_VARIABLE);
+            ASSERT_TEMPORARY_VARIABLE_HAS_TYPE(destination->variable_id, "s32");
+
+            const Tac_Operand* first_argument = &instruction->first_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_VARIABLE);
+            {
+                const Ast_Statement* statement = &ast_function->body.statements[1];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+
+                const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
+                ASSERT_STRINGS_ARE_EQUAL(variable_definition->name.token.lexeme, "ptr");
+                ASSERT_VARIABLE_POINTS_TO_SYMBOL(first_argument->variable_id,
+                                                 variable_definition->name.symbol_id);
+            }
+
+            const Tac_Operand* second_argument = &instruction->second_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+        }
+
+        instruction += 1;
+
+        {
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
+
+            const Tac_Operand* destination = &instruction->destination;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_NONE);
+
+            const Tac_Operand* first_argument = &instruction->first_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_VARIABLE);
+            ASSERT_TEMPORARY_VARIABLE_HAS_TYPE(first_argument->variable_id, "s32");
+            {
+                const Tac_Instruction* previous_instruction = (instruction - 1);
+                ASSERT_EQUAL(first_argument->variable_id.index, previous_instruction->destination.variable_id.index);
+            }
+
+            const Tac_Operand* second_argument = &instruction->second_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+        }
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {"
+                                                 "    a: mutable _ = 10;"
+                                                 "    ptr := a&;"
+                                                 "    ptr* = 20;"
+                                                 "    return a;"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        lower_ast_to_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        const Ast* ast = &context.ast;
+        ASSERT_EQUAL(ast->function_definitions_count, 1);
+
+        const Tac* tac = &context.tac;
+        ASSERT_EQUAL(tac->functions_count, 1);
+
+        const Ast_Function_Definition* ast_function = &ast->function_definitions[0];
+
+        const Tac_Function* tac_function = &tac->functions[0];
+        ASSERT_FUNCTION_LABEL_POINTS_TO_FUNCTION(tac_function->label_id, ast_function);
+
+        ASSERT_EQUAL(ast_function->body.statements_count, 4);
+        ASSERT_EQUAL(tac_function->instructions_count, 5);
+
+        const Tac_Instruction* instruction = &tac_function->instructions[0];
+
+        {
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
+
+            const Tac_Operand* destination = &instruction->destination;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_VARIABLE);
+
+            {
+                const Ast_Statement* statement = &ast_function->body.statements[0];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+
+                const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
+                ASSERT_STRINGS_ARE_EQUAL(variable_definition->name.token.lexeme, "a");
+                ASSERT_VARIABLE_POINTS_TO_SYMBOL(destination->variable_id,
+                                                 variable_definition->name.symbol_id);
+            }
+
+            const Tac_Operand* first_argument = &instruction->first_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", "10");
+
+            const Tac_Operand* second_argument = &instruction->second_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+        }
+
+        instruction += 1;
+
+        {
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_GET_ADDRESS);
+
+            const Tac_Operand* destination = &instruction->destination;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_VARIABLE);
+            ASSERT_TEMPORARY_VARIABLE_HAS_TYPE(destination->variable_id, "* mutable s32");
+
+            const Tac_Operand* first_argument = &instruction->first_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_VARIABLE);
+            {
+                const Ast_Statement* statement = &ast_function->body.statements[0];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+
+                const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
+                ASSERT_STRINGS_ARE_EQUAL(variable_definition->name.token.lexeme, "a");
+                ASSERT_VARIABLE_POINTS_TO_SYMBOL(first_argument->variable_id,
+                                                 variable_definition->name.symbol_id);
+            }
+
+            const Tac_Operand* second_argument = &instruction->second_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+        }
+
+        instruction += 1;
+
+        {
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
+
+            const Tac_Operand* destination = &instruction->destination;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_VARIABLE);
+
+            {
+                const Ast_Statement* statement = &ast_function->body.statements[1];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+
+                const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
+                ASSERT_STRINGS_ARE_EQUAL(variable_definition->name.token.lexeme, "ptr");
+                ASSERT_VARIABLE_POINTS_TO_SYMBOL(destination->variable_id,
+                                                 variable_definition->name.symbol_id);
+            }
+
+            const Tac_Operand* first_argument = &instruction->first_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_VARIABLE);
+            ASSERT_TEMPORARY_VARIABLE_HAS_TYPE(first_argument->variable_id, "* mutable s32");
+            {
+                const Tac_Instruction* previous_instruction = instruction - 1;
+                ASSERT_EQUAL(first_argument->variable_id.index, previous_instruction->destination.variable_id.index);
+            }
+
+            const Tac_Operand* second_argument = &instruction->second_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+        }
+
+        instruction += 1;
+
+        {
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_STORE_BY_ADDRESS);
+
+            const Tac_Operand* destination = &instruction->destination;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_VARIABLE);
+            {
+                const Ast_Statement* statement = &ast_function->body.statements[1];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+
+                const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
+                ASSERT_STRINGS_ARE_EQUAL(variable_definition->name.token.lexeme, "ptr");
+                ASSERT_VARIABLE_POINTS_TO_SYMBOL(destination->variable_id,
+                                                 variable_definition->name.symbol_id);
+            }
+
+            const Tac_Operand* first_argument = &instruction->first_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", "20");
+
+            const Tac_Operand* second_argument = &instruction->second_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+        }
+
+        instruction += 1;
+
+        {
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
+
+            const Tac_Operand* destination = &instruction->destination;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_NONE);
+
+            const Tac_Operand* first_argument = &instruction->first_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_VARIABLE);
+            {
+                const Ast_Statement* statement = &ast_function->body.statements[0];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+
+                const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
+                ASSERT_STRINGS_ARE_EQUAL(variable_definition->name.token.lexeme, "a");
+                ASSERT_VARIABLE_POINTS_TO_SYMBOL(first_argument->variable_id,
+                                                 variable_definition->name.symbol_id);
+            }
+
+            const Tac_Operand* second_argument = &instruction->second_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+        }
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+}
+
 REGISTER_TESTS(
     test_function_parameters_lowering,
     test_expression_lowering,
@@ -1622,7 +1972,8 @@ REGISTER_TESTS(
     test_calls,
     test_binary_expressions_lowering,
     test_while_loops_lowering,
-    test_if_statements_lowering
+    test_if_statements_lowering,
+    test_indirect_memory_access
 )
 
 #include "eon_compilation_context.c"

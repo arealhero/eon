@@ -18,6 +18,9 @@ enum Tac_Operation
     TAC_NOP = 0,
 
     TAC_ASSIGN,
+    TAC_GET_ADDRESS,      // NOTE(vlad): destination = first_argument&
+    TAC_LOAD_BY_ADDRESS,  // NOTE(vlad): destination = first_argument*
+    TAC_STORE_BY_ADDRESS, // NOTE(vlad): destination* = first_argument
 
     TAC_ADD,
     TAC_SUBTRACT,
