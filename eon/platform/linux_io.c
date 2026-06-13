@@ -1,5 +1,5 @@
 #if !EON_PLATFORM_IO_INCLUDED
-#    error Do not use this file directly. Include "<eon/platform/memory.h>" instead.
+#    error Do not use this file directly. Include "<eon/platform/io.h>" instead.
 #endif
 
 #include <unistd.h> // NOTE(vlad): For 'write'.
