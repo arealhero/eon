@@ -515,7 +515,84 @@ lower_statement_to_tac(Compilation_Context* context,
 
         case AST_STATEMENT_IF:
         {
-            FAIL("[TAC] If statements are not supported yet");
+            // TODO(vlad): Optimize instructions in case of empty if/else block?
+            //             Or maybe it is a good idea to optimize them out after the CFG construction.
+
+            const Ast_If_Statement* if_statement = &statement->if_statement;
+
+            const Tac_Label_Id else_label_id = create_tac_label(context);
+            const Tac_Label_Id end_label_id = create_tac_label(context);
+
+            {
+                const Tac_Operand condition_operand = lower_expression_to_tac(context,
+                                                                              tac_function,
+                                                                              &if_statement->condition);
+
+                Tac_Instruction condition_instruction = {0};
+                condition_instruction.operation = TAC_JUMP_IF_FALSE;
+                condition_instruction.destination.kind = TAC_OPERAND_LABEL;
+                condition_instruction.destination.label_id = else_label_id;
+                condition_instruction.first_argument = condition_operand;
+
+                emit_tac_instruction(tac_function, condition_instruction);
+            }
+
+            {
+                const Ast_Code_Block* then_code_block = &if_statement->if_statements;
+                for (Index statement_index = 0;
+                     statement_index < then_code_block->statements_count;
+                     ++statement_index)
+                {
+                    const Ast_Statement* then_statement = &then_code_block->statements[0];
+                    lower_statement_to_tac(context, tac_function, then_statement);
+                }
+            }
+
+            {
+                Tac_Instruction loop_instruction = {0};
+                loop_instruction.operation = TAC_JUMP;
+                loop_instruction.destination.kind = TAC_OPERAND_LABEL;
+                loop_instruction.destination.label_id = end_label_id;
+
+                emit_tac_instruction(tac_function, loop_instruction);
+            }
+
+            {
+                Tac_Instruction end_label_instruction = {0};
+                end_label_instruction.operation = TAC_LABEL;
+                end_label_instruction.destination.kind = TAC_OPERAND_LABEL;
+                end_label_instruction.destination.label_id = else_label_id;
+
+                const Index instruction_index = emit_tac_instruction(tac_function, end_label_instruction);
+
+                Tac_Label* end_label = get_tac_label_by_id(&context->tac, else_label_id);
+                end_label->instruction_id.function_label_id = tac_function->label_id;
+                end_label->instruction_id.instruction_index = instruction_index;
+            }
+
+            {
+                const Ast_Code_Block* else_code_block = &if_statement->else_statements;
+                for (Index statement_index = 0;
+                     statement_index < else_code_block->statements_count;
+                     ++statement_index)
+                {
+                    const Ast_Statement* else_statement = &else_code_block->statements[0];
+                    lower_statement_to_tac(context, tac_function, else_statement);
+                }
+            }
+
+            {
+                Tac_Instruction end_label_instruction = {0};
+                end_label_instruction.operation = TAC_LABEL;
+                end_label_instruction.destination.kind = TAC_OPERAND_LABEL;
+                end_label_instruction.destination.label_id = end_label_id;
+
+                const Index instruction_index = emit_tac_instruction(tac_function, end_label_instruction);
+
+                Tac_Label* end_label = get_tac_label_by_id(&context->tac, end_label_id);
+                end_label->instruction_id.function_label_id = tac_function->label_id;
+                end_label->instruction_id.instruction_index = instruction_index;
+            }
         } break;
 
         case AST_STATEMENT_CALL:
