@@ -526,7 +526,7 @@ lower_statement_to_tac(Compilation_Context* context,
                      statement_index < body->statements_count;
                      ++statement_index)
                 {
-                    const Ast_Statement* body_statement = &body->statements[0];
+                    const Ast_Statement* body_statement = &body->statements[statement_index];
                     lower_statement_to_tac(context, tac_function, body_statement);
                 }
             }
@@ -584,7 +584,7 @@ lower_statement_to_tac(Compilation_Context* context,
                      statement_index < then_code_block->statements_count;
                      ++statement_index)
                 {
-                    const Ast_Statement* then_statement = &then_code_block->statements[0];
+                    const Ast_Statement* then_statement = &then_code_block->statements[statement_index];
                     lower_statement_to_tac(context, tac_function, then_statement);
                 }
             }
