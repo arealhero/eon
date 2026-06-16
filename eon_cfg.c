@@ -151,6 +151,9 @@ construct_cfg_from_tac(Compilation_Context* context)
     {
         const Tac_Function* tac_function = &tac->functions[function_index];
 
+        Cfg_Block_Id entry_block_id = {0};
+        entry_block_id.index = cfg->blocks_count;
+
         Index block_start_instruction_index = 0;
 
         for (Index instruction_index = 0;
@@ -185,6 +188,13 @@ construct_cfg_from_tac(Compilation_Context* context)
         }
 
         ASSERT(block_start_instruction_index == tac_function->instructions_count);
+
+        {
+            ASSERT(entry_block_id.index != cfg->blocks_count);
+
+            Tac_Function_Label* tac_function_label = get_tac_function_label_by_id(tac, tac_function->label_id);
+            tac_function_label->entry_cfg_block_id = entry_block_id;
+        }
     }
 
     // NOTE(vlad): Populating label_id to cfg_block_id map.

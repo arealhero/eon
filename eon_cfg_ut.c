@@ -54,6 +54,12 @@ test_functions_without_jumps(Test_Context* test_context)
                          tac_function->instructions_count);
         }
 
+        // NOTE(vlad): Test that entry block was determined correctly.
+        {
+            const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
+            ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
+        }
+
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
@@ -104,6 +110,12 @@ test_functions_without_jumps(Test_Context* test_context)
 
             ASSERT_EQUAL(block->instructions_range.end_instruction_index - block->instructions_range.start_instruction_index,
                          tac_function->instructions_count);
+        }
+
+        // NOTE(vlad): Test that entry block was determined correctly.
+        {
+            const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
+            ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
         }
 
         destroy_parser(&parser);
@@ -171,6 +183,25 @@ test_functions_without_jumps(Test_Context* test_context)
 
             ASSERT_EQUAL(block->instructions_range.end_instruction_index - block->instructions_range.start_instruction_index,
                          tac_function->instructions_count);
+        }
+
+        // NOTE(vlad): Test that entry block was determined correctly.
+        {
+            // NOTE(vlad): Testing 'foo()'.
+            {
+                const Tac_Function* current_function = &tac->functions[0];
+                const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac,
+                                                                                        current_function->label_id);
+                ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
+            }
+
+            // NOTE(vlad): Testing 'bar()'.
+            {
+                const Tac_Function* current_function = &tac->functions[1];
+                const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac,
+                                                                                        current_function->label_id);
+                ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 2);
+            }
         }
 
         destroy_parser(&parser);
@@ -301,6 +332,12 @@ test_if_statements(Test_Context* test_context)
             ASSERT_EQUAL(edge->destination_block_id.index, final_block_index);
         }
 
+        // NOTE(vlad): Test that entry block was determined correctly.
+        {
+            const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
+            ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
+        }
+
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
@@ -425,6 +462,12 @@ test_if_statements(Test_Context* test_context)
             ASSERT_EQUAL(edge->destination_block_id.index, final_block_index);
         }
 
+        // NOTE(vlad): Test that entry block was determined correctly.
+        {
+            const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
+            ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
+        }
+
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
@@ -528,6 +571,12 @@ test_while_loops(Test_Context* test_context)
             const Cfg_Edge* edge = &cfg->edges[2];
             ASSERT_EQUAL(edge->source_block_id.index, body_block_index);
             ASSERT_EQUAL(edge->destination_block_id.index, condition_block_index);
+        }
+
+        // NOTE(vlad): Test that entry block was determined correctly.
+        {
+            const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
+            ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
         }
 
         destroy_parser(&parser);
@@ -732,6 +781,12 @@ test_complex_statements(Test_Context* test_context)
             }
 
             ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(edge + 1, cfg->edges), cfg->edges_count);
+        }
+
+        // NOTE(vlad): Test that entry block was determined correctly.
+        {
+            const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
+            ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
         }
 
         destroy_parser(&parser);

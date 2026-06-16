@@ -65,6 +65,7 @@ typedef enum Tac_Operand_Kind Tac_Operand_Kind;
 struct Tac_Function_Label
 {
     Symbol_Id symbol_id;
+    Cfg_Block_Id entry_cfg_block_id;
 };
 typedef struct Tac_Function_Label Tac_Function_Label;
 // NOTE(vlad): "Tac_Function_Label_Id" is defined inside 'eon_forward_declarations.h'.
