@@ -10,6 +10,8 @@ create_compilation_context(Compilation_Context* context,
 {
     context->arena_provider = arena_provider;
 
+    context->keywords_arena = acquire_arena_from_provider(arena_provider, string_view("keywords"), GiB(1), MiB(1));
+
     context->diagnostic_message_texts_arena = acquire_arena_from_provider(arena_provider, string_view("diagnostic-message-texts"), GiB(1), MiB(1));
     context->diagnostic_messages_arena = acquire_arena_from_provider(arena_provider, string_view("diagnostic-messages"), GiB(1), MiB(1));
     context->ast_arena = acquire_arena_from_provider(arena_provider, string_view("ast"), GiB(1), MiB(1));
@@ -17,6 +19,7 @@ create_compilation_context(Compilation_Context* context,
     context->symbols_arena = acquire_arena_from_provider(arena_provider, string_view("symbols"), GiB(1), MiB(1));
     context->types_arena = acquire_arena_from_provider(arena_provider, string_view("types"), GiB(1), MiB(1));
     context->parameter_type_ids_arena = acquire_arena_from_provider(arena_provider, string_view("function-parameter-type-ids"), GiB(1), MiB(1));
+
     context->tac_functions_arena = acquire_arena_from_provider(arena_provider, string_view("tac-functions"), GiB(1), MiB(1));
     context->tac_function_labels_arena = acquire_arena_from_provider(arena_provider, string_view("tac-function-labels"), GiB(1), MiB(1));
     context->tac_variables_arena = acquire_arena_from_provider(arena_provider, string_view("tac-variables"), GiB(1), MiB(1));
@@ -36,6 +39,8 @@ destroy_compilation_context(Compilation_Context* context)
         Lexical_Scope* scope = &context->lexical_scopes[scope_index];
         release_arena_to_provider(context->arena_provider, scope->symbol_ids_arena);
     }
+
+    release_arena_to_provider(context->arena_provider, context->keywords_arena);
 
     release_arena_to_provider(context->arena_provider, context->diagnostic_message_texts_arena);
     release_arena_to_provider(context->arena_provider, context->diagnostic_messages_arena);

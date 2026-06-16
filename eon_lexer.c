@@ -4,8 +4,6 @@
 
 #include <eon/io.h>
 
-#include <stdlib.h>
-
 internal void
 create_lexer(Lexer* lexer, Compilation_Context* context)
 {
@@ -29,8 +27,8 @@ create_lexer(Lexer* lexer, Compilation_Context* context)
         { .type = TOKEN_WILDCARD, .lexeme = string_view("_"), },
     };
 
-    lexer->keywords_count = size_of(keywords) / size_of(keywords[0]);
-    lexer->keywords = (Keyword*) calloc((USize)lexer->keywords_count, sizeof(Keyword));
+    lexer->keywords_count = NUMBER_OF_STATIC_ARRAY_ELEMENTS(keywords);
+    lexer->keywords = allocate_array(context->keywords_arena, lexer->keywords_count, Keyword);
     for (Index i = 0;
          i < lexer->keywords_count;
          ++i)
@@ -375,8 +373,5 @@ get_next_token(Lexer* lexer, Token* token)
 internal void
 destroy_lexer(Lexer* lexer)
 {
-    if (lexer->keywords)
-    {
-        free(lexer->keywords);
-    }
+    UNUSED(lexer);
 }

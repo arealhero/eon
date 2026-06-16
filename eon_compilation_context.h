@@ -19,6 +19,8 @@ struct Compilation_Context
 {
     struct Arena_Provider* arena_provider;
 
+    Arena* keywords_arena;
+
     Arena* diagnostic_message_texts_arena;
     Arena* diagnostic_messages_arena;
     Arena* ast_arena;
