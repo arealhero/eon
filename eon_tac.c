@@ -6,7 +6,6 @@
 
 enum
 {
-    INVALID_TAC_INDEX = 0,
     GLOBAL_TAC_FUNCTION_LABEL_INDEX = 1,
 };
 
@@ -59,6 +58,25 @@ create_tac_label(Compilation_Context* context)
     Tac_Label_Id id = {0};
     id.index = tac->labels_count - 1;
     return id;
+}
+
+internal inline Tac_Function*
+get_tac_function_by_label(Tac* tac, const Tac_Function_Label_Id label_id)
+{
+    ASSERT(label_id.index != INVALID_TAC_INDEX);
+
+    for (Index function_index = 0;
+         function_index < tac->functions_count;
+         ++function_index)
+    {
+        Tac_Function* function = &tac->functions[function_index];
+        if (function->label_id.index == label_id.index)
+        {
+            return function;
+        }
+    }
+
+    UNREACHABLE();
 }
 
 internal inline Tac_Function_Label*

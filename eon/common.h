@@ -19,6 +19,8 @@ unused_impl(int dummy_parameter_for_varargs, ...)
 
 #define NUMBER_OF_STATIC_ARRAY_ELEMENTS(array) (size_of((array)) / size_of((array)[0]))
 
+#define DISTANCE_BETWEEN_POINTERS(from, to) ABS((to) - (from))
+
 internal inline Bool
 is_power_of_two(const USize number)
 {

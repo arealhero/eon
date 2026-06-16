@@ -155,6 +155,7 @@ typedef struct Tac Tac;
 
 maybe_unused internal void lower_ast_to_tac(struct Compilation_Context* context);
 
+maybe_unused internal inline Tac_Function* get_tac_function_by_label(Tac* tac, const Tac_Function_Label_Id label_id);
 maybe_unused internal inline Tac_Function_Label* get_tac_function_label_by_id(Tac* tac, const Tac_Function_Label_Id id);
 maybe_unused internal inline Tac_Variable* get_tac_variable_by_id(Tac* tac, const Tac_Variable_Id id);
 maybe_unused internal inline Tac_Constant* get_tac_constant_by_id(Tac* tac, const Tac_Constant_Id id);

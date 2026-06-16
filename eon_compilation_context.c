@@ -10,6 +10,7 @@ create_compilation_context(Compilation_Context* context,
 {
     context->arena_provider = arena_provider;
 
+    context->scratch_arena = acquire_arena_from_provider(arena_provider, string_view("scratch"), GiB(1), MiB(1));
     context->keywords_arena = acquire_arena_from_provider(arena_provider, string_view("keywords"), GiB(1), MiB(1));
 
     context->diagnostic_message_texts_arena = acquire_arena_from_provider(arena_provider, string_view("diagnostic-message-texts"), GiB(1), MiB(1));
@@ -26,6 +27,9 @@ create_compilation_context(Compilation_Context* context,
     context->tac_constants_arena = acquire_arena_from_provider(arena_provider, string_view("tac-constants"), GiB(1), MiB(1));
     context->tac_labels_arena = acquire_arena_from_provider(arena_provider, string_view("tac-labels"), GiB(1), MiB(1));
 
+    context->cfg_blocks_arena = acquire_arena_from_provider(arena_provider, string_view("cfg-blocks"), GiB(1), MiB(1));
+    context->cfg_edges_arena = acquire_arena_from_provider(arena_provider, string_view("cfg-edges"), GiB(1), MiB(1));
+
     context->source_file = *source_file;
 }
 
@@ -40,6 +44,7 @@ destroy_compilation_context(Compilation_Context* context)
         release_arena_to_provider(context->arena_provider, scope->symbol_ids_arena);
     }
 
+    release_arena_to_provider(context->arena_provider, context->scratch_arena);
     release_arena_to_provider(context->arena_provider, context->keywords_arena);
 
     release_arena_to_provider(context->arena_provider, context->diagnostic_message_texts_arena);
@@ -55,6 +60,9 @@ destroy_compilation_context(Compilation_Context* context)
     release_arena_to_provider(context->arena_provider, context->tac_variables_arena);
     release_arena_to_provider(context->arena_provider, context->tac_constants_arena);
     release_arena_to_provider(context->arena_provider, context->tac_labels_arena);
+
+    release_arena_to_provider(context->arena_provider, context->cfg_blocks_arena);
+    release_arena_to_provider(context->arena_provider, context->cfg_edges_arena);
 }
 
 internal Bool

@@ -6,7 +6,8 @@ struct Compilation_Context;
 
 struct Symbol;
 typedef Index Symbol_Id;
-enum {
+enum
+{
     UNDEFINED_SYMBOL_ID = 0,
     INVALID_SYMBOL_ID = 1,
 };
@@ -20,7 +21,8 @@ typedef struct Type_Id Type_Id;
 
 struct Lexical_Scope;
 typedef Index Lexical_Scope_Id;
-enum {
+enum
+{
     INVALID_LEXICAL_SCOPE_ID = 0,
     GLOBAL_LEXICAL_SCOPE_ID = 1,
 };
@@ -42,3 +44,19 @@ struct Tac_Instruction_Id
     };
 };
 typedef struct Tac_Instruction_Id Tac_Instruction_Id;
+
+enum
+{
+    INVALID_TAC_INDEX = 0,
+};
+
+struct Cfg_Block_Id
+{
+    Index index;
+};
+typedef struct Cfg_Block_Id Cfg_Block_Id;
+
+enum
+{
+    INVALID_CFG_BLOCK_INDEX = 0,
+};

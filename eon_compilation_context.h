@@ -5,6 +5,7 @@
 #include "eon_forward_declarations.h"
 
 #include "eon_ast.h"
+#include "eon_cfg.h"
 #include "eon_diagnostics.h"
 #include "eon_tac.h"
 
@@ -13,12 +14,14 @@ internal Arena* acquire_arena_from_provider(struct Arena_Provider* provider,
                                             const String_View arena_name,
                                             const Size number_of_bytes_to_reserve,
                                             const Size number_of_bytes_to_commit);
+internal void request_arena_reset(struct Arena_Provider* provider, const Arena* arena);
 internal void release_arena_to_provider(struct Arena_Provider* provider, const Arena* arena);
 
 struct Compilation_Context
 {
     struct Arena_Provider* arena_provider;
 
+    Arena* scratch_arena;
     Arena* keywords_arena;
 
     Arena* diagnostic_message_texts_arena;
@@ -35,6 +38,9 @@ struct Compilation_Context
     Arena* tac_constants_arena;
     Arena* tac_labels_arena;
 
+    Arena* cfg_blocks_arena;
+    Arena* cfg_edges_arena;
+
     Source_File source_file;
 
     array(Diagnostic_Message, diagnostic_messages);
@@ -46,6 +52,8 @@ struct Compilation_Context
     array(struct Type, types);
 
     Tac tac;
+
+    Cfg cfg;
 };
 typedef struct Compilation_Context Compilation_Context;
 

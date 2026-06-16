@@ -1615,7 +1615,6 @@ test_if_statements_lowering(Test_Context* test_context)
     }
 }
 
-
 internal void
 test_indirect_memory_access(Test_Context* test_context)
 {

@@ -83,3 +83,17 @@
 #else
 #    error Failed to detect this compiler.
 #endif
+
+// NOTE(vlad): Detecting build type.
+
+#if defined(COMPILER_CLANG)
+#    if defined(__OPTIMIZE__)
+#        define RELEASE_BUILD 1
+#        define DEBUG_BUILD 0
+#    else
+#        define RELEASE_BUILD 0
+#        define DEBUG_BUILD 1
+#    endif
+#else
+#    error This compiler is not supported yet.
+#endif
