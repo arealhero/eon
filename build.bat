@@ -12,6 +12,7 @@ set clang_warnings=^
     -Werror ^
     -Wconversion ^
     -Wshadow ^
+    -Wunreachable-code ^
     -Wno-variadic-macro-arguments-omitted ^
     -Wno-error=unused-function ^
     -Wno-error=unused-variable ^
