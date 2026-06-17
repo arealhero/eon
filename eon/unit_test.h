@@ -37,6 +37,7 @@ struct Test_Info
 {
     Unit_Test run;
     String_View name;
+    Size memory_consumption_in_bytes;
 };
 typedef struct Test_Info Test_Info;
 
@@ -67,10 +68,10 @@ main(const int argc, const char* argv[])
         show_stats_at_the_end = false;
     }
 
-    Arena* permanent_arena = create_arena("main", GiB(1), MiB(1));
+    Arena* test_registry_arena = create_arena("main", GiB(1), MiB(1));
 
     Tests_Registry registry = {0};
-    registry_register_tests(permanent_arena, &registry);
+    registry_register_tests(test_registry_arena, &registry);
 
     Arena* test_arena = create_arena("unit-test-arena", GiB(1), MiB(1));
 
@@ -82,6 +83,8 @@ main(const int argc, const char* argv[])
     {
         Test_Context test_context = {0};
         test_context.arena = test_arena;
+
+        const Size initial_free_memory_offset = test_arena->free_memory_offset;
 
         Test_Info* test = &registry.tests[i];
         test->run(&test_context);
@@ -97,6 +100,8 @@ main(const int argc, const char* argv[])
 
             registry.failed_tests_count += 1;
         }
+
+        test->memory_consumption_in_bytes = test_arena->free_memory_offset - initial_free_memory_offset;
 
         arena_clear(test_arena);
     }
@@ -114,10 +119,57 @@ main(const int argc, const char* argv[])
                 registry.tests_filename,
                 registry.tests_count,
                 registry.failed_tests_count);
+
+        println("\n"
+                "Memory consumption:");
+
+        Size max_name_length = 0;
+        for (Index i = 0;
+             i < registry.tests_count;
+             ++i)
+        {
+            const Test_Info* test = &registry.tests[i];
+            max_name_length = MAX(max_name_length, test->name.length);
+        }
+
+        for (Index test_index = 0;
+             test_index < registry.tests_count;
+             ++test_index)
+        {
+            const Test_Info* test = &registry.tests[test_index];
+
+            const String_View name = test->name;
+            const Size right_padding_size = max_name_length - name.length;
+
+            // FIXME(vlad): Implement 'repeat_character(arena, char, count)'.
+            String padding = {0};
+            if (right_padding_size != 0)
+            {
+                padding.data = allocate_uninitialized_array(test_arena, right_padding_size, char);
+                padding.length = right_padding_size;
+
+                for (Index i = 0;
+                     i < right_padding_size;
+                     ++i)
+                {
+                    padding.data[i] = ' ';
+                }
+            }
+
+            println("    {}{}"
+                    " {left-pad-count: 4} MiB"
+                    " {left-pad-count: 8} KiB"
+                    " {left-pad-count: 10} bytes",
+                    test->name,
+                    padding,
+                    test->memory_consumption_in_bytes / MiB(1),
+                    test->memory_consumption_in_bytes / KiB(1),
+                    test->memory_consumption_in_bytes);
+        }
     }
 
     destroy_arena(test_arena);
-    destroy_arena(permanent_arena);
+    destroy_arena(test_registry_arena);
 
     if (registry.failed_tests_count != 0)
     {
