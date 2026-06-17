@@ -102,6 +102,8 @@ test_function_parameters_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         {
@@ -116,6 +118,8 @@ test_function_parameters_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_TRUE(instruction->was_automatically_inserted);
         }
 
         // NOTE(vlad): Testing that parameter symbol has a non-empty TAC instruction id.
@@ -194,6 +198,8 @@ test_expression_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         {
@@ -208,6 +214,8 @@ test_expression_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_TRUE(instruction->was_automatically_inserted);
         }
 
         // NOTE(vlad): Testing that variable symbol has a non-empty TAC instruction id.
@@ -322,6 +330,8 @@ test_expression_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         {
@@ -339,6 +349,8 @@ test_expression_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         {
@@ -353,6 +365,8 @@ test_expression_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_TRUE(instruction->was_automatically_inserted);
         }
 
         // NOTE(vlad): Testing that variable symbol has a non-empty TAC instruction id.
@@ -485,6 +499,8 @@ test_return_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_TRUE(instruction->was_automatically_inserted);
         }
 
         destroy_parser(&parser);
@@ -542,6 +558,8 @@ test_return_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         {
@@ -556,6 +574,8 @@ test_return_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_TRUE(instruction->was_automatically_inserted);
         }
 
         destroy_parser(&parser);
@@ -612,6 +632,8 @@ test_return_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         destroy_parser(&parser);
@@ -681,6 +703,8 @@ test_return_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         {
@@ -697,6 +721,8 @@ test_return_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         // NOTE(vlad): Testing that variable symbol has a non-empty TAC instruction id.
@@ -769,6 +795,8 @@ test_calls(Test_Context* test_context)
 
                 const Tac_Operand* second_argument = &instruction->second_argument;
                 ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+                ASSERT_FALSE(instruction->was_automatically_inserted);
             }
         }
 
@@ -799,6 +827,8 @@ test_calls(Test_Context* test_context)
 
                 const Tac_Operand* second_argument = &instruction->second_argument;
                 ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+                ASSERT_FALSE(instruction->was_automatically_inserted);
             }
 
             {
@@ -818,6 +848,8 @@ test_calls(Test_Context* test_context)
 
                 const Tac_Operand* second_argument = &instruction->second_argument;
                 ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+                ASSERT_FALSE(instruction->was_automatically_inserted);
             }
         }
 
@@ -879,6 +911,8 @@ test_calls(Test_Context* test_context)
 
                 const Tac_Operand* second_argument = &instruction->second_argument;
                 ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+                ASSERT_FALSE(instruction->was_automatically_inserted);
             }
         }
 
@@ -909,6 +943,8 @@ test_calls(Test_Context* test_context)
 
                 const Tac_Operand* second_argument = &instruction->second_argument;
                 ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+                ASSERT_FALSE(instruction->was_automatically_inserted);
             }
 
             {
@@ -923,6 +959,8 @@ test_calls(Test_Context* test_context)
 
                 const Tac_Operand* second_argument = &instruction->second_argument;
                 ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+                ASSERT_TRUE(instruction->was_automatically_inserted);
             }
         }
 
@@ -1021,6 +1059,8 @@ test_binary_expressions_lowering(Test_Context* test_context)
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_CONSTANT);
             ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(second_argument->constant_id, "s32", "20");
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         {
@@ -1048,6 +1088,8 @@ test_binary_expressions_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         {
@@ -1062,6 +1104,8 @@ test_binary_expressions_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_TRUE(instruction->was_automatically_inserted);
         }
 
         // NOTE(vlad): Testing that variable symbol has a non-empty TAC instruction id.
@@ -1146,6 +1190,8 @@ test_while_loops_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1164,6 +1210,8 @@ test_while_loops_lowering(Test_Context* test_context)
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_CONSTANT);
             ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(second_argument->constant_id, "s32", "2");
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1188,6 +1236,8 @@ test_while_loops_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1220,6 +1270,8 @@ test_while_loops_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1242,6 +1294,8 @@ test_while_loops_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1264,6 +1318,8 @@ test_while_loops_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1279,7 +1335,12 @@ test_while_loops_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_TRUE(instruction->was_automatically_inserted);
         }
+
+        ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(instruction + 1, tac_function->instructions),
+                     tac_function->instructions_count);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -1349,6 +1410,8 @@ test_if_statements_lowering(Test_Context* test_context)
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_CONSTANT);
             ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(second_argument->constant_id, "s32", "2");
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1373,6 +1436,8 @@ test_if_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1406,6 +1471,8 @@ test_if_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1428,6 +1495,8 @@ test_if_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1450,6 +1519,8 @@ test_if_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1483,6 +1554,8 @@ test_if_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1505,6 +1578,8 @@ test_if_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1520,7 +1595,12 @@ test_if_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_TRUE(instruction->was_automatically_inserted);
         }
+
+        ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(instruction + 1, tac_function->instructions),
+                     tac_function->instructions_count);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -1582,6 +1662,8 @@ test_if_statements_lowering(Test_Context* test_context)
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_CONSTANT);
             ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(second_argument->constant_id, "s32", "2");
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1606,6 +1688,8 @@ test_if_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1639,6 +1723,8 @@ test_if_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1661,6 +1747,8 @@ test_if_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1683,6 +1771,8 @@ test_if_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1705,6 +1795,8 @@ test_if_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1720,7 +1812,12 @@ test_if_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_TRUE(instruction->was_automatically_inserted);
         }
+
+        ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(instruction + 1, tac_function->instructions),
+                     tac_function->instructions_count);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -1794,6 +1891,8 @@ test_indirect_memory_access(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1819,6 +1918,8 @@ test_indirect_memory_access(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1849,6 +1950,8 @@ test_indirect_memory_access(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1874,6 +1977,8 @@ test_indirect_memory_access(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1894,7 +1999,12 @@ test_indirect_memory_access(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
+
+        ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(instruction + 1, tac_function->instructions),
+                     tac_function->instructions_count);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -1965,6 +2075,8 @@ test_indirect_memory_access(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1990,6 +2102,8 @@ test_indirect_memory_access(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -2020,6 +2134,8 @@ test_indirect_memory_access(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -2045,6 +2161,8 @@ test_indirect_memory_access(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -2069,7 +2187,12 @@ test_indirect_memory_access(Test_Context* test_context)
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
         }
+
+        ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(instruction + 1, tac_function->instructions),
+                     tac_function->instructions_count);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
