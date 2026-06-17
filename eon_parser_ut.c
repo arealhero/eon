@@ -1938,535 +1938,125 @@ test_expressions(Test_Context* test_context)
         destroy_compilation_context(&context);
     }
 
-    // NOTE(vlad): Simple expression tests.
-
+    // NOTE(vlad): Testing binary expressions.
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
-                                                 "    var := 2 + 2;\n"
-                                                 "}");
-
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
-
-        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
-        ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
-
-        const Ast_Type* function_type = function_definition->type;
-        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
-        ASSERT_FALSE(function_type->is_mutable);
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location, "() -> void");
-
-        ASSERT_EQUAL(function_type->function.parameters_count, 0);
-
-        const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
-        ASSERT_FALSE(return_type->is_mutable);
-        ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
-
-        ASSERT_EQUAL(function_definition->body.statements_count, 1);
-
-        const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_EQUAL(statement->start_location.line, 1);
-        ASSERT_EQUAL(statement->start_location.column, 4);
-
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
-
-        const Ast_Variable_Definition* definition = &statement->variable_definition;
-        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
-        ASSERT_FALSE(definition->type->is_mutable);
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
-
-        ASSERT_TRUE(definition->has_initial_value);
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_ADD);
-        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme, "+");
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
-        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.lhs->number.token.lexeme, "2");
-        ASSERT_FALSE(definition->initial_value.binary_expression.lhs->number.is_a_floating_point_number);
-
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
-        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.rhs->number.token.lexeme, "2");
-        ASSERT_FALSE(definition->initial_value.binary_expression.rhs->number.is_a_floating_point_number);
-
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "2 + 2");
-
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
-        destroy_compilation_context(&context);
-    }
-
-    {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
-                                                 "    var := 2 - 2;\n"
-                                                 "}");
-
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
-
-        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
-        ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
-
-        const Ast_Type* function_type = function_definition->type;
-        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
-        ASSERT_FALSE(function_type->is_mutable);
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location, "() -> void");
-
-        ASSERT_EQUAL(function_type->function.parameters_count, 0);
-
-        const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
-        ASSERT_FALSE(return_type->is_mutable);
-        ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
-
-        ASSERT_EQUAL(function_definition->body.statements_count, 1);
-
-        const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_EQUAL(statement->start_location.line, 1);
-        ASSERT_EQUAL(statement->start_location.column, 4);
-
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
-
-        const Ast_Variable_Definition* definition = &statement->variable_definition;
-        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
-        ASSERT_FALSE(definition->type->is_mutable);
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
-
-        ASSERT_TRUE(definition->has_initial_value);
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_SUBTRACT);
-        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme, "-");
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
-        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.lhs->number.token.lexeme, "2");
-        ASSERT_FALSE(definition->initial_value.binary_expression.lhs->number.is_a_floating_point_number);
-
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
-        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.rhs->number.token.lexeme, "2");
-        ASSERT_FALSE(definition->initial_value.binary_expression.rhs->number.is_a_floating_point_number);
-
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "2 - 2");
-
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
-        destroy_compilation_context(&context);
-    }
-
-    {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
-                                                 "    var := 2 * 2;\n"
-                                                 "}");
-
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
-
-        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
-        ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
-
-        const Ast_Type* function_type = function_definition->type;
-        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
-        ASSERT_FALSE(function_type->is_mutable);
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location, "() -> void");
-
-        ASSERT_EQUAL(function_type->function.parameters_count, 0);
-
-        const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
-        ASSERT_FALSE(return_type->is_mutable);
-        ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
-
-        ASSERT_EQUAL(function_definition->body.statements_count, 1);
-
-        const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_EQUAL(statement->start_location.line, 1);
-        ASSERT_EQUAL(statement->start_location.column, 4);
-
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
-
-        const Ast_Variable_Definition* definition = &statement->variable_definition;
-        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
-        ASSERT_FALSE(definition->type->is_mutable);
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
-
-        ASSERT_TRUE(definition->has_initial_value);
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_MULTIPLY);
-        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme, "*");
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
-        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.lhs->number.token.lexeme, "2");
-        ASSERT_FALSE(definition->initial_value.binary_expression.lhs->number.is_a_floating_point_number);
-
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
-        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.rhs->number.token.lexeme, "2");
-        ASSERT_FALSE(definition->initial_value.binary_expression.rhs->number.is_a_floating_point_number);
-
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "2 * 2");
-
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
-        destroy_compilation_context(&context);
-    }
-
-    {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
-                                                 "    var := 2 / 2;\n"
-                                                 "}");
-
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
-
-        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
-        ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
-
-        const Ast_Type* function_type = function_definition->type;
-        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
-        ASSERT_FALSE(function_type->is_mutable);
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location, "() -> void");
-
-        ASSERT_EQUAL(function_type->function.parameters_count, 0);
-
-        const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
-        ASSERT_FALSE(return_type->is_mutable);
-        ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
-
-        ASSERT_EQUAL(function_definition->body.statements_count, 1);
-
-        const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_EQUAL(statement->start_location.line, 1);
-        ASSERT_EQUAL(statement->start_location.column, 4);
-
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
-
-        const Ast_Variable_Definition* definition = &statement->variable_definition;
-        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
-        ASSERT_FALSE(definition->type->is_mutable);
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
-        ASSERT_TRUE(definition->has_initial_value);
-
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_DIVIDE);
-        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme, "/");
-
+        struct Binary_Expression_Test_Info
         {
-            const Ast_Expression* lhs = definition->initial_value.binary_expression.lhs;
-            ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_NUMBER);
-            ASSERT_STRINGS_ARE_EQUAL(lhs->number.token.lexeme, "2");
-            ASSERT_FALSE(lhs->number.is_a_floating_point_number);
+            String_View source_code;
+            String_View expected_operand_lexeme;
+            String_View expected_operator_lexeme;
+            Bool operand_is_a_floating_point_number;
+        };
+        typedef struct Binary_Expression_Test_Info Binary_Expression_Test_Info;
+
+#define DECLARE_BINARY_OPERATION_TEST_INFO(operand, operation, is_a_floating_point_number) \
+        (Binary_Expression_Test_Info){                                  \
+            .source_code = string_view("foo: () -> void = {\n"          \
+                                       "    var := " operand " " operation " " operand ";\n" \
+                                       "}"),                            \
+            .expected_operand_lexeme = string_view(operand),            \
+            .expected_operator_lexeme = string_view(operation),         \
+            .operand_is_a_floating_point_number = is_a_floating_point_number, \
         }
 
+        const Binary_Expression_Test_Info test_infos[] = {
+            DECLARE_BINARY_OPERATION_TEST_INFO("2", "+", false),
+            DECLARE_BINARY_OPERATION_TEST_INFO("2", "-", false),
+            DECLARE_BINARY_OPERATION_TEST_INFO("2", "*", false),
+            DECLARE_BINARY_OPERATION_TEST_INFO("2", "/", false),
+
+            DECLARE_BINARY_OPERATION_TEST_INFO("2.0", "+", true),
+            DECLARE_BINARY_OPERATION_TEST_INFO("2.0", "-", true),
+            DECLARE_BINARY_OPERATION_TEST_INFO("2.0", "*", true),
+            DECLARE_BINARY_OPERATION_TEST_INFO("2.0", "/", true),
+
+            DECLARE_BINARY_OPERATION_TEST_INFO("1", "==", false),
+            DECLARE_BINARY_OPERATION_TEST_INFO("1", "!=", false),
+            DECLARE_BINARY_OPERATION_TEST_INFO("1", "<", false),
+            DECLARE_BINARY_OPERATION_TEST_INFO("1", "<=", false),
+            DECLARE_BINARY_OPERATION_TEST_INFO("1", ">", false),
+            DECLARE_BINARY_OPERATION_TEST_INFO("1", ">=", false),
+        };
+#undef DECLARE_BINARY_OPERATION_TEST_INFO
+
+        for (Index i = 0;
+             i < NUMBER_OF_STATIC_ARRAY_ELEMENTS(test_infos);
+             ++i)
         {
-            const Ast_Expression* rhs = definition->initial_value.binary_expression.rhs;
-            ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
-            ASSERT_STRINGS_ARE_EQUAL(rhs->number.token.lexeme, "2");
-            ASSERT_FALSE(rhs->number.is_a_floating_point_number);
+            Binary_Expression_Test_Info test_info = test_infos[i];
+
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE(test_info.source_code);
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
+
+            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+            const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+            ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
+
+            const Ast_Type* function_type = function_definition->type;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_FALSE(function_type->is_mutable);
+            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location, "() -> void");
+
+            ASSERT_EQUAL(function_type->function.parameters_count, 0);
+
+            const Ast_Type* return_type = function_type->function.return_type;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_FALSE(return_type->is_mutable);
+            ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
+            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
+
+            ASSERT_EQUAL(function_definition->body.statements_count, 1);
+
+            const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+
+            const Ast_Variable_Definition* definition = &statement->variable_definition;
+            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_FALSE(definition->type->is_mutable);
+            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
+
+            ASSERT_TRUE(definition->has_initial_value);
+            ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme,
+                                     test_info.expected_operator_lexeme);
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.lhs->number.token.lexeme,
+                                     test_info.expected_operand_lexeme);
+            ASSERT_EQUAL(definition->initial_value.binary_expression.lhs->number.is_a_floating_point_number,
+                         test_info.operand_is_a_floating_point_number);
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
+            ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.rhs->number.token.lexeme,
+                                     test_info.expected_operand_lexeme);
+            ASSERT_EQUAL(definition->initial_value.binary_expression.rhs->number.is_a_floating_point_number,
+                         test_info.operand_is_a_floating_point_number);
+
+            {
+                const String expected_location_string = format_string(test_context->arena,
+                                                                      "{} {} {}",
+                                                                      test_info.expected_operand_lexeme,
+                                                                      test_info.expected_operator_lexeme,
+                                                                      test_info.expected_operand_lexeme);
+                ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, expected_location_string);
+            }
+
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
         }
-
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "2 / 2");
-
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
-        destroy_compilation_context(&context);
-    }
-
-    {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
-                                                 "    var := 2.0 + 2.0;\n"
-                                                 "}");
-
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
-
-        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
-        ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
-
-        const Ast_Type* function_type = function_definition->type;
-        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
-        ASSERT_FALSE(function_type->is_mutable);
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location, "() -> void");
-
-        ASSERT_EQUAL(function_type->function.parameters_count, 0);
-
-        const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
-        ASSERT_FALSE(return_type->is_mutable);
-        ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
-
-        ASSERT_EQUAL(function_definition->body.statements_count, 1);
-
-        const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_EQUAL(statement->start_location.line, 1);
-        ASSERT_EQUAL(statement->start_location.column, 4);
-
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
-
-        const Ast_Variable_Definition* definition = &statement->variable_definition;
-        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
-        ASSERT_FALSE(definition->type->is_mutable);
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
-
-        ASSERT_TRUE(definition->has_initial_value);
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_ADD);
-        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme, "+");
-
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
-        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.lhs->number.token.lexeme, "2.0");
-        ASSERT_TRUE(definition->initial_value.binary_expression.lhs->number.is_a_floating_point_number);
-
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
-        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.rhs->number.token.lexeme, "2.0");
-        ASSERT_TRUE(definition->initial_value.binary_expression.rhs->number.is_a_floating_point_number);
-
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "2.0 + 2.0");
-
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
-        destroy_compilation_context(&context);
-    }
-
-    {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
-                                                 "    var := 2.0 - 2.0;\n"
-                                                 "}");
-
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
-
-        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
-        ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
-
-        const Ast_Type* function_type = function_definition->type;
-        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
-        ASSERT_FALSE(function_type->is_mutable);
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location, "() -> void");
-
-        ASSERT_EQUAL(function_type->function.parameters_count, 0);
-
-        const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
-        ASSERT_FALSE(return_type->is_mutable);
-        ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
-
-        ASSERT_EQUAL(function_definition->body.statements_count, 1);
-
-        const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_EQUAL(statement->start_location.line, 1);
-        ASSERT_EQUAL(statement->start_location.column, 4);
-
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
-
-        const Ast_Variable_Definition* definition = &statement->variable_definition;
-        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
-        ASSERT_FALSE(definition->type->is_mutable);
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
-
-        ASSERT_TRUE(definition->has_initial_value);
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_SUBTRACT);
-        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme, "-");
-
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
-        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.lhs->number.token.lexeme, "2.0");
-        ASSERT_TRUE(definition->initial_value.binary_expression.lhs->number.is_a_floating_point_number);
-
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
-        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.rhs->number.token.lexeme, "2.0");
-        ASSERT_TRUE(definition->initial_value.binary_expression.rhs->number.is_a_floating_point_number);
-
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "2.0 - 2.0");
-
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
-        destroy_compilation_context(&context);
-    }
-
-    {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
-                                                 "    var := 2.0 * 2.0;\n"
-                                                 "}");
-
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
-
-        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
-        ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
-
-        const Ast_Type* function_type = function_definition->type;
-        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
-        ASSERT_FALSE(function_type->is_mutable);
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location, "() -> void");
-
-        ASSERT_EQUAL(function_type->function.parameters_count, 0);
-
-        const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
-        ASSERT_FALSE(return_type->is_mutable);
-        ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
-
-        ASSERT_EQUAL(function_definition->body.statements_count, 1);
-
-        const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_EQUAL(statement->start_location.line, 1);
-        ASSERT_EQUAL(statement->start_location.column, 4);
-
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
-
-        const Ast_Variable_Definition* definition = &statement->variable_definition;
-        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
-        ASSERT_FALSE(definition->type->is_mutable);
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
-
-        ASSERT_TRUE(definition->has_initial_value);
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_MULTIPLY);
-        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme, "*");
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.lhs->kind, AST_EXPRESSION_NUMBER);
-
-        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.lhs->number.token.lexeme, "2.0");
-        ASSERT_TRUE(definition->initial_value.binary_expression.lhs->number.is_a_floating_point_number);
-
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.binary_expression.rhs->kind, AST_EXPRESSION_NUMBER);
-        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.rhs->number.token.lexeme, "2.0");
-        ASSERT_TRUE(definition->initial_value.binary_expression.rhs->number.is_a_floating_point_number);
-
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "2.0 * 2.0");
-
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
-        destroy_compilation_context(&context);
-    }
-
-    {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
-                                                 "    var := 2.0 / 2.0;\n"
-                                                 "}");
-
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
-
-        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
-        ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
-
-        const Ast_Type* function_type = function_definition->type;
-        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
-        ASSERT_FALSE(function_type->is_mutable);
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location, "() -> void");
-
-        ASSERT_EQUAL(function_type->function.parameters_count, 0);
-
-        const Ast_Type* return_type = function_type->function.return_type;
-        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
-        ASSERT_FALSE(return_type->is_mutable);
-        ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
-
-        ASSERT_EQUAL(function_definition->body.statements_count, 1);
-
-        const Ast_Statement* statement = &function_definition->body.statements[0];
-        ASSERT_EQUAL(statement->start_location.line, 1);
-        ASSERT_EQUAL(statement->start_location.column, 4);
-
-        ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
-
-        const Ast_Variable_Definition* definition = &statement->variable_definition;
-        ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
-        ASSERT_FALSE(definition->type->is_mutable);
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
-        ASSERT_TRUE(definition->has_initial_value);
-
-        ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_DIVIDE);
-        ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme, "/");
-
-        {
-            const Ast_Expression* lhs = definition->initial_value.binary_expression.lhs;
-            ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_NUMBER);
-            ASSERT_STRINGS_ARE_EQUAL(lhs->number.token.lexeme, "2.0");
-            ASSERT_TRUE(lhs->number.is_a_floating_point_number);
-        }
-
-        {
-            const Ast_Expression* rhs = definition->initial_value.binary_expression.rhs;
-            ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
-            ASSERT_STRINGS_ARE_EQUAL(rhs->number.token.lexeme, "2.0");
-            ASSERT_TRUE(rhs->number.is_a_floating_point_number);
-        }
-
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "2.0 / 2.0");
-
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
-        destroy_compilation_context(&context);
     }
 
     // NOTE(vlad): Testing function call without arguments.
@@ -2753,399 +2343,6 @@ test_expressions(Test_Context* test_context)
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
-    }
-
-    // NOTE(vlad): Testing comparison expressions.
-    {
-        {
-            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
-                                                     "    var := 1 == 1;\n"
-                                                     "}");
-
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-            ASSERT_EQUAL(context.ast.function_definitions_count, 1);
-
-            const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
-            ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
-
-            const Ast_Type* function_type = function_definition->type;
-            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
-            ASSERT_FALSE(function_type->is_mutable);
-            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location, "() -> void");
-
-            ASSERT_EQUAL(function_type->function.parameters_count, 0);
-
-            const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
-            ASSERT_FALSE(return_type->is_mutable);
-            ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
-            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
-
-            ASSERT_EQUAL(function_definition->body.statements_count, 1);
-
-            const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->start_location.line, 1);
-            ASSERT_EQUAL(statement->start_location.column, 4);
-
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
-
-            const Ast_Variable_Definition* definition = &statement->variable_definition;
-            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
-            ASSERT_FALSE(definition->type->is_mutable);
-            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
-            ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_EQUAL);
-
-            const Ast_Binary_Expression* binary_expression = &definition->initial_value.binary_expression;
-
-            ASSERT_STRINGS_ARE_EQUAL(binary_expression->operator.lexeme, "==");
-
-            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
-            ASSERT_STRINGS_ARE_EQUAL(binary_expression->lhs->number.token.lexeme, "1");
-            ASSERT_FALSE(binary_expression->lhs->number.is_a_floating_point_number);
-
-            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
-            ASSERT_STRINGS_ARE_EQUAL(binary_expression->rhs->number.token.lexeme, "1");
-            ASSERT_FALSE(binary_expression->rhs->number.is_a_floating_point_number);
-
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
-            destroy_compilation_context(&context);
-        }
-
-        {
-            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
-                                                     "    var := 1 != 1;\n"
-                                                     "}");
-
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-            ASSERT_EQUAL(context.ast.function_definitions_count, 1);
-
-            const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
-            ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
-
-            const Ast_Type* function_type = function_definition->type;
-            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
-            ASSERT_FALSE(function_type->is_mutable);
-            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location, "() -> void");
-
-            ASSERT_EQUAL(function_type->function.parameters_count, 0);
-
-            const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
-            ASSERT_FALSE(return_type->is_mutable);
-            ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
-            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
-
-            ASSERT_EQUAL(function_definition->body.statements_count, 1);
-
-            const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->start_location.line, 1);
-            ASSERT_EQUAL(statement->start_location.column, 4);
-
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
-
-            const Ast_Variable_Definition* definition = &statement->variable_definition;
-            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
-            ASSERT_FALSE(definition->type->is_mutable);
-            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
-            ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NOT_EQUAL);
-
-            const Ast_Binary_Expression* binary_expression = &definition->initial_value.binary_expression;
-
-            ASSERT_STRINGS_ARE_EQUAL(binary_expression->operator.lexeme, "!=");
-
-            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
-            ASSERT_STRINGS_ARE_EQUAL(binary_expression->lhs->number.token.lexeme, "1");
-            ASSERT_FALSE(binary_expression->lhs->number.is_a_floating_point_number);
-
-            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
-            ASSERT_STRINGS_ARE_EQUAL(binary_expression->rhs->number.token.lexeme, "1");
-            ASSERT_FALSE(binary_expression->rhs->number.is_a_floating_point_number);
-
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
-            destroy_compilation_context(&context);
-        }
-
-        {
-            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
-                                                     "    var := 1 < 1;\n"
-                                                     "}");
-
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-            ASSERT_EQUAL(context.ast.function_definitions_count, 1);
-
-            const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
-            ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
-
-            const Ast_Type* function_type = function_definition->type;
-            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
-            ASSERT_FALSE(function_type->is_mutable);
-            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location, "() -> void");
-
-            ASSERT_EQUAL(function_type->function.parameters_count, 0);
-
-            const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
-            ASSERT_FALSE(return_type->is_mutable);
-            ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
-            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
-
-            ASSERT_EQUAL(function_definition->body.statements_count, 1);
-
-            const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->start_location.line, 1);
-            ASSERT_EQUAL(statement->start_location.column, 4);
-
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
-
-            const Ast_Variable_Definition* definition = &statement->variable_definition;
-            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
-            ASSERT_FALSE(definition->type->is_mutable);
-            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
-            ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_LESS);
-
-            const Ast_Binary_Expression* binary_expression = &definition->initial_value.binary_expression;
-
-            ASSERT_STRINGS_ARE_EQUAL(binary_expression->operator.lexeme, "<");
-
-            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
-            ASSERT_STRINGS_ARE_EQUAL(binary_expression->lhs->number.token.lexeme, "1");
-            ASSERT_FALSE(binary_expression->lhs->number.is_a_floating_point_number);
-
-            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
-            ASSERT_STRINGS_ARE_EQUAL(binary_expression->rhs->number.token.lexeme, "1");
-            ASSERT_FALSE(binary_expression->rhs->number.is_a_floating_point_number);
-
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
-            destroy_compilation_context(&context);
-        }
-
-        {
-            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
-                                                     "    var := 1 <= 1;\n"
-                                                     "}");
-
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-            ASSERT_EQUAL(context.ast.function_definitions_count, 1);
-
-            const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
-            ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
-
-            const Ast_Type* function_type = function_definition->type;
-            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
-            ASSERT_FALSE(function_type->is_mutable);
-            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location, "() -> void");
-
-            ASSERT_EQUAL(function_type->function.parameters_count, 0);
-
-            const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
-            ASSERT_FALSE(return_type->is_mutable);
-            ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
-            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
-
-            ASSERT_EQUAL(function_definition->body.statements_count, 1);
-
-            const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->start_location.line, 1);
-            ASSERT_EQUAL(statement->start_location.column, 4);
-
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
-
-            const Ast_Variable_Definition* definition = &statement->variable_definition;
-            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
-            ASSERT_FALSE(definition->type->is_mutable);
-            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
-            ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_LESS_OR_EQUAL);
-
-            const Ast_Binary_Expression* binary_expression = &definition->initial_value.binary_expression;
-
-            ASSERT_STRINGS_ARE_EQUAL(binary_expression->operator.lexeme, "<=");
-
-            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
-            ASSERT_STRINGS_ARE_EQUAL(binary_expression->lhs->number.token.lexeme, "1");
-            ASSERT_FALSE(binary_expression->lhs->number.is_a_floating_point_number);
-
-            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
-            ASSERT_STRINGS_ARE_EQUAL(binary_expression->rhs->number.token.lexeme, "1");
-            ASSERT_FALSE(binary_expression->rhs->number.is_a_floating_point_number);
-
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
-            destroy_compilation_context(&context);
-        }
-
-        {
-            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
-                                                     "    var := 1 > 1;\n"
-                                                     "}");
-
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-            ASSERT_EQUAL(context.ast.function_definitions_count, 1);
-
-            const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
-            ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
-
-            const Ast_Type* function_type = function_definition->type;
-            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
-            ASSERT_FALSE(function_type->is_mutable);
-            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location, "() -> void");
-
-            ASSERT_EQUAL(function_type->function.parameters_count, 0);
-
-            const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
-            ASSERT_FALSE(return_type->is_mutable);
-            ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
-            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
-
-            ASSERT_EQUAL(function_definition->body.statements_count, 1);
-
-            const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->start_location.line, 1);
-            ASSERT_EQUAL(statement->start_location.column, 4);
-
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
-
-            const Ast_Variable_Definition* definition = &statement->variable_definition;
-            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
-            ASSERT_FALSE(definition->type->is_mutable);
-            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
-            ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_GREATER);
-
-            const Ast_Binary_Expression* binary_expression = &definition->initial_value.binary_expression;
-
-            ASSERT_STRINGS_ARE_EQUAL(binary_expression->operator.lexeme, ">");
-
-            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
-            ASSERT_STRINGS_ARE_EQUAL(binary_expression->lhs->number.token.lexeme, "1");
-            ASSERT_FALSE(binary_expression->lhs->number.is_a_floating_point_number);
-
-            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
-            ASSERT_STRINGS_ARE_EQUAL(binary_expression->rhs->number.token.lexeme, "1");
-            ASSERT_FALSE(binary_expression->rhs->number.is_a_floating_point_number);
-
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
-            destroy_compilation_context(&context);
-        }
-
-        {
-            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
-                                                     "    var := 1 >= 1;\n"
-                                                     "}");
-
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
-            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-            ASSERT_EQUAL(context.ast.function_definitions_count, 1);
-
-            const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
-            ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
-
-            const Ast_Type* function_type = function_definition->type;
-            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
-            ASSERT_FALSE(function_type->is_mutable);
-            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location, "() -> void");
-
-            ASSERT_EQUAL(function_type->function.parameters_count, 0);
-
-            const Ast_Type* return_type = function_type->function.return_type;
-            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
-            ASSERT_FALSE(return_type->is_mutable);
-            ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
-            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
-
-            ASSERT_EQUAL(function_definition->body.statements_count, 1);
-
-            const Ast_Statement* statement = &function_definition->body.statements[0];
-            ASSERT_EQUAL(statement->start_location.line, 1);
-            ASSERT_EQUAL(statement->start_location.column, 4);
-
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
-
-            const Ast_Variable_Definition* definition = &statement->variable_definition;
-            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
-            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
-            ASSERT_FALSE(definition->type->is_mutable);
-            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
-            ASSERT_TRUE(definition->has_initial_value);
-            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_GREATER_OR_EQUAL);
-
-            const Ast_Binary_Expression* binary_expression = &definition->initial_value.binary_expression;
-
-            ASSERT_STRINGS_ARE_EQUAL(binary_expression->operator.lexeme, ">=");
-
-            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->lhs->kind, AST_EXPRESSION_NUMBER);
-            ASSERT_STRINGS_ARE_EQUAL(binary_expression->lhs->number.token.lexeme, "1");
-            ASSERT_FALSE(binary_expression->lhs->number.is_a_floating_point_number);
-
-            ASSERT_ENUM_VALUES_ARE_EQUAL(binary_expression->rhs->kind, AST_EXPRESSION_NUMBER);
-            ASSERT_STRINGS_ARE_EQUAL(binary_expression->rhs->number.token.lexeme, "1");
-            ASSERT_FALSE(binary_expression->rhs->number.is_a_floating_point_number);
-
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
-            destroy_compilation_context(&context);
-        }
     }
 
     // NOTE(vlad): Testing unary expressions.
