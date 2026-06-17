@@ -761,7 +761,6 @@ lower_ast_to_tac(Compilation_Context* context)
 
         const Type_Id void_type_id = get_void_type_id(context);
         const Type_Id return_type_id = function_type->function_info.return_type_id;
-        Bool should_emit_empty_return_statement = type_ids_are_equal(context, return_type_id, void_type_id);
 
         const Ast_Code_Block* function_body = &ast_function->body;
         for (Index statement_index = 0;
@@ -770,28 +769,9 @@ lower_ast_to_tac(Compilation_Context* context)
         {
             const Ast_Statement* statement = &function_body->statements[statement_index];
             lower_statement_to_tac(context, tac_function, statement);
-
-            // NOTE(vlad): Basic dead code elimination.
-            if (statement->kind == AST_STATEMENT_RETURN)
-            {
-                should_emit_empty_return_statement = false;
-                break;
-            }
-
-            // TODO(vlad): Emit a warning about unreachable code.
-            //
-            //             Frankly I don't know where should we do that. Maybe it is ok to emit everything (including
-            //             implicit TAC_RETURN instruction for void functions) and eliminate dead code somewhere else
-            //             (e.g. in SSA passes).
-            //
-            //             Also if we do that here, maybe we can do that eariler, e.g. as a part of the type system
-            //             pass. That said, it's hard to properly access this question and come up with a good solution
-            //             right now.
-            //
-            //             (FYI I am writing this comment before the TAC lowering is complete, let alone TAC & SSA
-            //             passes).
         }
 
+        const Bool should_emit_empty_return_statement = type_ids_are_equal(context, return_type_id, void_type_id);
         if (should_emit_empty_return_statement)
         {
             Tac_Instruction instruction = {0};

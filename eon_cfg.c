@@ -319,3 +319,207 @@ construct_cfg_from_tac(Compilation_Context* context)
 
     request_arena_reset(context->arena_provider, context->scratch_arena);
 }
+
+internal void
+visit_reachable_blocks(Cfg* cfg,
+                       const Cfg_Block_Id this_block_id,
+                       Bool* block_was_visited,
+                       Bool* edge_was_visited)
+{
+    if (block_was_visited[this_block_id.index])
+    {
+        return;
+    }
+
+    block_was_visited[this_block_id.index] = true;
+
+    for (Index edge_index = 0;
+         edge_index < cfg->edges_count;
+         ++edge_index)
+    {
+        const Cfg_Edge* edge = &cfg->edges[edge_index];
+
+        if (edge->source_block_id.index == this_block_id.index)
+        {
+            ASSERT(edge_was_visited[edge_index] == false);
+
+            edge_was_visited[edge_index] = true;
+            visit_reachable_blocks(cfg, edge->destination_block_id, block_was_visited, edge_was_visited);
+        }
+    }
+}
+
+internal void
+swap_cfg_block_ids(Compilation_Context* context,
+                   const Cfg_Block_Id old_id,
+                   const Cfg_Block_Id new_id)
+{
+    Cfg* cfg = &context->cfg;
+
+    for (Index edge_index = 0;
+         edge_index < cfg->edges_count;
+         ++edge_index)
+    {
+        Cfg_Edge* edge = &cfg->edges[edge_index];
+
+        if (edge->source_block_id.index == old_id.index)
+        {
+            edge->source_block_id = new_id;
+        }
+
+        if (edge->destination_block_id.index == old_id.index)
+        {
+            edge->destination_block_id = new_id;
+        }
+    }
+
+    Tac* tac = &context->tac;
+
+    for (Index function_label_index = 0;
+         function_label_index < tac->function_labels_count;
+         ++function_label_index)
+    {
+        Tac_Function_Label* function_label = &tac->function_labels[function_label_index];
+
+        ASSERT(function_label->entry_cfg_block_id.index != old_id.index);
+
+        if (function_label->entry_cfg_block_id.index == old_id.index)
+        {
+            function_label->entry_cfg_block_id = new_id;
+        }
+    }
+}
+
+internal void
+remove_unreachable_cfg_blocks(Compilation_Context* context)
+{
+    // FIXME(vlad): Emit warnings/errors about unreachable code.
+
+    Cfg* cfg = &context->cfg;
+
+    Bool* block_was_visited = allocate_array(context->scratch_arena, cfg->blocks_count, Bool);
+    Bool* edge_was_visited = allocate_array(context->scratch_arena, cfg->edges_count, Bool);
+
+    Tac* tac = &context->tac;
+    for (Index function_index = 0;
+         function_index < tac->functions_count;
+         ++function_index)
+    {
+        const Tac_Function* tac_function = &tac->functions[function_index];
+        const Tac_Function_Label* tac_function_label = get_tac_function_label_by_id(tac, tac_function->label_id);
+        visit_reachable_blocks(cfg, tac_function_label->entry_cfg_block_id, block_was_visited, edge_was_visited);
+    }
+
+    ASSERT(block_was_visited[INVALID_CFG_BLOCK_INDEX] == false);
+
+    Size unreachable_blocks_count = 0;
+    for (Index i = INVALID_CFG_BLOCK_INDEX + 1;
+         i < cfg->blocks_count;
+         ++i)
+    {
+        if (!block_was_visited[i])
+        {
+            unreachable_blocks_count += 1;
+        }
+    }
+
+    if (unreachable_blocks_count == 0)
+    {
+        return;
+    }
+
+    Index next_free_block_index = INVALID_CFG_BLOCK_INDEX;
+    while (true)
+    {
+        for (Index i = next_free_block_index + 1;
+             i < cfg->blocks_count;
+             ++i)
+        {
+            if (!block_was_visited[i])
+            {
+                next_free_block_index = i;
+                break;
+            }
+        }
+
+        ASSERT(next_free_block_index != INVALID_CFG_BLOCK_INDEX);
+
+        Index next_reachable_block_index = next_free_block_index + 1;
+        for (;
+             next_reachable_block_index < cfg->blocks_count;
+             next_reachable_block_index += 1)
+        {
+            if (block_was_visited[next_reachable_block_index])
+            {
+                break;
+            }
+        }
+
+        if (next_reachable_block_index == cfg->blocks_count)
+        {
+            cfg->blocks_count -= unreachable_blocks_count;
+            break;
+        }
+
+        {
+            Cfg_Block_Id old_block_id = {0};
+            old_block_id.index = next_reachable_block_index;
+
+            Cfg_Block_Id new_block_id = {0};
+            new_block_id.index = next_free_block_index;
+
+            swap_cfg_block_ids(context, old_block_id, new_block_id);
+        }
+
+        cfg->blocks[next_free_block_index] = cfg->blocks[next_reachable_block_index];
+        block_was_visited[next_free_block_index] = true;
+        block_was_visited[next_reachable_block_index] = false;
+    }
+
+    // NOTE(vlad): Removing unreachable edges.
+    Index unvisited_edge_index = 0;
+    while (true)
+    {
+        for (;
+             unvisited_edge_index < cfg->edges_count;
+             ++unvisited_edge_index)
+        {
+            if (!edge_was_visited[unvisited_edge_index])
+            {
+                break;
+            }
+        }
+
+        if (unvisited_edge_index == cfg->edges_count)
+        {
+            // NOTE(vlad): There are no unvisited edges.
+            break;
+        }
+
+        Index next_visited_edge_index = unvisited_edge_index + 1;
+        for (;
+             next_visited_edge_index < cfg->edges_count;
+             ++next_visited_edge_index)
+        {
+            if (edge_was_visited[next_visited_edge_index])
+            {
+                break;
+            }
+        }
+
+        if (next_visited_edge_index == cfg->edges_count)
+        {
+            // NOTE(vlad): All unvisited edges were pushed to the end.
+            cfg->edges_count = unvisited_edge_index;
+            break;
+        }
+
+        cfg->edges[unvisited_edge_index] = cfg->edges[next_visited_edge_index];
+        edge_was_visited[unvisited_edge_index] = true;
+        edge_was_visited[next_visited_edge_index] = false;
+
+        unvisited_edge_index += 1;
+    }
+
+    request_arena_reset(context->arena_provider, context->scratch_arena);
+}

@@ -395,6 +395,8 @@ test_return_statements_lowering(Test_Context* test_context)
         destroy_compilation_context(&context);
     }
 
+    // NOTE(vlad): We do not perform dead code elimination during TAC construction
+    //             because we cannot determine if the code is actually reachable (e.g. via goto).
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
                                                  "    return;"
@@ -429,10 +431,24 @@ test_return_statements_lowering(Test_Context* test_context)
         const Tac_Function* tac_function = &tac->functions[0];
         ASSERT_FUNCTION_LABEL_POINTS_TO_FUNCTION(tac_function->label_id, ast_function);
 
-        ASSERT_EQUAL(tac_function->instructions_count, 1);
+        ASSERT_EQUAL(tac_function->instructions_count, 2);
 
         {
             const Tac_Instruction* instruction = &tac_function->instructions[0];
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
+
+            const Tac_Operand* destination = &instruction->destination;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_NONE);
+
+            const Tac_Operand* first_argument = &instruction->first_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_NONE);
+
+            const Tac_Operand* second_argument = &instruction->second_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+        }
+
+        {
+            const Tac_Instruction* instruction = &tac_function->instructions[1];
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
 
             const Tac_Operand* destination = &instruction->destination;
