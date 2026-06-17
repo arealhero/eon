@@ -1299,6 +1299,11 @@ parse_statement(Parser* parser, Ast_Statement* statement)
         return false;
     }
 
+    {
+        statement->start_location = parser->current_token.location;
+        statement->start_location.length_in_bytes = 1; // TODO(vlad): Support other encodings.
+    }
+
     switch (parser->current_token.type)
     {
         case TOKEN_RETURN:

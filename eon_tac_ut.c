@@ -224,6 +224,37 @@ test_expression_lowering(Test_Context* test_context)
             ASSERT_EQUAL(variable_symbol->tac_instruction_id.instruction_index, 0);
         }
 
+        // NOTE(vlad): Testing that every statement and expression has a valid TAC instructions range.
+        {
+            const Ast_Code_Block* ast_function_body = &ast_function->body;
+            ASSERT_EQUAL(ast_function_body->statements_count, 1);
+
+            const Ast_Statement* statement = &ast_function_body->statements[0];
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+
+            {
+                const Tac_Instructions_Range* instructions_range = &statement->tac_instructions_range;
+                ASSERT_EQUAL(instructions_range->function_label_id.index, tac_function->label_id.index);
+                ASSERT_EQUAL(instructions_range->start_instruction_index, 0);
+                ASSERT_EQUAL(instructions_range->end_instruction_index, 1);
+            }
+
+            ASSERT_TRUE(statement->variable_definition.has_initial_value);
+
+            const Ast_Expression* initial_expression = &statement->variable_definition.initial_value;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(initial_expression->kind, AST_EXPRESSION_NUMBER);
+
+            {
+                const Tac_Instructions_Range* instructions_range = &initial_expression->tac_instructions_range;
+                ASSERT_EQUAL(instructions_range->function_label_id.index, tac_function->label_id.index);
+                ASSERT_EQUAL(instructions_range->start_instruction_index, 0);
+
+                // FIXME(vlad): Should numbers have their own instruction? Like 'ASSIGN temp, CONSTANT'. We will be able
+                //              to get rid of these temp variables later (in SSA, during constant folding).
+                ASSERT_EQUAL(instructions_range->end_instruction_index, 0);
+            }
+        }
+
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
@@ -330,6 +361,72 @@ test_expression_lowering(Test_Context* test_context)
 
             ASSERT_EQUAL(variable_symbol->tac_instruction_id.function_label_id.index, 1);
             ASSERT_EQUAL(variable_symbol->tac_instruction_id.instruction_index, 0);
+        }
+
+        // NOTE(vlad): Testing that every statement and expression has a valid TAC instructions range.
+        {
+            const Ast_Code_Block* ast_function_body = &ast_function->body;
+            ASSERT_EQUAL(ast_function_body->statements_count, 2);
+
+            {
+                const Ast_Statement* statement = &ast_function_body->statements[0];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+
+                {
+                    const Tac_Instructions_Range* instructions_range = &statement->tac_instructions_range;
+                    ASSERT_EQUAL(instructions_range->function_label_id.index, tac_function->label_id.index);
+                    ASSERT_EQUAL(instructions_range->start_instruction_index, 0);
+                    ASSERT_EQUAL(instructions_range->end_instruction_index, 1);
+                }
+
+                ASSERT_TRUE(statement->variable_definition.has_initial_value);
+
+                const Ast_Expression* initial_expression = &statement->variable_definition.initial_value;
+                ASSERT_ENUM_VALUES_ARE_EQUAL(initial_expression->kind, AST_EXPRESSION_NUMBER);
+
+                {
+                    const Tac_Instructions_Range* instructions_range = &initial_expression->tac_instructions_range;
+                    ASSERT_EQUAL(instructions_range->function_label_id.index, tac_function->label_id.index);
+                    ASSERT_EQUAL(instructions_range->start_instruction_index, 0);
+                    ASSERT_EQUAL(instructions_range->end_instruction_index, 0);
+                }
+            }
+
+            {
+                const Ast_Statement* statement = &ast_function_body->statements[1];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_ASSIGNMENT);
+
+                {
+                    const Tac_Instructions_Range* instructions_range = &statement->tac_instructions_range;
+                    ASSERT_EQUAL(instructions_range->function_label_id.index, tac_function->label_id.index);
+                    ASSERT_EQUAL(instructions_range->start_instruction_index, 1);
+                    ASSERT_EQUAL(instructions_range->end_instruction_index, 2);
+                }
+
+                {
+                    const Ast_Expression* lhs = &statement->assignment.lhs;
+                    ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_IDENTIFIER);
+
+                    {
+                        const Tac_Instructions_Range* instructions_range = &lhs->tac_instructions_range;
+                        ASSERT_EQUAL(instructions_range->function_label_id.index, tac_function->label_id.index);
+                        ASSERT_EQUAL(instructions_range->start_instruction_index, 1);
+                        ASSERT_EQUAL(instructions_range->end_instruction_index, 1);
+                    }
+                }
+
+                {
+                    const Ast_Expression* lhs = &statement->assignment.rhs;
+                    ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_NUMBER);
+
+                    {
+                        const Tac_Instructions_Range* instructions_range = &lhs->tac_instructions_range;
+                        ASSERT_EQUAL(instructions_range->function_label_id.index, tac_function->label_id.index);
+                        ASSERT_EQUAL(instructions_range->start_instruction_index, 1);
+                        ASSERT_EQUAL(instructions_range->end_instruction_index, 1);
+                    }
+                }
+            }
         }
 
         destroy_parser(&parser);

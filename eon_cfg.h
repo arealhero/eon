@@ -2,14 +2,6 @@
 
 #include "eon_forward_declarations.h"
 
-struct Tac_Instructions_Range
-{
-    Tac_Function_Label_Id function_label_id;
-    Index start_instruction_index;
-    Index end_instruction_index; // NOTE(vlad): This index is not included.
-};
-typedef struct Tac_Instructions_Range Tac_Instructions_Range;
-
 struct Cfg_Block
 {
     Tac_Instructions_Range instructions_range;

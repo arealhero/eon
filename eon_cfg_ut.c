@@ -799,9 +799,126 @@ internal void
 test_unreachable_blocks_removal(Test_Context* test_context)
 {
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    return;"
-                                                 "    a := 10;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    return;\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        lower_ast_to_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        construct_cfg_from_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        const Tac* tac = &context.tac;
+        const Cfg* cfg = &context.cfg;
+
+        ASSERT_EQUAL(tac->functions_count, 1);
+        const Tac_Function* tac_function = &tac->functions[0];
+        ASSERT_EQUAL(tac_function->instructions_count, 2);
+
+        // NOTE(vlad): Before dead code elimination.
+        {
+            ASSERT_EQUAL(cfg->blocks_count, 3);
+            ASSERT_EQUAL(cfg->edges_count, 0);
+
+            const Cfg_Block* block = &cfg->blocks[INVALID_CFG_BLOCK_INDEX + 1];
+            {
+                const Tac_Instructions_Range* range = &block->instructions_range;
+                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+                ASSERT_FALSE(cfg_block_is_empty(block));
+
+                const Size this_block_instructions_count = block->instructions_range.end_instruction_index
+                    - block->instructions_range.start_instruction_index;
+                ASSERT_EQUAL(this_block_instructions_count, 1);
+
+                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
+                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
+            }
+
+            block += 1;
+
+            {
+                const Tac_Instructions_Range* range = &block->instructions_range;
+                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+                ASSERT_FALSE(cfg_block_is_empty(block));
+
+                const Size this_block_instructions_count = block->instructions_range.end_instruction_index
+                    - block->instructions_range.start_instruction_index;
+                ASSERT_EQUAL(this_block_instructions_count, 1);
+
+                {
+                    const Index instruction_index = block->instructions_range.start_instruction_index;
+                    const Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
+                    ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
+                }
+            }
+
+            ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, cfg->blocks), cfg->blocks_count);
+
+            // NOTE(vlad): Test that entry block was determined correctly.
+            {
+                const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
+                ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
+            }
+        }
+
+        remove_unreachable_cfg_blocks(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        // NOTE(vlad): After dead code elimination.
+        {
+            ASSERT_EQUAL(cfg->blocks_count, 2);
+            ASSERT_EQUAL(cfg->edges_count, 0);
+
+            const Cfg_Block* block = &cfg->blocks[INVALID_CFG_BLOCK_INDEX + 1];
+            {
+                const Tac_Instructions_Range* range = &block->instructions_range;
+                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+                ASSERT_FALSE(cfg_block_is_empty(block));
+
+                const Size this_block_instructions_count = block->instructions_range.end_instruction_index
+                    - block->instructions_range.start_instruction_index;
+                ASSERT_EQUAL(this_block_instructions_count, 1);
+
+                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
+                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
+            }
+
+            ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, cfg->blocks), cfg->blocks_count);
+
+            // NOTE(vlad): Test that entry block was determined correctly.
+            {
+                const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
+                ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
+            }
+        }
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    return;\n"
+                                                 "    a := 10;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -886,7 +1003,17 @@ test_unreachable_blocks_removal(Test_Context* test_context)
         }
 
         remove_unreachable_cfg_blocks(&context);
-        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+        {
+            const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                    &context,
+                                                                    MAX_MESSAGE_LEVEL);
+            const String_View expected_output = string_view("<test-input>:3:5: error: This code is unreachable\n"
+                                                            "  3 |     a := 10;\n"
+                                                            "    |     ^");
+            ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+        }
 
         // NOTE(vlad): After dead code elimination.
         {
@@ -923,12 +1050,153 @@ test_unreachable_blocks_removal(Test_Context* test_context)
     }
 
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    if 1 != 2"
-                                                 "    {"
-                                                 "        return;"
-                                                 "        a := 10;"
-                                                 "    }"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    return;\n"
+                                                 "    a := 10;\n"
+                                                 "    b := 20;\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        lower_ast_to_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        construct_cfg_from_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        const Tac* tac = &context.tac;
+        const Cfg* cfg = &context.cfg;
+
+        ASSERT_EQUAL(tac->functions_count, 1);
+        const Tac_Function* tac_function = &tac->functions[0];
+        ASSERT_EQUAL(tac_function->instructions_count, 4);
+
+        // NOTE(vlad): Before dead code elimination.
+        {
+            ASSERT_EQUAL(cfg->blocks_count, 3);
+            ASSERT_EQUAL(cfg->edges_count, 0);
+
+            const Cfg_Block* block = &cfg->blocks[INVALID_CFG_BLOCK_INDEX + 1];
+            {
+                const Tac_Instructions_Range* range = &block->instructions_range;
+                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+                ASSERT_FALSE(cfg_block_is_empty(block));
+
+                const Size this_block_instructions_count = block->instructions_range.end_instruction_index
+                    - block->instructions_range.start_instruction_index;
+                ASSERT_EQUAL(this_block_instructions_count, 1);
+
+                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
+                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
+            }
+
+            block += 1;
+
+            {
+                const Tac_Instructions_Range* range = &block->instructions_range;
+                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+                ASSERT_FALSE(cfg_block_is_empty(block));
+
+                const Size this_block_instructions_count = block->instructions_range.end_instruction_index
+                    - block->instructions_range.start_instruction_index;
+                ASSERT_EQUAL(this_block_instructions_count, 3);
+
+                {
+                    const Index instruction_index = block->instructions_range.start_instruction_index;
+                    const Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
+                    ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
+                }
+
+                {
+                    const Index instruction_index = block->instructions_range.start_instruction_index + 1;
+                    const Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
+                    ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
+                }
+
+                {
+                    const Index instruction_index = block->instructions_range.start_instruction_index + 2;
+                    const Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
+                    ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
+                }
+            }
+
+            ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, cfg->blocks), cfg->blocks_count);
+
+            // NOTE(vlad): Test that entry block was determined correctly.
+            {
+                const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
+                ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
+            }
+        }
+
+        remove_unreachable_cfg_blocks(&context);
+
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+        {
+            const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                    &context,
+                                                                    MAX_MESSAGE_LEVEL);
+            const String_View expected_output = string_view("<test-input>:3:5: error: This code is unreachable\n"
+                                                            "  3 |     a := 10;\n"
+                                                            "    |     ^");
+            ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+        }
+
+        // NOTE(vlad): After dead code elimination.
+        {
+            ASSERT_EQUAL(cfg->blocks_count, 2);
+            ASSERT_EQUAL(cfg->edges_count, 0);
+
+            const Cfg_Block* block = &cfg->blocks[INVALID_CFG_BLOCK_INDEX + 1];
+            {
+                const Tac_Instructions_Range* range = &block->instructions_range;
+                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+                ASSERT_FALSE(cfg_block_is_empty(block));
+
+                const Size this_block_instructions_count = block->instructions_range.end_instruction_index
+                    - block->instructions_range.start_instruction_index;
+                ASSERT_EQUAL(this_block_instructions_count, 1);
+
+                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
+                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
+            }
+
+            ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, cfg->blocks), cfg->blocks_count);
+
+            // NOTE(vlad): Test that entry block was determined correctly.
+            {
+                const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
+                ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
+            }
+        }
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    if 1 != 2\n"
+                                                 "    {\n"
+                                                 "        return;\n"
+                                                 "        a := 10;\n"
+                                                 "    }\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -1065,7 +1333,16 @@ test_unreachable_blocks_removal(Test_Context* test_context)
         }
 
         remove_unreachable_cfg_blocks(&context);
-        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+        {
+            const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                    &context,
+                                                                    MAX_MESSAGE_LEVEL);
+            const String_View expected_output = string_view("<test-input>:5:9: error: This code is unreachable\n"
+                                                            "  5 |         a := 10;\n"
+                                                            "    |         ^");
+            ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+        }
 
         // NOTE(vlad): After dead code elimination.
         {

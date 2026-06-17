@@ -45,6 +45,14 @@ struct Tac_Instruction_Id
 };
 typedef struct Tac_Instruction_Id Tac_Instruction_Id;
 
+struct Tac_Instructions_Range
+{
+    Tac_Function_Label_Id function_label_id;
+    Index start_instruction_index;
+    Index end_instruction_index; // NOTE(vlad): This index is not included.
+};
+typedef struct Tac_Instructions_Range Tac_Instructions_Range;
+
 enum
 {
     INVALID_TAC_INDEX = 0,

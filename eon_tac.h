@@ -130,6 +130,8 @@ struct Tac_Instruction
     Tac_Operand destination;
     Tac_Operand first_argument;
     Tac_Operand second_argument;
+
+    Bool was_automatically_inserted;
 };
 typedef struct Tac_Instruction Tac_Instruction;
 
@@ -137,6 +139,7 @@ struct Tac_Function
 {
     Arena* instructions_arena;
 
+    const Ast_Function_Definition* ast_function_definition;
     Tac_Function_Label_Id label_id;
 
     array(Tac_Instruction, instructions);

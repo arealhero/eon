@@ -199,8 +199,14 @@ create_tac_constant_for_number(Compilation_Context* context,
 internal Tac_Operand
 lower_expression_to_tac(Compilation_Context* context,
                         Tac_Function* tac_function,
-                        const Ast_Expression* expression)
+                        Ast_Expression* expression)
 {
+    Tac_Instructions_Range instructions_range = {0};
+    instructions_range.function_label_id = tac_function->label_id;
+    instructions_range.start_instruction_index = tac_function->instructions_count;
+
+    Tac_Operand result = {0};
+
     switch (expression->kind)
     {
         case AST_EXPRESSION_UNDEFINED:
@@ -210,7 +216,7 @@ lower_expression_to_tac(Compilation_Context* context,
 
         case AST_EXPRESSION_NUMBER:
         {
-            return create_tac_constant_for_number(context, expression);
+            result = create_tac_constant_for_number(context, expression);
         } break;
 
         case AST_EXPRESSION_STRING_LITERAL:
@@ -226,10 +232,9 @@ lower_expression_to_tac(Compilation_Context* context,
 
             if (instruction_id->is_a_global_function)
             {
-                Tac_Operand operand = {0};
-                operand.kind = TAC_OPERAND_FUNCTION_LABEL;
-                operand.function_label_id = instruction_id->function_label_id;
-                return operand;
+                result.kind = TAC_OPERAND_FUNCTION_LABEL;
+                result.function_label_id = instruction_id->function_label_id;
+                break;
             }
 
             // TODO(vlad): Support global variables.
@@ -243,10 +248,8 @@ lower_expression_to_tac(Compilation_Context* context,
                 ASSERT(variable->is_temporary == false);
             }
 
-            Tac_Operand operand = {0};
-            operand.kind = TAC_OPERAND_VARIABLE;
-            operand.variable_id = instruction->destination.variable_id;
-            return operand;
+            result.kind = TAC_OPERAND_VARIABLE;
+            result.variable_id = instruction->destination.variable_id;
         } break;
 
         case AST_EXPRESSION_ADD:
@@ -329,7 +332,7 @@ lower_expression_to_tac(Compilation_Context* context,
             instruction.second_argument = rhs;
 
             emit_tac_instruction(tac_function, instruction);
-            return instruction.destination;
+            result = instruction.destination;
         } break;
 
         case AST_EXPRESSION_NEGATE:
@@ -350,7 +353,7 @@ lower_expression_to_tac(Compilation_Context* context,
             instruction.first_argument = operand;
 
             emit_tac_instruction(tac_function, instruction);
-            return instruction.destination;
+            result = instruction.destination;
         } break;
 
         case AST_EXPRESSION_ADDRESS_OF:
@@ -366,7 +369,7 @@ lower_expression_to_tac(Compilation_Context* context,
             instruction.first_argument = operand;
 
             emit_tac_instruction(tac_function, instruction);
-            return instruction.destination;
+            result = instruction.destination;
         } break;
 
         case AST_EXPRESSION_CALL:
@@ -381,7 +384,7 @@ lower_expression_to_tac(Compilation_Context* context,
                  argument_index < call->arguments_count;
                  ++argument_index)
             {
-                const Ast_Expression* argument = call->arguments[argument_index];
+                Ast_Expression* argument = call->arguments[argument_index];
 
                 const Tac_Operand argument_operand = lower_expression_to_tac(context,
                                                                              tac_function,
@@ -414,18 +417,24 @@ lower_expression_to_tac(Compilation_Context* context,
             call_instruction.first_argument = called_expression_operand;
 
             emit_tac_instruction(tac_function, call_instruction);
-            return call_instruction.destination;
+            result = call_instruction.destination;
         } break;
     }
 
-    UNREACHABLE();
+    instructions_range.end_instruction_index = tac_function->instructions_count;
+    expression->tac_instructions_range = instructions_range;
+    return result;
 }
 
 internal void
 lower_statement_to_tac(Compilation_Context* context,
                        Tac_Function* tac_function,
-                       const Ast_Statement* statement)
+                       Ast_Statement* statement)
 {
+    Tac_Instructions_Range instructions_range = {0};
+    instructions_range.function_label_id = tac_function->label_id;
+    instructions_range.start_instruction_index = tac_function->instructions_count;
+
     switch (statement->kind)
     {
         case AST_STATEMENT_UNDEFINED:
@@ -435,7 +444,7 @@ lower_statement_to_tac(Compilation_Context* context,
 
         case AST_STATEMENT_VARIABLE_DEFINITION:
         {
-            const Ast_Variable_Definition* definition = &statement->variable_definition;
+            Ast_Variable_Definition* definition = &statement->variable_definition;
 
             Tac_Instruction instruction = {0};
             instruction.operation = TAC_ASSIGN;
@@ -458,7 +467,7 @@ lower_statement_to_tac(Compilation_Context* context,
 
         case AST_STATEMENT_ASSIGNMENT:
         {
-            const Ast_Assignment* assignment = &statement->assignment;
+            Ast_Assignment* assignment = &statement->assignment;
 
             const Tac_Operand rhs = lower_expression_to_tac(context, tac_function, &assignment->rhs);
 
@@ -489,7 +498,7 @@ lower_statement_to_tac(Compilation_Context* context,
 
         case AST_STATEMENT_RETURN:
         {
-            const Ast_Return_Statement* return_statement = &statement->return_statement;
+            Ast_Return_Statement* return_statement = &statement->return_statement;
 
             Tac_Instruction instruction = {0};
             instruction.operation = TAC_RETURN;
@@ -506,7 +515,7 @@ lower_statement_to_tac(Compilation_Context* context,
 
         case AST_STATEMENT_WHILE:
         {
-            const Ast_While_Statement* while_statement = &statement->while_statement;
+            Ast_While_Statement* while_statement = &statement->while_statement;
 
             const Tac_Label_Id start_label_id = create_tac_label(context);
             const Tac_Label_Id end_label_id = create_tac_label(context);
@@ -544,7 +553,7 @@ lower_statement_to_tac(Compilation_Context* context,
                      statement_index < body->statements_count;
                      ++statement_index)
                 {
-                    const Ast_Statement* body_statement = &body->statements[statement_index];
+                    Ast_Statement* body_statement = &body->statements[statement_index];
                     lower_statement_to_tac(context, tac_function, body_statement);
                 }
             }
@@ -577,7 +586,7 @@ lower_statement_to_tac(Compilation_Context* context,
             // TODO(vlad): Optimize instructions in case of empty if/else block?
             //             Or maybe it is a good idea to optimize them out after the CFG construction.
 
-            const Ast_If_Statement* if_statement = &statement->if_statement;
+            Ast_If_Statement* if_statement = &statement->if_statement;
 
             const Tac_Label_Id else_label_id = create_tac_label(context);
             const Tac_Label_Id end_label_id = create_tac_label(context);
@@ -602,7 +611,7 @@ lower_statement_to_tac(Compilation_Context* context,
                      statement_index < then_code_block->statements_count;
                      ++statement_index)
                 {
-                    const Ast_Statement* then_statement = &then_code_block->statements[statement_index];
+                    Ast_Statement* then_statement = &then_code_block->statements[statement_index];
                     lower_statement_to_tac(context, tac_function, then_statement);
                 }
             }
@@ -635,7 +644,7 @@ lower_statement_to_tac(Compilation_Context* context,
                      statement_index < else_code_block->statements_count;
                      ++statement_index)
                 {
-                    const Ast_Statement* else_statement = &else_code_block->statements[0];
+                    Ast_Statement* else_statement = &else_code_block->statements[0];
                     lower_statement_to_tac(context, tac_function, else_statement);
                 }
             }
@@ -656,11 +665,14 @@ lower_statement_to_tac(Compilation_Context* context,
 
         case AST_STATEMENT_CALL:
         {
-            const Ast_Call_Statement* call_statement = &statement->call_statement;
+            Ast_Call_Statement* call_statement = &statement->call_statement;
             ASSERT(call_statement->call_expression.kind == AST_EXPRESSION_CALL);
             lower_expression_to_tac(context, tac_function, &call_statement->call_expression);
         } break;
     }
+
+    instructions_range.end_instruction_index = tac_function->instructions_count;
+    statement->tac_instructions_range = instructions_range;
 }
 
 internal void
@@ -716,6 +728,8 @@ lower_ast_to_tac(Compilation_Context* context)
                      (Tac_Function){0});
 
         Tac_Function* tac_function = &tac->functions[tac->functions_count - 1];
+        tac_function->ast_function_definition = ast_function;
+
         {
             const Symbol* function_symbol = get_symbol_by_id(context, ast_function->name.symbol_id);
             ASSERT(function_symbol->tac_instruction_id.function_label_id.index != INVALID_TAC_INDEX);
@@ -767,7 +781,7 @@ lower_ast_to_tac(Compilation_Context* context)
              statement_index < function_body->statements_count;
              ++statement_index)
         {
-            const Ast_Statement* statement = &function_body->statements[statement_index];
+            Ast_Statement* statement = &function_body->statements[statement_index];
             lower_statement_to_tac(context, tac_function, statement);
         }
 
@@ -776,6 +790,7 @@ lower_ast_to_tac(Compilation_Context* context)
         {
             Tac_Instruction instruction = {0};
             instruction.operation = TAC_RETURN;
+            instruction.was_automatically_inserted = true;
             emit_tac_instruction(tac_function, instruction);
         }
     }

@@ -320,18 +320,25 @@ construct_cfg_from_tac(Compilation_Context* context)
     request_arena_reset(context->arena_provider, context->scratch_arena);
 }
 
+struct Cfg_Block_Reachability_Info
+{
+    Bool was_reached;
+    Bool diagnostic_message_was_emitted;
+};
+typedef struct Cfg_Block_Reachability_Info Cfg_Block_Reachability_Info;
+
 internal void
 visit_reachable_blocks(Cfg* cfg,
                        const Cfg_Block_Id this_block_id,
-                       Bool* block_was_visited,
+                       Cfg_Block_Reachability_Info* reachability_info,
                        Bool* edge_was_visited)
 {
-    if (block_was_visited[this_block_id.index])
+    if (reachability_info[this_block_id.index].was_reached)
     {
         return;
     }
 
-    block_was_visited[this_block_id.index] = true;
+    reachability_info[this_block_id.index].was_reached = true;
 
     for (Index edge_index = 0;
          edge_index < cfg->edges_count;
@@ -344,7 +351,7 @@ visit_reachable_blocks(Cfg* cfg,
             ASSERT(edge_was_visited[edge_index] == false);
 
             edge_was_visited[edge_index] = true;
-            visit_reachable_blocks(cfg, edge->destination_block_id, block_was_visited, edge_was_visited);
+            visit_reachable_blocks(cfg, edge->destination_block_id, reachability_info, edge_was_visited);
         }
     }
 }
@@ -390,14 +397,177 @@ swap_cfg_block_ids(Compilation_Context* context,
     }
 }
 
-internal void
-remove_unreachable_cfg_blocks(Compilation_Context* context)
+internal const Ast_Statement*
+find_statement_in_code_block_by_tac_instruction_index(const Ast_Code_Block* code_block,
+                                                      const Index tac_instruction_index)
 {
-    // FIXME(vlad): Emit warnings/errors about unreachable code.
+    for (Index statement_index = 0;
+         statement_index < code_block->statements_count;
+         ++statement_index)
+    {
+        const Ast_Statement* statement = &code_block->statements[statement_index];
+        const Tac_Instructions_Range* statement_range = &statement->tac_instructions_range;
+
+        const Bool instruction_is_in_range = statement_range->start_instruction_index <= tac_instruction_index
+                                             && tac_instruction_index < statement_range->end_instruction_index;
+
+        if (!instruction_is_in_range)
+        {
+            continue;
+        }
+
+        switch (statement->kind)
+        {
+            case AST_STATEMENT_UNDEFINED:
+            {
+                UNREACHABLE();
+            } break;
+
+            case AST_STATEMENT_VARIABLE_DEFINITION:
+            case AST_STATEMENT_ASSIGNMENT:
+            case AST_STATEMENT_RETURN:
+            case AST_STATEMENT_CALL:
+            {
+                return statement;
+            } break;
+
+            case AST_STATEMENT_WHILE:
+            {
+                const Ast_While_Statement* while_loop = &statement->while_statement;
+                const Ast_Code_Block* loop_body = &while_loop->body;
+
+                const Ast_Statement* found_statement_in_loop_body = find_statement_in_code_block_by_tac_instruction_index(loop_body,
+                                                                                                                         tac_instruction_index);
+                if (found_statement_in_loop_body)
+                {
+                    return found_statement_in_loop_body;
+                }
+
+                return statement;
+            } break;
+
+            case AST_STATEMENT_IF:
+            {
+                const Ast_If_Statement* if_loop = &statement->if_statement;
+
+                const Ast_Code_Block* then_body = &if_loop->if_statements;
+                const Ast_Statement* found_statement_in_then_body = find_statement_in_code_block_by_tac_instruction_index(then_body,
+                                                                                                                         tac_instruction_index);
+                if (found_statement_in_then_body)
+                {
+                    return found_statement_in_then_body;
+                }
+
+                const Ast_Code_Block* else_body = &if_loop->else_statements;
+                const Ast_Statement* found_statement_in_else_body = find_statement_in_code_block_by_tac_instruction_index(else_body,
+                                                                                                                         tac_instruction_index);
+                if (found_statement_in_else_body)
+                {
+                    return found_statement_in_else_body;
+                }
+
+                return statement;
+            } break;
+        }
+
+        UNREACHABLE();
+    }
+
+    UNREACHABLE();
+}
+
+internal const Ast_Statement*
+find_statement_by_tac_instructions_range(Compilation_Context* context,
+                                         const Tac_Instructions_Range* instructions_range)
+{
+    Tac* tac = &context->tac;
+
+    const Tac_Function* tac_function = get_tac_function_by_label(tac, instructions_range->function_label_id);
+
+    Index first_non_automatic_instruction_index = -1;
+    for (Index instruction_index = instructions_range->start_instruction_index;
+         instruction_index < instructions_range->end_instruction_index;
+         ++instruction_index)
+    {
+        const Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
+        if (!instruction->was_automatically_inserted)
+        {
+            first_non_automatic_instruction_index = instruction_index;
+            break;
+        }
+    }
+
+    if (first_non_automatic_instruction_index == -1)
+    {
+        return NULL;
+    }
+
+    const Ast_Function_Definition* ast_function = tac_function->ast_function_definition;
+    const Ast_Code_Block* body = &ast_function->body;
+
+    const Ast_Statement* found_statement = find_statement_in_code_block_by_tac_instruction_index(body, first_non_automatic_instruction_index);
+    ASSERT(found_statement != NULL);
+
+    return found_statement;
+}
+
+internal void
+emit_diagnostic_message_about_dead_code_if_needed(Compilation_Context* context,
+                                                  const Cfg_Block_Id this_block_id,
+                                                  Cfg_Block_Reachability_Info* reachability_info)
+{
+    Cfg_Block_Reachability_Info* this_block_reachability_info = &reachability_info[this_block_id.index];
+
+    if (this_block_reachability_info->was_reached)
+    {
+        return;
+    }
 
     Cfg* cfg = &context->cfg;
 
-    Bool* block_was_visited = allocate_array(context->scratch_arena, cfg->blocks_count, Bool);
+    if (!this_block_reachability_info->diagnostic_message_was_emitted)
+    {
+        const Cfg_Block* block = get_cfg_block_by_id(cfg, this_block_id);
+
+        const Ast_Statement* statement = find_statement_by_tac_instructions_range(context, &block->instructions_range);
+
+        // NOTE(vlad): 'statement' is NULL iff all instructions in the code block were inserted automatically during AST
+        //             to TAC lowering (like implicit TAC_RETURN in void functions).
+        if (statement)
+        {
+            Diagnostic_Message error = {0};
+            error.level = MESSAGE_LEVEL_ERROR;
+            error.location = statement->start_location;
+            error.text = string_view("This code is unreachable");
+
+            emit_diagnostic_message(context, &error);
+        }
+    }
+
+    for (Index edge_index = 0;
+         edge_index < cfg->edges_count;
+         ++edge_index)
+    {
+        const Cfg_Edge* edge = &cfg->edges[edge_index];
+
+        if (edge->source_block_id.index == this_block_id.index)
+        {
+            Cfg_Block_Reachability_Info* next_block_reachability_info = &reachability_info[edge->destination_block_id.index];
+            next_block_reachability_info->diagnostic_message_was_emitted = true;
+            emit_diagnostic_message_about_dead_code_if_needed(context, edge->destination_block_id, reachability_info);
+        }
+    }
+}
+
+internal void
+remove_unreachable_cfg_blocks(Compilation_Context* context)
+{
+    Cfg* cfg = &context->cfg;
+
+    Cfg_Block_Reachability_Info* reachability_info = allocate_array(context->scratch_arena,
+                                                                    cfg->blocks_count,
+                                                                    Cfg_Block_Reachability_Info);
+
     Bool* edge_was_visited = allocate_array(context->scratch_arena, cfg->edges_count, Bool);
 
     Tac* tac = &context->tac;
@@ -407,19 +577,23 @@ remove_unreachable_cfg_blocks(Compilation_Context* context)
     {
         const Tac_Function* tac_function = &tac->functions[function_index];
         const Tac_Function_Label* tac_function_label = get_tac_function_label_by_id(tac, tac_function->label_id);
-        visit_reachable_blocks(cfg, tac_function_label->entry_cfg_block_id, block_was_visited, edge_was_visited);
+        visit_reachable_blocks(cfg, tac_function_label->entry_cfg_block_id, reachability_info, edge_was_visited);
     }
 
-    ASSERT(block_was_visited[INVALID_CFG_BLOCK_INDEX] == false);
+    ASSERT(reachability_info[INVALID_CFG_BLOCK_INDEX].was_reached == false);
 
     Size unreachable_blocks_count = 0;
     for (Index i = INVALID_CFG_BLOCK_INDEX + 1;
          i < cfg->blocks_count;
          ++i)
     {
-        if (!block_was_visited[i])
+        if (!reachability_info[i].was_reached)
         {
             unreachable_blocks_count += 1;
+
+            Cfg_Block_Id this_block_id = {0};
+            this_block_id.index = i;
+            emit_diagnostic_message_about_dead_code_if_needed(context, this_block_id, reachability_info);
         }
     }
 
@@ -428,6 +602,7 @@ remove_unreachable_cfg_blocks(Compilation_Context* context)
         return;
     }
 
+    // NOTE(vlad): Removing unreachabile blocks.
     Index next_free_block_index = INVALID_CFG_BLOCK_INDEX;
     while (true)
     {
@@ -435,7 +610,7 @@ remove_unreachable_cfg_blocks(Compilation_Context* context)
              i < cfg->blocks_count;
              ++i)
         {
-            if (!block_was_visited[i])
+            if (!reachability_info[i].was_reached)
             {
                 next_free_block_index = i;
                 break;
@@ -449,7 +624,7 @@ remove_unreachable_cfg_blocks(Compilation_Context* context)
              next_reachable_block_index < cfg->blocks_count;
              next_reachable_block_index += 1)
         {
-            if (block_was_visited[next_reachable_block_index])
+            if (reachability_info[next_reachable_block_index].was_reached)
             {
                 break;
             }
@@ -472,8 +647,8 @@ remove_unreachable_cfg_blocks(Compilation_Context* context)
         }
 
         cfg->blocks[next_free_block_index] = cfg->blocks[next_reachable_block_index];
-        block_was_visited[next_free_block_index] = true;
-        block_was_visited[next_reachable_block_index] = false;
+        reachability_info[next_free_block_index].was_reached = true;
+        reachability_info[next_reachable_block_index].was_reached = false;
     }
 
     // NOTE(vlad): Removing unreachable edges.

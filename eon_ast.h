@@ -96,6 +96,8 @@ struct Ast_Expression
 
     Type_Id type_id;
 
+    Tac_Instructions_Range tac_instructions_range;
+
     union
     {
         Ast_Number number;
@@ -254,6 +256,10 @@ typedef struct Ast_Call_Statement Ast_Call_Statement;
 struct Ast_Statement
 {
     Ast_Statement_Kind kind;
+
+    Source_Location start_location; // TODO(vlad): Replace with an entire (potentially multiline) location.
+    Tac_Instructions_Range tac_instructions_range;
+
     union
     {
         Ast_Variable_Definition variable_definition;
