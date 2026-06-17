@@ -2029,6 +2029,30 @@ test_expressions(Test_Context* test_context)
             ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
 
             ASSERT_TRUE(definition->has_initial_value);
+
+            switch (definition->initial_value.kind)
+            {
+                case AST_EXPRESSION_ADD:
+                case AST_EXPRESSION_SUBTRACT:
+                case AST_EXPRESSION_MULTIPLY:
+                case AST_EXPRESSION_DIVIDE:
+
+                case AST_EXPRESSION_EQUAL:
+                case AST_EXPRESSION_NOT_EQUAL:
+                case AST_EXPRESSION_LESS:
+                case AST_EXPRESSION_LESS_OR_EQUAL:
+                case AST_EXPRESSION_GREATER:
+                case AST_EXPRESSION_GREATER_OR_EQUAL:
+                {
+                    // NOTE(vlad): OK.
+                } break;
+
+                default:
+                {
+                    UNREACHABLE();
+                } break;
+            }
+
             ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.binary_expression.operator.lexeme,
                                      test_info.expected_operator_lexeme);
 
