@@ -1268,6 +1268,11 @@ parse_if_statement(Parser* parser, Ast_If_Statement* if_statement)
             Ast_Statement* next_branch_statement = &else_statements->statements[0];
             next_branch_statement->kind = AST_STATEMENT_IF;
 
+            {
+                next_branch_statement->start_location = parser->current_token.location;
+                next_branch_statement->start_location.length_in_bytes = 1; // TODO(vlad): Support other encodings.
+            }
+
             if (!parse_if_statement(parser, &next_branch_statement->if_statement))
             {
                 return false;

@@ -819,6 +819,8 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
         const Ast_Statement* statement = &definition->body.statements[0];
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_EQUAL(statement->start_location.line, 0);
+        ASSERT_EQUAL(statement->start_location.column, 20);
         ASSERT_STRINGS_ARE_EQUAL(statement->variable_definition.name.token.lexeme, "variable");
 
         const Ast_Type* variable_type = statement->variable_definition.type;
@@ -835,8 +837,8 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
     // NOTE(vlad): Variable with initialisation.
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    variable: s32 = 123;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    variable: s32 = 123;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -871,6 +873,8 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_EQUAL(statement->start_location.line, 1);
+        ASSERT_EQUAL(statement->start_location.column, 4);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "variable");
@@ -891,8 +895,8 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
     // NOTE(vlad): Variable with inferred type.
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    variable := 123;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    variable := 123;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -927,6 +931,8 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_EQUAL(statement->start_location.line, 1);
+        ASSERT_EQUAL(statement->start_location.column, 4);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "variable");
@@ -946,9 +952,9 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
     // NOTE(vlad): Multiple variable definitions.
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    var1 := 123;"
-                                                 "    var2: String_View;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    var1 := 123;\n"
+                                                 "    var2: String_View;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -984,6 +990,8 @@ test_variable_definitions_parsing(Test_Context* test_context)
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var1");
@@ -999,6 +1007,8 @@ test_variable_definitions_parsing(Test_Context* test_context)
         {
             const Ast_Statement* statement = &function_definition->body.statements[1];
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_EQUAL(statement->start_location.line, 2);
+            ASSERT_EQUAL(statement->start_location.column, 4);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var2");
@@ -1016,8 +1026,8 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
     // NOTE(vlad): String_View initialisation.
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    var: String_View = \"Hello\";"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    var: String_View = \"Hello\";\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -1052,6 +1062,8 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_EQUAL(statement->start_location.line, 1);
+        ASSERT_EQUAL(statement->start_location.column, 4);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
@@ -1071,9 +1083,9 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
     // NOTE(vlad): Variable initialisation via other variable.
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    var1 := 123;"
-                                                 "    var2 := var1;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    var1 := 123;\n"
+                                                 "    var2 := var1;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -1109,6 +1121,8 @@ test_variable_definitions_parsing(Test_Context* test_context)
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var1");
@@ -1124,6 +1138,8 @@ test_variable_definitions_parsing(Test_Context* test_context)
         {
             const Ast_Statement* statement = &function_definition->body.statements[1];
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_EQUAL(statement->start_location.line, 2);
+            ASSERT_EQUAL(statement->start_location.column, 4);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var2");
@@ -1142,8 +1158,8 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
     // NOTE(vlad): Pointer declaration.
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    pointer: * s32;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    pointer: * s32;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -1177,6 +1193,8 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_EQUAL(statement->start_location.line, 1);
+        ASSERT_EQUAL(statement->start_location.column, 4);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "pointer");
@@ -1198,8 +1216,8 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
     // NOTE(vlad): Pointer to a pointer declaration.
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    pointer: ** s32;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    pointer: ** s32;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -1233,6 +1251,8 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+        ASSERT_EQUAL(statement->start_location.line, 1);
+        ASSERT_EQUAL(statement->start_location.column, 4);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "pointer");
@@ -1258,8 +1278,8 @@ test_variable_definitions_parsing(Test_Context* test_context)
     // NOTE(vlad): Testing mutable variables.
     {
         {
-            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                     "    variable: mutable s32;"
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                     "    variable: mutable s32;\n"
                                                      "}");
 
             Lexer lexer = {0};
@@ -1293,6 +1313,8 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
             const Ast_Statement* statement = &definition->body.statements[0];
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
 
             ASSERT_STRINGS_ARE_EQUAL(statement->variable_definition.name.token.lexeme, "variable");
 
@@ -1309,8 +1331,8 @@ test_variable_definitions_parsing(Test_Context* test_context)
         }
 
         {
-            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                     "    pointer: mutable * s32;"
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                     "    pointer: mutable * s32;\n"
                                                      "}");
 
             Lexer lexer = {0};
@@ -1344,6 +1366,8 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "pointer");
@@ -1364,8 +1388,8 @@ test_variable_definitions_parsing(Test_Context* test_context)
         }
 
         {
-            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                     "    pointer: mutable * mutable s32;"
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                     "    pointer: mutable * mutable s32;\n"
                                                      "}");
 
             Lexer lexer = {0};
@@ -1399,6 +1423,8 @@ test_variable_definitions_parsing(Test_Context* test_context)
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "pointer");
@@ -1419,8 +1445,8 @@ test_variable_definitions_parsing(Test_Context* test_context)
         }
 
         {
-            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                     "    variable: mutable _ = 123;"
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                     "    variable: mutable _ = 123;\n"
                                                      "}");
 
             Lexer lexer = {0};
@@ -1455,6 +1481,8 @@ test_variable_definitions_parsing(Test_Context* test_context)
             const Ast_Statement* statement = &definition->body.statements[0];
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
             ASSERT_STRINGS_ARE_EQUAL(statement->variable_definition.name.token.lexeme, "variable");
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
 
             const Ast_Type* variable_type = statement->variable_definition.type;
             ASSERT_ENUM_VALUES_ARE_EQUAL(variable_type->kind, AST_TYPE_NAME);
@@ -1479,8 +1507,8 @@ test_return_statement_parsing(Test_Context* test_context)
 {
     // NOTE(vlad): Empty return statement.
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    return;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    return;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -1515,6 +1543,8 @@ test_return_statement_parsing(Test_Context* test_context)
         const Ast_Statement* statement = &definition->body.statements[0];
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_RETURN);
         ASSERT_TRUE(statement->return_statement.is_empty);
+        ASSERT_EQUAL(statement->start_location.line, 1);
+        ASSERT_EQUAL(statement->start_location.column, 4);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -1523,8 +1553,8 @@ test_return_statement_parsing(Test_Context* test_context)
 
     // NOTE(vlad): Simple return statement with a number constant.
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {"
-                                                 "    return 123;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {\n"
+                                                 "    return 123;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -1557,6 +1587,9 @@ test_return_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &definition->body.statements[0];
+        ASSERT_EQUAL(statement->start_location.line, 1);
+        ASSERT_EQUAL(statement->start_location.column, 4);
+
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_RETURN);
         ASSERT_FALSE(statement->return_statement.is_empty);
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->return_statement.expression.kind, AST_EXPRESSION_NUMBER);
@@ -1575,8 +1608,8 @@ test_if_statement_parsing(Test_Context* test_context)
 {
     // NOTE(vlad): If without else.
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    if true { return; }"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    if true { return; }\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -1609,6 +1642,9 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &definition->body.statements[0];
+        ASSERT_EQUAL(statement->start_location.line, 1);
+        ASSERT_EQUAL(statement->start_location.column, 4);
+
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_IF);
         const Ast_If_Statement* if_statement = &statement->if_statement;
         ASSERT_ENUM_VALUES_ARE_EQUAL(if_statement->condition.kind, AST_EXPRESSION_IDENTIFIER);
@@ -1616,8 +1652,14 @@ test_if_statement_parsing(Test_Context* test_context)
 
         const Ast_Code_Block* then_code_block = &if_statement->if_statements;
         ASSERT_EQUAL(then_code_block->statements_count, 1);
-        ASSERT_ENUM_VALUES_ARE_EQUAL(then_code_block->statements[0].kind, AST_STATEMENT_RETURN);
-        ASSERT_TRUE(then_code_block->statements[0].return_statement.is_empty);
+        {
+            const Ast_Statement* substatement = &then_code_block->statements[0];
+            ASSERT_EQUAL(substatement->start_location.line, 1);
+            ASSERT_EQUAL(substatement->start_location.column, 14);
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(substatement->kind, AST_STATEMENT_RETURN);
+            ASSERT_TRUE(substatement->return_statement.is_empty);
+        }
 
         const Ast_Code_Block* else_code_block = &if_statement->else_statements;
         ASSERT_EQUAL(else_code_block->statements_count, 0);
@@ -1629,9 +1671,9 @@ test_if_statement_parsing(Test_Context* test_context)
 
     // NOTE(vlad): If with else.
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    if true { return; }"
-                                                 "    else { a := 1; }"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    if true { return; }\n"
+                                                 "    else { a := 1; }\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -1664,6 +1706,9 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &definition->body.statements[0];
+        ASSERT_EQUAL(statement->start_location.line, 1);
+        ASSERT_EQUAL(statement->start_location.column, 4);
+
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_IF);
         const Ast_If_Statement* if_statement = &statement->if_statement;
         ASSERT_ENUM_VALUES_ARE_EQUAL(if_statement->condition.kind, AST_EXPRESSION_IDENTIFIER);
@@ -1671,25 +1716,38 @@ test_if_statement_parsing(Test_Context* test_context)
 
         const Ast_Code_Block* then_code_block = &if_statement->if_statements;
         ASSERT_EQUAL(then_code_block->statements_count, 1);
-        ASSERT_ENUM_VALUES_ARE_EQUAL(then_code_block->statements[0].kind, AST_STATEMENT_RETURN);
-        ASSERT_TRUE(then_code_block->statements[0].return_statement.is_empty);
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&then_code_block->statements[0].return_statement.empty_expression_location,
-                                          ";");
+
+        {
+            const Ast_Statement* substatement = &then_code_block->statements[0];
+            ASSERT_EQUAL(substatement->start_location.line, 1);
+            ASSERT_EQUAL(substatement->start_location.column, 14);
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(substatement->kind, AST_STATEMENT_RETURN);
+            ASSERT_TRUE(substatement->return_statement.is_empty);
+            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&substatement->return_statement.empty_expression_location, ";");
+        }
 
         const Ast_Code_Block* else_code_block = &if_statement->else_statements;
         ASSERT_EQUAL(else_code_block->statements_count, 1);
-        ASSERT_ENUM_VALUES_ARE_EQUAL(else_code_block->statements[0].kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
-        const Ast_Variable_Definition* variable_definition = &else_code_block->statements[0].variable_definition;
+        {
+            const Ast_Statement* substatement = &else_code_block->statements[0];
+            ASSERT_EQUAL(substatement->start_location.line, 2);
+            ASSERT_EQUAL(substatement->start_location.column, 11);
 
-        ASSERT_STRINGS_ARE_EQUAL(variable_definition->name.token.lexeme, "a");
-        ASSERT_ENUM_VALUES_ARE_EQUAL(variable_definition->type->kind, AST_TYPE_OMITTED);
-        ASSERT_FALSE(variable_definition->type->is_mutable);
-        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&variable_definition->type->location, "");
-        ASSERT_TRUE(variable_definition->has_initial_value);
-        ASSERT_ENUM_VALUES_ARE_EQUAL(variable_definition->initial_value.kind, AST_EXPRESSION_NUMBER);
-        ASSERT_STRINGS_ARE_EQUAL(variable_definition->initial_value.number.token.lexeme, "1");
-        ASSERT_FALSE(variable_definition->initial_value.number.is_a_floating_point_number);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(substatement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+
+            const Ast_Variable_Definition* variable_definition = &substatement->variable_definition;
+
+            ASSERT_STRINGS_ARE_EQUAL(variable_definition->name.token.lexeme, "a");
+            ASSERT_ENUM_VALUES_ARE_EQUAL(variable_definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_FALSE(variable_definition->type->is_mutable);
+            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&variable_definition->type->location, "");
+            ASSERT_TRUE(variable_definition->has_initial_value);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(variable_definition->initial_value.kind, AST_EXPRESSION_NUMBER);
+            ASSERT_STRINGS_ARE_EQUAL(variable_definition->initial_value.number.token.lexeme, "1");
+            ASSERT_FALSE(variable_definition->initial_value.number.is_a_floating_point_number);
+        }
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -1698,10 +1756,10 @@ test_if_statement_parsing(Test_Context* test_context)
 
     // NOTE(vlad): Testing chained if statements.
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    if 1 { return 1; }"
-                                                 "    else if 2 { return 2; }"
-                                                 "    else { return 3; }"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    if 1 { return 1; }\n"
+                                                 "    else if 2 { return 2; }\n"
+                                                 "    else { return 3; }\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -1734,6 +1792,9 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &definition->body.statements[0];
+        ASSERT_EQUAL(statement->start_location.line, 1);
+        ASSERT_EQUAL(statement->start_location.column, 4);
+
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_IF);
 
         const Ast_If_Statement* if_statement = &statement->if_statement;
@@ -1743,6 +1804,8 @@ test_if_statement_parsing(Test_Context* test_context)
 
         const Ast_Code_Block* then_code_block = &if_statement->if_statements;
         ASSERT_EQUAL(then_code_block->statements_count, 1);
+        ASSERT_EQUAL(then_code_block->statements[0].start_location.line, 1);
+        ASSERT_EQUAL(then_code_block->statements[0].start_location.column, 11);
         ASSERT_ENUM_VALUES_ARE_EQUAL(then_code_block->statements[0].kind, AST_STATEMENT_RETURN);
 
         const Ast_Return_Statement* first_return = &then_code_block->statements[0].return_statement;
@@ -1753,6 +1816,8 @@ test_if_statement_parsing(Test_Context* test_context)
 
         const Ast_Code_Block* else_code_block = &if_statement->else_statements;
         ASSERT_EQUAL(else_code_block->statements_count, 1);
+        ASSERT_EQUAL(else_code_block->statements[0].start_location.line, 2);
+        ASSERT_EQUAL(else_code_block->statements[0].start_location.column, 9);
         ASSERT_ENUM_VALUES_ARE_EQUAL(else_code_block->statements[0].kind, AST_STATEMENT_IF);
 
         const Ast_If_Statement* else_if_statement = &else_code_block->statements[0].if_statement;
@@ -1762,6 +1827,8 @@ test_if_statement_parsing(Test_Context* test_context)
 
         const Ast_Code_Block* else_if_true_code_block = &else_if_statement->if_statements;
         ASSERT_EQUAL(else_if_true_code_block->statements_count, 1);
+        ASSERT_EQUAL(else_if_true_code_block->statements[0].start_location.line, 2);
+        ASSERT_EQUAL(else_if_true_code_block->statements[0].start_location.column, 16);
         ASSERT_ENUM_VALUES_ARE_EQUAL(else_if_true_code_block->statements[0].kind, AST_STATEMENT_RETURN);
 
         const Ast_Return_Statement* second_return = &else_if_true_code_block->statements[0].return_statement;
@@ -1772,6 +1839,8 @@ test_if_statement_parsing(Test_Context* test_context)
 
         const Ast_Code_Block* else_if_false_code_block = &else_if_statement->else_statements;
         ASSERT_EQUAL(else_if_false_code_block->statements_count, 1);
+        ASSERT_EQUAL(else_if_false_code_block->statements[0].start_location.line, 3);
+        ASSERT_EQUAL(else_if_false_code_block->statements[0].start_location.column, 11);
         ASSERT_ENUM_VALUES_ARE_EQUAL(else_if_false_code_block->statements[0].kind, AST_STATEMENT_RETURN);
 
         const Ast_Return_Statement* third_return = &else_if_false_code_block->statements[0].return_statement;
@@ -1790,9 +1859,9 @@ internal void
 test_expressions(Test_Context* test_context)
 {
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    var1 := 0;"
-                                                 "    var2 := (var1);"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    var1 := 0;\n"
+                                                 "    var2 := (var1);\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -1826,6 +1895,9 @@ test_expressions(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -1844,6 +1916,9 @@ test_expressions(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[1];
+            ASSERT_EQUAL(statement->start_location.line, 2);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -1866,8 +1941,8 @@ test_expressions(Test_Context* test_context)
     // NOTE(vlad): Simple expression tests.
 
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    var := 2 + 2;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    var := 2 + 2;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -1900,6 +1975,9 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
+        ASSERT_EQUAL(statement->start_location.line, 1);
+        ASSERT_EQUAL(statement->start_location.column, 4);
+
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -1927,8 +2005,8 @@ test_expressions(Test_Context* test_context)
     }
 
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    var := 2 - 2;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    var := 2 - 2;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -1961,6 +2039,9 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
+        ASSERT_EQUAL(statement->start_location.line, 1);
+        ASSERT_EQUAL(statement->start_location.column, 4);
+
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -1988,8 +2069,8 @@ test_expressions(Test_Context* test_context)
     }
 
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    var := 2 * 2;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    var := 2 * 2;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -2022,6 +2103,9 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
+        ASSERT_EQUAL(statement->start_location.line, 1);
+        ASSERT_EQUAL(statement->start_location.column, 4);
+
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -2049,8 +2133,8 @@ test_expressions(Test_Context* test_context)
     }
 
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    var := 2 / 2;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    var := 2 / 2;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -2083,6 +2167,9 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
+        ASSERT_EQUAL(statement->start_location.line, 1);
+        ASSERT_EQUAL(statement->start_location.column, 4);
+
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -2117,8 +2204,8 @@ test_expressions(Test_Context* test_context)
     }
 
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    var := 2.0 + 2.0;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    var := 2.0 + 2.0;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -2151,6 +2238,9 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
+        ASSERT_EQUAL(statement->start_location.line, 1);
+        ASSERT_EQUAL(statement->start_location.column, 4);
+
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -2179,8 +2269,8 @@ test_expressions(Test_Context* test_context)
     }
 
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    var := 2.0 - 2.0;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    var := 2.0 - 2.0;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -2213,6 +2303,9 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
+        ASSERT_EQUAL(statement->start_location.line, 1);
+        ASSERT_EQUAL(statement->start_location.column, 4);
+
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -2241,8 +2334,8 @@ test_expressions(Test_Context* test_context)
     }
 
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    var := 2.0 * 2.0;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    var := 2.0 * 2.0;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -2275,6 +2368,9 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
+        ASSERT_EQUAL(statement->start_location.line, 1);
+        ASSERT_EQUAL(statement->start_location.column, 4);
+
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -2303,8 +2399,8 @@ test_expressions(Test_Context* test_context)
     }
 
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    var := 2.0 / 2.0;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    var := 2.0 / 2.0;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -2337,6 +2433,9 @@ test_expressions(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
+        ASSERT_EQUAL(statement->start_location.line, 1);
+        ASSERT_EQUAL(statement->start_location.column, 4);
+
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -2373,8 +2472,8 @@ test_expressions(Test_Context* test_context)
     // NOTE(vlad): Testing function call without arguments.
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = { return 123; }\n"
-                                                 "bar: () -> void = {"
-                                                 "    var := foo();"
+                                                 "bar: () -> void = {\n"
+                                                 "    var := foo();\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -2408,6 +2507,9 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 0);
+            ASSERT_EQUAL(statement->start_location.column, 19);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_RETURN);
             ASSERT_FALSE(statement->return_statement.is_empty);
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->return_statement.expression.kind, AST_EXPRESSION_NUMBER);
@@ -2438,6 +2540,9 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 2);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -2463,8 +2568,8 @@ test_expressions(Test_Context* test_context)
     // NOTE(vlad): Testing function call with simple arguments.
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (first: s32, second: s32) -> s32 = { return first + second; }\n"
-                                                 "bar: () -> void = {"
-                                                 "    var := foo(10, 20);"
+                                                 "bar: () -> void = {\n"
+                                                 "    var := foo(10, 20);\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -2498,6 +2603,9 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 2);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -2537,8 +2645,8 @@ test_expressions(Test_Context* test_context)
 
     // NOTE(vlad): Testing function call with non-trivial arguments.
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    var := bar(10 + something * 30, baz(10, 20));"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    var := bar(10 + something * 30, baz(10, 20));\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -2572,6 +2680,9 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -2647,8 +2758,8 @@ test_expressions(Test_Context* test_context)
     // NOTE(vlad): Testing comparison expressions.
     {
         {
-            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                     "    var := 1 == 1;"
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                     "    var := 1 == 1;\n"
                                                      "}");
 
             Lexer lexer = {0};
@@ -2681,6 +2792,9 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -2709,8 +2823,8 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                     "    var := 1 != 1;"
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                     "    var := 1 != 1;\n"
                                                      "}");
 
             Lexer lexer = {0};
@@ -2743,6 +2857,9 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -2771,8 +2888,8 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                     "    var := 1 < 1;"
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                     "    var := 1 < 1;\n"
                                                      "}");
 
             Lexer lexer = {0};
@@ -2805,6 +2922,9 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -2833,8 +2953,8 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                     "    var := 1 <= 1;"
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                     "    var := 1 <= 1;\n"
                                                      "}");
 
             Lexer lexer = {0};
@@ -2867,6 +2987,9 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -2895,8 +3018,8 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                     "    var := 1 > 1;"
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                     "    var := 1 > 1;\n"
                                                      "}");
 
             Lexer lexer = {0};
@@ -2929,6 +3052,9 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -2957,8 +3083,8 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                     "    var := 1 >= 1;"
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                     "    var := 1 >= 1;\n"
                                                      "}");
 
             Lexer lexer = {0};
@@ -2991,6 +3117,9 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -3022,8 +3151,8 @@ test_expressions(Test_Context* test_context)
     // NOTE(vlad): Testing unary expressions.
     {
         {
-            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                     "    var := -1;"
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                     "    var := -1;\n"
                                                      "}");
 
             Lexer lexer = {0};
@@ -3056,6 +3185,9 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -3080,8 +3212,8 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (arg: * s32) -> void = {"
-                                                     "    var := arg* * 2;"
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (arg: * s32) -> void = {\n"
+                                                     "    var := arg* * 2;\n"
                                                      "}");
 
             Lexer lexer = {0};
@@ -3128,6 +3260,9 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -3170,8 +3305,8 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (arg: * s32) -> void = {"
-                                                     "    var := arg* + 2;"
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (arg: * s32) -> void = {\n"
+                                                     "    var := arg* + 2;\n"
                                                      "}");
 
             Lexer lexer = {0};
@@ -3218,6 +3353,9 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -3251,8 +3389,8 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (arg: * * s32) -> void = {"
-                                                     "    var := arg** * 2;"
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (arg: * * s32) -> void = {\n"
+                                                     "    var := arg** * 2;\n"
                                                      "}");
 
             Lexer lexer = {0};
@@ -3304,6 +3442,9 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -3345,8 +3486,8 @@ test_expressions(Test_Context* test_context)
 
         // NOTE(vlad): Dereference and multiplication without delimiting spaces.
         {
-            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (arg: * * s32) -> void = {"
-                                                     "    var := arg***2;"
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (arg: * * s32) -> void = {\n"
+                                                     "    var := arg***2;\n"
                                                      "}");
 
             Lexer lexer = {0};
@@ -3398,6 +3539,9 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -3438,8 +3582,8 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (arg: s32) -> void = {"
-                                                     "    var := arg&;"
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (arg: s32) -> void = {\n"
+                                                     "    var := arg&;\n"
                                                      "}");
 
             Lexer lexer = {0};
@@ -3482,6 +3626,9 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -3503,8 +3650,8 @@ test_expressions(Test_Context* test_context)
         }
 
         {
-            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (arg: s32) -> void = {"
-                                                     "    var := arg&* * 2;"
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (arg: s32) -> void = {\n"
+                                                     "    var := arg&* * 2;\n"
                                                      "}");
 
             Lexer lexer = {0};
@@ -3547,6 +3694,9 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -3592,8 +3742,8 @@ internal void
 test_operator_precedence(Test_Context* test_context)
 {
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    var := 1 + 2 * 3;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    var := 1 + 2 * 3;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -3627,6 +3777,9 @@ test_operator_precedence(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
+        ASSERT_EQUAL(statement->start_location.line, 1);
+        ASSERT_EQUAL(statement->start_location.column, 4);
+
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -3665,8 +3818,8 @@ test_operator_precedence(Test_Context* test_context)
     }
 
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    var := (1 + 2) * 3;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    var := (1 + 2) * 3;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -3700,6 +3853,9 @@ test_operator_precedence(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
+        ASSERT_EQUAL(statement->start_location.line, 1);
+        ASSERT_EQUAL(statement->start_location.column, 4);
+
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -3739,8 +3895,8 @@ test_operator_precedence(Test_Context* test_context)
     }
 
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    var := 3 + bar();"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    var := 3 + bar();\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -3774,6 +3930,9 @@ test_operator_precedence(Test_Context* test_context)
         ASSERT_EQUAL(function_definition->body.statements_count, 1);
 
         const Ast_Statement* statement = &function_definition->body.statements[0];
+        ASSERT_EQUAL(statement->start_location.line, 1);
+        ASSERT_EQUAL(statement->start_location.column, 4);
+
         ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
         const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -3813,9 +3972,9 @@ internal void
 test_assignments(Test_Context* test_context)
 {
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    var := 1;"
-                                                 "    var = 2;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    var := 1;\n"
+                                                 "    var = 2;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -3850,6 +4009,9 @@ test_assignments(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -3865,6 +4027,9 @@ test_assignments(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[1];
+            ASSERT_EQUAL(statement->start_location.line, 2);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_ASSIGNMENT);
 
             const Ast_Assignment* assignment = &statement->assignment;
@@ -3883,9 +4048,9 @@ test_assignments(Test_Context* test_context)
     }
 
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    var := 1;"
-                                                 "    var = var + 1;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    var := 1;\n"
+                                                 "    var = var + 1;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -3920,6 +4085,9 @@ test_assignments(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -3935,6 +4103,9 @@ test_assignments(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[1];
+            ASSERT_EQUAL(statement->start_location.line, 2);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_ASSIGNMENT);
 
             const Ast_Assignment* assignment = &statement->assignment;
@@ -3965,8 +4136,8 @@ test_assignments(Test_Context* test_context)
     }
 
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (parameter: * mutable s32) -> void = {"
-                                                 "    parameter* = 10;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (parameter: * mutable s32) -> void = {\n"
+                                                 "    parameter* = 10;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -4017,6 +4188,9 @@ test_assignments(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_ASSIGNMENT);
 
             const Ast_Assignment* assignment = &statement->assignment;
@@ -4053,8 +4227,8 @@ test_assignments(Test_Context* test_context)
     // NOTE(vlad): We will test if LHS of an assignment is actually a lvalue later (during semantic passes).
     //             From the parser's perspective, this is a valid assignment statement.
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    10 = 10;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    10 = 10;\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -4089,6 +4263,9 @@ test_assignments(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_ASSIGNMENT);
 
             const Ast_Assignment* assignment = &statement->assignment;
@@ -4122,11 +4299,11 @@ internal void
 test_while_statements(Test_Context* test_context)
 {
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    var := 10;"
-                                                 "    while var != 0"
-                                                 "    {"
-                                                 "        var = var - 1;"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    var := 10;\n"
+                                                 "    while var != 0\n"
+                                                 "    {\n"
+                                                 "        var = var - 1;\n"
                                                  "    }"
                                                  "}");
 
@@ -4162,6 +4339,9 @@ test_while_statements(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
             const Ast_Variable_Definition* definition = &statement->variable_definition;
@@ -4177,6 +4357,9 @@ test_while_statements(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[1];
+            ASSERT_EQUAL(statement->start_location.line, 2);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_WHILE);
 
             const Ast_While_Statement* while_statement = &statement->while_statement;
@@ -4195,6 +4378,9 @@ test_while_statements(Test_Context* test_context)
             ASSERT_EQUAL(while_statement->body.statements_count, 1);
 
             const Ast_Statement* inner_statement = &while_statement->body.statements[0];
+            ASSERT_EQUAL(inner_statement->start_location.line, 4);
+            ASSERT_EQUAL(inner_statement->start_location.column, 8);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(inner_statement->kind, AST_STATEMENT_ASSIGNMENT);
 
             const Ast_Assignment* assignment = &inner_statement->assignment;
@@ -4221,8 +4407,8 @@ internal void
 test_call_statements(Test_Context* test_context)
 {
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    bar(10);"
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    bar(10);\n"
                                                  "}");
 
         Lexer lexer = {0};
@@ -4257,6 +4443,9 @@ test_call_statements(Test_Context* test_context)
 
         {
             const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
             ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_CALL);
 
             const Ast_Call_Statement* call_statement = &statement->call_statement;
