@@ -78,6 +78,7 @@ compile_and_run_unit_test()
 }
 
 compile_and_run_unit_test eon/memory_ut.c
+compile_and_run_unit_test eon/containers_ut.c
 compile_and_run_unit_test eon/string_ut.c
 compile_and_run_unit_test eon_lexer_ut.c
 compile_and_run_unit_test eon_parser_ut.c

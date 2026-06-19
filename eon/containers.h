@@ -50,3 +50,8 @@
         (array)[CONCATENATE(array, _count)++] = (element);      \
     }                                                           \
     while (0)                                                   \
+
+#define stack(Type, name) array(Type, name)
+#define stack_push(arena, stack, Type, element) append_array(arena, stack, Type, element)
+#define stack_top(stack) &(stack)[CONCATENATE(stack, _count) - 1]
+#define stack_pop(stack) CONCATENATE(stack, _count) -= 1;
