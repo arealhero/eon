@@ -1,5 +1,7 @@
 #pragma once
 
+#include <eon/containers.h>
+
 #include "eon_forward_declarations.h"
 
 struct Cfg_Block

@@ -1,9 +1,11 @@
 #pragma once
 
 #include <eon/common.h>
+#include <eon/containers.h>
 #include <eon/io.h>
 #include <eon/memory.h>
 #include <eon/string.h>
+
 #include <eon/platform/time.h>
 
 #define FAIL_ON_FAILED_ASSERTS 0

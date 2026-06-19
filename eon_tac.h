@@ -1,6 +1,7 @@
 #pragma once
 
 #include <eon/common.h>
+#include <eon/containers.h>
 #include <eon/types.h>
 
 #include "eon_ast.h"

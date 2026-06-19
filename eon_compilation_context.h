@@ -1,6 +1,7 @@
 #pragma once
 
 #include <eon/memory.h>
+#include <eon/containers.h>
 
 #include "eon_forward_declarations.h"
 

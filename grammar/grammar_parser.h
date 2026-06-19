@@ -1,6 +1,7 @@
 #pragma once
 
 #include <eon/common.h>
+#include <eon/containers.h>
 #include <eon/memory.h>
 
 #include "grammar_lexer.h"
