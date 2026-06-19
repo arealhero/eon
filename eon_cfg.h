@@ -6,21 +6,17 @@
 
 struct Cfg_Block
 {
+    Arena* edges_arena;
+
     Tac_Instructions_Range instructions_range;
+
+    array(Cfg_Block_Id, edges);
 };
 typedef struct Cfg_Block Cfg_Block;
-
-struct Cfg_Edge
-{
-    Cfg_Block_Id source_block_id;
-    Cfg_Block_Id destination_block_id;
-};
-typedef struct Cfg_Edge Cfg_Edge;
 
 struct Cfg
 {
     array(Cfg_Block, blocks);
-    array(Cfg_Edge, edges);
 };
 typedef struct Cfg Cfg;
 

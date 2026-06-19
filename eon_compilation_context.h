@@ -40,7 +40,6 @@ struct Compilation_Context
     Arena* tac_labels_arena;
 
     Arena* cfg_blocks_arena;
-    Arena* cfg_edges_arena;
 
     Source_File source_file;
 

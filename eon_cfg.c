@@ -11,6 +11,10 @@ create_cfg_block(Compilation_Context* context,
     append_array(context->cfg_blocks_arena, cfg->blocks, Cfg_Block, (Cfg_Block){0});
 
     Cfg_Block* block = &cfg->blocks[cfg->blocks_count - 1];
+    block->edges_arena = acquire_arena_from_provider(context->arena_provider,
+                                                     string_view("cfg-edges"),
+                                                     GiB(1),
+                                                     MiB(1));
     block->instructions_range = instructions_range;
 
     Cfg_Block_Id id = {0};
@@ -27,11 +31,12 @@ add_cfg_edge(Compilation_Context* context,
     ASSERT(destination_block_id.index != INVALID_CFG_BLOCK_INDEX);
 
     Cfg* cfg = &context->cfg;
-    append_array(context->cfg_edges_arena, cfg->edges, Cfg_Edge, (Cfg_Edge){0});
+    Cfg_Block* source_block = get_cfg_block_by_id(cfg, source_block_id);
 
-    Cfg_Edge* edge = &cfg->edges[cfg->edges_count - 1];
-    edge->source_block_id = source_block_id;
-    edge->destination_block_id = destination_block_id;
+    append_array(source_block->edges_arena,
+                 source_block->edges,
+                 Cfg_Block_Id,
+                 destination_block_id);
 }
 
 internal inline void
@@ -330,8 +335,7 @@ typedef struct Cfg_Block_Reachability_Info Cfg_Block_Reachability_Info;
 internal void
 visit_reachable_blocks(Cfg* cfg,
                        const Cfg_Block_Id this_block_id,
-                       Cfg_Block_Reachability_Info* reachability_info,
-                       Bool* edge_was_visited)
+                       Cfg_Block_Reachability_Info* reachability_info)
 {
     if (reachability_info[this_block_id.index].was_reached)
     {
@@ -340,19 +344,13 @@ visit_reachable_blocks(Cfg* cfg,
 
     reachability_info[this_block_id.index].was_reached = true;
 
+    const Cfg_Block* this_block = get_cfg_block_by_id(cfg, this_block_id);
     for (Index edge_index = 0;
-         edge_index < cfg->edges_count;
+         edge_index < this_block->edges_count;
          ++edge_index)
     {
-        const Cfg_Edge* edge = &cfg->edges[edge_index];
-
-        if (edge->source_block_id.index == this_block_id.index)
-        {
-            ASSERT(edge_was_visited[edge_index] == false);
-
-            edge_was_visited[edge_index] = true;
-            visit_reachable_blocks(cfg, edge->destination_block_id, reachability_info, edge_was_visited);
-        }
+        const Cfg_Block_Id reachable_block_id = this_block->edges[edge_index];
+        visit_reachable_blocks(cfg, reachable_block_id, reachability_info);
     }
 }
 
@@ -363,20 +361,22 @@ swap_cfg_block_ids(Compilation_Context* context,
 {
     Cfg* cfg = &context->cfg;
 
-    for (Index edge_index = 0;
-         edge_index < cfg->edges_count;
-         ++edge_index)
+    for (Index block_index = 0;
+         block_index < cfg->blocks_count;
+         ++block_index)
     {
-        Cfg_Edge* edge = &cfg->edges[edge_index];
+        Cfg_Block* block = &cfg->blocks[block_index];
 
-        if (edge->source_block_id.index == old_id.index)
+        for (Index edge_index = 0;
+             edge_index < block->edges_count;
+             ++edge_index)
         {
-            edge->source_block_id = new_id;
-        }
+            Cfg_Block_Id* reachable_block_id = &block->edges[edge_index];
 
-        if (edge->destination_block_id.index == old_id.index)
-        {
-            edge->destination_block_id = new_id;
+            if (reachable_block_id->index == old_id.index)
+            {
+                *reachable_block_id = new_id;
+            }
         }
     }
 
@@ -525,10 +525,10 @@ emit_diagnostic_message_about_dead_code_if_needed(Compilation_Context* context,
 
     Cfg* cfg = &context->cfg;
 
+    const Cfg_Block* block = get_cfg_block_by_id(cfg, this_block_id);
+
     if (!this_block_reachability_info->diagnostic_message_was_emitted)
     {
-        const Cfg_Block* block = get_cfg_block_by_id(cfg, this_block_id);
-
         const Ast_Statement* statement = find_statement_by_tac_instructions_range(context, &block->instructions_range);
 
         // NOTE(vlad): 'statement' is NULL iff all instructions in the code block were inserted automatically during AST
@@ -545,17 +545,14 @@ emit_diagnostic_message_about_dead_code_if_needed(Compilation_Context* context,
     }
 
     for (Index edge_index = 0;
-         edge_index < cfg->edges_count;
+         edge_index < block->edges_count;
          ++edge_index)
     {
-        const Cfg_Edge* edge = &cfg->edges[edge_index];
+        const Cfg_Block_Id reachable_block_id = block->edges[edge_index];
 
-        if (edge->source_block_id.index == this_block_id.index)
-        {
-            Cfg_Block_Reachability_Info* next_block_reachability_info = &reachability_info[edge->destination_block_id.index];
-            next_block_reachability_info->diagnostic_message_was_emitted = true;
-            emit_diagnostic_message_about_dead_code_if_needed(context, edge->destination_block_id, reachability_info);
-        }
+        Cfg_Block_Reachability_Info* next_block_reachability_info = &reachability_info[reachable_block_id.index];
+        next_block_reachability_info->diagnostic_message_was_emitted = true;
+        emit_diagnostic_message_about_dead_code_if_needed(context, reachable_block_id, reachability_info);
     }
 }
 
@@ -568,8 +565,6 @@ remove_unreachable_cfg_blocks(Compilation_Context* context)
                                                                     cfg->blocks_count,
                                                                     Cfg_Block_Reachability_Info);
 
-    Bool* edge_was_visited = allocate_array(context->scratch_arena, cfg->edges_count, Bool);
-
     Tac* tac = &context->tac;
     for (Index function_index = 0;
          function_index < tac->functions_count;
@@ -577,7 +572,7 @@ remove_unreachable_cfg_blocks(Compilation_Context* context)
     {
         const Tac_Function* tac_function = &tac->functions[function_index];
         const Tac_Function_Label* tac_function_label = get_tac_function_label_by_id(tac, tac_function->label_id);
-        visit_reachable_blocks(cfg, tac_function_label->entry_cfg_block_id, reachability_info, edge_was_visited);
+        visit_reachable_blocks(cfg, tac_function_label->entry_cfg_block_id, reachability_info);
     }
 
     ASSERT(reachability_info[INVALID_CFG_BLOCK_INDEX].was_reached == false);
@@ -632,7 +627,17 @@ remove_unreachable_cfg_blocks(Compilation_Context* context)
 
         if (next_reachable_block_index == cfg->blocks_count)
         {
-            cfg->blocks_count -= unreachable_blocks_count;
+            const Size reachable_blocks_count = cfg->blocks_count - unreachable_blocks_count;
+
+            for (Index block_index = reachable_blocks_count;
+                 block_index < cfg->blocks_count;
+                 ++block_index)
+            {
+                Cfg_Block* unreachable_block = &cfg->blocks[block_index];
+                release_arena_to_provider(context->arena_provider, unreachable_block->edges_arena);
+            }
+
+            cfg->blocks_count = reachable_blocks_count;
             break;
         }
 
@@ -651,50 +656,6 @@ remove_unreachable_cfg_blocks(Compilation_Context* context)
         reachability_info[next_reachable_block_index].was_reached = false;
     }
 
-    // NOTE(vlad): Removing unreachable edges.
-    Index unvisited_edge_index = 0;
-    while (true)
-    {
-        for (;
-             unvisited_edge_index < cfg->edges_count;
-             ++unvisited_edge_index)
-        {
-            if (!edge_was_visited[unvisited_edge_index])
-            {
-                break;
-            }
-        }
-
-        if (unvisited_edge_index == cfg->edges_count)
-        {
-            // NOTE(vlad): There are no unvisited edges.
-            break;
-        }
-
-        Index next_visited_edge_index = unvisited_edge_index + 1;
-        for (;
-             next_visited_edge_index < cfg->edges_count;
-             ++next_visited_edge_index)
-        {
-            if (edge_was_visited[next_visited_edge_index])
-            {
-                break;
-            }
-        }
-
-        if (next_visited_edge_index == cfg->edges_count)
-        {
-            // NOTE(vlad): All unvisited edges were pushed to the end.
-            cfg->edges_count = unvisited_edge_index;
-            break;
-        }
-
-        cfg->edges[unvisited_edge_index] = cfg->edges[next_visited_edge_index];
-        edge_was_visited[unvisited_edge_index] = true;
-        edge_was_visited[next_visited_edge_index] = false;
-
-        unvisited_edge_index += 1;
-    }
-
     request_arena_reset(context->arena_provider, context->scratch_arena);
 }
+
