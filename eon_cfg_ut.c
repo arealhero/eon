@@ -1367,12 +1367,82 @@ test_unreachable_blocks_removal(Test_Context* test_context)
     }
 }
 
+internal void
+test_dominators_computing(Test_Context* test_context)
+{
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        lower_ast_to_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        construct_cfg_from_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        remove_unreachable_cfg_blocks(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        compute_cfg_dominators(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        const Tac* tac = &context.tac;
+        const Cfg* cfg = &context.cfg;
+
+        ASSERT_EQUAL(tac->functions_count, 1);
+        const Tac_Function* tac_function = &tac->functions[0];
+        ASSERT_EQUAL(tac_function->instructions_count, 1);
+
+        ASSERT_EQUAL(cfg->blocks_count, 2);
+
+        const Cfg_Block* block = &cfg->blocks[INVALID_CFG_BLOCK_INDEX + 1];
+        {
+            const Tac_Instructions_Range* range = &block->instructions_range;
+            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+            ASSERT_FALSE(cfg_block_is_empty(block));
+
+            ASSERT_EQUAL(block->instructions_range.end_instruction_index - block->instructions_range.start_instruction_index,
+                         tac_function->instructions_count);
+
+            ASSERT_EQUAL(block->edges_count, 0);
+            ASSERT_EQUAL(block->postorder_index, 1);
+            ASSERT_EQUAL(block->immediate_dominator_id.index, 1);
+        }
+
+        // NOTE(vlad): Test that entry block was determined correctly.
+        {
+            const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
+            ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
+        }
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+}
+
 REGISTER_TESTS(
     test_functions_without_jumps,
     test_if_statements,
     test_while_loops,
     test_complex_statements,
-    test_unreachable_blocks_removal
+    test_unreachable_blocks_removal,
+    test_dominators_computing
 )
 
 #include "eon_cfg.c"

@@ -67,4 +67,5 @@ typedef struct Cfg_Block_Id Cfg_Block_Id;
 enum
 {
     INVALID_CFG_BLOCK_INDEX = 0,
+    INVALID_CFG_BLOCK_POSTORDER_INDEX = 0,
 };

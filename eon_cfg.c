@@ -659,3 +659,113 @@ remove_unreachable_cfg_blocks(Compilation_Context* context)
     request_arena_reset(context->arena_provider, context->scratch_arena);
 }
 
+internal void
+compute_postorder_indices(Compilation_Context* context,
+                          Cfg_Block_Id* block_ids_in_postorder)
+{
+    struct Block_Info
+    {
+        Cfg_Block_Id id;
+        Size next_unvisited_edge_index;
+    };
+    typedef struct Block_Info Block_Info;
+
+    struct Traversal_Stack
+    {
+        stack(Block_Info, infos);
+    };
+    typedef struct Traversal_Stack Traversal_Stack;
+
+    Cfg* cfg = &context->cfg;
+
+    Traversal_Stack stack = {0};
+    Bool* block_was_visited = allocate_array(context->scratch_arena, cfg->blocks_count, Bool);
+
+    Index postorder_index = 0;
+
+    Tac* tac = &context->tac;
+    for (Index function_index = 0;
+         function_index < tac->functions_count;
+         ++function_index)
+    {
+        const Tac_Function* tac_function = &tac->functions[function_index];
+        const Tac_Function_Label* tac_function_label = get_tac_function_label_by_id(tac, tac_function->label_id);
+
+        ASSERT(stack.infos_count == 0);
+
+        const Cfg_Block_Id entry_block_id = tac_function_label->entry_cfg_block_id;
+
+        {
+            Block_Info entry_block_info = {0};
+            entry_block_info.id = entry_block_id;
+            entry_block_info.next_unvisited_edge_index = 0;
+            stack_push(context->scratch_arena, stack.infos, Block_Info, entry_block_info);
+
+            block_was_visited[entry_block_id.index] = true;
+        }
+
+        while (stack.infos_count > 0)
+        {
+            Block_Info* this_block_info = stack_top(stack.infos);
+
+            Cfg_Block* this_block = get_cfg_block_by_id(cfg, this_block_info->id);
+            if (this_block_info->next_unvisited_edge_index < this_block->edges_count)
+            {
+                const Cfg_Block_Id next_block_id = this_block->edges[this_block_info->next_unvisited_edge_index++];
+
+                if (!block_was_visited[next_block_id.index])
+                {
+                    Block_Info next_block_info = {0};
+                    next_block_info.id = next_block_id;
+                    next_block_info.next_unvisited_edge_index = 0;
+
+                    stack_push(context->scratch_arena, stack.infos, Block_Info, next_block_info);
+                }
+            }
+            else
+            {
+                block_ids_in_postorder[postorder_index++] = this_block_info->id;
+                this_block->postorder_index = postorder_index;
+                stack_pop(stack.infos);
+            }
+        }
+
+        ASSERT(block_ids_in_postorder[postorder_index - 1].index == entry_block_id.index);
+    }
+}
+
+internal void
+compute_cfg_dominators(Compilation_Context* context)
+{
+    Cfg* cfg = &context->cfg;
+
+    // FIXME(vlad): Call this function per tac_function.
+    Cfg_Block_Id* block_ids_in_postorder = allocate_array(context->scratch_arena, cfg->blocks_count - 1, Cfg_Block_Id);
+    compute_postorder_indices(context, block_ids_in_postorder);
+
+    Tac* tac = &context->tac;
+    for (Index function_index = 0;
+         function_index < tac->functions_count;
+         ++function_index)
+    {
+        const Tac_Function* tac_function = &tac->functions[function_index];
+        const Tac_Function_Label* tac_function_label = get_tac_function_label_by_id(tac, tac_function->label_id);
+
+        const Cfg_Block_Id entry_block_id = tac_function_label->entry_cfg_block_id;
+
+        Cfg_Block* entry_block = get_cfg_block_by_id(cfg, entry_block_id);
+
+        // NOTE(vlad): Entry block dominates itself by definition.
+        entry_block->immediate_dominator_id = entry_block_id;
+
+        Bool dominator_has_changed = true;
+        while (dominator_has_changed)
+        {
+            dominator_has_changed = false;
+
+            // for (Index block_index = cfg->blocks_)
+        }
+    }
+
+    request_arena_reset(context->arena_provider, context->scratch_arena);
+}
