@@ -1347,7 +1347,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
 }
 
 internal void
-test_dominators_computing(Test_Context* test_context)
+test_dominators_and_dominance_frontiers_computing(Test_Context* test_context)
 {
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
@@ -1380,6 +1380,9 @@ test_dominators_computing(Test_Context* test_context)
         compute_cfg_dominators(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        compute_cfg_dominance_frontiers(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         const Tac* tac = &context.tac;
 
         ASSERT_EQUAL(tac->functions_count, 1);
@@ -1402,6 +1405,8 @@ test_dominators_computing(Test_Context* test_context)
 
             ASSERT_EQUAL(block->postorder_index, 0);
             ASSERT_EQUAL(block->immediate_dominator_id.index, 0);
+
+            ASSERT_EQUAL(block->dominance_frontier_count, 0);
         }
 
         destroy_parser(&parser);
@@ -1448,6 +1453,9 @@ test_dominators_computing(Test_Context* test_context)
         compute_cfg_dominators(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        compute_cfg_dominance_frontiers(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         const Tac* tac = &context.tac;
 
         ASSERT_EQUAL(tac->functions_count, 1);
@@ -1478,6 +1486,8 @@ test_dominators_computing(Test_Context* test_context)
             ASSERT_EQUAL(block->predecessors_count, 0);
 
             ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+            ASSERT_EQUAL(block->dominance_frontier_count, 0);
         }
 
         {
@@ -1498,6 +1508,9 @@ test_dominators_computing(Test_Context* test_context)
             ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
 
             ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+            ASSERT_EQUAL(block->dominance_frontier_count, 1);
+            ASSERT_EQUAL(block->dominance_frontier[0].index, final_block_index);
         }
 
         {
@@ -1518,6 +1531,9 @@ test_dominators_computing(Test_Context* test_context)
             ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
 
             ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+            ASSERT_EQUAL(block->dominance_frontier_count, 1);
+            ASSERT_EQUAL(block->dominance_frontier[0].index, final_block_index);
         }
 
         {
@@ -1537,6 +1553,8 @@ test_dominators_computing(Test_Context* test_context)
             ASSERT_EQUAL(block->predecessors[1].index, else_block_index);
 
             ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+            ASSERT_EQUAL(block->dominance_frontier_count, 0);
         }
 
         destroy_parser(&parser);
@@ -1579,6 +1597,9 @@ test_dominators_computing(Test_Context* test_context)
         compute_cfg_dominators(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        compute_cfg_dominance_frontiers(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         const Tac* tac = &context.tac;
 
         ASSERT_EQUAL(tac->functions_count, 1);
@@ -1609,6 +1630,8 @@ test_dominators_computing(Test_Context* test_context)
             ASSERT_EQUAL(block->predecessors[0].index, body_block_index);
 
             ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+            ASSERT_EQUAL(block->dominance_frontier_count, 0);
         }
 
         {
@@ -1629,6 +1652,8 @@ test_dominators_computing(Test_Context* test_context)
             ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
 
             ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+            ASSERT_EQUAL(block->dominance_frontier_count, 0);
         }
 
         {
@@ -1647,6 +1672,8 @@ test_dominators_computing(Test_Context* test_context)
             ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
 
             ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+            ASSERT_EQUAL(block->dominance_frontier_count, 0);
         }
 
         destroy_parser(&parser);
@@ -1693,6 +1720,9 @@ test_dominators_computing(Test_Context* test_context)
         compute_cfg_dominators(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        compute_cfg_dominance_frontiers(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         const Tac* tac = &context.tac;
 
         ASSERT_EQUAL(tac->functions_count, 1);
@@ -1728,6 +1758,8 @@ test_dominators_computing(Test_Context* test_context)
                 ASSERT_EQUAL(block->predecessors[0].index, jump_after_if_block_index);
 
                 ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 0);
             }
 
             {
@@ -1749,6 +1781,8 @@ test_dominators_computing(Test_Context* test_context)
                 ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
 
                 ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 0);
             }
 
             {
@@ -1767,6 +1801,8 @@ test_dominators_computing(Test_Context* test_context)
                 ASSERT_EQUAL(block->predecessors[0].index, before_if_block_index);
 
                 ASSERT_EQUAL(block->immediate_dominator_id.index, before_if_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 0);
             }
 
             {
@@ -1791,6 +1827,8 @@ test_dominators_computing(Test_Context* test_context)
                 ASSERT_EQUAL(block->predecessors[0].index, before_if_block_index);
 
                 ASSERT_EQUAL(block->immediate_dominator_id.index, before_if_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 0);
             }
 
             {
@@ -1811,6 +1849,8 @@ test_dominators_computing(Test_Context* test_context)
                 ASSERT_EQUAL(block->predecessors[0].index, else_block_index);
 
                 ASSERT_EQUAL(block->immediate_dominator_id.index, else_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 0);
             }
 
             {
@@ -1829,6 +1869,8 @@ test_dominators_computing(Test_Context* test_context)
                 ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
 
                 ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 0);
             }
         }
 
@@ -1876,6 +1918,9 @@ test_dominators_computing(Test_Context* test_context)
         compute_cfg_dominators(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        compute_cfg_dominance_frontiers(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         const Tac* tac = &context.tac;
 
         ASSERT_EQUAL(tac->functions_count, 1);
@@ -1911,6 +1956,8 @@ test_dominators_computing(Test_Context* test_context)
                 ASSERT_EQUAL(block->predecessors[0].index, jump_after_if_block_index);
 
                 ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 0);
             }
 
             {
@@ -1932,6 +1979,8 @@ test_dominators_computing(Test_Context* test_context)
                 ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
 
                 ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 0);
             }
 
             {
@@ -1952,6 +2001,9 @@ test_dominators_computing(Test_Context* test_context)
                 ASSERT_EQUAL(block->predecessors[0].index, before_if_block_index);
 
                 ASSERT_EQUAL(block->immediate_dominator_id.index, before_if_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 1);
+                ASSERT_EQUAL(block->dominance_frontier[0].index, jump_after_if_block_index);
             }
 
             {
@@ -1976,6 +2028,9 @@ test_dominators_computing(Test_Context* test_context)
                 ASSERT_EQUAL(block->predecessors[0].index, before_if_block_index);
 
                 ASSERT_EQUAL(block->immediate_dominator_id.index, before_if_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 1);
+                ASSERT_EQUAL(block->dominance_frontier[0].index, jump_after_if_block_index);
             }
 
             {
@@ -1997,6 +2052,8 @@ test_dominators_computing(Test_Context* test_context)
                 ASSERT_EQUAL(block->predecessors[1].index, else_block_index);
 
                 ASSERT_EQUAL(block->immediate_dominator_id.index, before_if_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 0);
             }
 
             {
@@ -2015,6 +2072,8 @@ test_dominators_computing(Test_Context* test_context)
                 ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
 
                 ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 0);
             }
         }
 
@@ -2030,7 +2089,7 @@ REGISTER_TESTS(
     test_while_loops,
     test_complex_statements,
     test_unreachable_blocks_removal,
-    test_dominators_computing
+    test_dominators_and_dominance_frontiers_computing
 )
 
 #include "eon_cfg.c"

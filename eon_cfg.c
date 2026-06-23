@@ -16,7 +16,9 @@ create_cfg_block(Compilation_Context* context,
     append_array(context->cfg_blocks_arena, tac_function->cfg_blocks, Cfg_Block, (Cfg_Block){0});
 
     const Index this_block_index = tac_function->cfg_blocks_count - 1;
+
     Cfg_Block* block = &tac_function->cfg_blocks[this_block_index];
+
     block->edges_arena = acquire_arena_from_provider(context->arena_provider,
                                                      string_view("cfg-edges"),
                                                      GiB(1),
@@ -25,6 +27,11 @@ create_cfg_block(Compilation_Context* context,
                                                             string_view("cfg-predecessors"),
                                                             GiB(1),
                                                             MiB(1));
+    block->dominance_frontier_arena = acquire_arena_from_provider(context->arena_provider,
+                                                                  string_view("cfg-dominance-frontier"),
+                                                                  GiB(1),
+                                                                  MiB(1));
+
     block->instructions_range = instructions_range;
     block->immediate_dominator_id.index = INVALID_IMMEDIATE_DOMINATOR_INDEX;
 
@@ -874,9 +881,76 @@ compute_cfg_dominators(Compilation_Context* context)
     request_arena_reset(context->arena_provider, context->scratch_arena);
 }
 
+internal void
+compute_cfg_dominance_frontiers(Compilation_Context* context)
+{
+    Tac* tac = &context->tac;
+
+    for (Index function_index = 0;
+         function_index < tac->functions_count;
+         ++function_index)
+    {
+        Tac_Function* tac_function = &tac->functions[function_index];
+
+        for (Index block_index = 0;
+             block_index < tac_function->cfg_blocks_count;
+             ++block_index)
+        {
+            Cfg_Block_Id this_block_id = {0};
+            this_block_id.index = block_index;
+
+            Cfg_Block* this_block = get_cfg_block_by_id(tac_function, this_block_id);
+
+            if (this_block->predecessors_count > 1)
+            {
+                for (Index predecessor_index = 0;
+                     predecessor_index < this_block->predecessors_count;
+                     ++predecessor_index)
+                {
+                    Cfg_Block_Id runner_id = this_block->predecessors[predecessor_index];
+
+                    while (runner_id.index != this_block->immediate_dominator_id.index)
+                    {
+                        Cfg_Block* runner = get_cfg_block_by_id(tac_function, runner_id);
+
+                        // NOTE(vlad): Adding 'runner' to this block's dominance frontier.
+                        {
+                            Bool should_add_this_block_to_dominance_frontier = true;
+
+                            for (Index frontier_index = 0;
+                                 frontier_index < runner->dominance_frontier_count;
+                                 ++frontier_index)
+                            {
+                                const Cfg_Block_Id frontier_element_id = runner->dominance_frontier[frontier_index];
+
+                                if (frontier_element_id.index == this_block_id.index)
+                                {
+                                    should_add_this_block_to_dominance_frontier = false;
+                                    break;
+                                }
+                            }
+
+                            if (should_add_this_block_to_dominance_frontier)
+                            {
+                                append_array(runner->dominance_frontier_arena,
+                                             runner->dominance_frontier,
+                                             Cfg_Block_Id,
+                                             this_block_id);
+                            }
+                        }
+
+                        runner_id = runner->immediate_dominator_id;
+                    }
+                }
+            }
+        }
+    }
+}
+
 internal inline void
 free_cfg_block(Compilation_Context* context, Cfg_Block* block)
 {
     release_arena_to_provider(context->arena_provider, block->edges_arena);
     release_arena_to_provider(context->arena_provider, block->predecessors_arena);
+    release_arena_to_provider(context->arena_provider, block->dominance_frontier_arena);
 }
