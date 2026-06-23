@@ -901,46 +901,48 @@ compute_cfg_dominance_frontiers(Compilation_Context* context)
 
             Cfg_Block* this_block = get_cfg_block_by_id(tac_function, this_block_id);
 
-            if (this_block->predecessors_count > 1)
+            if (this_block->predecessors_count < 2)
             {
-                for (Index predecessor_index = 0;
-                     predecessor_index < this_block->predecessors_count;
-                     ++predecessor_index)
+                continue;
+            }
+
+            for (Index predecessor_index = 0;
+                 predecessor_index < this_block->predecessors_count;
+                 ++predecessor_index)
+            {
+                Cfg_Block_Id runner_id = this_block->predecessors[predecessor_index];
+
+                while (runner_id.index != this_block->immediate_dominator_id.index)
                 {
-                    Cfg_Block_Id runner_id = this_block->predecessors[predecessor_index];
+                    Cfg_Block* runner = get_cfg_block_by_id(tac_function, runner_id);
 
-                    while (runner_id.index != this_block->immediate_dominator_id.index)
+                    // NOTE(vlad): Adding 'runner' to this block's dominance frontier.
                     {
-                        Cfg_Block* runner = get_cfg_block_by_id(tac_function, runner_id);
+                        Bool should_add_this_block_to_dominance_frontier = true;
 
-                        // NOTE(vlad): Adding 'runner' to this block's dominance frontier.
+                        for (Index frontier_index = 0;
+                             frontier_index < runner->dominance_frontier_count;
+                             ++frontier_index)
                         {
-                            Bool should_add_this_block_to_dominance_frontier = true;
+                            const Cfg_Block_Id frontier_element_id = runner->dominance_frontier[frontier_index];
 
-                            for (Index frontier_index = 0;
-                                 frontier_index < runner->dominance_frontier_count;
-                                 ++frontier_index)
+                            if (frontier_element_id.index == this_block_id.index)
                             {
-                                const Cfg_Block_Id frontier_element_id = runner->dominance_frontier[frontier_index];
-
-                                if (frontier_element_id.index == this_block_id.index)
-                                {
-                                    should_add_this_block_to_dominance_frontier = false;
-                                    break;
-                                }
-                            }
-
-                            if (should_add_this_block_to_dominance_frontier)
-                            {
-                                append_array(runner->dominance_frontier_arena,
-                                             runner->dominance_frontier,
-                                             Cfg_Block_Id,
-                                             this_block_id);
+                                should_add_this_block_to_dominance_frontier = false;
+                                break;
                             }
                         }
 
-                        runner_id = runner->immediate_dominator_id;
+                        if (should_add_this_block_to_dominance_frontier)
+                        {
+                            append_array(runner->dominance_frontier_arena,
+                                         runner->dominance_frontier,
+                                         Cfg_Block_Id,
+                                         this_block_id);
+                        }
                     }
+
+                    runner_id = runner->immediate_dominator_id;
                 }
             }
         }
