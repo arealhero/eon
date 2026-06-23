@@ -3,6 +3,11 @@
 #include "eon_compilation_context.h"
 #include "eon_tac.h"
 
+enum
+{
+    INVALID_IMMEDIATE_DOMINATOR_INDEX = -1,
+};
+
 internal inline Cfg_Block_Id
 create_cfg_block(Compilation_Context* context,
                  Tac_Function* tac_function,
@@ -21,6 +26,7 @@ create_cfg_block(Compilation_Context* context,
                                                             GiB(1),
                                                             MiB(1));
     block->instructions_range = instructions_range;
+    block->immediate_dominator_id.index = INVALID_IMMEDIATE_DOMINATOR_INDEX;
 
     Cfg_Block_Id id = {0};
     id.index = this_block_index;
@@ -735,6 +741,8 @@ compute_postorder_indices(Compilation_Context* context,
 
             if (!block_was_visited[next_block_id.index])
             {
+                block_was_visited[next_block_id.index] = true;
+
                 Block_Info next_block_info = {0};
                 next_block_info.id = next_block_id;
                 next_block_info.next_unvisited_edge_index = 0;
@@ -790,8 +798,75 @@ compute_cfg_dominators(Compilation_Context* context)
                  postorder_index >= 0;
                  --postorder_index)
             {
-                // const Cfg_Block_Id this_block_id = block_ids_in_postorder[postorder_index];
-                // Cfg_Block* this_block = get_cfg_block_by_id(tac_function, this_block_id);
+                const Cfg_Block_Id this_block_id = block_ids_in_postorder[postorder_index];
+                Cfg_Block* this_block = get_cfg_block_by_id(tac_function, this_block_id);
+
+                Cfg_Block* new_immediate_dominator = NULL;
+                Index new_immediate_dominator_index = -1;
+
+                Index predecessor_index = 0;
+                for (;
+                     predecessor_index < this_block->predecessors_count;
+                     ++predecessor_index)
+                {
+                    const Cfg_Block_Id predecessor_block_id = this_block->predecessors[predecessor_index];
+                    Cfg_Block* predecessor_block = get_cfg_block_by_id(tac_function, predecessor_block_id);
+
+                    if (predecessor_block->immediate_dominator_id.index != INVALID_IMMEDIATE_DOMINATOR_INDEX)
+                    {
+                        new_immediate_dominator = predecessor_block;
+                        new_immediate_dominator_index = predecessor_block_id.index;
+                        break;
+                    }
+                }
+
+                // NOTE(vlad): We should be able to find new immediate dominator in connected CFGs.
+                //             If this CFG is not connected then we failed to remove all unreachable blocks.
+                ASSERT(new_immediate_dominator != NULL);
+
+                // NOTE(vlad): Intersecting with all other processed predecessors.
+
+                predecessor_index += 1;
+
+                for (;
+                     predecessor_index < this_block->predecessors_count;
+                     ++predecessor_index)
+                {
+                    const Cfg_Block_Id predecessor_block_id = this_block->predecessors[predecessor_index];
+                    Cfg_Block* predecessor_block = get_cfg_block_by_id(tac_function, predecessor_block_id);
+
+                    if (predecessor_block->immediate_dominator_id.index != INVALID_IMMEDIATE_DOMINATOR_INDEX)
+                    {
+                        // NOTE(vlad): Intersecting 'predecessor_block' and 'new_immediate_dominator'.
+                        Cfg_Block* finger1 = predecessor_block;
+                        Index finger1_index = predecessor_block_id.index;
+
+                        Cfg_Block* finger2 = new_immediate_dominator;
+
+                        while (finger1 != finger2)
+                        {
+                            while (finger1->postorder_index < finger2->postorder_index)
+                            {
+                                finger1_index = finger1->immediate_dominator_id.index;
+                                finger1 = get_cfg_block_by_id(tac_function, finger1->immediate_dominator_id);
+                            }
+
+                            while (finger2->postorder_index < finger1->postorder_index)
+                            {
+                                finger2 = get_cfg_block_by_id(tac_function, finger2->immediate_dominator_id);
+                            }
+                        }
+
+                        new_immediate_dominator = finger1;
+                        new_immediate_dominator_index = finger1_index;
+                    }
+                }
+
+                if (this_block->immediate_dominator_id.index != new_immediate_dominator_index)
+                {
+                    this_block->immediate_dominator_id.index = new_immediate_dominator_index;
+                    dominator_has_changed = true;
+                }
             }
         }
     }
