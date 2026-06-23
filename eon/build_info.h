@@ -51,7 +51,7 @@
 #if ARCH_X86 || ARCH_X86_64 || ARCH_ARM32 || ARCH_ARM64
 #    define ARCH_LITTLE_ENDIAN 1
 #else
-#    error Unknown target architecture's endianness.
+#    error Unknown target architecture endianness.
 #endif
 
 // NOTE(vlad): Detecting sanitizers.
@@ -81,13 +81,21 @@
 #    define COMPILER_GCC 0
 #    define COMPILER_MSVC 1
 #else
-#    error Failed to detect this compiler.
+#    error Unknown compiler found.
 #endif
 
 // NOTE(vlad): Detecting build type.
 
-#if defined(COMPILER_CLANG)
+#if COMPILER_CLANG
 #    if defined(__OPTIMIZE__)
+#        define RELEASE_BUILD 1
+#        define DEBUG_BUILD 0
+#    else
+#        define RELEASE_BUILD 0
+#        define DEBUG_BUILD 1
+#    endif
+#elif COMPILER_GCC
+#    if NDEBUG
 #        define RELEASE_BUILD 1
 #        define DEBUG_BUILD 0
 #    else
@@ -96,4 +104,22 @@
 #    endif
 #else
 #    error This compiler is not supported yet.
+#endif
+
+// NOTE(vlad): Defining pragmas.
+#if COMPILER_CLANG
+#    define GCC_PUSH_DIAGNOSTIC()
+#    define GCC_IGNORE_WARNING(warning)
+#    define GCC_POP_DIAGNOSTIC()
+#elif COMPILER_GCC
+#    define GCC_PRAGMA(arg) _Pragma(#arg)
+#    define GCC_PUSH_DIAGNOSTIC() GCC_PRAGMA(GCC diagnostic push)
+#    define GCC_IGNORE_WARNING(warning) GCC_PRAGMA(GCC diagnostic ignored #warning)
+#    define GCC_POP_DIAGNOSTIC() GCC_PRAGMA(GCC diagnostic pop)
+#elif COMPILER_MSVC
+#    define GCC_PUSH_DIAGNOSTIC()
+#    define GCC_IGNORE_WARNING(warning)
+#    define GCC_POP_DIAGNOSTIC()
+#else
+#    error Unknown compiler found.
 #endif

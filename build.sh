@@ -4,12 +4,14 @@ mkdir -p build
 
 set -e
 
+USE_GCC=0
+
 # NOTE(vlad): https://stackoverflow.com/a/70209891
 if [ $(uname) = "Darwin" ]; then
     export MallocNanoZone=0
 fi
 
-clang_warnings="
+compiler_warnings="
   -pedantic
   -Wall
   -Wextra
@@ -18,35 +20,46 @@ clang_warnings="
   -Wshadow
   -Wunreachable-code
 
-  -Wno-variadic-macro-arguments-omitted
-
   -Wno-error=unused-function
   -Wno-error=unused-variable
   -Wno-error=unused-parameter
 "
-clang_common_flags="
+compiler_common_flags="
   -std=gnu11
   -O0
   -ggdb
   -I.
   -fsanitize=address
   -fno-omit-frame-pointer
-  -ferror-limit=0
 "
+
+if [ $USE_GCC -eq 1 ];
+then
+    compiler_warnings="$compiler_warnings -Wno-type-limits"
+else
+    compiler_common_flags="$compiler_common_flags -ferror-limit=0"
+    compiler_warnings="$compiler_warnings -Wno-variadic-macro-arguments-omitted"
+fi
 
 compile()
 {
     echo
     echo "Compiling '$1'"
     TIMEFORMAT="Compilation took %2R seconds"
-    time clang $@
+
+    if [ $USE_GCC -eq 1 ];
+    then
+        time gcc $@
+    else
+        time clang $@
+    fi
 }
 
 mkdir -p build/grammar
 
 compile grammar/check_grammar_soundness.c -o build/grammar/check_grammar_soundness \
-        $clang_common_flags \
-        $clang_warnings
+        $compiler_common_flags \
+        $compiler_warnings
 
 ./build/grammar/check_grammar_soundness grammar/eon-grammar
 
@@ -62,8 +75,8 @@ compile_and_run_unit_test()
     mkdir -p "build/tests/$test_dir"
 
     compile "$test_filename" -o "build/tests/$test_dir/$test_name" \
-            $clang_common_flags \
-            $clang_warnings \
+            $compiler_common_flags \
+            $compiler_warnings \
             $additional_flags
 
     if [ "$test_dir" = "." ];
@@ -93,8 +106,8 @@ exit 0
 
 mkdir -p build/tests
 compile tests/run_test.c -o build/tests/run_test \
-        $clang_common_flags \
-        $clang_warnings
+        $compiler_common_flags \
+        $compiler_warnings
 
 run_test()
 {

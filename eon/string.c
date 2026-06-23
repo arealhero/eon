@@ -201,6 +201,8 @@ string_builder_to_string(String_Builder* builder)
 FOR_EACH_INTEGER_TYPE(DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION)
 #undef DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION
 
+GCC_PUSH_DIAGNOSTIC()
+GCC_IGNORE_WARNING(-Wconversion)
 #define DEFINE_PARSE_INTEGER_FUNCTION(Integer_Type)                     \
     internal Bool                                                       \
     INTERNAL_parse_##Integer_Type(const String_View string,             \
@@ -378,6 +380,8 @@ FOR_EACH_INTEGER_TYPE(DEFINE_PARSE_INTEGER_FUNCTION)
     }
 FOR_EACH_FLOAT_TYPE(DEFINE_FLOAT_TO_STRING_INPLACE_FUNCTION)
 #undef DEFINE_FLOAT_TO_STRING_INPLACE_FUNCTION
+
+GCC_POP_DIAGNOSTIC()
 
 #define DEFINE_PARSE_FLOAT_FUNCTION(Float_Type)                         \
     maybe_unused internal Bool                                          \

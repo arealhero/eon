@@ -18,6 +18,6 @@
 // TODO(vlad): Implement this.
 #    define maybe_unused
 #    define noreturn __declspec(noreturn)
-#else COMPILER_MSVC
+#elif COMPILER_MSVC
 #    error Failed to define 'maybe_unused' and 'noreturn'.
 #endif

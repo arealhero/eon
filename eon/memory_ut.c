@@ -95,9 +95,12 @@ test_copy_memory(Test_Context* test_context)
     {
         String string = create_source_string(test_context->arena);
 
+        GCC_PUSH_DIAGNOSTIC();
+        GCC_IGNORE_WARNING(-Wrestrict);
         copy_memory(as_bytes(string.data),
                     as_bytes(string.data),
                     string.length);
+        GCC_POP_DIAGNOSTIC();
 
         ASSERT_STRINGS_ARE_EQUAL(string, "0123456789");
     }
