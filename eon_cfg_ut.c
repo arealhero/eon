@@ -35,15 +35,14 @@ test_functions_without_jumps(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         const Tac* tac = &context.tac;
-        const Cfg* cfg = &context.cfg;
 
         ASSERT_EQUAL(tac->functions_count, 1);
         const Tac_Function* tac_function = &tac->functions[0];
         ASSERT_EQUAL(tac_function->instructions_count, 1);
 
-        ASSERT_EQUAL(cfg->blocks_count, 2);
+        ASSERT_EQUAL(tac_function->cfg_blocks_count, 1);
 
-        const Cfg_Block* block = &cfg->blocks[INVALID_CFG_BLOCK_INDEX + 1];
+        const Cfg_Block* block = &tac_function->cfg_blocks[0];
         {
             const Tac_Instructions_Range* range = &block->instructions_range;
             ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -53,12 +52,6 @@ test_functions_without_jumps(Test_Context* test_context)
                          tac_function->instructions_count);
 
             ASSERT_EQUAL(block->edges_count, 0);
-        }
-
-        // NOTE(vlad): Test that entry block was determined correctly.
-        {
-            const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
-            ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
         }
 
         destroy_parser(&parser);
@@ -95,14 +88,13 @@ test_functions_without_jumps(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         const Tac* tac = &context.tac;
-        const Cfg* cfg = &context.cfg;
 
         ASSERT_EQUAL(tac->functions_count, 1);
         const Tac_Function* tac_function = &tac->functions[0];
 
-        ASSERT_EQUAL(cfg->blocks_count, 2);
+        ASSERT_EQUAL(tac_function->cfg_blocks_count, 1);
 
-        const Cfg_Block* block = &cfg->blocks[INVALID_CFG_BLOCK_INDEX + 1];
+        const Cfg_Block* block = &tac_function->cfg_blocks[0];
         {
             const Tac_Instructions_Range* range = &block->instructions_range;
             ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -112,12 +104,6 @@ test_functions_without_jumps(Test_Context* test_context)
                          tac_function->instructions_count);
 
             ASSERT_EQUAL(block->edges_count, 0);
-        }
-
-        // NOTE(vlad): Test that entry block was determined correctly.
-        {
-            const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
-            ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
         }
 
         destroy_parser(&parser);
@@ -157,57 +143,44 @@ test_functions_without_jumps(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         const Tac* tac = &context.tac;
-        const Cfg* cfg = &context.cfg;
 
         ASSERT_EQUAL(tac->functions_count, 2);
-        const Tac_Function* tac_function = &tac->functions[0];
 
-        ASSERT_EQUAL(cfg->blocks_count, 3);
-
-        const Cfg_Block* block = &cfg->blocks[INVALID_CFG_BLOCK_INDEX + 1];
+        // NOTE(vlad): Testing 'foo()'.
         {
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
+            const Tac_Function* tac_function = &tac->functions[0];
 
-            ASSERT_EQUAL(block->instructions_range.end_instruction_index - block->instructions_range.start_instruction_index,
-                         tac_function->instructions_count);
+            ASSERT_EQUAL(tac_function->cfg_blocks_count, 1);
 
-            ASSERT_EQUAL(block->edges_count, 0);
-        }
-
-        tac_function += 1;
-        block += 1;
-
-        {
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
-
-            ASSERT_EQUAL(block->instructions_range.end_instruction_index - block->instructions_range.start_instruction_index,
-                         tac_function->instructions_count);
-
-            ASSERT_EQUAL(block->edges_count, 0);
-        }
-
-        ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, cfg->blocks), cfg->blocks_count);
-
-        // NOTE(vlad): Test that entry block was determined correctly.
-        {
-            // NOTE(vlad): Testing 'foo()'.
+            const Cfg_Block* block = &tac_function->cfg_blocks[0];
             {
-                const Tac_Function* current_function = &tac->functions[0];
-                const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac,
-                                                                                        current_function->label_id);
-                ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
+                const Tac_Instructions_Range* range = &block->instructions_range;
+                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+                ASSERT_FALSE(cfg_block_is_empty(block));
+
+                ASSERT_EQUAL(block->instructions_range.end_instruction_index - block->instructions_range.start_instruction_index,
+                             tac_function->instructions_count);
+
+                ASSERT_EQUAL(block->edges_count, 0);
             }
+        }
 
-            // NOTE(vlad): Testing 'bar()'.
+        // NOTE(vlad): Testing 'bar()'.
+        {
+            const Tac_Function* tac_function = &tac->functions[1];
+
+            ASSERT_EQUAL(tac_function->cfg_blocks_count, 1);
+
+            const Cfg_Block* block = &tac_function->cfg_blocks[0];
             {
-                const Tac_Function* current_function = &tac->functions[1];
-                const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac,
-                                                                                        current_function->label_id);
-                ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 2);
+                const Tac_Instructions_Range* range = &block->instructions_range;
+                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+                ASSERT_FALSE(cfg_block_is_empty(block));
+
+                ASSERT_EQUAL(block->instructions_range.end_instruction_index - block->instructions_range.start_instruction_index,
+                             tac_function->instructions_count);
+
+                ASSERT_EQUAL(block->edges_count, 0);
             }
         }
 
@@ -254,20 +227,19 @@ test_if_statements(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         const Tac* tac = &context.tac;
-        const Cfg* cfg = &context.cfg;
 
         ASSERT_EQUAL(tac->functions_count, 1);
         const Tac_Function* tac_function = &tac->functions[0];
 
-        ASSERT_EQUAL(cfg->blocks_count, 5);
+        ASSERT_EQUAL(tac_function->cfg_blocks_count, 4);
 
-        const Index condition_block_index = 1;
-        const Index then_block_index = 2;
-        const Index else_block_index = 3;
-        const Index final_block_index = 4;
+        const Index condition_block_index = 0;
+        const Index then_block_index = 1;
+        const Index else_block_index = 2;
+        const Index final_block_index = 3;
 
         {
-            const Cfg_Block* block = &cfg->blocks[condition_block_index];
+            const Cfg_Block* block = &tac_function->cfg_blocks[condition_block_index];
 
             const Tac_Instructions_Range* range = &block->instructions_range;
             ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -283,7 +255,7 @@ test_if_statements(Test_Context* test_context)
         }
 
         {
-            const Cfg_Block* block = &cfg->blocks[then_block_index];
+            const Cfg_Block* block = &tac_function->cfg_blocks[then_block_index];
 
             const Tac_Instructions_Range* range = &block->instructions_range;
             ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -298,7 +270,7 @@ test_if_statements(Test_Context* test_context)
         }
 
         {
-            const Cfg_Block* block = &cfg->blocks[else_block_index];
+            const Cfg_Block* block = &tac_function->cfg_blocks[else_block_index];
 
             const Tac_Instructions_Range* range = &block->instructions_range;
             ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -313,7 +285,7 @@ test_if_statements(Test_Context* test_context)
         }
 
         {
-            const Cfg_Block* block = &cfg->blocks[final_block_index];
+            const Cfg_Block* block = &tac_function->cfg_blocks[final_block_index];
 
             const Tac_Instructions_Range* range = &block->instructions_range;
             ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -324,12 +296,6 @@ test_if_statements(Test_Context* test_context)
             ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
 
             ASSERT_EQUAL(block->edges_count, 0);
-        }
-
-        // NOTE(vlad): Test that entry block was determined correctly.
-        {
-            const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
-            ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
         }
 
         destroy_parser(&parser);
@@ -367,20 +333,19 @@ test_if_statements(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         const Tac* tac = &context.tac;
-        const Cfg* cfg = &context.cfg;
 
         ASSERT_EQUAL(tac->functions_count, 1);
         const Tac_Function* tac_function = &tac->functions[0];
 
-        ASSERT_EQUAL(cfg->blocks_count, 5);
+        ASSERT_EQUAL(tac_function->cfg_blocks_count, 4);
 
-        const Index condition_block_index = 1;
-        const Index then_block_index = 2;
-        const Index else_block_index = 3;
-        const Index final_block_index = 4;
+        const Index condition_block_index = 0;
+        const Index then_block_index = 1;
+        const Index else_block_index = 2;
+        const Index final_block_index = 3;
 
         {
-            const Cfg_Block* block = &cfg->blocks[condition_block_index];
+            const Cfg_Block* block = &tac_function->cfg_blocks[condition_block_index];
 
             const Tac_Instructions_Range* range = &block->instructions_range;
             ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -396,7 +361,7 @@ test_if_statements(Test_Context* test_context)
         }
 
         {
-            const Cfg_Block* block = &cfg->blocks[then_block_index];
+            const Cfg_Block* block = &tac_function->cfg_blocks[then_block_index];
 
             const Tac_Instructions_Range* range = &block->instructions_range;
             ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -411,7 +376,7 @@ test_if_statements(Test_Context* test_context)
         }
 
         {
-            const Cfg_Block* block = &cfg->blocks[else_block_index];
+            const Cfg_Block* block = &tac_function->cfg_blocks[else_block_index];
 
             const Tac_Instructions_Range* range = &block->instructions_range;
             ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -430,7 +395,7 @@ test_if_statements(Test_Context* test_context)
         }
 
         {
-            const Cfg_Block* block = &cfg->blocks[final_block_index];
+            const Cfg_Block* block = &tac_function->cfg_blocks[final_block_index];
 
             const Tac_Instructions_Range* range = &block->instructions_range;
             ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -441,12 +406,6 @@ test_if_statements(Test_Context* test_context)
             ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
 
             ASSERT_EQUAL(block->edges_count, 0);
-        }
-
-        // NOTE(vlad): Test that entry block was determined correctly.
-        {
-            const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
-            ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
         }
 
         destroy_parser(&parser);
@@ -488,19 +447,18 @@ test_while_loops(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         const Tac* tac = &context.tac;
-        const Cfg* cfg = &context.cfg;
 
         ASSERT_EQUAL(tac->functions_count, 1);
         const Tac_Function* tac_function = &tac->functions[0];
 
-        ASSERT_EQUAL(cfg->blocks_count, 4);
+        ASSERT_EQUAL(tac_function->cfg_blocks_count, 3);
 
-        const Index condition_block_index = 1;
-        const Index body_block_index = 2;
-        const Index final_block_index = 3;
+        const Index condition_block_index = 0;
+        const Index body_block_index = 1;
+        const Index final_block_index = 2;
 
         {
-            const Cfg_Block* block = &cfg->blocks[condition_block_index];
+            const Cfg_Block* block = &tac_function->cfg_blocks[condition_block_index];
 
             const Tac_Instructions_Range* range = &block->instructions_range;
             ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -516,7 +474,7 @@ test_while_loops(Test_Context* test_context)
         }
 
         {
-            const Cfg_Block* block = &cfg->blocks[body_block_index];
+            const Cfg_Block* block = &tac_function->cfg_blocks[body_block_index];
 
             const Tac_Instructions_Range* range = &block->instructions_range;
             ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -531,7 +489,7 @@ test_while_loops(Test_Context* test_context)
         }
 
         {
-            const Cfg_Block* block = &cfg->blocks[final_block_index];
+            const Cfg_Block* block = &tac_function->cfg_blocks[final_block_index];
 
             const Tac_Instructions_Range* range = &block->instructions_range;
             ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -542,12 +500,6 @@ test_while_loops(Test_Context* test_context)
             ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
 
             ASSERT_EQUAL(block->edges_count, 0);
-        }
-
-        // NOTE(vlad): Test that entry block was determined correctly.
-        {
-            const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
-            ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
         }
 
         destroy_parser(&parser);
@@ -593,25 +545,24 @@ test_complex_statements(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         const Tac* tac = &context.tac;
-        const Cfg* cfg = &context.cfg;
 
         ASSERT_EQUAL(tac->functions_count, 1);
         const Tac_Function* tac_function = &tac->functions[0];
 
-        ASSERT_EQUAL(cfg->blocks_count, 8);
+        ASSERT_EQUAL(tac_function->cfg_blocks_count, 7);
 
-        const Index condition_block_index = 1;
-        const Index before_if_block_index = 2;
-        const Index then_block_index = 3;
-        const Index after_return_block_index = 4;
-        const Index else_block_index = 5;
-        const Index jump_after_if_block_index = 6;
-        const Index final_block_index = 7;
+        const Index condition_block_index = 0;
+        const Index before_if_block_index = 1;
+        const Index then_block_index = 2;
+        const Index after_return_block_index = 3;
+        const Index else_block_index = 4;
+        const Index jump_after_if_block_index = 5;
+        const Index final_block_index = 6;
 
         // NOTE(vlad): Testing blocks.
         {
             {
-                const Cfg_Block* block = &cfg->blocks[condition_block_index];
+                const Cfg_Block* block = &tac_function->cfg_blocks[condition_block_index];
 
                 const Tac_Instructions_Range* range = &block->instructions_range;
                 ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -627,7 +578,7 @@ test_complex_statements(Test_Context* test_context)
             }
 
             {
-                const Cfg_Block* block = &cfg->blocks[before_if_block_index];
+                const Cfg_Block* block = &tac_function->cfg_blocks[before_if_block_index];
 
                 const Tac_Instructions_Range* range = &block->instructions_range;
                 ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -643,7 +594,7 @@ test_complex_statements(Test_Context* test_context)
             }
 
             {
-                const Cfg_Block* block = &cfg->blocks[then_block_index];
+                const Cfg_Block* block = &tac_function->cfg_blocks[then_block_index];
 
                 const Tac_Instructions_Range* range = &block->instructions_range;
                 ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -657,7 +608,7 @@ test_complex_statements(Test_Context* test_context)
             }
 
             {
-                const Cfg_Block* block = &cfg->blocks[after_return_block_index];
+                const Cfg_Block* block = &tac_function->cfg_blocks[after_return_block_index];
 
                 const Tac_Instructions_Range* range = &block->instructions_range;
                 ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -672,7 +623,7 @@ test_complex_statements(Test_Context* test_context)
             }
 
             {
-                const Cfg_Block* block = &cfg->blocks[else_block_index];
+                const Cfg_Block* block = &tac_function->cfg_blocks[else_block_index];
 
                 const Tac_Instructions_Range* range = &block->instructions_range;
                 ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -691,7 +642,7 @@ test_complex_statements(Test_Context* test_context)
             }
 
             {
-                const Cfg_Block* block = &cfg->blocks[jump_after_if_block_index];
+                const Cfg_Block* block = &tac_function->cfg_blocks[jump_after_if_block_index];
 
                 const Tac_Instructions_Range* range = &block->instructions_range;
                 ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -706,7 +657,7 @@ test_complex_statements(Test_Context* test_context)
             }
 
             {
-                const Cfg_Block* block = &cfg->blocks[final_block_index];
+                const Cfg_Block* block = &tac_function->cfg_blocks[final_block_index];
 
                 const Tac_Instructions_Range* range = &block->instructions_range;
                 ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -718,12 +669,6 @@ test_complex_statements(Test_Context* test_context)
 
                 ASSERT_EQUAL(block->edges_count, 0);
             }
-        }
-
-        // NOTE(vlad): Test that entry block was determined correctly.
-        {
-            const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
-            ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
         }
 
         destroy_parser(&parser);
@@ -762,7 +707,6 @@ test_unreachable_blocks_removal(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         const Tac* tac = &context.tac;
-        const Cfg* cfg = &context.cfg;
 
         ASSERT_EQUAL(tac->functions_count, 1);
         const Tac_Function* tac_function = &tac->functions[0];
@@ -770,9 +714,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
 
         // NOTE(vlad): Before dead code elimination.
         {
-            ASSERT_EQUAL(cfg->blocks_count, 3);
+            ASSERT_EQUAL(tac_function->cfg_blocks_count, 2);
 
-            const Cfg_Block* block = &cfg->blocks[INVALID_CFG_BLOCK_INDEX + 1];
+            const Cfg_Block* block = &tac_function->cfg_blocks[0];
             {
                 const Tac_Instructions_Range* range = &block->instructions_range;
                 ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -809,13 +753,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 ASSERT_EQUAL(block->edges_count, 0);
             }
 
-            ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, cfg->blocks), cfg->blocks_count);
-
-            // NOTE(vlad): Test that entry block was determined correctly.
-            {
-                const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
-                ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
-            }
+            ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, tac_function->cfg_blocks), tac_function->cfg_blocks_count);
         }
 
         remove_unreachable_cfg_blocks(&context);
@@ -823,9 +761,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
 
         // NOTE(vlad): After dead code elimination.
         {
-            ASSERT_EQUAL(cfg->blocks_count, 2);
+            ASSERT_EQUAL(tac_function->cfg_blocks_count, 1);
 
-            const Cfg_Block* block = &cfg->blocks[INVALID_CFG_BLOCK_INDEX + 1];
+            const Cfg_Block* block = &tac_function->cfg_blocks[0];
             {
                 const Tac_Instructions_Range* range = &block->instructions_range;
                 ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -842,13 +780,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 ASSERT_EQUAL(block->edges_count, 0);
             }
 
-            ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, cfg->blocks), cfg->blocks_count);
-
-            // NOTE(vlad): Test that entry block was determined correctly.
-            {
-                const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
-                ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
-            }
+            ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, tac_function->cfg_blocks), tac_function->cfg_blocks_count);
         }
 
         destroy_parser(&parser);
@@ -884,7 +816,6 @@ test_unreachable_blocks_removal(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         const Tac* tac = &context.tac;
-        const Cfg* cfg = &context.cfg;
 
         ASSERT_EQUAL(tac->functions_count, 1);
         const Tac_Function* tac_function = &tac->functions[0];
@@ -892,9 +823,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
 
         // NOTE(vlad): Before dead code elimination.
         {
-            ASSERT_EQUAL(cfg->blocks_count, 3);
+            ASSERT_EQUAL(tac_function->cfg_blocks_count, 2);
 
-            const Cfg_Block* block = &cfg->blocks[INVALID_CFG_BLOCK_INDEX + 1];
+            const Cfg_Block* block = &tac_function->cfg_blocks[0];
             {
                 const Tac_Instructions_Range* range = &block->instructions_range;
                 ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -937,13 +868,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 ASSERT_EQUAL(block->edges_count, 0);
             }
 
-            ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, cfg->blocks), cfg->blocks_count);
-
-            // NOTE(vlad): Test that entry block was determined correctly.
-            {
-                const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
-                ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
-            }
+            ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, tac_function->cfg_blocks), tac_function->cfg_blocks_count);
         }
 
         remove_unreachable_cfg_blocks(&context);
@@ -961,9 +886,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
 
         // NOTE(vlad): After dead code elimination.
         {
-            ASSERT_EQUAL(cfg->blocks_count, 2);
+            ASSERT_EQUAL(tac_function->cfg_blocks_count, 1);
 
-            const Cfg_Block* block = &cfg->blocks[INVALID_CFG_BLOCK_INDEX + 1];
+            const Cfg_Block* block = &tac_function->cfg_blocks[0];
             {
                 const Tac_Instructions_Range* range = &block->instructions_range;
                 ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -980,13 +905,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 ASSERT_EQUAL(block->edges_count, 0);
             }
 
-            ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, cfg->blocks), cfg->blocks_count);
-
-            // NOTE(vlad): Test that entry block was determined correctly.
-            {
-                const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
-                ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
-            }
+            ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, tac_function->cfg_blocks), tac_function->cfg_blocks_count);
         }
 
         destroy_parser(&parser);
@@ -1023,7 +942,6 @@ test_unreachable_blocks_removal(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         const Tac* tac = &context.tac;
-        const Cfg* cfg = &context.cfg;
 
         ASSERT_EQUAL(tac->functions_count, 1);
         const Tac_Function* tac_function = &tac->functions[0];
@@ -1031,9 +949,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
 
         // NOTE(vlad): Before dead code elimination.
         {
-            ASSERT_EQUAL(cfg->blocks_count, 3);
+            ASSERT_EQUAL(tac_function->cfg_blocks_count, 2);
 
-            const Cfg_Block* block = &cfg->blocks[INVALID_CFG_BLOCK_INDEX + 1];
+            const Cfg_Block* block = &tac_function->cfg_blocks[0];
             {
                 const Tac_Instructions_Range* range = &block->instructions_range;
                 ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -1082,13 +1000,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 ASSERT_EQUAL(block->edges_count, 0);
             }
 
-            ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, cfg->blocks), cfg->blocks_count);
-
-            // NOTE(vlad): Test that entry block was determined correctly.
-            {
-                const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
-                ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
-            }
+            ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, tac_function->cfg_blocks), tac_function->cfg_blocks_count);
         }
 
         remove_unreachable_cfg_blocks(&context);
@@ -1106,9 +1018,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
 
         // NOTE(vlad): After dead code elimination.
         {
-            ASSERT_EQUAL(cfg->blocks_count, 2);
+            ASSERT_EQUAL(tac_function->cfg_blocks_count, 1);
 
-            const Cfg_Block* block = &cfg->blocks[INVALID_CFG_BLOCK_INDEX + 1];
+            const Cfg_Block* block = &tac_function->cfg_blocks[0];
             {
                 const Tac_Instructions_Range* range = &block->instructions_range;
                 ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -1125,13 +1037,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 ASSERT_EQUAL(block->edges_count, 0);
             }
 
-            ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, cfg->blocks), cfg->blocks_count);
-
-            // NOTE(vlad): Test that entry block was determined correctly.
-            {
-                const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
-                ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
-            }
+            ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, tac_function->cfg_blocks), tac_function->cfg_blocks_count);
         }
 
         destroy_parser(&parser);
@@ -1170,23 +1076,22 @@ test_unreachable_blocks_removal(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         const Tac* tac = &context.tac;
-        const Cfg* cfg = &context.cfg;
 
         ASSERT_EQUAL(tac->functions_count, 1);
         const Tac_Function* tac_function = &tac->functions[0];
 
         // NOTE(vlad): Before dead code elimination.
         {
-            ASSERT_EQUAL(cfg->blocks_count, 6);
+            ASSERT_EQUAL(tac_function->cfg_blocks_count, 5);
 
-            const Index condition_block_index = 1;
-            const Index then_block_index = 2;
-            const Index then_unreachable_block_index = 3;
-            const Index else_block_index = 4;
-            const Index final_block_index = 5;
+            const Index condition_block_index = 0;
+            const Index then_block_index = 1;
+            const Index then_unreachable_block_index = 2;
+            const Index else_block_index = 3;
+            const Index final_block_index = 4;
 
             {
-                const Cfg_Block* block = &cfg->blocks[condition_block_index];
+                const Cfg_Block* block = &tac_function->cfg_blocks[condition_block_index];
 
                 const Tac_Instructions_Range* range = &block->instructions_range;
                 ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -1202,7 +1107,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
             }
 
             {
-                const Cfg_Block* block = &cfg->blocks[then_block_index];
+                const Cfg_Block* block = &tac_function->cfg_blocks[then_block_index];
 
                 const Tac_Instructions_Range* range = &block->instructions_range;
                 ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -1216,7 +1121,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
             }
 
             {
-                const Cfg_Block* block = &cfg->blocks[then_unreachable_block_index];
+                const Cfg_Block* block = &tac_function->cfg_blocks[then_unreachable_block_index];
 
                 const Tac_Instructions_Range* range = &block->instructions_range;
                 ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -1231,7 +1136,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
             }
 
             {
-                const Cfg_Block* block = &cfg->blocks[else_block_index];
+                const Cfg_Block* block = &tac_function->cfg_blocks[else_block_index];
 
                 const Tac_Instructions_Range* range = &block->instructions_range;
                 ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -1250,7 +1155,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
             }
 
             {
-                const Cfg_Block* block = &cfg->blocks[final_block_index];
+                const Cfg_Block* block = &tac_function->cfg_blocks[final_block_index];
 
                 const Tac_Instructions_Range* range = &block->instructions_range;
                 ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -1261,12 +1166,6 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
-            }
-
-            // NOTE(vlad): Test that entry block was determined correctly.
-            {
-                const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
-                ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
             }
         }
 
@@ -1284,15 +1183,15 @@ test_unreachable_blocks_removal(Test_Context* test_context)
 
         // NOTE(vlad): After dead code elimination.
         {
-            ASSERT_EQUAL(cfg->blocks_count, 5);
+            ASSERT_EQUAL(tac_function->cfg_blocks_count, 4);
 
-            const Index condition_block_index = 1;
-            const Index then_block_index = 2;
-            const Index else_block_index = 3;
-            const Index final_block_index = 4;
+            const Index condition_block_index = 0;
+            const Index then_block_index = 1;
+            const Index else_block_index = 2;
+            const Index final_block_index = 3;
 
             {
-                const Cfg_Block* block = &cfg->blocks[condition_block_index];
+                const Cfg_Block* block = &tac_function->cfg_blocks[condition_block_index];
 
                 const Tac_Instructions_Range* range = &block->instructions_range;
                 ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -1308,7 +1207,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
             }
 
             {
-                const Cfg_Block* block = &cfg->blocks[then_block_index];
+                const Cfg_Block* block = &tac_function->cfg_blocks[then_block_index];
 
                 const Tac_Instructions_Range* range = &block->instructions_range;
                 ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -1322,7 +1221,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
             }
 
             {
-                const Cfg_Block* block = &cfg->blocks[else_block_index];
+                const Cfg_Block* block = &tac_function->cfg_blocks[else_block_index];
 
                 const Tac_Instructions_Range* range = &block->instructions_range;
                 ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -1341,7 +1240,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
             }
 
             {
-                const Cfg_Block* block = &cfg->blocks[final_block_index];
+                const Cfg_Block* block = &tac_function->cfg_blocks[final_block_index];
 
                 const Tac_Instructions_Range* range = &block->instructions_range;
                 ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -1352,12 +1251,6 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
-            }
-
-            // NOTE(vlad): Test that entry block was determined correctly.
-            {
-                const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
-                ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
             }
         }
 
@@ -1402,15 +1295,14 @@ test_dominators_computing(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         const Tac* tac = &context.tac;
-        const Cfg* cfg = &context.cfg;
 
         ASSERT_EQUAL(tac->functions_count, 1);
         const Tac_Function* tac_function = &tac->functions[0];
         ASSERT_EQUAL(tac_function->instructions_count, 1);
 
-        ASSERT_EQUAL(cfg->blocks_count, 2);
+        ASSERT_EQUAL(tac_function->cfg_blocks_count, 1);
 
-        const Cfg_Block* block = &cfg->blocks[INVALID_CFG_BLOCK_INDEX + 1];
+        const Cfg_Block* block = &tac_function->cfg_blocks[0];
         {
             const Tac_Instructions_Range* range = &block->instructions_range;
             ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
@@ -1420,14 +1312,8 @@ test_dominators_computing(Test_Context* test_context)
                          tac_function->instructions_count);
 
             ASSERT_EQUAL(block->edges_count, 0);
-            ASSERT_EQUAL(block->postorder_index, 1);
-            ASSERT_EQUAL(block->immediate_dominator_id.index, 1);
-        }
-
-        // NOTE(vlad): Test that entry block was determined correctly.
-        {
-            const Tac_Function_Label* function_label = get_tac_function_label_by_id(&context.tac, tac_function->label_id);
-            ASSERT_EQUAL(function_label->entry_cfg_block_id.index, 1);
+            ASSERT_EQUAL(block->postorder_index, 0);
+            ASSERT_EQUAL(block->immediate_dominator_id.index, 0);
         }
 
         destroy_parser(&parser);

@@ -1,5 +1,6 @@
 #include "eon_compilation_context.h"
 
+#include "eon_cfg.h"
 #include "eon_lexical_scopes.h"
 #include "eon_types.h"
 
@@ -43,12 +44,19 @@ destroy_compilation_context(Compilation_Context* context)
         release_arena_to_provider(context->arena_provider, scope->symbol_ids_arena);
     }
 
-    for (Index block_index = 0;
-         block_index < context->cfg.blocks_count;
-         ++block_index)
+    for (Index tac_function_index = 0;
+         tac_function_index < context->tac.functions_count;
+         ++tac_function_index)
     {
-        Cfg_Block* block = &context->cfg.blocks[block_index];
-        release_arena_to_provider(context->arena_provider, block->edges_arena);
+        Tac_Function* tac_function = &context->tac.functions[tac_function_index];
+
+        for (Index block_index = 0;
+             block_index < tac_function->cfg_blocks_count;
+             ++block_index)
+        {
+            Cfg_Block* block = &tac_function->cfg_blocks[block_index];
+            release_arena_to_provider(context->arena_provider, block->edges_arena);
+        }
     }
 
     release_arena_to_provider(context->arena_provider, context->scratch_arena);

@@ -6,7 +6,6 @@
 #include "eon_forward_declarations.h"
 
 #include "eon_ast.h"
-#include "eon_cfg.h"
 #include "eon_diagnostics.h"
 #include "eon_tac.h"
 
@@ -52,8 +51,6 @@ struct Compilation_Context
     array(struct Type, types);
 
     Tac tac;
-
-    Cfg cfg;
 };
 typedef struct Compilation_Context Compilation_Context;
 
