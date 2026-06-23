@@ -2211,6 +2211,7 @@ REGISTER_TESTS(
     test_indirect_memory_access
 )
 
+#include "eon_cfg.c"
 #include "eon_compilation_context.c"
 #include "eon_diagnostics.c"
 #include "eon_lexer.c"

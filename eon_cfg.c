@@ -16,6 +16,10 @@ create_cfg_block(Compilation_Context* context,
                                                      string_view("cfg-edges"),
                                                      GiB(1),
                                                      MiB(1));
+    block->predecessors_arena = acquire_arena_from_provider(context->arena_provider,
+                                                            string_view("cfg-predecessors"),
+                                                            GiB(1),
+                                                            MiB(1));
     block->instructions_range = instructions_range;
 
     Cfg_Block_Id id = {0};
@@ -23,17 +27,106 @@ create_cfg_block(Compilation_Context* context,
     return id;
 }
 
-internal inline void
+internal void
+insert_edge(Cfg_Block* block, const Cfg_Block_Id new_block_id)
+{
+    Bool should_append_edge = true;
+    for (Index edge_index = 0;
+         edge_index < block->edges_count;
+         ++edge_index)
+    {
+        const Cfg_Block_Id edge_id = block->edges[edge_index];
+        if (edge_id.index == new_block_id.index)
+        {
+            should_append_edge = false;
+            break;
+        }
+    }
+
+    if (should_append_edge)
+    {
+        append_array(block->edges_arena,
+                     block->edges,
+                     Cfg_Block_Id,
+                     new_block_id);
+    }
+}
+
+internal Bool
+remove_edge(Cfg_Block* block, const Cfg_Block_Id block_id)
+{
+    for (Index edge_index = 0;
+         edge_index < block->edges_count;
+         ++edge_index)
+    {
+        const Cfg_Block_Id edge_id = block->edges[edge_index];
+        if (edge_id.index == block_id.index)
+        {
+            const Index last_edge_index = block->edges_count - 1;
+            block->edges[edge_index] = block->edges[last_edge_index];
+            block->edges_count -= 1;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+internal void
+insert_predecessor(Cfg_Block* block, const Cfg_Block_Id new_block_id)
+{
+    Bool should_append_predecessor = true;
+    for (Index predecessor_index = 0;
+         predecessor_index < block->predecessors_count;
+         ++predecessor_index)
+    {
+        const Cfg_Block_Id predecessor_id = block->predecessors[predecessor_index];
+        if (predecessor_id.index == new_block_id.index)
+        {
+            should_append_predecessor = false;
+            break;
+        }
+    }
+
+    if (should_append_predecessor)
+    {
+        append_array(block->predecessors_arena,
+                     block->predecessors,
+                     Cfg_Block_Id,
+                     new_block_id);
+    }
+}
+
+internal Bool
+remove_predecessor(Cfg_Block* block, const Cfg_Block_Id block_id)
+{
+    for (Index predecessor_index = 0;
+         predecessor_index < block->predecessors_count;
+         ++predecessor_index)
+    {
+        const Cfg_Block_Id predecessor_id = block->predecessors[predecessor_index];
+        if (predecessor_id.index == block_id.index)
+        {
+            const Index last_predecessor_index = block->predecessors_count - 1;
+            block->predecessors[predecessor_index] = block->predecessors[last_predecessor_index];
+            block->predecessors_count -= 1;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+internal void
 add_cfg_edge(Tac_Function* tac_function,
              const Cfg_Block_Id source_block_id,
              const Cfg_Block_Id destination_block_id)
 {
     Cfg_Block* source_block = get_cfg_block_by_id(tac_function, source_block_id);
+    Cfg_Block* destination_block = get_cfg_block_by_id(tac_function, destination_block_id);
 
-    append_array(source_block->edges_arena,
-                 source_block->edges,
-                 Cfg_Block_Id,
-                 destination_block_id);
+    insert_edge(source_block, destination_block_id);
+    insert_predecessor(destination_block, source_block_id);
 }
 
 internal inline void
@@ -310,31 +403,6 @@ visit_reachable_blocks(Tac_Function* tac_function,
     }
 }
 
-internal void
-swap_cfg_block_ids(Tac_Function* tac_function,
-                   const Cfg_Block_Id old_id,
-                   const Cfg_Block_Id new_id)
-{
-    for (Index block_index = 0;
-         block_index < tac_function->cfg_blocks_count;
-         ++block_index)
-    {
-        Cfg_Block* block = &tac_function->cfg_blocks[block_index];
-
-        for (Index edge_index = 0;
-             edge_index < block->edges_count;
-             ++edge_index)
-        {
-            Cfg_Block_Id* reachable_block_id = &block->edges[edge_index];
-
-            if (reachable_block_id->index == old_id.index)
-            {
-                *reachable_block_id = new_id;
-            }
-        }
-    }
-}
-
 internal const Ast_Statement*
 find_statement_in_code_block_by_tac_instruction_index(const Ast_Code_Block* code_block,
                                                       const Index tac_instruction_index)
@@ -512,16 +580,16 @@ remove_unreachable_cfg_blocks(Compilation_Context* context)
         visit_reachable_blocks(tac_function, entry_cfg_block_id, reachability_info);
 
         Size unreachable_blocks_count = 0;
-        for (Index i = 0;
-             i < tac_function->cfg_blocks_count;
-             ++i)
+        for (Index this_block_index = 0;
+             this_block_index < tac_function->cfg_blocks_count;
+             ++this_block_index)
         {
-            if (!reachability_info[i].was_reached)
+            if (!reachability_info[this_block_index].was_reached)
             {
                 unreachable_blocks_count += 1;
 
                 Cfg_Block_Id this_block_id = {0};
-                this_block_id.index = i;
+                this_block_id.index = this_block_index;
                 emit_diagnostic_message_about_dead_code_if_needed(context,
                                                                   tac_function,
                                                                   this_block_id,
@@ -535,63 +603,88 @@ remove_unreachable_cfg_blocks(Compilation_Context* context)
         }
 
         // NOTE(vlad): Removing unreachabile blocks.
-        Index next_free_block_index = -1;
+        Index unreachable_block_index = -1;
+        Index reachable_block_index = tac_function->cfg_blocks_count;
+
         while (true)
         {
-            for (Index i = next_free_block_index + 1;
+            for (Index i = unreachable_block_index + 1;
                  i < tac_function->cfg_blocks_count;
                  ++i)
             {
                 if (!reachability_info[i].was_reached)
                 {
-                    next_free_block_index = i;
+                    unreachable_block_index = i;
                     break;
                 }
             }
 
-            ASSERT(next_free_block_index != -1);
-
-            Index next_reachable_block_index = next_free_block_index + 1;
-            for (;
-                 next_reachable_block_index < tac_function->cfg_blocks_count;
-                 next_reachable_block_index += 1)
+            for (Index i = reachable_block_index - 1;
+                 i >= 0;
+                 --i)
             {
-                if (reachability_info[next_reachable_block_index].was_reached)
+                if (reachability_info[i].was_reached)
                 {
+                    reachable_block_index = i;
                     break;
                 }
             }
 
-            if (next_reachable_block_index == tac_function->cfg_blocks_count)
+            if (unreachable_block_index >= reachable_block_index)
             {
-                const Size reachable_blocks_count = tac_function->cfg_blocks_count - unreachable_blocks_count;
-
-                for (Index block_index = reachable_blocks_count;
-                     block_index < tac_function->cfg_blocks_count;
-                     ++block_index)
-                {
-                    Cfg_Block* unreachable_block = &tac_function->cfg_blocks[block_index];
-                    release_arena_to_provider(context->arena_provider, unreachable_block->edges_arena);
-                }
-
-                tac_function->cfg_blocks_count = reachable_blocks_count;
                 break;
             }
 
+            ASSERT(unreachable_block_index != -1);
+            ASSERT(reachable_block_index != tac_function->cfg_blocks_count);
+
             {
                 Cfg_Block_Id old_block_id = {0};
-                old_block_id.index = next_reachable_block_index;
+                old_block_id.index = reachable_block_index;
 
                 Cfg_Block_Id new_block_id = {0};
-                new_block_id.index = next_free_block_index;
+                new_block_id.index = unreachable_block_index;
 
-                swap_cfg_block_ids(tac_function, old_block_id, new_block_id);
+                for (Index block_index = 0;
+                     block_index < tac_function->cfg_blocks_count;
+                     ++block_index)
+                {
+                    Cfg_Block_Id block_id = {0};
+                    block_id.index = block_index;
+
+                    Cfg_Block* block = get_cfg_block_by_id(tac_function, block_id);
+
+                    // NOTE(vlad): Technically we should remove edges to an old block, but since it's unreachable
+                    //             there are no such edges.
+                    if (remove_edge(block, old_block_id))
+                    {
+                        insert_edge(block, new_block_id);
+                    }
+
+                    remove_predecessor(block, new_block_id);
+                    if (remove_predecessor(block, old_block_id))
+                    {
+                        insert_predecessor(block, new_block_id);
+                    }
+                }
             }
 
-            tac_function->cfg_blocks[next_free_block_index] = tac_function->cfg_blocks[next_reachable_block_index];
-            reachability_info[next_free_block_index].was_reached = true;
-            reachability_info[next_reachable_block_index].was_reached = false;
+            const Cfg_Block temp = tac_function->cfg_blocks[unreachable_block_index];
+            tac_function->cfg_blocks[unreachable_block_index] = tac_function->cfg_blocks[reachable_block_index];
+            tac_function->cfg_blocks[reachable_block_index] = temp;
+
+            reachability_info[unreachable_block_index].was_reached = true;
+            reachability_info[reachable_block_index].was_reached = false;
         }
+
+        for (Index i = unreachable_block_index;
+             i < tac_function->cfg_blocks_count;
+             ++i)
+        {
+            Cfg_Block* unreachable_block = &tac_function->cfg_blocks[i];
+            free_cfg_block(context, unreachable_block);
+        }
+        tac_function->cfg_blocks_count = unreachable_block_index;
     }
 
     request_arena_reset(context->arena_provider, context->scratch_arena);
@@ -682,6 +775,9 @@ compute_cfg_dominators(Compilation_Context* context)
         const Cfg_Block_Id entry_block_id = {0};
         Cfg_Block* entry_block = get_cfg_block_by_id(tac_function, entry_block_id);
 
+        // NOTE(vlad): Entry block must be last in postorder traversal.
+        ASSERT(entry_block->postorder_index == tac_function->cfg_blocks_count - 1);
+
         // NOTE(vlad): Entry block dominates itself by definition.
         entry_block->immediate_dominator_id = entry_block_id;
 
@@ -690,9 +786,22 @@ compute_cfg_dominators(Compilation_Context* context)
         {
             dominator_has_changed = false;
 
-            // for (Index block_index = cfg->blocks_)
+            for (Index postorder_index = tac_function->cfg_blocks_count - 2;
+                 postorder_index >= 0;
+                 --postorder_index)
+            {
+                // const Cfg_Block_Id this_block_id = block_ids_in_postorder[postorder_index];
+                // Cfg_Block* this_block = get_cfg_block_by_id(tac_function, this_block_id);
+            }
         }
     }
 
     request_arena_reset(context->arena_provider, context->scratch_arena);
+}
+
+internal inline void
+free_cfg_block(Compilation_Context* context, Cfg_Block* block)
+{
+    release_arena_to_provider(context->arena_provider, block->edges_arena);
+    release_arena_to_provider(context->arena_provider, block->predecessors_arena);
 }

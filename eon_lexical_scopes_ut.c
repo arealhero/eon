@@ -1945,9 +1945,11 @@ REGISTER_TESTS(
     test_redefinitions
 )
 
+#include "eon_cfg.c"
 #include "eon_compilation_context.c"
 #include "eon_diagnostics.c"
 #include "eon_lexer.c"
 #include "eon_lexical_scopes.c"
 #include "eon_parser.c"
+#include "eon_tac.c"
 #include "eon_types.c"

@@ -52,6 +52,7 @@ test_functions_without_jumps(Test_Context* test_context)
                          tac_function->instructions_count);
 
             ASSERT_EQUAL(block->edges_count, 0);
+            ASSERT_EQUAL(block->predecessors_count, 0);
         }
 
         destroy_parser(&parser);
@@ -104,6 +105,7 @@ test_functions_without_jumps(Test_Context* test_context)
                          tac_function->instructions_count);
 
             ASSERT_EQUAL(block->edges_count, 0);
+            ASSERT_EQUAL(block->predecessors_count, 0);
         }
 
         destroy_parser(&parser);
@@ -162,6 +164,7 @@ test_functions_without_jumps(Test_Context* test_context)
                              tac_function->instructions_count);
 
                 ASSERT_EQUAL(block->edges_count, 0);
+                ASSERT_EQUAL(block->predecessors_count, 0);
             }
         }
 
@@ -181,6 +184,7 @@ test_functions_without_jumps(Test_Context* test_context)
                              tac_function->instructions_count);
 
                 ASSERT_EQUAL(block->edges_count, 0);
+                ASSERT_EQUAL(block->predecessors_count, 0);
             }
         }
 
@@ -252,6 +256,8 @@ test_if_statements(Test_Context* test_context)
             ASSERT_EQUAL(block->edges_count, 2);
             ASSERT_EQUAL(block->edges[0].index, else_block_index);
             ASSERT_EQUAL(block->edges[1].index, then_block_index);
+
+            ASSERT_EQUAL(block->predecessors_count, 0);
         }
 
         {
@@ -267,6 +273,9 @@ test_if_statements(Test_Context* test_context)
 
             ASSERT_EQUAL(block->edges_count, 1);
             ASSERT_EQUAL(block->edges[0].index, final_block_index);
+
+            ASSERT_EQUAL(block->predecessors_count, 1);
+            ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
         }
 
         {
@@ -282,6 +291,9 @@ test_if_statements(Test_Context* test_context)
 
             ASSERT_EQUAL(block->edges_count, 1);
             ASSERT_EQUAL(block->edges[0].index, final_block_index);
+
+            ASSERT_EQUAL(block->predecessors_count, 1);
+            ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
         }
 
         {
@@ -296,6 +308,9 @@ test_if_statements(Test_Context* test_context)
             ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
 
             ASSERT_EQUAL(block->edges_count, 0);
+            ASSERT_EQUAL(block->predecessors_count, 2);
+            ASSERT_EQUAL(block->predecessors[0].index, then_block_index);
+            ASSERT_EQUAL(block->predecessors[1].index, else_block_index);
         }
 
         destroy_parser(&parser);
@@ -358,6 +373,8 @@ test_if_statements(Test_Context* test_context)
             ASSERT_EQUAL(block->edges_count, 2);
             ASSERT_EQUAL(block->edges[0].index, else_block_index);
             ASSERT_EQUAL(block->edges[1].index, then_block_index);
+
+            ASSERT_EQUAL(block->predecessors_count, 0);
         }
 
         {
@@ -373,6 +390,9 @@ test_if_statements(Test_Context* test_context)
 
             ASSERT_EQUAL(block->edges_count, 1);
             ASSERT_EQUAL(block->edges[0].index, final_block_index);
+
+            ASSERT_EQUAL(block->predecessors_count, 1);
+            ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
         }
 
         {
@@ -392,6 +412,9 @@ test_if_statements(Test_Context* test_context)
 
             ASSERT_EQUAL(block->edges_count, 1);
             ASSERT_EQUAL(block->edges[0].index, final_block_index);
+
+            ASSERT_EQUAL(block->predecessors_count, 1);
+            ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
         }
 
         {
@@ -406,6 +429,10 @@ test_if_statements(Test_Context* test_context)
             ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
 
             ASSERT_EQUAL(block->edges_count, 0);
+
+            ASSERT_EQUAL(block->predecessors_count, 2);
+            ASSERT_EQUAL(block->predecessors[0].index, then_block_index);
+            ASSERT_EQUAL(block->predecessors[1].index, else_block_index);
         }
 
         destroy_parser(&parser);
@@ -471,6 +498,9 @@ test_while_loops(Test_Context* test_context)
             ASSERT_EQUAL(block->edges_count, 2);
             ASSERT_EQUAL(block->edges[0].index, final_block_index);
             ASSERT_EQUAL(block->edges[1].index, body_block_index);
+
+            ASSERT_EQUAL(block->predecessors_count, 1);
+            ASSERT_EQUAL(block->predecessors[0].index, body_block_index);
         }
 
         {
@@ -486,6 +516,9 @@ test_while_loops(Test_Context* test_context)
 
             ASSERT_EQUAL(block->edges_count, 1);
             ASSERT_EQUAL(block->edges[0].index, condition_block_index);
+
+            ASSERT_EQUAL(block->predecessors_count, 1);
+            ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
         }
 
         {
@@ -500,6 +533,8 @@ test_while_loops(Test_Context* test_context)
             ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
 
             ASSERT_EQUAL(block->edges_count, 0);
+            ASSERT_EQUAL(block->predecessors_count, 1);
+            ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
         }
 
         destroy_parser(&parser);
@@ -575,6 +610,9 @@ test_complex_statements(Test_Context* test_context)
                 ASSERT_EQUAL(block->edges_count, 2);
                 ASSERT_EQUAL(block->edges[0].index, final_block_index);
                 ASSERT_EQUAL(block->edges[1].index, before_if_block_index);
+
+                ASSERT_EQUAL(block->predecessors_count, 1);
+                ASSERT_EQUAL(block->predecessors[0].index, jump_after_if_block_index);
             }
 
             {
@@ -591,6 +629,9 @@ test_complex_statements(Test_Context* test_context)
                 ASSERT_EQUAL(block->edges_count, 2);
                 ASSERT_EQUAL(block->edges[0].index, else_block_index);
                 ASSERT_EQUAL(block->edges[1].index, then_block_index);
+
+                ASSERT_EQUAL(block->predecessors_count, 1);
+                ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
             }
 
             {
@@ -605,6 +646,8 @@ test_complex_statements(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
+                ASSERT_EQUAL(block->predecessors_count, 1);
+                ASSERT_EQUAL(block->predecessors[0].index, before_if_block_index);
             }
 
             {
@@ -620,6 +663,8 @@ test_complex_statements(Test_Context* test_context)
 
                 ASSERT_EQUAL(block->edges_count, 1);
                 ASSERT_EQUAL(block->edges[0].index, jump_after_if_block_index);
+
+                ASSERT_EQUAL(block->predecessors_count, 0);
             }
 
             {
@@ -639,6 +684,9 @@ test_complex_statements(Test_Context* test_context)
 
                 ASSERT_EQUAL(block->edges_count, 1);
                 ASSERT_EQUAL(block->edges[0].index, jump_after_if_block_index);
+
+                ASSERT_EQUAL(block->predecessors_count, 1);
+                ASSERT_EQUAL(block->predecessors[0].index, before_if_block_index);
             }
 
             {
@@ -654,6 +702,10 @@ test_complex_statements(Test_Context* test_context)
 
                 ASSERT_EQUAL(block->edges_count, 1);
                 ASSERT_EQUAL(block->edges[0].index, condition_block_index);
+
+                ASSERT_EQUAL(block->predecessors_count, 2);
+                ASSERT_EQUAL(block->predecessors[0].index, after_return_block_index);
+                ASSERT_EQUAL(block->predecessors[1].index, else_block_index);
             }
 
             {
@@ -668,6 +720,8 @@ test_complex_statements(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
+                ASSERT_EQUAL(block->predecessors_count, 1);
+                ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
             }
         }
 
@@ -731,6 +785,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
+                ASSERT_EQUAL(block->predecessors_count, 0);
             }
 
             block += 1;
@@ -751,6 +806,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 }
 
                 ASSERT_EQUAL(block->edges_count, 0);
+                ASSERT_EQUAL(block->predecessors_count, 0);
             }
 
             ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, tac_function->cfg_blocks), tac_function->cfg_blocks_count);
@@ -778,6 +834,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
+                ASSERT_EQUAL(block->predecessors_count, 0);
             }
 
             ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, tac_function->cfg_blocks), tac_function->cfg_blocks_count);
@@ -840,6 +897,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
+                ASSERT_EQUAL(block->predecessors_count, 0);
             }
 
             block += 1;
@@ -866,6 +924,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 }
 
                 ASSERT_EQUAL(block->edges_count, 0);
+                ASSERT_EQUAL(block->predecessors_count, 0);
             }
 
             ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, tac_function->cfg_blocks), tac_function->cfg_blocks_count);
@@ -903,6 +962,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
+                ASSERT_EQUAL(block->predecessors_count, 0);
             }
 
             ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, tac_function->cfg_blocks), tac_function->cfg_blocks_count);
@@ -966,6 +1026,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
+                ASSERT_EQUAL(block->predecessors_count, 0);
             }
 
             block += 1;
@@ -998,6 +1059,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 }
 
                 ASSERT_EQUAL(block->edges_count, 0);
+                ASSERT_EQUAL(block->predecessors_count, 0);
             }
 
             ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, tac_function->cfg_blocks), tac_function->cfg_blocks_count);
@@ -1035,6 +1097,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
+                ASSERT_EQUAL(block->predecessors_count, 0);
             }
 
             ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, tac_function->cfg_blocks), tac_function->cfg_blocks_count);
@@ -1104,6 +1167,8 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 ASSERT_EQUAL(block->edges_count, 2);
                 ASSERT_EQUAL(block->edges[0].index, else_block_index);
                 ASSERT_EQUAL(block->edges[1].index, then_block_index);
+
+                ASSERT_EQUAL(block->predecessors_count, 0);
             }
 
             {
@@ -1118,6 +1183,8 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
+                ASSERT_EQUAL(block->predecessors_count, 1);
+                ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
             }
 
             {
@@ -1133,6 +1200,8 @@ test_unreachable_blocks_removal(Test_Context* test_context)
 
                 ASSERT_EQUAL(block->edges_count, 1);
                 ASSERT_EQUAL(block->edges[0].index, final_block_index);
+
+                ASSERT_EQUAL(block->predecessors_count, 0);
             }
 
             {
@@ -1152,6 +1221,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
 
                 ASSERT_EQUAL(block->edges_count, 1);
                 ASSERT_EQUAL(block->edges[0].index, final_block_index);
+
+                ASSERT_EQUAL(block->predecessors_count, 1);
+                ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
             }
 
             {
@@ -1166,6 +1238,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
+                ASSERT_EQUAL(block->predecessors_count, 2);
+                ASSERT_EQUAL(block->predecessors[0].index, then_unreachable_block_index);
+                ASSERT_EQUAL(block->predecessors[1].index, else_block_index);
             }
         }
 
@@ -1187,8 +1262,8 @@ test_unreachable_blocks_removal(Test_Context* test_context)
 
             const Index condition_block_index = 0;
             const Index then_block_index = 1;
-            const Index else_block_index = 2;
-            const Index final_block_index = 3;
+            const Index else_block_index = 3;
+            const Index final_block_index = 2;
 
             {
                 const Cfg_Block* block = &tac_function->cfg_blocks[condition_block_index];
@@ -1204,6 +1279,8 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 ASSERT_EQUAL(block->edges_count, 2);
                 ASSERT_EQUAL(block->edges[0].index, else_block_index);
                 ASSERT_EQUAL(block->edges[1].index, then_block_index);
+
+                ASSERT_EQUAL(block->predecessors_count, 0);
             }
 
             {
@@ -1218,6 +1295,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
+
+                ASSERT_EQUAL(block->predecessors_count, 1);
+                ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
             }
 
             {
@@ -1237,6 +1317,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
 
                 ASSERT_EQUAL(block->edges_count, 1);
                 ASSERT_EQUAL(block->edges[0].index, final_block_index);
+
+                ASSERT_EQUAL(block->predecessors_count, 1);
+                ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
             }
 
             {
@@ -1251,6 +1334,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
+
+                ASSERT_EQUAL(block->predecessors_count, 1);
+                ASSERT_EQUAL(block->predecessors[0].index, else_block_index);
             }
         }
 
@@ -1312,6 +1398,8 @@ test_dominators_computing(Test_Context* test_context)
                          tac_function->instructions_count);
 
             ASSERT_EQUAL(block->edges_count, 0);
+            ASSERT_EQUAL(block->predecessors_count, 0);
+
             ASSERT_EQUAL(block->postorder_index, 0);
             ASSERT_EQUAL(block->immediate_dominator_id.index, 0);
         }

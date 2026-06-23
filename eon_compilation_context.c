@@ -55,7 +55,7 @@ destroy_compilation_context(Compilation_Context* context)
              ++block_index)
         {
             Cfg_Block* block = &tac_function->cfg_blocks[block_index];
-            release_arena_to_provider(context->arena_provider, block->edges_arena);
+            free_cfg_block(context, block);
         }
     }
 
