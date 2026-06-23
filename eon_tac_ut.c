@@ -1496,7 +1496,7 @@ test_if_statements_lowering(Test_Context* test_context)
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
 
-            ASSERT_FALSE(instruction->was_automatically_inserted);
+            ASSERT_TRUE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;
@@ -1748,7 +1748,7 @@ test_if_statements_lowering(Test_Context* test_context)
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
 
-            ASSERT_FALSE(instruction->was_automatically_inserted);
+            ASSERT_TRUE(instruction->was_automatically_inserted);
         }
 
         instruction += 1;

@@ -617,21 +617,22 @@ lower_statement_to_tac(Compilation_Context* context,
             }
 
             {
-                Tac_Instruction loop_instruction = {0};
-                loop_instruction.operation = TAC_JUMP;
-                loop_instruction.destination.kind = TAC_OPERAND_LABEL;
-                loop_instruction.destination.label_id = end_label_id;
+                Tac_Instruction jump_after_then_instruction = {0};
+                jump_after_then_instruction.operation = TAC_JUMP;
+                jump_after_then_instruction.destination.kind = TAC_OPERAND_LABEL;
+                jump_after_then_instruction.destination.label_id = end_label_id;
+                jump_after_then_instruction.was_automatically_inserted = true;
 
-                emit_tac_instruction(tac_function, loop_instruction);
+                emit_tac_instruction(tac_function, jump_after_then_instruction);
             }
 
             {
-                Tac_Instruction end_label_instruction = {0};
-                end_label_instruction.operation = TAC_LABEL;
-                end_label_instruction.destination.kind = TAC_OPERAND_LABEL;
-                end_label_instruction.destination.label_id = else_label_id;
+                Tac_Instruction else_label_instruction = {0};
+                else_label_instruction.operation = TAC_LABEL;
+                else_label_instruction.destination.kind = TAC_OPERAND_LABEL;
+                else_label_instruction.destination.label_id = else_label_id;
 
-                const Index instruction_index = emit_tac_instruction(tac_function, end_label_instruction);
+                const Index instruction_index = emit_tac_instruction(tac_function, else_label_instruction);
 
                 Tac_Label* end_label = get_tac_label_by_id(&context->tac, else_label_id);
                 end_label->instruction_id.function_label_id = tac_function->label_id;
