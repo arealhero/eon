@@ -231,6 +231,18 @@ try_to_unify_types(Compilation_Context* context,
     Type* lhs_root_type = get_type_by_id(context, lhs_root_type_id);
     Type* rhs_root_type = get_type_by_id(context, rhs_root_type_id);
 
+    if (type_id_is_invalid(context, lhs_root_type_id))
+    {
+        rhs_root_type->parent_type_id.index = INVALID_TYPE_INDEX;
+        return true;
+    }
+
+    if (type_id_is_invalid(context, rhs_root_type_id))
+    {
+        lhs_root_type->parent_type_id.index = INVALID_TYPE_INDEX;
+        return true;
+    }
+
     if (lhs_root_type->kind == TYPE_VARIABLE)
     {
         lhs_root_type->parent_type_id = rhs_root_type_id;
@@ -395,6 +407,13 @@ variable_type_is_valid(Compilation_Context* context,
                        const Type_Id variable_type_id,
                        const Source_Location* variable_location)
 {
+    ASSERT(type_id_is_defined(variable_type_id));
+
+    if (type_id_is_invalid(context, variable_type_id))
+    {
+        return false;
+    }
+
     const Type_Id void_type_id = get_void_type_id(context);
 
     if (try_to_unify_types(context, variable_type_id, void_type_id))
@@ -921,8 +940,9 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
             const Type_Id dereferenced_type_id = create_new_type_variable(context);
 
             const Expression_Result expression_result = resolve_types_in_expression(context, dereference->operand);
+            ASSERT(type_id_is_defined(expression_result.type_id));
 
-            if (!type_id_is_valid(context, expression_result.type_id))
+            if (type_id_is_invalid(context, expression_result.type_id))
             {
                 expression->type_id.index = INVALID_TYPE_INDEX;
                 result.type_id.index = INVALID_TYPE_INDEX;
@@ -1389,7 +1409,9 @@ resolve_types_in_code_block(Compilation_Context* context,
                 Ast_Call_Statement* call_statement = &statement->call_statement;
 
                 const Expression_Result return_result = resolve_types_in_expression(context, &call_statement->call_expression);
-                if (!type_id_is_valid(context, return_result.type_id))
+                ASSERT(type_id_is_defined(return_result.type_id));
+
+                if (type_id_is_invalid(context, return_result.type_id))
                 {
                     return false;
                 }
