@@ -5,6 +5,8 @@
 
 enum
 {
+    ENTRY_BLOCK_INDEX = 0,
+
     INVALID_IMMEDIATE_DOMINATOR_INDEX = -1,
 };
 
@@ -31,6 +33,11 @@ create_cfg_block(Compilation_Context* context,
                                                                   string_view("cfg-dominance-frontier"),
                                                                   GiB(1),
                                                                   MiB(1));
+
+    block->phi_nodes_arena = acquire_arena_from_provider(context->arena_provider,
+                                                         string_view("cfg-phi-nodes"),
+                                                         GiB(1),
+                                                         MiB(1));
 
     block->instructions_range = instructions_range;
     block->immediate_dominator_id.index = INVALID_IMMEDIATE_DOMINATOR_INDEX;
@@ -174,13 +181,6 @@ add_cfg_fall_through_edge_if_needed(Tac_Function* tac_function, const Cfg_Block_
     UNREACHABLE();
 }
 
-internal inline Cfg_Block*
-get_cfg_block_by_id(Tac_Function* tac_function, const Cfg_Block_Id id)
-{
-    ASSERT(0 <= id.index && id.index < tac_function->cfg_blocks_count);
-    return &tac_function->cfg_blocks[id.index];
-}
-
 internal inline Bool
 tac_operation_is_a_cfg_block_terminator(const Tac_Operation operation)
 {
@@ -219,14 +219,6 @@ tac_operation_is_a_cfg_block_terminator(const Tac_Operation operation)
     }
 
     UNREACHABLE();
-}
-
-internal inline Bool
-cfg_block_is_empty(const Cfg_Block* block)
-{
-    const Tac_Instructions_Range* range = &block->instructions_range;
-    ASSERT(range->start_instruction_index <= range->end_instruction_index);
-    return range->start_instruction_index == range->end_instruction_index;
 }
 
 internal void
@@ -292,7 +284,7 @@ construct_cfg_from_tac(Compilation_Context* context)
 
         {
             ASSERT(entry_block_id.index != tac_function->cfg_blocks_count);
-            ASSERT(entry_block_id.index == 0);
+            ASSERT(entry_block_id.index == ENTRY_BLOCK_INDEX);
         }
 
         // NOTE(vlad): Populating label_id to cfg_block_id map.
@@ -949,10 +941,188 @@ compute_cfg_dominance_frontiers(Compilation_Context* context)
     }
 }
 
+internal void
+insert_phi_nodes(Compilation_Context* context)
+{
+    Tac* tac = &context->tac;
+
+    for (Index function_index = 0;
+         function_index < tac->functions_count;
+         ++function_index)
+    {
+        Tac_Function* tac_function = &tac->functions[function_index];
+
+        for (Index variable_index = tac_function->first_tac_variable_index;
+             variable_index < tac_function->last_tac_variable_index;
+             ++variable_index)
+        {
+            struct Block_Ids_Stack
+            {
+                stack(Cfg_Block_Id, ids);
+            };
+            typedef struct Block_Ids_Stack Block_Ids_Stack;
+
+            Block_Ids_Stack blocks_that_need_phi_nodes = {0};
+            ensure_array_has_enough_capacity(context->scratch_arena,
+                                             blocks_that_need_phi_nodes.ids,
+                                             Cfg_Block_Id,
+                                             tac_function->cfg_blocks_count);
+
+            for (Index block_index = 0;
+                 block_index < tac_function->cfg_blocks_count;
+                 ++block_index)
+            {
+                Cfg_Block_Id block_id = {0};
+                block_id.index = block_index;
+
+                Cfg_Block* block = get_cfg_block_by_id(tac_function, block_id);
+                const Tac_Instructions_Range* instructions_range = &block->instructions_range;
+
+                ASSERT(instructions_range->function_label_id.index == tac_function->label_id.index);
+
+                for (Index instruction_index = instructions_range->start_instruction_index;
+                     instruction_index < instructions_range->end_instruction_index;
+                     ++instruction_index)
+                {
+                    const Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
+
+                    if (instruction->destination.kind == TAC_OPERAND_VARIABLE
+                        && instruction->destination.variable_id.index == variable_index)
+                    {
+                        stack_push(context->scratch_arena, blocks_that_need_phi_nodes.ids, Cfg_Block_Id, block_id);
+                        break;
+                    }
+                }
+            }
+
+            Bool* block_has_phi_node_for_this_variable = allocate_array(context->scratch_arena,
+                                                                        tac_function->cfg_blocks_count,
+                                                                        Bool);
+
+            const Tac_Variable* this_variable = get_tac_variable_by_id(tac, (Tac_Variable_Id){variable_index});
+
+            while (blocks_that_need_phi_nodes.ids_count > 0)
+            {
+                const Cfg_Block_Id this_block_id = *stack_top(blocks_that_need_phi_nodes.ids);
+                stack_pop(blocks_that_need_phi_nodes.ids);
+
+                Cfg_Block* this_block = get_cfg_block_by_id(tac_function, this_block_id);
+
+                for (Index frontier_index = 0;
+                     frontier_index < this_block->dominance_frontier_count;
+                     ++frontier_index)
+                {
+                    const Cfg_Block_Id frontier_block_id = this_block->dominance_frontier[frontier_index];
+
+                    if (block_has_phi_node_for_this_variable[frontier_block_id.index])
+                    {
+                        continue;
+                    }
+
+                    Cfg_Block* frontier_block = get_cfg_block_by_id(tac_function, frontier_block_id);
+
+                    Phi_Node phi_node = {0};
+                    phi_node.destination = *this_variable;
+
+                    append_array(frontier_block->phi_nodes_arena, frontier_block->phi_nodes, Phi_Node, phi_node);
+
+                    block_has_phi_node_for_this_variable[frontier_block_id.index] = true;
+
+                    stack_push(context->scratch_arena, blocks_that_need_phi_nodes.ids, Cfg_Block_Id, frontier_block_id);
+                }
+            }
+        }
+    }
+
+    request_arena_reset(context->arena_provider, context->scratch_arena);
+}
+
+internal void
+build_dominator_tree(Compilation_Context* context)
+{
+    Tac* tac = &context->tac;
+
+    for (Index function_index = 0;
+         function_index < tac->functions_count;
+         ++function_index)
+    {
+        Tac_Function* tac_function = &tac->functions[function_index];
+
+        for (Index block_index = ENTRY_BLOCK_INDEX + 1;
+             block_index < tac_function->cfg_blocks_count;
+             ++block_index)
+        {
+            Cfg_Block_Id block_id = {0};
+            block_id.index = block_index;
+
+            Cfg_Block* block = get_cfg_block_by_id(tac_function, block_id);
+
+            if (block->immediate_dominator_id.index != INVALID_IMMEDIATE_DOMINATOR_INDEX)
+            {
+                Cfg_Block* immediate_dominator_block = get_cfg_block_by_id(tac_function, block->immediate_dominator_id);
+                append_array(immediate_dominator_block->dominated_block_ids_arena,
+                             immediate_dominator_block->dominated_block_ids,
+                             Cfg_Block_Id,
+                             block_id);
+            }
+        }
+    }
+}
+
+internal void
+set_tac_variable_versions(Compilation_Context* context)
+{
+    build_dominator_tree(context);
+
+    struct Variable_Name_Infos
+    {
+        array(Index, next_variable_version);
+    };
+    typedef struct Variable_Name_Infos Variable_Name_Infos;
+
+    Tac* tac = &context->tac;
+
+    Variable_Name_Infos infos = {0};
+    infos.next_variable_version = allocate_array(context->scratch_arena, tac->variables_count, Index);
+
+    for (Index function_index = 0;
+         function_index < tac->functions_count;
+         ++function_index)
+    {
+        Tac_Function* tac_function = &tac->functions[function_index];
+
+        for (Index block_index = 0;
+             block_index < tac_function->cfg_blocks_count;
+             ++block_index)
+        {
+            // struct
+            // {
+            //     stack(Tac_Variable_Id, encountered_variable_ids);
+            // } variables;
+        }
+    }
+}
+
 internal inline void
 free_cfg_block(Compilation_Context* context, Cfg_Block* block)
 {
     release_arena_to_provider(context->arena_provider, block->edges_arena);
     release_arena_to_provider(context->arena_provider, block->predecessors_arena);
     release_arena_to_provider(context->arena_provider, block->dominance_frontier_arena);
+    release_arena_to_provider(context->arena_provider, block->phi_nodes_arena);
+}
+
+internal inline Cfg_Block*
+get_cfg_block_by_id(Tac_Function* tac_function, const Cfg_Block_Id id)
+{
+    ASSERT(0 <= id.index && id.index < tac_function->cfg_blocks_count);
+    return &tac_function->cfg_blocks[id.index];
+}
+
+internal inline Bool
+cfg_block_is_empty(const Cfg_Block* block)
+{
+    const Tac_Instructions_Range* range = &block->instructions_range;
+    ASSERT(range->start_instruction_index <= range->end_instruction_index);
+    return range->start_instruction_index == range->end_instruction_index;
 }

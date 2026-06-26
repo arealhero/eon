@@ -744,6 +744,8 @@ lower_ast_to_tac(Compilation_Context* context)
                                                                        GiB(1),
                                                                        MiB(1));
 
+        tac_function->first_tac_variable_index = tac->variables_count;
+
         ASSERT(ast_function->type->kind == AST_TYPE_FUNCTION);
         const Ast_Function_Type* ast_function_type = &ast_function->type->function;
 
@@ -794,5 +796,7 @@ lower_ast_to_tac(Compilation_Context* context)
             instruction.was_automatically_inserted = true;
             emit_tac_instruction(tac_function, instruction);
         }
+
+        tac_function->last_tac_variable_index = tac->variables_count;
     }
 }

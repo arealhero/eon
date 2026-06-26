@@ -29,6 +29,7 @@ create_compilation_context(Compilation_Context* context,
     context->tac_labels_arena = acquire_arena_from_provider(arena_provider, string_view("tac-labels"), GiB(1), MiB(1));
 
     context->cfg_blocks_arena = acquire_arena_from_provider(arena_provider, string_view("cfg-blocks"), GiB(1), MiB(1));
+    context->phi_node_arguments_arena = acquire_arena_from_provider(arena_provider, string_view("cfg-phi-node-arguments"), GiB(1), MiB(1));
 
     context->source_file = *source_file;
 }
@@ -77,6 +78,7 @@ destroy_compilation_context(Compilation_Context* context)
     release_arena_to_provider(context->arena_provider, context->tac_labels_arena);
 
     release_arena_to_provider(context->arena_provider, context->cfg_blocks_arena);
+    release_arena_to_provider(context->arena_provider, context->phi_node_arguments_arena);
 }
 
 internal Bool

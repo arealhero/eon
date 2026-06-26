@@ -39,6 +39,7 @@ struct Compilation_Context
     Arena* tac_labels_arena;
 
     Arena* cfg_blocks_arena;
+    Arena* phi_node_arguments_arena;
 
     Source_File source_file;
 

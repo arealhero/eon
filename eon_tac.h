@@ -70,9 +70,21 @@ struct Tac_Function_Label
 typedef struct Tac_Function_Label Tac_Function_Label;
 // NOTE(vlad): "Tac_Function_Label_Id" is defined inside 'eon_forward_declarations.h'.
 
+enum
+{
+    SSA_VERSION_UNDEFINED = 0,
+};
+
+struct Ssa_Version
+{
+    Index version;
+};
+typedef struct Ssa_Version Ssa_Version;
+
 struct Tac_Variable
 {
     Type_Id type_id;
+    Ssa_Version ssa_version;
 
     Bool is_temporary;
     union
@@ -141,6 +153,9 @@ struct Tac_Function
 
     const Ast_Function_Definition* ast_function_definition;
     Tac_Function_Label_Id label_id;
+
+    Index first_tac_variable_index;
+    Index last_tac_variable_index; // NOTE(vlad): This index is not included.
 
     array(Tac_Instruction, instructions);
     array(struct Cfg_Block, cfg_blocks);
