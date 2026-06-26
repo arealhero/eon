@@ -112,11 +112,21 @@ bind_type_id_to_a_builtin_symbol(Compilation_Context* context,
 internal void
 create_builtin_types(Compilation_Context* context)
 {
-    const Type_Id undefined_type_id = create_type(context);
-    ASSERT(undefined_type_id.index == UNDEFINED_TYPE_INDEX);
+    {
+        const Type_Id undefined_type_id = create_type(context);
+        ASSERT(undefined_type_id.index == UNDEFINED_TYPE_INDEX);
 
-    const Type_Id invalid_type_id = create_type(context);
-    ASSERT(invalid_type_id.index == INVALID_TYPE_INDEX);
+        Type* undefined_type = get_type_by_id(context, undefined_type_id);
+        undefined_type->kind = TYPE_UNDEFINED;
+    }
+
+    {
+        const Type_Id invalid_type_id = create_type(context);
+        ASSERT(invalid_type_id.index == INVALID_TYPE_INDEX);
+
+        Type* invalid_type = get_type_by_id(context, invalid_type_id);
+        invalid_type->kind = TYPE_INVALID;
+    }
 
     {
         const Type_Id void_type_id = create_type(context);
@@ -231,15 +241,8 @@ try_to_unify_types(Compilation_Context* context,
     Type* lhs_root_type = get_type_by_id(context, lhs_root_type_id);
     Type* rhs_root_type = get_type_by_id(context, rhs_root_type_id);
 
-    if (type_id_is_invalid(context, lhs_root_type_id))
+    if (type_id_is_invalid(context, lhs_root_type_id) || type_id_is_invalid(context, rhs_root_type_id))
     {
-        rhs_root_type->parent_type_id.index = INVALID_TYPE_INDEX;
-        return true;
-    }
-
-    if (type_id_is_invalid(context, rhs_root_type_id))
-    {
-        lhs_root_type->parent_type_id.index = INVALID_TYPE_INDEX;
         return true;
     }
 
@@ -346,6 +349,7 @@ try_to_unify_types(Compilation_Context* context,
     switch (lhs_root_type->kind)
     {
         case TYPE_UNDEFINED:
+        case TYPE_INVALID:
         {
             UNREACHABLE();
         } break;
@@ -403,6 +407,104 @@ try_to_unify_types(Compilation_Context* context,
 }
 
 internal Bool
+types_are_equal(Compilation_Context* context,
+                const Type_Id lhs_type_id,
+                const Type_Id rhs_type_id)
+{
+    ASSERT(type_id_is_defined(lhs_type_id));
+    ASSERT(type_id_is_defined(rhs_type_id));
+
+    const Type_Id lhs_root_type_id = find_root_type_id(context, lhs_type_id);
+    const Type_Id rhs_root_type_id = find_root_type_id(context, rhs_type_id);
+
+    if (lhs_root_type_id.index == rhs_root_type_id.index)
+    {
+        return true;
+    }
+
+    if (type_id_is_invalid(context, lhs_root_type_id) || type_id_is_invalid(context, rhs_root_type_id))
+    {
+        // TODO(vlad): Change to 'true'?
+        return false;
+    }
+
+    const Type* lhs_root_type = get_type_by_id(context, lhs_root_type_id);
+    const Type* rhs_root_type = get_type_by_id(context, rhs_root_type_id);
+
+    if (lhs_root_type->kind != rhs_root_type->kind)
+    {
+        return false;
+    }
+
+    switch (lhs_root_type->kind)
+    {
+        case TYPE_UNDEFINED:
+        case TYPE_INVALID:
+        {
+            UNREACHABLE();
+        } break;
+
+        case TYPE_VOID:
+        {
+            return true;
+        } break;
+
+        case TYPE_VARIABLE:
+        {
+            return true;
+        } break;
+
+        case TYPE_NUMBER_VARIABLE:
+        {
+            const Number_Constraints* lhs_constraints = &lhs_root_type->number_constraints;
+            const Number_Constraints* rhs_constraints = &rhs_root_type->number_constraints;
+
+            return lhs_constraints->must_be_a_floating_point_number == rhs_constraints->must_be_a_floating_point_number
+                && lhs_constraints->min_bit_width == rhs_constraints->min_bit_width
+                && lhs_constraints->sign == rhs_constraints->sign;
+        } break;
+
+        case TYPE_INTEGER:
+        {
+            return lhs_root_type->integer_info.is_signed == rhs_root_type->integer_info.is_signed
+                && lhs_root_type->integer_info.width_in_bits == rhs_root_type->integer_info.width_in_bits;
+        } break;
+
+        case TYPE_FLOAT:
+        {
+            return lhs_root_type->float_info.width_in_bits == rhs_root_type->float_info.width_in_bits;
+        } break;
+
+        case TYPE_BOOLEAN:
+        {
+            return true;
+        } break;
+
+        case TYPE_POINTER:
+        {
+            const Pointer_Type_Info* lhs_pointer_info = &lhs_root_type->pointer_info;
+            const Pointer_Type_Info* rhs_pointer_info = &rhs_root_type->pointer_info;
+
+            if (lhs_pointer_info->pointee_is_mutable && !rhs_pointer_info->pointee_is_mutable)
+            {
+                return false;
+            }
+
+            return types_are_equal(context,
+                                   lhs_pointer_info->points_to_type_id,
+                                   rhs_pointer_info->points_to_type_id);
+        } break;
+
+        case TYPE_FUNCTION:
+        {
+            FAIL("[TYPE] Function types equality test is not supported yet");
+        } break;
+    }
+
+    return true;
+}
+
+internal Bool
 variable_type_is_valid(Compilation_Context* context,
                        const Type_Id variable_type_id,
                        const Source_Location* variable_location)
@@ -416,7 +518,7 @@ variable_type_is_valid(Compilation_Context* context,
 
     const Type_Id void_type_id = get_void_type_id(context);
 
-    if (try_to_unify_types(context, variable_type_id, void_type_id))
+    if (types_are_equal(context, variable_type_id, void_type_id))
     {
         Diagnostic_Message error = {0};
         error.level = MESSAGE_LEVEL_ERROR;
@@ -429,7 +531,7 @@ variable_type_is_valid(Compilation_Context* context,
 
     const Type* variable_type = get_type_by_id(context, variable_type_id);
     if (variable_type->kind == TYPE_POINTER
-        && try_to_unify_types(context, variable_type->pointer_info.points_to_type_id, void_type_id))
+        && types_are_equal(context, variable_type->pointer_info.points_to_type_id, void_type_id))
     {
         Diagnostic_Message error = {0};
         error.level = MESSAGE_LEVEL_ERROR;
@@ -552,6 +654,7 @@ resolve_type_by_ast_type(Compilation_Context* context,
         switch (type->kind)
         {
             case TYPE_UNDEFINED:
+            case TYPE_INVALID:
             {
                 UNREACHABLE();
             } break;
@@ -706,14 +809,8 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
             Symbol* symbol = get_symbol_for_identifier(context, identifier);
             ASSERT(type_id_is_defined(symbol->type_id));
 
-            const Type_Id this_type_id = create_new_type_variable(context);
-            const Bool unification_result = try_to_unify_types(context,
-                                                               this_type_id,
-                                                               symbol->type_id);
-            ASSERT(unification_result);
-
-            expression->type_id = this_type_id;
-            result.type_id = this_type_id;
+            expression->type_id = symbol->type_id;
+            result.type_id = symbol->type_id;
             result.is_lvalue = true;
             result.is_mutable = symbol->binding_is_mutable;
         } break;
@@ -790,6 +887,7 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
             switch (expression_type->kind)
             {
                 case TYPE_UNDEFINED:
+                case TYPE_INVALID:
                 {
                     UNREACHABLE();
                 } break;
@@ -882,6 +980,7 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
             switch (expression_type->kind)
             {
                 case TYPE_UNDEFINED:
+                case TYPE_INVALID:
                 {
                     UNREACHABLE();
                 } break;
@@ -1599,6 +1698,7 @@ convert_type_to_string(Arena* arena,
     switch (type->kind)
     {
         case TYPE_UNDEFINED:
+        case TYPE_INVALID:
         {
             UNREACHABLE();
         } break;

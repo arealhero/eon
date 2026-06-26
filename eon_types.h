@@ -9,6 +9,8 @@ enum Type_Kind
 {
     TYPE_UNDEFINED = 0,
 
+    TYPE_INVALID,
+
     TYPE_VOID,
 
     TYPE_VARIABLE, // NOTE(vlad): Think of it as a variable in an equation,
