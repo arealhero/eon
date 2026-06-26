@@ -69,16 +69,27 @@ create_new_type_variable(Compilation_Context* context)
     return type_variable_id;
 }
 
+internal Bool variable_type_is_valid(Compilation_Context* context,
+                                     const Type_Id variable_type_id,
+                                     const Source_Location* variable_location);
+
 internal void
 bind_type_id_to_a_symbol(Compilation_Context* context,
                          const Symbol_Id symbol_id,
                          const Type_Id type_id)
 {
     ASSERT(symbol_id != UNDEFINED_SYMBOL_ID && symbol_id != INVALID_SYMBOL_ID);
-    ASSERT(type_id_is_valid(context, type_id));
 
     Symbol* symbol = get_symbol_by_id(context, symbol_id);
-    symbol->type_id = type_id;
+
+    if (!variable_type_is_valid(context, type_id, &symbol->location))
+    {
+        symbol->type_id.index = INVALID_TYPE_INDEX;
+    }
+    else
+    {
+        symbol->type_id = type_id;
+    }
 }
 
 internal void
@@ -374,6 +385,40 @@ try_to_unify_types(Compilation_Context* context,
         {
             FAIL("[TYPE] Function types unification is not supported yet");
         } break;
+    }
+
+    return true;
+}
+
+internal Bool
+variable_type_is_valid(Compilation_Context* context,
+                       const Type_Id variable_type_id,
+                       const Source_Location* variable_location)
+{
+    const Type_Id void_type_id = get_void_type_id(context);
+
+    if (try_to_unify_types(context, variable_type_id, void_type_id))
+    {
+        Diagnostic_Message error = {0};
+        error.level = MESSAGE_LEVEL_ERROR;
+        error.location = *variable_location;
+        error.text = string_view("Variable cannot have a 'void' type");
+        emit_diagnostic_message(context, &error);
+
+        return false;
+    }
+
+    const Type* variable_type = get_type_by_id(context, variable_type_id);
+    if (variable_type->kind == TYPE_POINTER
+        && try_to_unify_types(context, variable_type->pointer_info.points_to_type_id, void_type_id))
+    {
+        Diagnostic_Message error = {0};
+        error.level = MESSAGE_LEVEL_ERROR;
+        error.location = *variable_location;
+        error.text = string_view("Variable cannot have a '* void' type, use '* byte' instead");
+        emit_diagnostic_message(context, &error);
+
+        return false;
     }
 
     return true;
@@ -876,7 +921,13 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
             const Type_Id dereferenced_type_id = create_new_type_variable(context);
 
             const Expression_Result expression_result = resolve_types_in_expression(context, dereference->operand);
-            ASSERT(type_id_is_valid(context, expression_result.type_id));
+
+            if (!type_id_is_valid(context, expression_result.type_id))
+            {
+                expression->type_id.index = INVALID_TYPE_INDEX;
+                result.type_id.index = INVALID_TYPE_INDEX;
+                return result;
+            }
 
             const Type* expression_type = get_type_by_id(context, expression_result.type_id);
             if (expression_type->kind != TYPE_POINTER)
@@ -1102,6 +1153,8 @@ resolve_types_in_code_block(Compilation_Context* context,
                     Type* type = get_type_by_id(context, variable_symbol->type_id);
                     ASSERT(type->kind != TYPE_VARIABLE);
                 }
+
+                bind_type_id_to_a_symbol(context, definition->name.symbol_id, variable_symbol->type_id);
             } break;
 
             case AST_STATEMENT_ASSIGNMENT:

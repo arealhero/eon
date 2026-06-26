@@ -4205,6 +4205,223 @@ test_number_types_inference_in_arithmetic_expressions(Test_Context* test_context
 }
 
 internal void
+test_variables_of_invalid_types(Test_Context* test_context)
+{
+    // NOTE(vlad): Testing variables of a 'void' type.
+    {
+        {
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                     "    a: void;\n"
+                                                     "    return a;\n"
+                                                     "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
+
+            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            create_lexical_scopes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            resolve_and_validate_types(&context);
+            ASSERT_TRUE(has_diagnostic_messages(&context));
+
+            const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                    &context,
+                                                                    MAX_MESSAGE_LEVEL);
+            const String_View expected_output = string_view("<test-input>:2:5: error: Variable cannot have a 'void' type\n"
+                                                            "  2 |     a: void;\n"
+                                                            "    |     ^");
+            ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
+        }
+
+        {
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (parameter: void) -> void = {\n"
+                                                     "    return parameter;\n"
+                                                     "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
+
+            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            create_lexical_scopes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            resolve_and_validate_types(&context);
+            ASSERT_TRUE(has_diagnostic_messages(&context));
+
+            const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                    &context,
+                                                                    MAX_MESSAGE_LEVEL);
+            const String_View expected_output = string_view("<test-input>:1:7: error: Variable cannot have a 'void' type\n"
+                                                            "  1 | foo: (parameter: void) -> void = {\n"
+                                                            "    |       ^~~~~~~~~");
+            ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
+        }
+
+        {
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                     "    a := bar();\n"
+                                                     "    return a;\n"
+                                                     "}\n"
+                                                     "bar: () -> void = {}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
+
+            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            create_lexical_scopes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            resolve_and_validate_types(&context);
+            ASSERT_TRUE(has_diagnostic_messages(&context));
+
+            const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                    &context,
+                                                                    MAX_MESSAGE_LEVEL);
+            const String_View expected_output = string_view("<test-input>:2:5: error: Variable cannot have a 'void' type\n"
+                                                            "  2 |     a := bar();\n"
+                                                            "    |     ^");
+            ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
+        }
+    }
+
+    // NOTE(vlad): Testing variables of a '* void' type.
+    {
+        {
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                     "    a: * void;\n"
+                                                     "    return a*;\n"
+                                                     "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
+
+            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            create_lexical_scopes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            resolve_and_validate_types(&context);
+            ASSERT_TRUE(has_diagnostic_messages(&context));
+
+            const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                    &context,
+                                                                    MAX_MESSAGE_LEVEL);
+            const String_View expected_output = string_view("<test-input>:2:5: error: Variable cannot have a '* void' type, use '* byte' instead\n"
+                                                            "  2 |     a: * void;\n"
+                                                            "    |     ^");
+            ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
+        }
+
+        {
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (parameter: * void) -> void = {\n"
+                                                     "    return parameter*;\n"
+                                                     "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
+
+            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            create_lexical_scopes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            resolve_and_validate_types(&context);
+            ASSERT_TRUE(has_diagnostic_messages(&context));
+
+            const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                    &context,
+                                                                    MAX_MESSAGE_LEVEL);
+            const String_View expected_output = string_view("<test-input>:1:7: error: Variable cannot have a '* void' type, use '* byte' instead\n"
+                                                            "  1 | foo: (parameter: * void) -> void = {\n"
+                                                            "    |       ^~~~~~~~~");
+            ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
+        }
+
+        {
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                     "    a := bar();\n"
+                                                     "    return a*;\n"
+                                                     "}\n"
+                                                     "bar: () -> * void = {\n"
+                                                     "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
+
+            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            create_lexical_scopes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            resolve_and_validate_types(&context);
+            ASSERT_TRUE(has_diagnostic_messages(&context));
+
+            const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                    &context,
+                                                                    MAX_MESSAGE_LEVEL);
+            const String_View expected_output = string_view("<test-input>:2:5: error: Variable cannot have a '* void' type, use '* byte' instead\n"
+                                                            "  2 |     a := bar();\n"
+                                                            "    |     ^");
+            ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+            // TODO(vlad): Forbid '* void' type everywhere, e.g. 'bar: () -> * void' should become invalid.
+
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
+        }
+    }
+}
+
+internal void
 test_type_mismatches(Test_Context* test_context)
 {
     {
@@ -5239,6 +5456,7 @@ REGISTER_TESTS(
     test_unsigned_integers,
     test_floats,
     test_number_types_inference_in_arithmetic_expressions,
+    test_variables_of_invalid_types,
     test_type_mismatches,
     test_number_type_mismatches,
     test_lvalue_mismatches,
