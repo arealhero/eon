@@ -569,13 +569,7 @@ resolve_type_by_ast_type(Compilation_Context* context,
             else if (symbol->kind == SYMBOL_TYPE)
             {
                 ASSERT(type_id_is_valid(context, symbol->type_id));
-
-                const Type_Id this_type_id = create_new_type_variable(context);
-                const Bool unification_result = try_to_unify_types(context,
-                                                                   this_type_id,
-                                                                   symbol->type_id);
-                ASSERT(unification_result);
-                ast_type->type_id = this_type_id;
+                ast_type->type_id = symbol->type_id;
             }
             else
             {
@@ -928,12 +922,8 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
                 } break;
             }
 
-            const Type_Id result_type_id = create_new_type_variable(context);
-            const Bool unification_result = try_to_unify_types(context, result_type_id, lhs_result.type_id);
-            ASSERT(unification_result);
-
-            expression->type_id = result_type_id;
-            result.type_id = result_type_id;
+            expression->type_id = lhs_result.type_id;
+            result.type_id = lhs_result.type_id;
         } break;
 
         case AST_EXPRESSION_EQUAL:
@@ -1036,8 +1026,6 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
             Ast_Unary_Expression* dereference = &expression->unary_expression;
             ASSERT(strings_are_equal(dereference->operator.lexeme, string_view("*")));
 
-            const Type_Id dereferenced_type_id = create_new_type_variable(context);
-
             const Expression_Result expression_result = resolve_types_in_expression(context, dereference->operand);
             ASSERT(type_id_is_defined(expression_result.type_id));
 
@@ -1071,10 +1059,7 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
                 return result;
             }
 
-            const Bool unification_result = try_to_unify_types(context,
-                                                               dereferenced_type_id,
-                                                               expression_type->pointer_info.points_to_type_id);
-            ASSERT(unification_result);
+            const Type_Id dereferenced_type_id = expression_type->pointer_info.points_to_type_id;
 
             expression->type_id = dereferenced_type_id;
             result.type_id = dereferenced_type_id;
@@ -1592,7 +1577,7 @@ resolve_and_validate_types(Compilation_Context* context)
 
         // FIXME(vlad): Remove code duplication in diagnostic messages emitting.
 
-        if (try_to_unify_types(context, expected_return_type_id, void_type_id))
+        if (types_are_equal(context, expected_return_type_id, void_type_id))
         {
             // NOTE(vlad): Expected return type is void.
 
