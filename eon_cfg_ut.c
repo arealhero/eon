@@ -2086,7 +2086,9 @@ test_dominators_and_dominance_frontiers_computing(Test_Context* test_context)
 #define ASSERT_PHI_NODE_WAS_CREATED_FOR_IDENTIFIER(node, identifier_name) \
     do                                                                  \
     {                                                                   \
-        const Symbol* symbol = get_symbol_by_id(&context, (node)->destination.symbol_id); \
+        const Tac_Variable_Id variable_id = (node)->destination;        \
+        const Tac_Variable* variable = get_tac_variable_by_id(&context.tac, variable_id); \
+        const Symbol* symbol = get_symbol_by_id(&context, variable->symbol_id); \
         ASSERT_STRINGS_ARE_EQUAL(symbol->name, identifier_name);        \
     }                                                                   \
     while (0)
@@ -2461,170 +2463,333 @@ test_phi_nodes_insertion(Test_Context* test_context)
 
     // NOTE(vlad): Testing phi-nodes after if statement.
     {
-        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
-                                                 "    a: mutable _ = 10;"
-                                                 "    b: mutable _ = 20;"
-                                                 "    if 1 != 2"
-                                                 "    {"
-                                                 "        a = 11;"
-                                                 "        b = 21;"
-                                                 "    }"
-                                                 "    else"
-                                                 "    {"
-                                                 "        a = 12;"
-                                                 "        b = 22;"
-                                                 "    }"
-                                                 "    c := a;"
-                                                 "    d := b;"
-                                                 "}");
-
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
-        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-        create_lexical_scopes(&context);
-        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-        resolve_and_validate_types(&context);
-        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-        lower_ast_to_tac(&context);
-        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-        construct_cfg_from_tac(&context);
-        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-        remove_unreachable_cfg_blocks(&context);
-        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-        compute_cfg_dominators(&context);
-        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-        compute_cfg_dominance_frontiers(&context);
-        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-        insert_phi_nodes(&context);
-        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-        const Tac* tac = &context.tac;
-
-        ASSERT_EQUAL(tac->functions_count, 1);
-        const Tac_Function* tac_function = &tac->functions[0];
-
-        ASSERT_EQUAL(tac_function->cfg_blocks_count, 4);
-
-        const Index condition_block_index = 0;
-        const Index then_block_index = 1;
-        const Index else_block_index = 2;
-        const Index final_block_index = 3;
-
         {
-            const Cfg_Block* block = &tac_function->cfg_blocks[condition_block_index];
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                     "    a: mutable _ = 10;"
+                                                     "    b: mutable _ = 20;"
+                                                     "    if 1 != 2"
+                                                     "    {"
+                                                     "        a = 11;"
+                                                     "        b = 21;"
+                                                     "    }"
+                                                     "    else"
+                                                     "    {"
+                                                     "        a = 12;"
+                                                     "        b = 22;"
+                                                     "    }"
+                                                     "    c := a;"
+                                                     "    d := b;"
+                                                     "}");
 
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
+            Lexer lexer = {0};
+            Parser parser = {0};
 
-            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP_IF_FALSE);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
-            ASSERT_EQUAL(block->edges_count, 2);
-            ASSERT_EQUAL(block->edges[0].index, else_block_index);
-            ASSERT_EQUAL(block->edges[1].index, then_block_index);
+            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
-            ASSERT_EQUAL(block->predecessors_count, 0);
+            create_lexical_scopes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
-            ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+            resolve_and_validate_types(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
-            ASSERT_EQUAL(block->dominance_frontier_count, 0);
+            lower_ast_to_tac(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
-            ASSERT_EQUAL(block->phi_nodes_count, 0);
+            construct_cfg_from_tac(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            remove_unreachable_cfg_blocks(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            compute_cfg_dominators(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            compute_cfg_dominance_frontiers(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            insert_phi_nodes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            const Tac* tac = &context.tac;
+
+            ASSERT_EQUAL(tac->functions_count, 1);
+            const Tac_Function* tac_function = &tac->functions[0];
+
+            ASSERT_EQUAL(tac_function->cfg_blocks_count, 4);
+
+            const Index condition_block_index = 0;
+            const Index then_block_index = 1;
+            const Index else_block_index = 2;
+            const Index final_block_index = 3;
+
+            {
+                const Cfg_Block* block = &tac_function->cfg_blocks[condition_block_index];
+
+                const Tac_Instructions_Range* range = &block->instructions_range;
+                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+                ASSERT_FALSE(cfg_block_is_empty(block));
+
+                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
+                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP_IF_FALSE);
+
+                ASSERT_EQUAL(block->edges_count, 2);
+                ASSERT_EQUAL(block->edges[0].index, else_block_index);
+                ASSERT_EQUAL(block->edges[1].index, then_block_index);
+
+                ASSERT_EQUAL(block->predecessors_count, 0);
+
+                ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 0);
+
+                ASSERT_EQUAL(block->phi_nodes_count, 0);
+            }
+
+            {
+                const Cfg_Block* block = &tac_function->cfg_blocks[then_block_index];
+
+                const Tac_Instructions_Range* range = &block->instructions_range;
+                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+                ASSERT_FALSE(cfg_block_is_empty(block));
+
+                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
+                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP);
+
+                ASSERT_EQUAL(block->edges_count, 1);
+                ASSERT_EQUAL(block->edges[0].index, final_block_index);
+
+                ASSERT_EQUAL(block->predecessors_count, 1);
+                ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
+
+                ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 1);
+                ASSERT_EQUAL(block->dominance_frontier[0].index, final_block_index);
+
+                ASSERT_EQUAL(block->phi_nodes_count, 0);
+            }
+
+            {
+                const Cfg_Block* block = &tac_function->cfg_blocks[else_block_index];
+
+                const Tac_Instructions_Range* range = &block->instructions_range;
+                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+                ASSERT_FALSE(cfg_block_is_empty(block));
+
+                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
+                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_ASSIGN);
+
+                ASSERT_EQUAL(block->edges_count, 1);
+                ASSERT_EQUAL(block->edges[0].index, final_block_index);
+
+                ASSERT_EQUAL(block->predecessors_count, 1);
+                ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
+
+                ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 1);
+                ASSERT_EQUAL(block->dominance_frontier[0].index, final_block_index);
+
+                ASSERT_EQUAL(block->phi_nodes_count, 0);
+            }
+
+            {
+                const Cfg_Block* block = &tac_function->cfg_blocks[final_block_index];
+
+                const Tac_Instructions_Range* range = &block->instructions_range;
+                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+                ASSERT_FALSE(cfg_block_is_empty(block));
+
+                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
+                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
+
+                ASSERT_EQUAL(block->edges_count, 0);
+                ASSERT_EQUAL(block->predecessors_count, 2);
+                ASSERT_EQUAL(block->predecessors[0].index, then_block_index);
+                ASSERT_EQUAL(block->predecessors[1].index, else_block_index);
+
+                ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 0);
+
+                ASSERT_EQUAL(block->phi_nodes_count, 2);
+                ASSERT_PHI_NODE_WAS_CREATED_FOR_IDENTIFIER(&block->phi_nodes[0], "a");
+                ASSERT_PHI_NODE_WAS_CREATED_FOR_IDENTIFIER(&block->phi_nodes[1], "b");
+            }
+
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
         }
 
         {
-            const Cfg_Block* block = &tac_function->cfg_blocks[then_block_index];
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (parameter: mutable s32) -> s32 = {"
+                                                     "    if 1 != 2"
+                                                     "    {"
+                                                     "        parameter = 10;"
+                                                     "    }"
+                                                     "    else"
+                                                     "    {"
+                                                     "        parameter = 20;"
+                                                     "    }"
+                                                     "    return parameter;"
+                                                     "}");
 
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
+            Lexer lexer = {0};
+            Parser parser = {0};
 
-            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP);
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
 
-            ASSERT_EQUAL(block->edges_count, 1);
-            ASSERT_EQUAL(block->edges[0].index, final_block_index);
+            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
-            ASSERT_EQUAL(block->predecessors_count, 1);
-            ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
+            create_lexical_scopes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
-            ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+            resolve_and_validate_types(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
-            ASSERT_EQUAL(block->dominance_frontier_count, 1);
-            ASSERT_EQUAL(block->dominance_frontier[0].index, final_block_index);
+            lower_ast_to_tac(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
-            ASSERT_EQUAL(block->phi_nodes_count, 0);
+            construct_cfg_from_tac(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            remove_unreachable_cfg_blocks(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            compute_cfg_dominators(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            compute_cfg_dominance_frontiers(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            insert_phi_nodes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            const Tac* tac = &context.tac;
+
+            ASSERT_EQUAL(tac->functions_count, 1);
+            const Tac_Function* tac_function = &tac->functions[0];
+
+            ASSERT_EQUAL(tac_function->cfg_blocks_count, 4);
+
+            const Index condition_block_index = 0;
+            const Index then_block_index = 1;
+            const Index else_block_index = 2;
+            const Index final_block_index = 3;
+
+            {
+                const Cfg_Block* block = &tac_function->cfg_blocks[condition_block_index];
+
+                const Tac_Instructions_Range* range = &block->instructions_range;
+                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+                ASSERT_FALSE(cfg_block_is_empty(block));
+
+                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
+                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP_IF_FALSE);
+
+                ASSERT_EQUAL(block->edges_count, 2);
+                ASSERT_EQUAL(block->edges[0].index, else_block_index);
+                ASSERT_EQUAL(block->edges[1].index, then_block_index);
+
+                ASSERT_EQUAL(block->predecessors_count, 0);
+
+                ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 0);
+
+                ASSERT_EQUAL(block->phi_nodes_count, 0);
+            }
+
+            {
+                const Cfg_Block* block = &tac_function->cfg_blocks[then_block_index];
+
+                const Tac_Instructions_Range* range = &block->instructions_range;
+                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+                ASSERT_FALSE(cfg_block_is_empty(block));
+
+                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
+                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP);
+
+                ASSERT_EQUAL(block->edges_count, 1);
+                ASSERT_EQUAL(block->edges[0].index, final_block_index);
+
+                ASSERT_EQUAL(block->predecessors_count, 1);
+                ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
+
+                ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 1);
+                ASSERT_EQUAL(block->dominance_frontier[0].index, final_block_index);
+
+                ASSERT_EQUAL(block->phi_nodes_count, 0);
+            }
+
+            {
+                const Cfg_Block* block = &tac_function->cfg_blocks[else_block_index];
+
+                const Tac_Instructions_Range* range = &block->instructions_range;
+                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+                ASSERT_FALSE(cfg_block_is_empty(block));
+
+                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
+                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_ASSIGN);
+
+                ASSERT_EQUAL(block->edges_count, 1);
+                ASSERT_EQUAL(block->edges[0].index, final_block_index);
+
+                ASSERT_EQUAL(block->predecessors_count, 1);
+                ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
+
+                ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 1);
+                ASSERT_EQUAL(block->dominance_frontier[0].index, final_block_index);
+
+                ASSERT_EQUAL(block->phi_nodes_count, 0);
+            }
+
+            {
+                const Cfg_Block* block = &tac_function->cfg_blocks[final_block_index];
+
+                const Tac_Instructions_Range* range = &block->instructions_range;
+                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+                ASSERT_FALSE(cfg_block_is_empty(block));
+
+                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
+                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
+
+                ASSERT_EQUAL(block->edges_count, 0);
+                ASSERT_EQUAL(block->predecessors_count, 2);
+                ASSERT_EQUAL(block->predecessors[0].index, then_block_index);
+                ASSERT_EQUAL(block->predecessors[1].index, else_block_index);
+
+                ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 0);
+
+                ASSERT_EQUAL(block->phi_nodes_count, 1);
+                ASSERT_PHI_NODE_WAS_CREATED_FOR_IDENTIFIER(&block->phi_nodes[0], "parameter");
+            }
+
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
         }
-
-        {
-            const Cfg_Block* block = &tac_function->cfg_blocks[else_block_index];
-
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
-
-            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_ASSIGN);
-
-            ASSERT_EQUAL(block->edges_count, 1);
-            ASSERT_EQUAL(block->edges[0].index, final_block_index);
-
-            ASSERT_EQUAL(block->predecessors_count, 1);
-            ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
-
-            ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
-
-            ASSERT_EQUAL(block->dominance_frontier_count, 1);
-            ASSERT_EQUAL(block->dominance_frontier[0].index, final_block_index);
-
-            ASSERT_EQUAL(block->phi_nodes_count, 0);
-        }
-
-        {
-            const Cfg_Block* block = &tac_function->cfg_blocks[final_block_index];
-
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
-
-            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
-
-            ASSERT_EQUAL(block->edges_count, 0);
-            ASSERT_EQUAL(block->predecessors_count, 2);
-            ASSERT_EQUAL(block->predecessors[0].index, then_block_index);
-            ASSERT_EQUAL(block->predecessors[1].index, else_block_index);
-
-            ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
-
-            ASSERT_EQUAL(block->dominance_frontier_count, 0);
-
-            ASSERT_EQUAL(block->phi_nodes_count, 2);
-            ASSERT_PHI_NODE_WAS_CREATED_FOR_IDENTIFIER(&block->phi_nodes[0], "a");
-            ASSERT_PHI_NODE_WAS_CREATED_FOR_IDENTIFIER(&block->phi_nodes[1], "b");
-        }
-
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
-        destroy_compilation_context(&context);
     }
 
     // NOTE(vlad): Testing when phi-node is created in a block
@@ -3322,6 +3487,181 @@ test_phi_nodes_insertion(Test_Context* test_context)
     }
 }
 
+internal void
+test_ssa_versions_of_variables(Test_Context* test_context)
+{
+    // NOTE(vlad): Testing variables created in a child lexical scope.
+    {
+        // NOTE(vlad): Testing if statement.
+        {
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                     "    if 1 != 2"
+                                                     "    {"
+                                                     "        a := 10;"
+                                                     "    }"
+                                                     "    else"
+                                                     "    {"
+                                                     "        b := 10;"
+                                                     "    }"
+                                                     "}");
+
+            Lexer lexer = {0};
+            Parser parser = {0};
+
+            create_lexer(&lexer, &context);
+            create_parser(&parser, &lexer, &context);
+
+            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            create_lexical_scopes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            resolve_and_validate_types(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            lower_ast_to_tac(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            construct_cfg_from_tac(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            remove_unreachable_cfg_blocks(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            compute_cfg_dominators(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            compute_cfg_dominance_frontiers(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            insert_phi_nodes(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            set_tac_variable_versions(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            const Tac* tac = &context.tac;
+
+            ASSERT_EQUAL(tac->functions_count, 1);
+            const Tac_Function* tac_function = &tac->functions[0];
+
+            ASSERT_EQUAL(tac_function->cfg_blocks_count, 4);
+
+            const Index condition_block_index = 0;
+            const Index then_block_index = 1;
+            const Index else_block_index = 2;
+            const Index final_block_index = 3;
+
+            {
+                const Cfg_Block* block = &tac_function->cfg_blocks[condition_block_index];
+
+                const Tac_Instructions_Range* range = &block->instructions_range;
+                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+                ASSERT_FALSE(cfg_block_is_empty(block));
+
+                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
+                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP_IF_FALSE);
+
+                ASSERT_EQUAL(block->edges_count, 2);
+                ASSERT_EQUAL(block->edges[0].index, else_block_index);
+                ASSERT_EQUAL(block->edges[1].index, then_block_index);
+
+                ASSERT_EQUAL(block->predecessors_count, 0);
+
+                ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 0);
+
+                ASSERT_EQUAL(block->phi_nodes_count, 0);
+            }
+
+            {
+                const Cfg_Block* block = &tac_function->cfg_blocks[then_block_index];
+
+                const Tac_Instructions_Range* range = &block->instructions_range;
+                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+                ASSERT_FALSE(cfg_block_is_empty(block));
+
+                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
+                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP);
+
+                ASSERT_EQUAL(block->edges_count, 1);
+                ASSERT_EQUAL(block->edges[0].index, final_block_index);
+
+                ASSERT_EQUAL(block->predecessors_count, 1);
+                ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
+
+                ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 1);
+                ASSERT_EQUAL(block->dominance_frontier[0].index, final_block_index);
+
+                ASSERT_EQUAL(block->phi_nodes_count, 0);
+            }
+
+            {
+                const Cfg_Block* block = &tac_function->cfg_blocks[else_block_index];
+
+                const Tac_Instructions_Range* range = &block->instructions_range;
+                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+                ASSERT_FALSE(cfg_block_is_empty(block));
+
+                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
+                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_ASSIGN);
+
+                ASSERT_EQUAL(block->edges_count, 1);
+                ASSERT_EQUAL(block->edges[0].index, final_block_index);
+
+                ASSERT_EQUAL(block->predecessors_count, 1);
+                ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
+
+                ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 1);
+                ASSERT_EQUAL(block->dominance_frontier[0].index, final_block_index);
+
+                ASSERT_EQUAL(block->phi_nodes_count, 0);
+            }
+
+            {
+                const Cfg_Block* block = &tac_function->cfg_blocks[final_block_index];
+
+                const Tac_Instructions_Range* range = &block->instructions_range;
+                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+                ASSERT_FALSE(cfg_block_is_empty(block));
+
+                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
+                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
+
+                ASSERT_EQUAL(block->edges_count, 0);
+                ASSERT_EQUAL(block->predecessors_count, 2);
+                ASSERT_EQUAL(block->predecessors[0].index, then_block_index);
+                ASSERT_EQUAL(block->predecessors[1].index, else_block_index);
+
+                ASSERT_EQUAL(block->immediate_dominator_id.index, condition_block_index);
+
+                ASSERT_EQUAL(block->dominance_frontier_count, 0);
+
+                ASSERT_EQUAL(block->phi_nodes_count, 2);
+                ASSERT_PHI_NODE_WAS_CREATED_FOR_IDENTIFIER(&block->phi_nodes[0], "a");
+                ASSERT_PHI_NODE_WAS_CREATED_FOR_IDENTIFIER(&block->phi_nodes[1], "b");
+
+                ASSERT_NOT_EQUAL(block->phi_nodes[0].destination.ssa_version, 0);
+                ASSERT_NOT_EQUAL(block->phi_nodes[1].destination.ssa_version, 0);
+            }
+
+            destroy_parser(&parser);
+            destroy_lexer(&lexer);
+            destroy_compilation_context(&context);
+        }
+    }
+}
+
 REGISTER_TESTS(
     test_functions_without_jumps,
     test_if_statements,
@@ -3329,7 +3669,8 @@ REGISTER_TESTS(
     test_complex_statements,
     test_unreachable_blocks_removal,
     test_dominators_and_dominance_frontiers_computing,
-    test_phi_nodes_insertion
+    test_phi_nodes_insertion,
+    test_ssa_versions_of_variables
 )
 
 #include "eon_cfg.c"

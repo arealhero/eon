@@ -75,16 +75,9 @@ enum
     SSA_VERSION_UNDEFINED = 0,
 };
 
-struct Ssa_Version
-{
-    Index version;
-};
-typedef struct Ssa_Version Ssa_Version;
-
 struct Tac_Variable
 {
     Type_Id type_id;
-    Ssa_Version ssa_version;
 
     Bool is_temporary;
     union
@@ -93,7 +86,13 @@ struct Tac_Variable
     };
 };
 typedef struct Tac_Variable Tac_Variable;
-DEFINE_TAC_ID_FOR(Tac_Variable);
+
+struct Tac_Variable_Id
+{
+    Index index;
+    Index ssa_version;
+};
+typedef struct Tac_Variable_Id Tac_Variable_Id;
 
 struct Tac_Constant
 {

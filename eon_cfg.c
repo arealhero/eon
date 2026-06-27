@@ -39,6 +39,11 @@ create_cfg_block(Compilation_Context* context,
                                                          GiB(1),
                                                          MiB(1));
 
+    block->dominated_block_ids_arena = acquire_arena_from_provider(context->arena_provider,
+                                                                   string_view("cfg-dominated-block-ids"),
+                                                                   GiB(1),
+                                                                   MiB(1));
+
     block->instructions_range = instructions_range;
     block->immediate_dominator_id.index = INVALID_IMMEDIATE_DOMINATOR_INDEX;
 
@@ -999,7 +1004,8 @@ insert_phi_nodes(Compilation_Context* context)
                                                                         tac_function->cfg_blocks_count,
                                                                         Bool);
 
-            const Tac_Variable* this_variable = get_tac_variable_by_id(tac, (Tac_Variable_Id){variable_index});
+            Tac_Variable_Id this_variable_id = {0};
+            this_variable_id.index = variable_index;
 
             while (blocks_that_need_phi_nodes.ids_count > 0)
             {
@@ -1022,7 +1028,10 @@ insert_phi_nodes(Compilation_Context* context)
                     Cfg_Block* frontier_block = get_cfg_block_by_id(tac_function, frontier_block_id);
 
                     Phi_Node phi_node = {0};
-                    phi_node.destination = *this_variable;
+                    phi_node.destination = this_variable_id;
+                    phi_node.previous_variables = allocate_array(context->phi_node_arguments_arena,
+                                                                 frontier_block->predecessors_count,
+                                                                 Tac_Variable_Id);
 
                     append_array(frontier_block->phi_nodes_arena, frontier_block->phi_nodes, Phi_Node, phi_node);
 
@@ -1069,21 +1078,189 @@ build_dominator_tree(Compilation_Context* context)
     }
 }
 
+struct Tac_Variable_Renaming_Info
+{
+    Arena* versions_arena;
+
+    Index next_version;
+    stack(Index, versions);
+};
+typedef struct Tac_Variable_Renaming_Info Tac_Variable_Renaming_Info;
+
+struct Tac_Renaming_Info
+{
+    array(Tac_Variable_Renaming_Info, variables);
+};
+typedef struct Tac_Renaming_Info Tac_Renaming_Info;
+
+internal Index
+push_new_tac_variable_version(Tac_Renaming_Info* info, const Tac_Variable_Id variable_id)
+{
+    ASSERT(variable_id.index != INVALID_TAC_INDEX);
+
+    Tac_Variable_Renaming_Info* variable_info = &info->variables[variable_id.index];
+
+    const Index version = ++variable_info->next_version;
+    stack_push(variable_info->versions_arena, variable_info->versions, Index, version);
+    return version;
+}
+
+internal Index
+get_tac_variable_version(Tac_Renaming_Info* info, const Tac_Variable_Id variable_id)
+{
+    ASSERT(variable_id.index != INVALID_TAC_INDEX);
+
+    Tac_Variable_Renaming_Info* variable_info = &info->variables[variable_id.index];
+    if (variable_info->versions_count == 0)
+    {
+        return SSA_VERSION_UNDEFINED;
+    }
+
+    return *stack_top(variable_info->versions);
+}
+
+internal void
+pop_tac_variable_version(Tac_Renaming_Info* info, const Tac_Variable_Id variable_id)
+{
+    ASSERT(variable_id.index != INVALID_TAC_INDEX);
+
+    Tac_Variable_Renaming_Info* variable_info = &info->variables[variable_id.index];
+
+    ASSERT(variable_info->versions_count != 0);
+    stack_pop(variable_info->versions);
+}
+
+internal void
+set_tac_variable_versions_in_cfg_block(Compilation_Context* context,
+                                       Tac_Renaming_Info* renaming_info,
+                                       Tac_Function* tac_function,
+                                       Cfg_Block_Id this_block_id)
+{
+    struct
+    {
+        stack(Tac_Variable_Id, encountered_variable_ids);
+    } encountered_variables = {0};
+
+    Cfg_Block* block = get_cfg_block_by_id(tac_function, this_block_id);
+
+    ensure_array_has_enough_capacity(context->scratch_arena,
+                                     encountered_variables.encountered_variable_ids,
+                                     Tac_Variable_Id,
+                                     block->phi_nodes_count + block->instructions_range.end_instruction_index - block->instructions_range.start_instruction_index);
+
+    for (Index phi_node_index = 0;
+         phi_node_index < block->phi_nodes_count;
+         ++phi_node_index)
+    {
+        Phi_Node* phi_node = &block->phi_nodes[phi_node_index];
+
+        const Index version = push_new_tac_variable_version(renaming_info, phi_node->destination);
+        phi_node->destination.ssa_version = version;
+        stack_push(context->scratch_arena,
+                   encountered_variables.encountered_variable_ids,
+                   Tac_Variable_Id,
+                   phi_node->destination);
+    }
+
+    ASSERT(tac_function->label_id.index == block->instructions_range.function_label_id.index);
+
+    for (Index instruction_index = block->instructions_range.start_instruction_index;
+         instruction_index < block->instructions_range.end_instruction_index;
+         ++instruction_index)
+    {
+        Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
+
+        if (instruction->first_argument.kind == TAC_OPERAND_VARIABLE)
+        {
+            instruction->first_argument.variable_id.ssa_version = get_tac_variable_version(renaming_info, instruction->first_argument.variable_id);
+        }
+
+        if (instruction->second_argument.kind == TAC_OPERAND_VARIABLE)
+        {
+            instruction->second_argument.variable_id.ssa_version = get_tac_variable_version(renaming_info, instruction->second_argument.variable_id);
+        }
+
+        if (instruction->destination.kind == TAC_OPERAND_VARIABLE)
+        {
+            const Index version = push_new_tac_variable_version(renaming_info, instruction->destination.variable_id);
+            instruction->destination.variable_id.ssa_version = version;
+            stack_push(context->scratch_arena,
+                       encountered_variables.encountered_variable_ids,
+                       Tac_Variable_Id,
+                       instruction->destination.variable_id);
+        }
+    }
+
+    for (Index successor_index = 0;
+         successor_index < block->edges_count;
+         ++successor_index)
+    {
+        const Cfg_Block_Id successor_id = block->edges[successor_index];
+        Cfg_Block* successor = get_cfg_block_by_id(tac_function, successor_id);
+
+        Index this_block_index_in_list_of_predecessors = -1;
+        for (Index predecessor_index = 0;
+             predecessor_index < successor->predecessors_count;
+             ++predecessor_index)
+        {
+            const Cfg_Block_Id predecessor_id = successor->predecessors[predecessor_index];
+            if (predecessor_id.index == this_block_id.index)
+            {
+                this_block_index_in_list_of_predecessors = predecessor_index;
+                break;
+            }
+        }
+
+        ASSERT(this_block_index_in_list_of_predecessors != -1);
+
+        for (Index successor_phi_node_index = 0;
+             successor_phi_node_index < successor->phi_nodes_count;
+             ++successor_phi_node_index)
+        {
+            Phi_Node* phi_node = &successor->phi_nodes[successor_phi_node_index];
+
+            const Tac_Variable_Id destination_id = phi_node->destination;
+            const Index destination_version = get_tac_variable_version(renaming_info, destination_id);
+
+            phi_node->previous_variables[this_block_index_in_list_of_predecessors] = destination_id;
+            phi_node->previous_variables[this_block_index_in_list_of_predecessors].ssa_version = destination_version;
+        }
+    }
+
+    for (Index dominated_block_index = 0;
+         dominated_block_index < block->dominated_block_ids_count;
+         ++dominated_block_index)
+    {
+        const Cfg_Block_Id dominated_block_id = block->dominated_block_ids[dominated_block_index];
+        set_tac_variable_versions_in_cfg_block(context, renaming_info, tac_function, dominated_block_id);
+    }
+
+    while (encountered_variables.encountered_variable_ids_count > 0)
+    {
+        const Tac_Variable_Id encountered_variable_id = *stack_top(encountered_variables.encountered_variable_ids);
+        stack_pop(encountered_variables.encountered_variable_ids);
+
+        pop_tac_variable_version(renaming_info, encountered_variable_id);
+    }
+}
+
 internal void
 set_tac_variable_versions(Compilation_Context* context)
 {
     build_dominator_tree(context);
 
-    struct Variable_Name_Infos
-    {
-        array(Index, next_variable_version);
-    };
-    typedef struct Variable_Name_Infos Variable_Name_Infos;
-
     Tac* tac = &context->tac;
 
-    Variable_Name_Infos infos = {0};
-    infos.next_variable_version = allocate_array(context->scratch_arena, tac->variables_count, Index);
+    Tac_Renaming_Info renaming_info = {0};
+    renaming_info.variables = allocate_array(context->scratch_arena, tac->variables_count, Tac_Variable_Renaming_Info);
+
+    for (Index variable_index = 0;
+         variable_index < tac->variables_count;
+         ++variable_index)
+    {
+        Tac_Variable_Renaming_Info* variable_info = &renaming_info.variables[variable_index];
+        variable_info->versions_arena = context->scratch_arena; // TODO(vlad): Request separate arenas from provider?
+    }
 
     for (Index function_index = 0;
          function_index < tac->functions_count;
@@ -1095,12 +1272,12 @@ set_tac_variable_versions(Compilation_Context* context)
              block_index < tac_function->cfg_blocks_count;
              ++block_index)
         {
-            // struct
-            // {
-            //     stack(Tac_Variable_Id, encountered_variable_ids);
-            // } variables;
+            const Cfg_Block_Id entry_block_id = {0};
+            set_tac_variable_versions_in_cfg_block(context, &renaming_info, tac_function, entry_block_id);
         }
     }
+
+    request_arena_reset(context->arena_provider, context->scratch_arena);
 }
 
 internal inline void
@@ -1110,6 +1287,7 @@ free_cfg_block(Compilation_Context* context, Cfg_Block* block)
     release_arena_to_provider(context->arena_provider, block->predecessors_arena);
     release_arena_to_provider(context->arena_provider, block->dominance_frontier_arena);
     release_arena_to_provider(context->arena_provider, block->phi_nodes_arena);
+    release_arena_to_provider(context->arena_provider, block->dominated_block_ids_arena);
 }
 
 internal inline Cfg_Block*

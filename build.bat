@@ -64,6 +64,7 @@ call :compile_and_run_unit_test eon_parser_ut.c || exit /B 1
 call :compile_and_run_unit_test eon_lexical_scopes_ut.c || exit /B 1
 call :compile_and_run_unit_test eon_types_ut.c || exit /B 1
 call :compile_and_run_unit_test eon_tac_ut.c || exit /B 1
+call :compile_and_run_unit_test eon_cfg_ut.c || exit /B 1
 
 REM FIXME(vlad): Enable this test on Windows (clang-cl's ASAN does not work for some reason;
 REM              also this test does not work for cl.exe because it uses unix-specific headers).

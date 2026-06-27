@@ -7,8 +7,8 @@
 
 struct Phi_Node
 {
-    Tac_Variable destination;
-    array(Tac_Variable, previous_variables);
+    Tac_Variable_Id destination;
+    array(Tac_Variable_Id, previous_variables);
 };
 typedef struct Phi_Node Phi_Node;
 

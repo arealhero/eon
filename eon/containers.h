@@ -54,4 +54,10 @@
 #define stack(Type, name) array(Type, name)
 #define stack_push(arena, stack, Type, element) append_array(arena, stack, Type, element)
 #define stack_top(stack) &(stack)[CONCATENATE(stack, _count) - 1]
-#define stack_pop(stack) CONCATENATE(stack, _count) -= 1;
+#define stack_pop(stack)                        \
+    do                                          \
+    {                                           \
+        ASSERT(CONCATENATE(stack, _count) > 0); \
+        CONCATENATE(stack, _count) -= 1;        \
+    }                                           \
+    while (0)
