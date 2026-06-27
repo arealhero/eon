@@ -1,10 +1,10 @@
-abs: (n: Float32) -> Float32 =
+abs: (n: f32) -> f32 =
 {
     if n >= 0.0 { return n; }
     else { return -n; }
 }
 
-sqrt_heron_newton: (n: Float32) -> Float32 =
+sqrt_heron_newton: (n: f32) -> f32 =
 {
     PRECISION := 0.000001; // NOTE(vlad): 1e-6
 
@@ -20,7 +20,7 @@ sqrt_heron_newton: (n: Float32) -> Float32 =
     return current;
 }
 
-main: () -> Int32 =
+main: () -> s32 =
 {
     print(sqrt_heron_newton(4.0));
     print(sqrt_heron_newton(9.0));

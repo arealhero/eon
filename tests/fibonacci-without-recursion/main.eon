@@ -1,4 +1,4 @@
-fibonacci: (n: mutable Int32) -> Int32 =
+fibonacci: (n: mutable s32) -> s32 =
 {
     prev: mutable _ = 0;
     cur: mutable _ = 1;
@@ -15,7 +15,7 @@ fibonacci: (n: mutable Int32) -> Int32 =
     return prev;
 }
 
-main: () -> Int32 =
+main: () -> s32 =
 {
     print(fibonacci(12)); // NOTE(vlad): 144
     return 0;
