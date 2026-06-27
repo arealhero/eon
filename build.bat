@@ -25,6 +25,7 @@ set clang_common_flags=^
     -g ^
     -I. ^
     -fno-omit-frame-pointer ^
+    -ferror-limit=0 ^
     -Wl,/INCREMENTAL:NO
 
 set cl_warnings=^
