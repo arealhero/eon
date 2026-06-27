@@ -3,7 +3,7 @@ setlocal
 
 set ERROR_ON=1
 
-set USE_CLANG=1
+set USE_CLANG=0
 
 set clang_warnings=^
     -pedantic ^
