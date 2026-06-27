@@ -94,7 +94,7 @@
 #        define RELEASE_BUILD 0
 #        define DEBUG_BUILD 1
 #    endif
-#elif COMPILER_GCC
+#elif COMPILER_GCC || COMPILER_MSVC
 #    if NDEBUG
 #        define RELEASE_BUILD 1
 #        define DEBUG_BUILD 0
