@@ -157,6 +157,11 @@ arena_push(Arena* arena, const Size number_of_bytes)
 maybe_unused internal Byte*
 arena_push_uninitialized(Arena* arena, const Size number_of_bytes)
 {
+    if (arena == NULL)
+    {
+        FAIL("Arena is uninitialised");
+    }
+
     ARENA_ADD_REDZONE(arena);
 
     const Size aligned_memory_offset = ALIGN_UP_TO_POW2(arena->free_memory_offset, ARENA_ALIGNMENT);
