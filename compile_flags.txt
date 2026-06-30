@@ -26,6 +26,6 @@
 -ferror-limit=0
 
 -include eon/platform/filesystem.h
+-include eon/platform/io.h
 -include eon/platform/memory.h
 -include eon/platform/time.h
--include eon/platform/io.h

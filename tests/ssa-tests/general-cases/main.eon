@@ -1,0 +1,36 @@
+simple_reassignment: () -> void =
+{
+    a: mutable _ = 10;
+    a = 20;
+}
+
+parameter_reassignment: (parameter: mutable s32) -> void =
+{
+    parameter = 20;
+}
+
+returning_value_from_a_function: () -> s32 =
+{
+    a := 10;
+    return a;
+}
+
+returning_mutable_value_from_a_function: () -> s32 =
+{
+    a: mutable _ = 10;
+    a = 20;
+    a = 30;
+    return a;
+}
+
+simple_conditional_assignment: () -> s32 =
+{
+    a: mutable _ = 10;
+
+    if 1 == 2
+    {
+        a = 20;
+    }
+
+    return a;
+}

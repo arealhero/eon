@@ -20,13 +20,13 @@ acquire_arena_from_provider(struct Arena_Provider* provider,
 }
 
 internal inline void
-request_arena_reset(struct Arena_Provider* provider, const Arena* arena)
+request_arena_reset(struct Arena_Provider* provider, Arena* arena)
 {
     UNUSED(provider, arena);
 }
 
 internal inline void
-release_arena_to_provider(struct Arena_Provider* provider, const Arena* arena)
+release_arena_to_provider(struct Arena_Provider* provider, Arena* arena)
 {
     UNUSED(provider, arena);
 }

@@ -1,6 +1,7 @@
 #include "string.h"
 
 #include <eon/io.h>
+#include <eon/containers.h>
 
 #include <stdarg.h>
 

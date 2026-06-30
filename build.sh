@@ -102,6 +102,23 @@ compile_and_run_unit_test eon_cfg_ut.c
 
 compile_and_run_unit_test eon/sanitizers/asan_ut.c -fsanitize=address -fsanitize-recover=address
 
+mkdir -p build/tests/ssa-tests
+compile tests/ssa-tests/run_ssa_test.c -o build/tests/ssa-tests/run_ssa_test \
+        $compiler_common_flags \
+        $compiler_warnings
+
+run_ssa_test()
+{
+    test_directory="$1"
+    test_name=$(basename "$test_directory")
+
+    echo
+    echo "Running SSA test '$test_name'"
+    "build/tests/ssa-tests/run_ssa_test" "$test_directory"
+}
+
+run_ssa_test tests/ssa-tests/general-cases
+
 exit 0
 
 mkdir -p build/tests

@@ -14,8 +14,8 @@ internal Arena* acquire_arena_from_provider(struct Arena_Provider* provider,
                                             const String_View arena_name,
                                             const Size number_of_bytes_to_reserve,
                                             const Size number_of_bytes_to_commit);
-internal void request_arena_reset(struct Arena_Provider* provider, const Arena* arena);
-internal void release_arena_to_provider(struct Arena_Provider* provider, const Arena* arena);
+internal void request_arena_reset(struct Arena_Provider* provider, Arena* arena);
+internal void release_arena_to_provider(struct Arena_Provider* provider, Arena* arena);
 
 struct Compilation_Context
 {
