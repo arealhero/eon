@@ -245,7 +245,11 @@ convert_tac_operand_to_string(Compilation_Context* context,
 
         case TAC_OPERAND_FUNCTION_LABEL:
         {
-            FAIL("Function labels are not supported yet");
+            const Tac_Function_Label_Id function_label_id = operand->function_label_id;
+            const Tac_Function* function = get_tac_function_by_label(tac, function_label_id);
+
+            append_string(builder, string_view(" "));
+            append_string(builder, function->ast_function_definition->name.token.lexeme);
         } break;
 
         case TAC_OPERAND_VARIABLE:
@@ -619,6 +623,12 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                     case TAC_SET_PARAMETER:
                     {
                         append_string(&builder, string_view("          SET_PARAMETER   "));
+
+                        ASSERT(instruction->destination.kind == TAC_OPERAND_NONE);
+                        ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
+                        ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
+
+                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument);
                     } break;
 
                     case TAC_GET_PARAMETER:
@@ -637,6 +647,16 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                     case TAC_CALL:
                     {
                         append_string(&builder, string_view("          CALL            "));
+                        ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
+                        ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
+
+                        if (instruction->destination.kind != TAC_OPERAND_NONE)
+                        {
+                            convert_tac_operand_to_string(context, &builder, &instruction->destination);
+                            append_string(&builder, string_view(","));
+                        }
+
+                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument);
                     } break;
 
                     case TAC_RETURN:

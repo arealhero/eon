@@ -1032,6 +1032,7 @@ insert_phi_nodes(Compilation_Context* context)
                     phi_node.previous_variables = allocate_array(context->phi_node_arguments_arena,
                                                                  frontier_block->predecessors_count,
                                                                  Tac_Variable_Id);
+                    phi_node.previous_variables_count = frontier_block->predecessors_count;
 
                     append_array(frontier_block->phi_nodes_arena, frontier_block->phi_nodes, Phi_Node, phi_node);
 
@@ -1268,13 +1269,8 @@ set_tac_variable_versions(Compilation_Context* context)
     {
         Tac_Function* tac_function = &tac->functions[function_index];
 
-        for (Index block_index = 0;
-             block_index < tac_function->cfg_blocks_count;
-             ++block_index)
-        {
-            const Cfg_Block_Id entry_block_id = {0};
-            set_tac_variable_versions_in_cfg_block(context, &renaming_info, tac_function, entry_block_id);
-        }
+        const Cfg_Block_Id entry_block_id = {0};
+        set_tac_variable_versions_in_cfg_block(context, &renaming_info, tac_function, entry_block_id);
     }
 
     request_arena_reset(context->arena_provider, context->scratch_arena);

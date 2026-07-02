@@ -34,3 +34,13 @@ simple_conditional_assignment: () -> s32 =
 
     return a;
 }
+
+function_calls: () -> s32 =
+{
+    simple_reassignment();
+
+    a := returning_value_from_a_function();
+    parameter_reassignment(a);
+
+    return returning_value_from_a_function();
+}
