@@ -1039,6 +1039,13 @@ insert_phi_nodes(Compilation_Context* context)
                                                                  Tac_Variable_Id);
                     phi_node.previous_variables_count = frontier_block->predecessors_count;
 
+                    for (Index previous_variable_index = 0;
+                         previous_variable_index < phi_node.previous_variables_count;
+                         ++previous_variable_index)
+                    {
+                        phi_node.previous_variables[previous_variable_index].ssa_version = SSA_VERSION_UNSET;
+                    }
+
                     append_array(frontier_block->phi_nodes_arena, frontier_block->phi_nodes, Phi_Node, phi_node);
 
                     block_has_phi_node_for_this_variable[frontier_block_id.index] = true;
@@ -1228,8 +1235,11 @@ set_tac_variable_versions_in_cfg_block(Compilation_Context* context,
             const Tac_Variable_Id destination_id = phi_node->destination;
             const Index destination_version = get_tac_variable_version(renaming_info, destination_id);
 
-            phi_node->previous_variables[this_block_index_in_list_of_predecessors] = destination_id;
-            phi_node->previous_variables[this_block_index_in_list_of_predecessors].ssa_version = destination_version;
+            if (destination_version != SSA_VERSION_UNDEFINED)
+            {
+                phi_node->previous_variables[this_block_index_in_list_of_predecessors] = destination_id;
+                phi_node->previous_variables[this_block_index_in_list_of_predecessors].ssa_version = destination_version;
+            }
         }
     }
 
@@ -1260,7 +1270,7 @@ set_tac_variable_versions(Compilation_Context* context)
     Tac_Renaming_Info renaming_info = {0};
     renaming_info.variables = allocate_array(context->scratch_arena, tac->variables_count, Tac_Variable_Renaming_Info);
 
-    for (Index variable_index = 0;
+    for (Index variable_index = INVALID_TAC_INDEX + 1;
          variable_index < tac->variables_count;
          ++variable_index)
     {
@@ -1332,6 +1342,7 @@ emit_diagnostic_message_about_unused_ssa_version(Compilation_Context* context,
         ASSERT(phi_node->destination.index == ssa_variable_id.index);
         ASSERT(phi_node->destination.ssa_version == ssa_variable_id.ssa_version);
 
+        // FIXME(vlad): Sort versions in PHI nodes before emitting diagnostic messages.
         for (Index argument_index = 0;
              argument_index < phi_node->previous_variables_count;
              ++argument_index)
@@ -1430,6 +1441,12 @@ find_unused_ssa_assignments(Compilation_Context* context)
                      ++phi_argument_index)
                 {
                     const Tac_Variable_Id argument_id = phi_node->previous_variables[phi_argument_index];
+
+                    if (argument_id.ssa_version == SSA_VERSION_UNSET)
+                    {
+                        continue;
+                    }
+
                     ASSERT(argument_id.ssa_version != SSA_VERSION_UNDEFINED);
 
                     Ssa_Variable_Versions_Info* argument_info = &infos[argument_id.index];

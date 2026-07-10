@@ -230,6 +230,7 @@ release_arena_to_provider(Arena_Provider* provider, Arena* arena)
     destroy_arena(arena);
 }
 
+// FIXME(vlad): Use 'tac_function->first_tac_variable_index' instead.
 struct Conversion_Context
 {
     Index temporary_variables_offset;
@@ -263,6 +264,8 @@ convert_tac_operand_to_string(Compilation_Context* context,
         {
             const Tac_Variable_Id variable_id = operand->variable_id;
             ASSERT(variable_id.index != INVALID_TAC_INDEX);
+            ASSERT(variable_id.ssa_version != SSA_VERSION_UNDEFINED);
+            ASSERT(variable_id.ssa_version != SSA_VERSION_UNSET);
 
             const Tac_Variable* variable = &tac->variables[variable_id.index];
 
@@ -364,8 +367,11 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                     previous_variable.kind = TAC_OPERAND_VARIABLE;
                     previous_variable.variable_id = phi_node->previous_variables[argument_index];
 
-                    append_string(&builder, string_view(","));
-                    convert_tac_operand_to_string(context, &builder, &previous_variable, &conversion_context);
+                    if (previous_variable.variable_id.ssa_version != SSA_VERSION_UNSET)
+                    {
+                        append_string(&builder, string_view(","));
+                        convert_tac_operand_to_string(context, &builder, &previous_variable, &conversion_context);
+                    }
                 }
 
                 append_string(&builder, string_view("\n"));
@@ -707,7 +713,6 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
 
     return string_builder_to_string(&builder);
 }
-
 
 #include <eon/io.c>
 #include <eon/memory.c>

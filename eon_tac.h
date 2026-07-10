@@ -72,6 +72,7 @@ typedef struct Tac_Function_Label Tac_Function_Label;
 
 enum
 {
+    SSA_VERSION_UNSET = -1,
     SSA_VERSION_UNDEFINED = 0,
 };
 

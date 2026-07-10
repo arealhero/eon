@@ -1277,8 +1277,8 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP_IF_FALSE);
 
                 ASSERT_EQUAL(block->edges_count, 2);
-                ASSERT_EQUAL(block->edges[0].index, else_block_index);
-                ASSERT_EQUAL(block->edges[1].index, then_block_index);
+                ASSERT_EQUAL(block->edges[0].index, then_block_index);
+                ASSERT_EQUAL(block->edges[1].index, else_block_index);
 
                 ASSERT_EQUAL(block->predecessors_count, 0);
             }
@@ -1733,9 +1733,9 @@ test_dominators_and_dominance_frontiers_computing(Test_Context* test_context)
         const Index condition_block_index = 0;
         const Index before_if_block_index = 1;
         const Index then_block_index = 2;
-        const Index else_block_index = 4;
-        const Index jump_after_if_block_index = 5;
-        const Index final_block_index = 3;
+        const Index else_block_index = 3;
+        const Index jump_after_if_block_index = 4;
+        const Index final_block_index = 5;
 
         // NOTE(vlad): Testing blocks.
         {
@@ -1774,8 +1774,8 @@ test_dominators_and_dominance_frontiers_computing(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP_IF_FALSE);
 
                 ASSERT_EQUAL(block->edges_count, 2);
-                ASSERT_EQUAL(block->edges[0].index, else_block_index);
-                ASSERT_EQUAL(block->edges[1].index, then_block_index);
+                ASSERT_EQUAL(block->edges[0].index, then_block_index);
+                ASSERT_EQUAL(block->edges[1].index, else_block_index);
 
                 ASSERT_EQUAL(block->predecessors_count, 1);
                 ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
@@ -3108,9 +3108,9 @@ test_phi_nodes_insertion(Test_Context* test_context)
             const Index condition_block_index = 0;
             const Index before_if_block_index = 1;
             const Index then_block_index = 2;
-            const Index else_block_index = 4;
-            const Index jump_after_if_block_index = 5;
-            const Index final_block_index = 3;
+            const Index else_block_index = 3;
+            const Index jump_after_if_block_index = 4;
+            const Index final_block_index = 5;
 
             // NOTE(vlad): Testing blocks.
             {
@@ -3151,8 +3151,8 @@ test_phi_nodes_insertion(Test_Context* test_context)
                     ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP_IF_FALSE);
 
                     ASSERT_EQUAL(block->edges_count, 2);
-                    ASSERT_EQUAL(block->edges[0].index, else_block_index);
-                    ASSERT_EQUAL(block->edges[1].index, then_block_index);
+                    ASSERT_EQUAL(block->edges[0].index, then_block_index);
+                    ASSERT_EQUAL(block->edges[1].index, else_block_index);
 
                     ASSERT_EQUAL(block->predecessors_count, 1);
                     ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
@@ -4040,7 +4040,6 @@ test_unused_ssa_assignments(Test_Context* test_context)
         destroy_compilation_context(&context);
     }
 
-#if 0
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {\n"
                                                  "    a: mutable _ = 10;\n"
@@ -4103,19 +4102,18 @@ test_unused_ssa_assignments(Test_Context* test_context)
         const String dumped_messages = dump_diagnostic_messages(test_context->arena,
                                                                 &context,
                                                                 MAX_MESSAGE_LEVEL);
-        const String_View expected_output = string_view("<test-input>:2:5: error: This assignment is unused\n"
+        const String_View expected_output = string_view("<test-input>:12:13: error: This assignment is unused\n"
+                                                        "  12 |             a = 22;\n"
+                                                        "     |             ^\n"
+                                                        "<test-input>:2:5: error: This assignment is unused\n"
                                                         "  2 |     a: mutable _ = 10;\n"
-                                                        "    |     ^\n"
-                                                        "<test-input>:10:9: error: This assignment is unused\n"
-                                                        "  10 |         a = 22;\n"
-                                                        "     |         ^");
+                                                        "    |     ^");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
-#endif
 
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {\n"
