@@ -27,7 +27,14 @@ set clang_common_flags=^
     -fno-omit-frame-pointer ^
     -g ^
     -gcodeview ^
-    -fuse-ld=lld
+    -fuse-ld=lld ^
+    -fsanitize=address ^
+    -D_DLL ^
+    -D_WIN32_WINNT=0x0501 ^
+    -lmsvcrt
+
+REM NOTE: '-D_WIN32_WINNT=0x0501' forces compiler to use APIs that are compatible with Windows XP.
+REM @ref: https://www.yoctopuce.com/EN/article/running-on-an-antique-windows-xp
 
 set cl_warnings=^
     /W4 ^
@@ -54,7 +61,7 @@ if not exist build\tests\eon mkdir build\tests\eon
 if not exist build\tests\eon\sanitizers mkdir build\tests\eon\sanitizers
 
 call :compile grammar\check_grammar_soundness.c ^
-              build\grammar\check_grammar_soundness
+              build\grammar\check_grammar_soundness || exit /B 1
 
 build\grammar\check_grammar_soundness.exe grammar\eon-grammar || exit /B 1
 
@@ -68,8 +75,7 @@ call :compile_and_run_unit_test eon_tac_ut.c || exit /B 1
 call :compile_and_run_unit_test eon_cfg_ut.c || exit /B 1
 
 if %USE_CLANG% EQU 1 (
-REM FIXME: Enable this test on Windows. clang-cl's ASAN does not work for some reason;
-REM        also this test does not work for cl.exe because it uses unix-specific headers.
+REM FIXME: Support additional arguments here.
 REM call :compile_and_run_unit_test eon/sanitizers/asan_ut.c -fsanitize=address -fsanitize-recover=address || exit /B 1
 ) else (
   REM call :compile_and_run_unit_test eon/sanitizers/asan_ut.c /fsanitize=address /fsanitize-recover=address || exit /B 1
@@ -77,11 +83,11 @@ REM call :compile_and_run_unit_test eon/sanitizers/asan_ut.c -fsanitize=address 
 
 if not exist build\tests\ssa-tests mkdir build\tests\ssa-tests
 call :compile tests\ssa-tests\run_ssa_test.c ^
-              build\tests\ssa-tests\run_ssa_test
+              build\tests\ssa-tests\run_ssa_test || exit /B 1
 
-build\tests\ssa-tests\run_ssa_test.exe tests\ssa-tests\general-cases
-build\tests\ssa-tests\run_ssa_test.exe tests\ssa-tests\regression-if-statement-with-return
-build\tests\ssa-tests\run_ssa_test.exe tests\ssa-tests\regression-nested-if-statement
+build\tests\ssa-tests\run_ssa_test.exe tests\ssa-tests\general-cases || exit /B 1
+build\tests\ssa-tests\run_ssa_test.exe tests\ssa-tests\regression-if-statement-with-return || exit /B 1
+build\tests\ssa-tests\run_ssa_test.exe tests\ssa-tests\regression-nested-if-statement || exit /B 1
 
 exit /B %ERRORLEVEL%
 
@@ -107,9 +113,9 @@ set /a start_total_ms = (start_h*3600 + start_m*60 + start_s) * 1000 + start_ms
 
 if %USE_CLANG% EQU 1 (
   clang "%source%" -o "%output%.exe" ^
-         %clang_warnings% ^
-         %clang_common_flags% ^
-         || exit /B 1
+        %clang_warnings% ^
+        %clang_common_flags% ^
+        || exit /B 1
 ) else (
   cl %cl_common_flags% %cl_warnings% ^
      "%source%" ^
