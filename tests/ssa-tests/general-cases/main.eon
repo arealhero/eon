@@ -35,6 +35,24 @@ simple_conditional_assignment: () -> s32 =
     return a;
 }
 
+conditional_assignment_of_multiple_variables: () -> s32 =
+{
+    a: mutable _ = 10;
+    b: mutable _ = 11;
+
+    if 1 == 2
+    {
+        a = 20;
+        b = 21;
+    }
+    else
+    {
+        a = 30;
+    }
+
+    return a + b;
+}
+
 function_calls: () -> s32 =
 {
     simple_reassignment();

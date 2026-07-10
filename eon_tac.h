@@ -78,6 +78,7 @@ enum
 struct Tac_Variable
 {
     Type_Id type_id;
+    Index max_ssa_version;
 
     Bool is_temporary;
     union

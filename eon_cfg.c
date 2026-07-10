@@ -1,6 +1,7 @@
 #include "eon_cfg.h"
 
 #include "eon_compilation_context.h"
+#include "eon_lexical_scopes.h"
 #include "eon_tac.h"
 
 enum
@@ -489,7 +490,7 @@ find_statement_in_code_block_by_tac_instruction_index(const Ast_Code_Block* code
         UNREACHABLE();
     }
 
-    UNREACHABLE();
+    return NULL;
 }
 
 internal const Ast_Statement*
@@ -613,88 +614,92 @@ remove_unreachable_cfg_blocks(Compilation_Context* context)
         }
 
         // NOTE(vlad): Removing unreachabile blocks.
-        Index unreachable_block_index = -1;
-        Index reachable_block_index = tac_function->cfg_blocks_count;
-
-        while (true)
         {
-            for (Index i = unreachable_block_index + 1;
+            Index unreachable_block_index = -1;
+
+            while (true)
+            {
+                for (Index i = unreachable_block_index + 1;
+                     i < tac_function->cfg_blocks_count;
+                     ++i)
+                {
+                    if (!reachability_info[i].was_reached)
+                    {
+                        unreachable_block_index = i;
+                        break;
+                    }
+                }
+
+                ASSERT(unreachable_block_index != -1);
+
+                Index reachable_block_index = -1;
+                for (Index i = unreachable_block_index + 1;
+                     i < tac_function->cfg_blocks_count;
+                     ++i)
+                {
+                    if (reachability_info[i].was_reached)
+                    {
+                        reachable_block_index = i;
+                        break;
+                    }
+                }
+
+                if (reachable_block_index == -1)
+                {
+                    break;
+                }
+
+                // NOTE(vlad): Swapping reachable block index to a new one.
+                {
+                    Cfg_Block_Id old_block_id = {0};
+                    old_block_id.index = reachable_block_index;
+
+                    Cfg_Block_Id new_block_id = {0};
+                    new_block_id.index = unreachable_block_index;
+
+                    for (Index block_index = 0;
+                         block_index < tac_function->cfg_blocks_count;
+                         ++block_index)
+                    {
+                        Cfg_Block_Id block_id = {0};
+                        block_id.index = block_index;
+
+                        Cfg_Block* block = get_cfg_block_by_id(tac_function, block_id);
+
+                        // NOTE(vlad): Technically we should remove edges to an old block, but since it's unreachable
+                        //             there are no such edges.
+                        if (remove_edge(block, old_block_id))
+                        {
+                            insert_edge(block, new_block_id);
+                        }
+
+                        remove_predecessor(block, new_block_id);
+                        if (remove_predecessor(block, old_block_id))
+                        {
+                            insert_predecessor(block, new_block_id);
+                        }
+                    }
+                }
+
+                {
+                    const Cfg_Block temp = tac_function->cfg_blocks[unreachable_block_index];
+                    tac_function->cfg_blocks[unreachable_block_index] = tac_function->cfg_blocks[reachable_block_index];
+                    tac_function->cfg_blocks[reachable_block_index] = temp;
+
+                    reachability_info[unreachable_block_index].was_reached = true;
+                    reachability_info[reachable_block_index].was_reached = false;
+                }
+            }
+
+            for (Index i = unreachable_block_index;
                  i < tac_function->cfg_blocks_count;
                  ++i)
             {
-                if (!reachability_info[i].was_reached)
-                {
-                    unreachable_block_index = i;
-                    break;
-                }
+                Cfg_Block* unreachable_block = &tac_function->cfg_blocks[i];
+                free_cfg_block(context, unreachable_block);
             }
-
-            for (Index i = reachable_block_index - 1;
-                 i >= 0;
-                 --i)
-            {
-                if (reachability_info[i].was_reached)
-                {
-                    reachable_block_index = i;
-                    break;
-                }
-            }
-
-            if (unreachable_block_index >= reachable_block_index)
-            {
-                break;
-            }
-
-            ASSERT(unreachable_block_index != -1);
-            ASSERT(reachable_block_index != tac_function->cfg_blocks_count);
-
-            {
-                Cfg_Block_Id old_block_id = {0};
-                old_block_id.index = reachable_block_index;
-
-                Cfg_Block_Id new_block_id = {0};
-                new_block_id.index = unreachable_block_index;
-
-                for (Index block_index = 0;
-                     block_index < tac_function->cfg_blocks_count;
-                     ++block_index)
-                {
-                    Cfg_Block_Id block_id = {0};
-                    block_id.index = block_index;
-
-                    Cfg_Block* block = get_cfg_block_by_id(tac_function, block_id);
-
-                    // NOTE(vlad): Technically we should remove edges to an old block, but since it's unreachable
-                    //             there are no such edges.
-                    if (remove_edge(block, old_block_id))
-                    {
-                        insert_edge(block, new_block_id);
-                    }
-
-                    remove_predecessor(block, new_block_id);
-                    if (remove_predecessor(block, old_block_id))
-                    {
-                        insert_predecessor(block, new_block_id);
-                    }
-                }
-            }
-
-            const Cfg_Block temp = tac_function->cfg_blocks[unreachable_block_index];
-            tac_function->cfg_blocks[unreachable_block_index] = tac_function->cfg_blocks[reachable_block_index];
-            tac_function->cfg_blocks[reachable_block_index] = temp;
-
-            reachability_info[unreachable_block_index].was_reached = true;
-            reachability_info[reachable_block_index].was_reached = false;
+            tac_function->cfg_blocks_count = unreachable_block_index;
         }
-
-        for (Index i = unreachable_block_index;
-             i < tac_function->cfg_blocks_count;
-             ++i)
-        {
-            Cfg_Block* unreachable_block = &tac_function->cfg_blocks[i];
-            free_cfg_block(context, unreachable_block);
-        }
-        tac_function->cfg_blocks_count = unreachable_block_index;
     }
 
     request_arena_reset(context->arena_provider, context->scratch_arena);
@@ -1090,7 +1095,7 @@ typedef struct Tac_Variable_Renaming_Info Tac_Variable_Renaming_Info;
 
 struct Tac_Renaming_Info
 {
-    array(Tac_Variable_Renaming_Info, variables);
+    Tac_Variable_Renaming_Info* variables;
 };
 typedef struct Tac_Renaming_Info Tac_Renaming_Info;
 
@@ -1273,7 +1278,267 @@ set_tac_variable_versions(Compilation_Context* context)
         set_tac_variable_versions_in_cfg_block(context, &renaming_info, tac_function, entry_block_id);
     }
 
+    for (Index variable_index = INVALID_TAC_INDEX + 1;
+         variable_index < tac->variables_count;
+         ++variable_index)
+    {
+        Tac_Variable_Renaming_Info* variable_info = &renaming_info.variables[variable_index];
+
+        Tac_Variable_Id variable_id = {0};
+        variable_id.index = variable_index;
+
+        Tac_Variable* variable = get_tac_variable_by_id(tac, variable_id);
+
+        variable->max_ssa_version = variable_info->next_version;
+    }
+
     request_arena_reset(context->arena_provider, context->scratch_arena);
+}
+
+struct Version_Info
+{
+    Bool was_used;
+    Bool was_used_outside_of_phi_nodes;
+    Bool declared_in_phi_node;
+
+    union
+    {
+        Phi_Node* phi_node;
+        Tac_Instruction_Id instruction_id;
+    };
+};
+typedef struct Version_Info Version_Info;
+
+struct Ssa_Variable_Versions_Info
+{
+    Size versions_count;
+    Version_Info* version_infos;
+};
+typedef struct Ssa_Variable_Versions_Info Ssa_Variable_Versions_Info;
+
+internal void
+emit_diagnostic_message_about_unused_ssa_version(Compilation_Context* context,
+                                                 const Ssa_Variable_Versions_Info* variable_versions_info,
+                                                 const Tac_Variable_Id ssa_variable_id)
+{
+    const Ssa_Variable_Versions_Info* this_variable_info = &variable_versions_info[ssa_variable_id.index];
+    const Version_Info* this_version_info = &this_variable_info->version_infos[ssa_variable_id.ssa_version];
+
+    if (this_version_info->declared_in_phi_node)
+    {
+        const Phi_Node* phi_node = this_version_info->phi_node;
+
+        // NOTE(vlad): Sanity check.
+        ASSERT(phi_node->destination.index == ssa_variable_id.index);
+        ASSERT(phi_node->destination.ssa_version == ssa_variable_id.ssa_version);
+
+        for (Index argument_index = 0;
+             argument_index < phi_node->previous_variables_count;
+             ++argument_index)
+        {
+            const Tac_Variable_Id argument_id = phi_node->previous_variables[argument_index];
+            ASSERT(argument_id.index != INVALID_TAC_INDEX);
+            ASSERT(argument_id.ssa_version != SSA_VERSION_UNDEFINED);
+
+            const Ssa_Variable_Versions_Info* argument_info = &variable_versions_info[argument_id.index];
+            const Version_Info* argument_version_info = &argument_info->version_infos[argument_id.ssa_version];
+
+            if (!argument_version_info->was_used_outside_of_phi_nodes)
+            {
+                emit_diagnostic_message_about_unused_ssa_version(context, variable_versions_info, argument_id);
+            }
+        }
+    }
+    else
+    {
+        const Tac_Instruction_Id instruction_id = this_version_info->instruction_id;
+
+        const Tac_Function* tac_function = get_tac_function_by_label(&context->tac, instruction_id.function_label_id);
+        const Ast_Function_Definition* ast_function = tac_function->ast_function_definition;
+
+        const Ast_Statement* statement = find_statement_in_code_block_by_tac_instruction_index(&ast_function->body,
+                                                                                               instruction_id.instruction_index);
+        ASSERT(statement);
+
+        Diagnostic_Message error = {0};
+        error.level = MESSAGE_LEVEL_ERROR;
+        error.location = statement->start_location;
+        error.text = string_view("This assignment is unused");
+
+        emit_diagnostic_message(context, &error);
+    }
+}
+
+internal void
+find_unused_ssa_assignments(Compilation_Context* context)
+{
+    Tac* tac = &context->tac;
+
+    Ssa_Variable_Versions_Info* infos = allocate_array(context->scratch_arena, tac->variables_count, Ssa_Variable_Versions_Info);
+
+    for (Index variable_index = INVALID_TAC_INDEX + 1;
+         variable_index < tac->variables_count;
+         ++variable_index)
+    {
+        Ssa_Variable_Versions_Info* version_info = &infos[variable_index];
+
+        Tac_Variable_Id variable_id = {0};
+        variable_id.index = variable_index;
+
+        Tac_Variable* variable = get_tac_variable_by_id(tac, variable_id);
+
+        version_info->versions_count = variable->max_ssa_version + 1;
+        version_info->version_infos = allocate_array(context->scratch_arena, version_info->versions_count, Version_Info);
+    }
+
+    for (Index function_index = 0;
+         function_index < tac->functions_count;
+         ++function_index)
+    {
+        Tac_Function* tac_function = &tac->functions[function_index];
+
+        for (Index this_block_index = 0;
+             this_block_index < tac_function->cfg_blocks_count;
+             ++this_block_index)
+        {
+            Cfg_Block_Id this_block_id = {0};
+            this_block_id.index = this_block_index;
+
+            const Cfg_Block* this_block = get_cfg_block_by_id(tac_function, this_block_id);
+
+            for (Index phi_node_index = 0;
+                 phi_node_index < this_block->phi_nodes_count;
+                 ++phi_node_index)
+            {
+                Phi_Node* phi_node = &this_block->phi_nodes[phi_node_index];
+
+                {
+                    ASSERT(phi_node->destination.ssa_version != SSA_VERSION_UNDEFINED);
+
+                    const Tac_Variable_Id destination_id = phi_node->destination;
+                    ASSERT(destination_id.ssa_version != SSA_VERSION_UNDEFINED);
+
+                    Ssa_Variable_Versions_Info* destination_info = &infos[destination_id.index];
+                    Version_Info* this_version_info = &destination_info->version_infos[destination_id.ssa_version];
+
+                    this_version_info->declared_in_phi_node = true;
+                    this_version_info->phi_node = phi_node;
+                }
+
+                for (Index phi_argument_index = 0;
+                     phi_argument_index < phi_node->previous_variables_count;
+                     ++phi_argument_index)
+                {
+                    const Tac_Variable_Id argument_id = phi_node->previous_variables[phi_argument_index];
+                    ASSERT(argument_id.ssa_version != SSA_VERSION_UNDEFINED);
+
+                    Ssa_Variable_Versions_Info* argument_info = &infos[argument_id.index];
+                    argument_info->version_infos[argument_id.ssa_version].was_used = true;
+                }
+            }
+        }
+
+        for (Index instruction_index = 0;
+             instruction_index < tac_function->instructions_count;
+             ++instruction_index)
+        {
+            Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
+
+            if (instruction->destination.kind == TAC_OPERAND_VARIABLE)
+            {
+                const Tac_Variable_Id variable_id = instruction->destination.variable_id;
+                ASSERT(variable_id.ssa_version != SSA_VERSION_UNDEFINED);
+
+                Ssa_Variable_Versions_Info* info = &infos[variable_id.index];
+
+                Tac_Instruction_Id instruction_id = {0};
+                instruction_id.function_label_id = tac_function->label_id;
+                instruction_id.instruction_index = instruction_index;
+
+                info->version_infos[variable_id.ssa_version].instruction_id = instruction_id;
+            }
+
+            if (instruction->first_argument.kind == TAC_OPERAND_VARIABLE)
+            {
+                const Tac_Variable_Id variable_id = instruction->first_argument.variable_id;
+                ASSERT(variable_id.ssa_version != SSA_VERSION_UNDEFINED);
+
+                Ssa_Variable_Versions_Info* info = &infos[variable_id.index];
+                info->version_infos[variable_id.ssa_version].was_used = true;
+                info->version_infos[variable_id.ssa_version].was_used_outside_of_phi_nodes = true;
+            }
+
+            if (instruction->second_argument.kind == TAC_OPERAND_VARIABLE)
+            {
+                const Tac_Variable_Id variable_id = instruction->second_argument.variable_id;
+                ASSERT(variable_id.ssa_version != SSA_VERSION_UNDEFINED);
+
+                Ssa_Variable_Versions_Info* info = &infos[variable_id.index];
+                info->version_infos[variable_id.ssa_version].was_used = true;
+                info->version_infos[variable_id.ssa_version].was_used_outside_of_phi_nodes = true;
+            }
+        }
+    }
+
+    for (Index variable_index = INVALID_TAC_INDEX + 1;
+         variable_index < tac->variables_count;
+         ++variable_index)
+    {
+        Tac_Variable_Id variable_id = {0};
+        variable_id.index = variable_index;
+
+        const Tac_Variable* variable = get_tac_variable_by_id(tac, variable_id);
+        if (variable->is_temporary)
+        {
+            // XXX(vlad): We should probably report that the result of some expression is unused.
+            continue;
+        }
+
+        Ssa_Variable_Versions_Info* info = &infos[variable_index];
+        Bool variable_was_never_used = true;
+
+        for (Index version = SSA_VERSION_UNDEFINED + 1;
+             version < info->versions_count;
+             ++version)
+        {
+            if (info->version_infos[version].was_used_outside_of_phi_nodes)
+            // if (info->version_infos[version].was_used)
+            {
+                variable_was_never_used = false;
+                break;
+            }
+        }
+
+        if (variable_was_never_used)
+        {
+            const Symbol* symbol = get_symbol_by_id(context, variable->symbol_id);
+
+            Diagnostic_Message error = {0};
+            error.level = MESSAGE_LEVEL_ERROR;
+            error.location = symbol->location;
+            error.text = string_view("This variable was never used");
+
+            emit_diagnostic_message(context, &error);
+
+            continue;
+        }
+
+        for (Index version = SSA_VERSION_UNDEFINED + 1;
+             version < info->versions_count;
+             ++version)
+        {
+            const Version_Info* version_info = &info->version_infos[version];
+
+            if (!version_info->was_used)
+            {
+                Tac_Variable_Id ssa_id = {0};
+                ssa_id.index = variable_index;
+                ssa_id.ssa_version = version;
+
+                emit_diagnostic_message_about_unused_ssa_version(context, infos, ssa_id);
+            }
+        }
+    }
 }
 
 internal inline void

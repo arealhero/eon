@@ -1262,8 +1262,8 @@ test_unreachable_blocks_removal(Test_Context* test_context)
 
             const Index condition_block_index = 0;
             const Index then_block_index = 1;
-            const Index else_block_index = 3;
-            const Index final_block_index = 2;
+            const Index else_block_index = 2;
+            const Index final_block_index = 3;
 
             {
                 const Cfg_Block* block = &tac_function->cfg_blocks[condition_block_index];
@@ -3662,6 +3662,532 @@ test_ssa_versions_of_variables(Test_Context* test_context)
     }
 }
 
+internal void
+test_unused_ssa_assignments(Test_Context* test_context)
+{
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    a := 10;\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        lower_ast_to_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        construct_cfg_from_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        remove_unreachable_cfg_blocks(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        compute_cfg_dominators(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        compute_cfg_dominance_frontiers(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        insert_phi_nodes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        set_tac_variable_versions(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        find_unused_ssa_assignments(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:2:5: error: This variable was never used\n"
+                                                        "  2 |     a := 10;\n"
+                                                        "    |     ^");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {\n"
+                                                 "    a: mutable _ = 10;\n"
+                                                 "    a = 20;\n"
+                                                 "    return a;\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        lower_ast_to_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        construct_cfg_from_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        remove_unreachable_cfg_blocks(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        compute_cfg_dominators(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        compute_cfg_dominance_frontiers(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        insert_phi_nodes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        set_tac_variable_versions(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        find_unused_ssa_assignments(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        // FIXME(vlad): Highlight assignment here.
+        const String_View expected_output = string_view("<test-input>:2:5: error: This assignment is unused\n"
+                                                        "  2 |     a: mutable _ = 10;\n"
+                                                        "    |     ^");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {\n"
+                                                 "    a: mutable _ = 10;\n"
+                                                 ""
+                                                 "    if 1 != 2\n"
+                                                 "    {\n"
+                                                 "        a = 20;\n"
+                                                 "        return a;\n"
+                                                 "    }\n"
+                                                 ""
+                                                 "    return 30;\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        lower_ast_to_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        construct_cfg_from_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        remove_unreachable_cfg_blocks(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        compute_cfg_dominators(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        compute_cfg_dominance_frontiers(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        insert_phi_nodes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        set_tac_variable_versions(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        find_unused_ssa_assignments(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        // FIXME(vlad): Highlight assignment here.
+        const String_View expected_output = string_view("<test-input>:2:5: error: This assignment is unused\n"
+                                                        "  2 |     a: mutable _ = 10;\n"
+                                                        "    |     ^");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {\n"
+                                                 "    a: mutable _ = 10;\n"
+                                                 ""
+                                                 "    if 1 != 2\n"
+                                                 "    {\n"
+                                                 "        a = 20;\n"
+                                                 "    }\n"
+                                                 ""
+                                                 "    return 30;\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        lower_ast_to_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        construct_cfg_from_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        remove_unreachable_cfg_blocks(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        compute_cfg_dominators(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        compute_cfg_dominance_frontiers(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        insert_phi_nodes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        set_tac_variable_versions(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        find_unused_ssa_assignments(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        // FIXME(vlad): Highlight assignment here.
+        const String_View expected_output = string_view("<test-input>:2:5: error: This variable was never used\n"
+                                                        "  2 |     a: mutable _ = 10;\n"
+                                                        "    |     ^");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (parameter: s32) -> void = {}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        lower_ast_to_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        construct_cfg_from_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        remove_unreachable_cfg_blocks(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        compute_cfg_dominators(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        compute_cfg_dominance_frontiers(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        insert_phi_nodes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        set_tac_variable_versions(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        find_unused_ssa_assignments(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:1:7: error: This variable was never used\n"
+                                                        "  1 | foo: (parameter: s32) -> void = {}\n"
+                                                        "    |       ^~~~~~~~~");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {\n"
+                                                 "    a: mutable _ = 10;\n"
+                                                 ""
+                                                 "    if 1 != 2\n"
+                                                 "    {\n"
+                                                 "        a = 21;\n"
+                                                 "        return a;\n"
+                                                 "    }\n"
+                                                 "    else\n"
+                                                 "    {\n"
+                                                 "        a = 22;\n"
+                                                 "    }\n"
+                                                 ""
+                                                 "    return 30;\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        lower_ast_to_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        construct_cfg_from_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        remove_unreachable_cfg_blocks(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        compute_cfg_dominators(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        compute_cfg_dominance_frontiers(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        insert_phi_nodes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        set_tac_variable_versions(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        find_unused_ssa_assignments(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:2:5: error: This assignment is unused\n"
+                                                        "  2 |     a: mutable _ = 10;\n"
+                                                        "    |     ^\n"
+                                                        "<test-input>:10:9: error: This assignment is unused\n"
+                                                        "  10 |         a = 22;\n"
+                                                        "     |         ^");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+#if 0
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {\n"
+                                                 "    a: mutable _ = 10;\n"
+                                                 ""
+                                                 "    if 1 != 2\n"
+                                                 "    {\n"
+                                                 "        if 1 != 2\n"
+                                                 "        {\n"
+                                                 "            a = 21;\n"
+                                                 "            return a;\n"
+                                                 "        }\n"
+                                                 "        else\n"
+                                                 "        {\n"
+                                                 "            a = 22;\n"
+                                                 "        }\n"
+                                                 "    }\n"
+                                                 ""
+                                                 "    return 30;\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        lower_ast_to_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        construct_cfg_from_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        remove_unreachable_cfg_blocks(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        compute_cfg_dominators(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        compute_cfg_dominance_frontiers(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        insert_phi_nodes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        set_tac_variable_versions(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        find_unused_ssa_assignments(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:2:5: error: This assignment is unused\n"
+                                                        "  2 |     a: mutable _ = 10;\n"
+                                                        "    |     ^\n"
+                                                        "<test-input>:10:9: error: This assignment is unused\n"
+                                                        "  10 |         a = 22;\n"
+                                                        "     |         ^");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+#endif
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {\n"
+                                                 "    a: mutable _ = 10;\n"
+                                                 "    b: mutable _ = 11;\n"
+                                                 ""
+                                                 "    if 1 != 2\n"
+                                                 "    {\n"
+                                                 "        a = 20;\n"
+                                                 "        b = 21;\n"
+                                                 "    }\n"
+                                                 "    else\n"
+                                                 "    {\n"
+                                                 "        a = 30;\n"
+                                                 "    }\n"
+                                                 ""
+                                                 "    return a + b;\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        lower_ast_to_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        construct_cfg_from_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        remove_unreachable_cfg_blocks(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        compute_cfg_dominators(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        compute_cfg_dominance_frontiers(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        insert_phi_nodes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        set_tac_variable_versions(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        find_unused_ssa_assignments(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                &context,
+                                                                MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:2:5: error: This assignment is unused\n"
+                                                        "  2 |     a: mutable _ = 10;\n"
+                                                        "    |     ^");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+}
+
 REGISTER_TESTS(
     test_functions_without_jumps,
     test_if_statements,
@@ -3670,7 +4196,8 @@ REGISTER_TESTS(
     test_unreachable_blocks_removal,
     test_dominators_and_dominance_frontiers_computing,
     test_phi_nodes_insertion,
-    test_ssa_versions_of_variables
+    test_ssa_versions_of_variables,
+    test_unused_ssa_assignments
 )
 
 #include "eon_cfg.c"

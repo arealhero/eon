@@ -1,0 +1,18 @@
+regression_nested_if_statement: () -> s32 = {
+    a: mutable _ = 10;
+
+    if 1 != 2
+    {
+        if 1 != 2
+        {
+            a = 21;
+            return a;
+        }
+        else
+        {
+            a = 22;
+        }
+    }
+
+    return 30;
+}

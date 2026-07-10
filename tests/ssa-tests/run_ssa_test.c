@@ -230,10 +230,17 @@ release_arena_to_provider(Arena_Provider* provider, Arena* arena)
     destroy_arena(arena);
 }
 
+struct Conversion_Context
+{
+    Index temporary_variables_offset;
+};
+typedef struct Conversion_Context Conversion_Context;
+
 internal void
 convert_tac_operand_to_string(Compilation_Context* context,
                               String_Builder* builder,
-                              const Tac_Operand* operand)
+                              const Tac_Operand* operand,
+                              Conversion_Context* conversion_context)
 {
     Tac* tac = &context->tac;
 
@@ -263,7 +270,13 @@ convert_tac_operand_to_string(Compilation_Context* context,
 
             if (variable->is_temporary)
             {
-                name = string_view(format_string(context->scratch_arena, "temp_{}", variable_id.index));
+                if (conversion_context->temporary_variables_offset == 0)
+                {
+                    conversion_context->temporary_variables_offset = variable_id.index;
+                }
+
+                const Index temporary_variable_index = variable_id.index - conversion_context->temporary_variables_offset + 1;
+                name = string_view(format_string(context->scratch_arena, "<temp_{}>", temporary_variable_index));
             }
             else
             {
@@ -314,17 +327,25 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
         append_string(&builder, ast_definition->name.token.lexeme);
         append_string(&builder, string_view(":\n"));
 
+        Index current_instruction_index = 1;
+
+        Conversion_Context conversion_context = {0};
+
         for (Index block_index = 0;
              block_index < tac_function->cfg_blocks_count;
              ++block_index)
         {
             const Cfg_Block* block = &tac_function->cfg_blocks[block_index];
 
+            if (block->phi_nodes_count > 0)
+            {
+                append_string(&builder, string_view("       |\n"));
+            }
+
             for (Index phi_node_index = 0;
                  phi_node_index < block->phi_nodes_count;
                  ++phi_node_index)
             {
-                append_string(&builder, string_view("       |\n"));
                 append_string(&builder, string_view("       | "));
                 append_string(&builder, string_view("          PHI             "));
                 const Phi_Node* phi_node = &block->phi_nodes[phi_node_index];
@@ -333,7 +354,7 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                 destination.kind = TAC_OPERAND_VARIABLE;
                 destination.variable_id = phi_node->destination;
 
-                convert_tac_operand_to_string(context, &builder, &destination);
+                convert_tac_operand_to_string(context, &builder, &destination, &conversion_context);
 
                 for (Index argument_index = 0;
                      argument_index < phi_node->previous_variables_count;
@@ -344,7 +365,7 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                     previous_variable.variable_id = phi_node->previous_variables[argument_index];
 
                     append_string(&builder, string_view(","));
-                    convert_tac_operand_to_string(context, &builder, &previous_variable);
+                    convert_tac_operand_to_string(context, &builder, &previous_variable, &conversion_context);
                 }
 
                 append_string(&builder, string_view("\n"));
@@ -356,7 +377,10 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                  instruction_index < range->end_instruction_index;
                  ++instruction_index)
             {
-                append_string(&builder, string_view(format_string(context->scratch_arena, "{left-pad-count: 6} | ", instruction_index + 1)));
+                append_string(&builder, string_view(format_string(context->scratch_arena,
+                                                                  "{left-pad-count: 6} | ",
+                                                                  current_instruction_index)));
+                current_instruction_index += 1;
 
                 const Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
 
@@ -379,9 +403,9 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination);
+                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                     } break;
 
                     case TAC_GET_ADDRESS:
@@ -392,9 +416,9 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination);
+                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                     } break;
 
                     case TAC_LOAD_BY_ADDRESS:
@@ -405,9 +429,9 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination);
+                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                     } break;
 
                     case TAC_STORE_BY_ADDRESS:
@@ -418,9 +442,9 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination);
+                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                     } break;
 
                     case TAC_ADD:
@@ -431,11 +455,11 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination);
+                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
                     case TAC_SUBTRACT:
@@ -446,11 +470,11 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination);
+                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
                     case TAC_MULTIPLY:
@@ -461,11 +485,11 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination);
+                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
                     case TAC_DIVIDE:
@@ -476,11 +500,11 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination);
+                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
                     case TAC_EQUAL:
@@ -491,11 +515,11 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination);
+                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
                     case TAC_NOT_EQUAL:
@@ -506,11 +530,11 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination);
+                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
                     case TAC_LESS:
@@ -521,11 +545,11 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination);
+                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
                     case TAC_LESS_OR_EQUAL:
@@ -536,11 +560,11 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination);
+                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
                     case TAC_GREATER:
@@ -551,11 +575,11 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination);
+                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
                     case TAC_GREATER_OR_EQUAL:
@@ -566,11 +590,11 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination);
+                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
                     case TAC_LABEL:
@@ -591,7 +615,7 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->first_argument.kind == TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination);
+                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
                     } break;
 
                     case TAC_JUMP_IF_TRUE:
@@ -602,9 +626,9 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination);
+                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                     } break;
 
                     case TAC_JUMP_IF_FALSE:
@@ -615,9 +639,9 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination);
+                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                     } break;
 
                     case TAC_SET_PARAMETER:
@@ -628,7 +652,7 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                     } break;
 
                     case TAC_GET_PARAMETER:
@@ -639,9 +663,9 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->first_argument.kind == TAC_OPERAND_PARAMETER_INDEX);
                         ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination);
+                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
                         append_string(&builder, string_view(","));
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                     } break;
 
                     case TAC_CALL:
@@ -652,11 +676,11 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
 
                         if (instruction->destination.kind != TAC_OPERAND_NONE)
                         {
-                            convert_tac_operand_to_string(context, &builder, &instruction->destination);
+                            convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
                             append_string(&builder, string_view(","));
                         }
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument);
+                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                     } break;
 
                     case TAC_RETURN:
@@ -669,7 +693,7 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         if (instruction->first_argument.kind != TAC_OPERAND_NONE)
                         {
                             append_string(&builder, string_view("          "));
-                            convert_tac_operand_to_string(context, &builder, &instruction->first_argument);
+                            convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                         }
                     } break;
                 }

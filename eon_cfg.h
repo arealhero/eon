@@ -8,7 +8,9 @@
 struct Phi_Node
 {
     Tac_Variable_Id destination;
-    array(Tac_Variable_Id, previous_variables);
+
+    Tac_Variable_Id* previous_variables;
+    Size previous_variables_count;
 };
 typedef struct Phi_Node Phi_Node;
 
@@ -37,11 +39,15 @@ typedef struct Cfg_Block Cfg_Block;
 maybe_unused internal void construct_cfg_from_tac(struct Compilation_Context* context);
 maybe_unused internal void remove_unreachable_cfg_blocks(struct Compilation_Context* context);
 
+maybe_unused internal void construct_ssa_from_cfg(struct Compilation_Context* context);
+
 // TODO(vlad): Merge these into 'construct_ssa_from_cfg()'?
 maybe_unused internal void compute_cfg_dominators(struct Compilation_Context* context);
 maybe_unused internal void compute_cfg_dominance_frontiers(struct Compilation_Context* context);
 maybe_unused internal void insert_phi_nodes(struct Compilation_Context* context);
 maybe_unused internal void set_tac_variable_versions(struct Compilation_Context* context);
+
+maybe_unused internal void find_unused_ssa_assignments(struct Compilation_Context* context);
 
 maybe_unused internal inline void free_cfg_block(struct Compilation_Context* context, Cfg_Block* block);
 

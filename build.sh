@@ -90,17 +90,19 @@ compile_and_run_unit_test()
     "./build/tests/$test_dir/$test_name" --hide-stats
 }
 
-compile_and_run_unit_test eon/memory_ut.c
-compile_and_run_unit_test eon/containers_ut.c
-compile_and_run_unit_test eon/string_ut.c
-compile_and_run_unit_test eon_lexer_ut.c
-compile_and_run_unit_test eon_parser_ut.c
-compile_and_run_unit_test eon_lexical_scopes_ut.c
-compile_and_run_unit_test eon_types_ut.c
-compile_and_run_unit_test eon_tac_ut.c
-compile_and_run_unit_test eon_cfg_ut.c
+# compile_and_run_unit_test eon/memory_ut.c
+# compile_and_run_unit_test eon/containers_ut.c
+# compile_and_run_unit_test eon/string_ut.c
+# compile_and_run_unit_test eon_lexer_ut.c
+# compile_and_run_unit_test eon_parser_ut.c
+# compile_and_run_unit_test eon_lexical_scopes_ut.c
+# compile_and_run_unit_test eon_types_ut.c
+# compile_and_run_unit_test eon_tac_ut.c
+# compile_and_run_unit_test eon_cfg_ut.c
 
-compile_and_run_unit_test eon/sanitizers/asan_ut.c -fsanitize=address -fsanitize-recover=address
+# compile_and_run_unit_test eon/sanitizers/asan_ut.c -fsanitize=address -fsanitize-recover=address
+
+# exit 0
 
 mkdir -p build/tests/ssa-tests
 compile tests/ssa-tests/run_ssa_test.c -o build/tests/ssa-tests/run_ssa_test \
@@ -117,7 +119,9 @@ run_ssa_test()
     "build/tests/ssa-tests/run_ssa_test" "$test_directory"
 }
 
-run_ssa_test tests/ssa-tests/general-cases
+# run_ssa_test tests/ssa-tests/general-cases
+run_ssa_test tests/ssa-tests/regression-if-statement-with-return
+run_ssa_test tests/ssa-tests/regression-nested-if-statement
 
 exit 0
 

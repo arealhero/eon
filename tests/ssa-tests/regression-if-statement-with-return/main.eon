@@ -1,0 +1,16 @@
+regression_if_statement_with_return: () -> s32 = {
+    a: mutable _ = 10;
+
+    if 1 != 2
+    {
+        a = 21;
+        return a;
+    }
+    else
+    {
+        a = 22;
+    }
+
+    return 30;
+}
+
