@@ -124,6 +124,20 @@ test_simple_regressions(Test_Context* test_context)
                                  "< hello\n"
                                  "> HELLO\n");
     }
+
+    {
+        const String_View lhs = string_view("hello\n\n");
+        const String_View rhs = string_view("hello\n");
+
+        const Diff diff = calculate_line_diff(test_context->arena, lhs, rhs);
+
+        ASSERT_EQUAL(diff.lines_count, 1);
+        ASSERT_EQUAL(diff.lines[0], 1);
+        ASSERT_STRINGS_ARE_EQUAL(line_diff_to_string(test_context->arena, &diff),
+                                 "2\n"
+                                 "< \n"
+                                 "> \n");
+    }
 }
 
 REGISTER_TESTS(

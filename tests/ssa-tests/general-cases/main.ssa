@@ -55,4 +55,3 @@ function_calls:
      5 |           CALL             parameter_reassignment
      6 |           CALL             VARIABLE <temp_3>@1, returning_value_from_a_function
      7 |           RETURN           VARIABLE <temp_3>@1
-

@@ -8,4 +8,3 @@ regression_if_statement_with_return:
      7 |           ASSIGN           VARIABLE a@3, CONSTANT 22
      8 | LABEL_2:
      9 |           RETURN           CONSTANT 30
-

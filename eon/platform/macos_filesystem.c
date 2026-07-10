@@ -66,7 +66,7 @@ platform_write_string_to_file(Arena* scratch_arena,
 {
     const char* zero_terminated_filename = to_c_string(scratch_arena, filename);
     const int fd = open(zero_terminated_filename,
-                        O_WRONLY | O_CREAT,
+                        O_WRONLY | O_CREAT | O_TRUNC | O_EXLOCK,
                         S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     if (fd == -1)
     {

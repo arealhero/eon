@@ -16,4 +16,3 @@ regression_nested_if_statement:
        |           PHI              VARIABLE <temp_2>@2, VARIABLE <temp_2>@1
     13 | LABEL_2:
     14 |           RETURN           CONSTANT 30
-

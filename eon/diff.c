@@ -64,7 +64,7 @@ calculate_line_diff(Arena* arena,
     Index current_lhs_index = 0;
     Index current_rhs_index = 0;
 
-    while (current_lhs_index < lhs.length || current_rhs_index < rhs.length)
+    while (current_lhs_index < lhs.length && current_rhs_index < rhs.length)
     {
         const String_View lhs_line = get_next_line(lhs, current_lhs_index);
         const String_View rhs_line = get_next_line(rhs, current_rhs_index);
@@ -77,6 +77,24 @@ calculate_line_diff(Arena* arena,
         current_lhs_index += lhs_line.length + 1;
         current_rhs_index += rhs_line.length + 1;
 
+        line_index += 1;
+    }
+
+    while (current_lhs_index < lhs.length)
+    {
+        const String_View lhs_line = get_next_line(lhs, current_lhs_index);
+        append_array(diff.line_indices_arena, diff.lines, Index, line_index);
+
+        current_lhs_index += lhs_line.length + 1;
+        line_index += 1;
+    }
+
+    while (current_rhs_index < rhs.length)
+    {
+        const String_View rhs_line = get_next_line(rhs, current_rhs_index);
+        append_array(diff.line_indices_arena, diff.lines, Index, line_index);
+
+        current_rhs_index += rhs_line.length + 1;
         line_index += 1;
     }
 

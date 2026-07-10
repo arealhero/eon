@@ -788,7 +788,10 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
             }
         }
 
-        append_string(&builder, string_view("\n"));
+        if (function_index != tac->functions_count - 1)
+        {
+            append_string(&builder, string_view("\n"));
+        }
     }
 
     return string_builder_to_string(&builder);
