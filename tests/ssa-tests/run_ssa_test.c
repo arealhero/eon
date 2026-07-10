@@ -13,6 +13,24 @@
 #include <eon_tac.h>
 #include <eon_types.h>
 
+#define ENABLE_TIMER 0
+
+#if ENABLE_TIMER
+#    define START_TIMER(name)                                           \
+    const Timestamp name##_start = platform_get_current_monotonic_timestamp()
+
+#    define END_TIMER(name, message)                                    \
+    do                                                                  \
+    {                                                                   \
+        const Timestamp name##_end = platform_get_current_monotonic_timestamp(); \
+        println("{} in {} mcs", message, name##_end - name##_start);    \
+    }                                                                   \
+    while (0)
+#else
+#    define START_TIMER(name)
+#    define END_TIMER(name, message)
+#endif
+
 struct Arena_Provider
 {
     s32 dummy_field;
@@ -67,6 +85,7 @@ main(const int argc, const char* argv[])
 
     const Timestamp test_start_timestamp = platform_get_current_monotonic_timestamp();
 
+    START_TIMER(reading_file);
     {
         const String_View main_filename = string_view(format_string(source_code_arena, "{}/main.eon", test_directory));
         Read_File_Result result = platform_read_entire_text_file(source_code_arena, main_filename);
@@ -84,6 +103,7 @@ main(const int argc, const char* argv[])
 
         create_compilation_context(&context, &arena_provider, &source_file);
     }
+    END_TIMER(reading_file, "File read");
 
     Bool test_failed = false;
 
@@ -93,12 +113,14 @@ main(const int argc, const char* argv[])
     create_lexer(&lexer, &context);
     create_parser(&parser, &lexer, &context);
 
+    START_TIMER(ast_parsing);
     if (!parse_ast(&parser))
     {
         println("Error: failed to parse {}", context.source_file.filename);
         test_failed = true;
         goto cleanup;
     }
+    END_TIMER(ast_parsing, "AST parsed");
 
     if (has_diagnostic_messages(&context))
     {
@@ -106,7 +128,9 @@ main(const int argc, const char* argv[])
         goto cleanup;
     }
 
+    START_TIMER(lexical_scopes_creating);
     create_lexical_scopes(&context);
+    END_TIMER(lexical_scopes_creating, "Lexical scopes created");
 
     if (has_diagnostic_messages(&context))
     {
@@ -114,7 +138,9 @@ main(const int argc, const char* argv[])
         goto cleanup;
     }
 
+    START_TIMER(types_resolved);
     resolve_and_validate_types(&context);
+    END_TIMER(types_resolved, "Types resolved");
 
     if (has_diagnostic_messages(&context))
     {
@@ -122,7 +148,9 @@ main(const int argc, const char* argv[])
         goto cleanup;
     }
 
+    START_TIMER(tac_built);
     lower_ast_to_tac(&context);
+    END_TIMER(tac_built, "AST lowered to TAC");
 
     if (has_diagnostic_messages(&context))
     {
@@ -130,7 +158,9 @@ main(const int argc, const char* argv[])
         goto cleanup;
     }
 
+    START_TIMER(cfg_built);
     construct_cfg_from_tac(&context);
+    END_TIMER(cfg_built, "CFG built");
 
     if (has_diagnostic_messages(&context))
     {
@@ -138,7 +168,9 @@ main(const int argc, const char* argv[])
         goto cleanup;
     }
 
+    START_TIMER(unreachable_cfg_blocks_removed);
     remove_unreachable_cfg_blocks(&context);
+    END_TIMER(unreachable_cfg_blocks_removed, "Unreachable CFG blocks removed");
 
     if (has_diagnostic_messages(&context))
     {
@@ -146,7 +178,9 @@ main(const int argc, const char* argv[])
         goto cleanup;
     }
 
+    START_TIMER(cfg_dominators_computed);
     compute_cfg_dominators(&context);
+    END_TIMER(cfg_dominators_computed, "CFG dominators computed");
 
     if (has_diagnostic_messages(&context))
     {
@@ -154,7 +188,9 @@ main(const int argc, const char* argv[])
         goto cleanup;
     }
 
+    START_TIMER(cfg_dominance_frontiers_computed);
     compute_cfg_dominance_frontiers(&context);
+    END_TIMER(cfg_dominance_frontiers_computed, "Dominance frontiers computed");
 
     if (has_diagnostic_messages(&context))
     {
@@ -162,7 +198,9 @@ main(const int argc, const char* argv[])
         goto cleanup;
     }
 
+    START_TIMER(phi_nodes_inserted);
     insert_phi_nodes(&context);
+    END_TIMER(phi_nodes_inserted, "PHI nodes inserted");
 
     if (has_diagnostic_messages(&context))
     {
@@ -170,7 +208,9 @@ main(const int argc, const char* argv[])
         goto cleanup;
     }
 
+    START_TIMER(ssa_construction);
     set_tac_variable_versions(&context);
+    END_TIMER(ssa_construction, "SSA constructed");
 
     if (has_diagnostic_messages(&context))
     {
