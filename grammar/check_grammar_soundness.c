@@ -328,7 +328,7 @@ check_grammar_soundness(const String_View grammar_filename, const String_View gr
         const Bool result = parse_ast(arena, scratch, &parser, &ast);
         const Timestamp parsing_end = platform_get_current_monotonic_timestamp();
 
-        println("Grammar parsed in {} msc", parsing_end - parsing_start);
+        println("Grammar parsed in {} mcs", parsing_end - parsing_start);
 
         if (!result)
         {
