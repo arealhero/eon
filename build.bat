@@ -3,7 +3,7 @@ setlocal
 
 set ERROR_ON=1
 
-set USE_CLANG=0
+set USE_CLANG=1
 
 set clang_warnings=^
     -pedantic ^
@@ -18,15 +18,16 @@ set clang_warnings=^
     -Wno-error=unused-variable ^
     -Wno-error=unused-parameter
 
-REM TODO(vlad): Find a way to enable ASAN here.
+REM TODO: Find a way to enable ASAN here.
 set clang_common_flags=^
     -std=gnu11 ^
-    -O0 ^
-    -g ^
     -I. ^
-    -fno-omit-frame-pointer ^
     -ferror-limit=0 ^
-    -Wl,/INCREMENTAL:NO
+    -O0 ^
+    -fno-omit-frame-pointer ^
+    -g ^
+    -gcodeview ^
+    -fuse-ld=lld
 
 set cl_warnings=^
     /W4 ^
@@ -44,7 +45,7 @@ set cl_common_flags=^
     /nologo ^
     /fsanitize=address
 
-set cl_link_flags=/INCREMENTAL:NO
+set cl_link_flags=/link /INCREMENTAL:NO
 
 if not exist build mkdir build
 if not exist build\grammar mkdir build\grammar
@@ -55,7 +56,7 @@ if not exist build\tests\eon\sanitizers mkdir build\tests\eon\sanitizers
 call :compile grammar\check_grammar_soundness.c ^
               build\grammar\check_grammar_soundness
 
-build\grammar\check_grammar_soundness.exe grammar\eon-grammar
+build\grammar\check_grammar_soundness.exe grammar\eon-grammar || exit /B 1
 
 call :compile_and_run_unit_test eon\memory_ut.c || exit /B 1
 call :compile_and_run_unit_test eon\string_ut.c || exit /B 1
@@ -66,14 +67,29 @@ call :compile_and_run_unit_test eon_types_ut.c || exit /B 1
 call :compile_and_run_unit_test eon_tac_ut.c || exit /B 1
 call :compile_and_run_unit_test eon_cfg_ut.c || exit /B 1
 
-REM FIXME(vlad): Enable this test on Windows (clang-cl's ASAN does not work for some reason;
-REM              also this test does not work for cl.exe because it uses unix-specific headers).
-REM call :compile_and_run_unit_test eon/sanitizers/asan_ut.c -fsanitize=address -fsanitize-recover=address
+if %USE_CLANG% EQU 1 (
+REM FIXME: Enable this test on Windows. clang-cl's ASAN does not work for some reason;
+REM        also this test does not work for cl.exe because it uses unix-specific headers.
+REM call :compile_and_run_unit_test eon/sanitizers/asan_ut.c -fsanitize=address -fsanitize-recover=address || exit /B 1
+) else (
+  REM call :compile_and_run_unit_test eon/sanitizers/asan_ut.c /fsanitize=address /fsanitize-recover=address || exit /B 1
+)
+
+if not exist build\tests\ssa-tests mkdir build\tests\ssa-tests
+call :compile tests\ssa-tests\run_ssa_test.c ^
+              build\tests\ssa-tests\run_ssa_test
+
+build\tests\ssa-tests\run_ssa_test.exe tests\ssa-tests\general-cases
+build\tests\ssa-tests\run_ssa_test.exe tests\ssa-tests\regression-if-statement-with-return
+build\tests\ssa-tests\run_ssa_test.exe tests\ssa-tests\regression-nested-if-statement
 
 exit /B %ERRORLEVEL%
 
-REM NOTE(vlad): Usage: call :compile <source-file> <output-file>
+REM Usage: call :compile <source-file> <output-file>
 :compile
+
+setlocal
+
 echo.
 echo Compiling '%1'
 
@@ -119,14 +135,17 @@ set /a rem_ms = delta_ms %% 1000
 
 echo Compilation took %secs%.%rem_ms% seconds
 
+endlocal
+
 goto :eof
 
-REM NOTE(vlad): Usage: call :compile_and_run_unit_test <test-file> [extra arguments]
+REM Usage: call :compile_and_run_unit_test <test-file> [extra arguments]
 :compile_and_run_unit_test
 setlocal EnableDelayedExpansion
 
 set test_filename=%~1
 shift
+REM FIXME: Pass additional args to :compile.
 set additional_args=%*
 
 set "test_name=!test_filename!"
