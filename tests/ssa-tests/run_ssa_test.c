@@ -1,4 +1,5 @@
 #include <eon/common.h>
+#include <eon/diff.h>
 #include <eon/memory.h>
 #include <eon/string.h>
 
@@ -79,20 +80,24 @@ main(const int argc, const char* argv[])
     }
 
     Arena* source_code_arena = create_arena("source-code", GiB(1), MiB(1));
+    Arena* ssa_string_arena = create_arena("ssa-string", GiB(1), MiB(1));
 
     Arena_Provider arena_provider = {0};
     Compilation_Context context = {0};
 
     const Timestamp test_start_timestamp = platform_get_current_monotonic_timestamp();
 
-    START_TIMER(reading_file);
     {
         const String_View main_filename = string_view(format_string(source_code_arena, "{}/main.eon", test_directory));
-        Read_File_Result result = platform_read_entire_text_file(source_code_arena, main_filename);
+
+        START_TIMER(reading_file);
+        const Read_File_Result result = platform_read_entire_text_file(source_code_arena, main_filename);
+        END_TIMER(reading_file, "File read");
 
         if (result.status != READ_FILE_SUCCESS)
         {
             println("Error: failed to read file {}", main_filename);
+            destroy_arena(ssa_string_arena);
             destroy_arena(source_code_arena);
             return EXIT_FAILURE;
         }
@@ -101,9 +106,10 @@ main(const int argc, const char* argv[])
         source_file.filename = main_filename;
         source_file.code = string_view(result.content);
 
+        START_TIMER(context_created);
         create_compilation_context(&context, &arena_provider, &source_file);
+        END_TIMER(context_created, "Compilation context created");
     }
-    END_TIMER(reading_file, "File read");
 
     Bool test_failed = false;
 
@@ -218,14 +224,46 @@ main(const int argc, const char* argv[])
         goto cleanup;
     }
 
-    Arena* ssa_arena = create_arena("ssa-string", GiB(1), MiB(1));
+    const String_View ssa_string = convert_ssa_to_string(ssa_string_arena, &context);
 
-    const String_View ssa_string = convert_ssa_to_string(ssa_arena, &context);
-    print("\n{}", ssa_string);
+    START_TIMER(reading_canon_file);
+    const String_View canon_filename = string_view(format_string(source_code_arena, "{}/main.ssa", test_directory));
+    const Read_File_Result result = platform_read_entire_text_file(source_code_arena, canon_filename);
 
-    UNUSED(canonize_output);
+    const String_View canon = string_view(result.content);
+    END_TIMER(reading_canon_file, "Canon file read");
 
-    destroy_arena(ssa_arena);
+    if (strings_are_equal(ssa_string, canon))
+    {
+        if (canonize_output)
+        {
+            println("Outputs are the same, so there is no need to canonize");
+        }
+
+        goto cleanup;
+    }
+
+    if (canonize_output)
+    {
+        platform_write_string_to_file(context.scratch_arena, canon_filename, ssa_string);
+        println("Output canonized");
+        goto cleanup;
+    }
+
+    if (canon.length == 0)
+    {
+        println("Canon is empty. To canonize this output, execute '{} {} canonize'\n\n{}",
+                argv[0],
+                argv[1],
+                ssa_string);
+    }
+    else
+    {
+        const Diff diff = calculate_line_diff(context.scratch_arena, canon, ssa_string);
+        const String_View diff_string = line_diff_to_string(context.scratch_arena, &diff);
+
+        println("Test failed with this diff:\n\n{}", diff_string);
+    }
 
 cleanup:
     {
@@ -242,6 +280,8 @@ cleanup:
         destroy_parser(&parser);
         destroy_lexer(&lexer);
     }
+
+    destroy_arena(ssa_string_arena);
 
     return test_failed ? EXIT_FAILURE : EXIT_SUCCESS;
 }
@@ -754,6 +794,7 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
     return string_builder_to_string(&builder);
 }
 
+#include <eon/diff.c>
 #include <eon/io.c>
 #include <eon/memory.c>
 #include <eon/string.c>
