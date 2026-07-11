@@ -89,7 +89,7 @@ platform_write_string_to_file(Arena* scratch_arena,
         FAIL("Failed to write to a file");
     }
 
-    ASSERT(bytes_written == content.length);
+    ASSERT(bytes_written == (DWORD)content.length);
     CloseHandle(file_handle);
 }
 

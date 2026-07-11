@@ -293,7 +293,7 @@ FOR_EACH_INTEGER_TYPE(DEFINE_PARSE_INTEGER_FUNCTION)
                                                                         \
         Float_Type fraction_part_float = ABS(number) - (Float_Type)integer_part; \
         u64 max_fraction = 0;                                           \
-        for (u32 i = 0;                                                 \
+        for (Index i = 0;                                               \
              i < precision;                                             \
              ++i)                                                       \
         {                                                               \

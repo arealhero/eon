@@ -40,10 +40,10 @@
 #    error Unknown target architecture.
 #endif
 
-#if defined(ARCH_X86_64) || defined(ARCH_ARM64)
+#if ARCH_X86_64 || ARCH_ARM64
 #    define ARCH_32BIT 0
 #    define ARCH_64BIT 1
-#elif defined(ARCH_X86) || defined(ARCH_ARM32)
+#elif ARCH_X86 || ARCH_ARM32
 #    define ARCH_32BIT 1
 #    define ARCH_64BIT 0
 #endif

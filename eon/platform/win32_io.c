@@ -16,7 +16,7 @@ write_data_to_stdout(const Byte* data, const Size data_size)
     const HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
 
     DWORD written_bytes_count = 0;
-    while (written_bytes_count != data_size)
+    while (written_bytes_count != (DWORD)data_size)
     {
         const BOOL result = WriteFile(handle, data, (DWORD)data_size, &written_bytes_count, NULL);
         if (result == FALSE)

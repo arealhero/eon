@@ -113,7 +113,9 @@ INTERNAL_create_arena(const String_View name,
     Arena* arena = (Arena*) platform_reserve_memory(number_of_bytes_to_reserve);
     if (arena == NULL)
     {
-        ASSERT(0 && "Failed to reserve memory");
+        print_message_directly_to_stdout("Cannot create arena '");
+        print_message_directly_to_stdout(name);
+        print_message_directly_to_stdout("': failed to reserve memory\n");
         return NULL;
     }
 
