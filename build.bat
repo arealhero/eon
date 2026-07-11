@@ -85,9 +85,9 @@ if not exist build\tests\ssa-tests mkdir build\tests\ssa-tests
 call :compile tests\ssa-tests\run_ssa_test.c ^
               build\tests\ssa-tests\run_ssa_test || exit /B 1
 
-build\tests\ssa-tests\run_ssa_test.exe tests\ssa-tests\general-cases || exit /B 1
-build\tests\ssa-tests\run_ssa_test.exe tests\ssa-tests\regression-if-statement-with-return || exit /B 1
-build\tests\ssa-tests\run_ssa_test.exe tests\ssa-tests\regression-nested-if-statement || exit /B 1
+call :run_ssa_test tests\ssa-tests\general-cases || exit /B 1
+call :run_ssa_test tests\ssa-tests\regression-if-statement-with-return || exit /B 1
+call :run_ssa_test tests\ssa-tests\regression-nested-if-statement || exit /B 1
 
 exit /B %ERRORLEVEL%
 
@@ -172,5 +172,27 @@ popd
 endlocal
 
 goto :eof
+
+REM Usage: call :run_ssa_test <test-directory>
+:run_ssa_test
+setlocal
+
+set test_directory=%~1
+
+:: Remove trailing backslash if it exists
+if "%test_directory:~-1%"=="\" set "test_directory=%test_directory:~0,-1%"
+
+:: Extract the last folder
+for %%I in ("%test_directory:\=" "%") do set "test_name=%%~I"
+
+echo.
+echo Running SSA test '%test_name%'
+
+build\tests\ssa-tests\run_ssa_test.exe %test_directory% || exit /B 1
+
+endlocal
+
+goto :eof
+REM NOTE: End of ':run_ssa_test'.
 
 endlocal
