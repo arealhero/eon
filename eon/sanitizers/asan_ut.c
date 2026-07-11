@@ -6,14 +6,15 @@
 #include <eon/keywords.h>
 
 #if ASAN_ENABLED == 0
-#    error This test should be compiled with "-fsanitize=address -fsanitize-recover=address" compile flags.
+#    if COMPILER_MSVC
+#        error This test should be compiled with "/fsanitize=address" compile flag.
+#    else
+#        error This test should be compiled with "-fsanitize=address" compile flag.
+#    endif
 #endif
 
 #include <eon/memory.h>
 #include <eon/sanitizers/asan.h>
-
-#include <unistd.h>
-#include <fcntl.h>
 
 // XXX(vlad): Make this variable thread-local after implementing tests parallelization.
 //            @tag(tests)
@@ -30,31 +31,13 @@ __asan_default_options(void)
 {
     return
         "halt_on_error=false:"
-        "print_legend=false:"
-        "print_full_thread_history=false:"
+        "continue_on_error=2:"
         ASAN_DEFAULT_OPTIONS;
-}
-
-internal void
-suppress_asan_reporting(void)
-{
-    // XXX(vlad): Add thread syncronization after implementing tests parallelization.
-    //            @tag(tests)
-
-    // FIXME(vlad): Make this code platform-independent.
-    const Size fd = (Size)open("/dev/null", O_WRONLY);
-    ASSERT(fd != -1);
-    __sanitizer_set_report_fd((void*)fd);
-
-    // NOTE(vlad): There is nothing wrong with not closing the 'fd' in tests.
-    //             OS will close it as part of the cleanup process.
 }
 
 internal void
 test_use_after_free_in_arenas(Test_Context* test_context)
 {
-    suppress_asan_reporting();
-
     // NOTE(vlad): UAF after clearing the arena.
     {
         global_sanitizer_was_triggered = false;
@@ -131,8 +114,6 @@ test_use_after_free_in_arenas(Test_Context* test_context)
 internal void
 test_buffer_overruns_in_arenas(Test_Context* test_context)
 {
-    suppress_asan_reporting();
-
     enum { TEST_ARRAY_SIZE = 10 };
 
     // NOTE(vlad): Overrun: single buffer case.
@@ -171,8 +152,6 @@ test_buffer_overruns_in_arenas(Test_Context* test_context)
 internal void
 test_buffer_underruns_in_arenas(Test_Context* test_context)
 {
-    suppress_asan_reporting();
-
     enum { TEST_ARRAY_SIZE = 10 };
 
     // NOTE(vlad): Underrun: single buffer case.

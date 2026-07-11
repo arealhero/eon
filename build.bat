@@ -3,7 +3,7 @@ setlocal
 
 set ERROR_ON=1
 
-set ENABLE_ASAN=0
+set ENABLE_ASAN=1
 set USE_CLANG=1
 
 set "clang_warnings=-pedantic -Wall -Wextra -Werror -Wconversion -Wshadow -Wunreachable-code -Wno-variadic-macro-arguments-omitted -Wno-error=unused-function -Wno-error=unused-variable -Wno-error=unused-parameter"
@@ -39,11 +39,14 @@ call :compile_and_run_unit_test eon\diff_ut.c || exit /B 1
 
 if %USE_CLANG% EQU 1 (
    setlocal
-   set "clang_common_flags=%clang_common_flags% -fsanitize=address -fsanitize-recover=address"
-   rem call :compile_and_run_unit_test eon/sanitizers/asan_ut.c || exit /B 1
+   set "clang_common_flags=%clang_common_flags% -fsanitize=address"
+   call :compile_and_run_unit_test eon\sanitizers\asan_ut.c 2>NUL || exit /B 1
    endlocal
 ) else (
-  REM call :compile_and_run_unit_test eon/sanitizers/asan_ut.c /fsanitize=address /fsanitize-recover=address || exit /B 1
+   setlocal
+   set "cl_common_flags=%cl_common_flags% /fsanitize=address"
+   call :compile_and_run_unit_test eon\sanitizers\asan_ut.c 2>NUL || exit /B 1
+   endlocal
 )
 
 call :compile_and_run_unit_test eon_lexer_ut.c || exit /B 1

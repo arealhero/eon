@@ -5,7 +5,15 @@
 #include <eon/types.h>
 
 #if ASAN_ENABLED
+#    if OS_WINDOWS
+#        include <eon/platform/win32_hacks.h> // IWYU pragma: export
+#    endif
+
 #    include <sanitizer/asan_interface.h>
+
+#    if OS_WINDOWS
+#        include <eon/platform/win32_restore_hacks.h> // IWYU pragma: export
+#    endif
 
 #    define ASAN_DEFAULT_OPTIONS "detect_stack_use_after_return=true:"  \
                                  "check_initialization_order=true:"     \
