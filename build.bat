@@ -3,70 +3,49 @@ setlocal
 
 set ERROR_ON=1
 
+set ENABLE_ASAN=0
 set USE_CLANG=1
 
-set clang_warnings=^
-    -pedantic ^
-    -Wall ^
-    -Wextra ^
-    -Werror ^
-    -Wconversion ^
-    -Wshadow ^
-    -Wunreachable-code ^
-    -Wno-variadic-macro-arguments-omitted ^
-    -Wno-error=unused-function ^
-    -Wno-error=unused-variable ^
-    -Wno-error=unused-parameter
-
-REM TODO: Find a way to enable ASAN here.
-set clang_common_flags=^
-    -std=gnu11 ^
-    -I. ^
-    -ferror-limit=0 ^
-    -O0 ^
-    -fno-omit-frame-pointer ^
-    -g ^
-    -gcodeview ^
-    -fuse-ld=lld ^
-    -fsanitize=address ^
-    -D_DLL ^
-    -D_WIN32_WINNT=0x0501 ^
-    -lmsvcrt
+set "clang_warnings=-pedantic -Wall -Wextra -Werror -Wconversion -Wshadow -Wunreachable-code -Wno-variadic-macro-arguments-omitted -Wno-error=unused-function -Wno-error=unused-variable -Wno-error=unused-parameter"
+set "clang_common_flags=-std=gnu11 -I. -ferror-limit=0 -O0 -fno-omit-frame-pointer -g -gcodeview -fuse-ld=lld -D_DLL -D_WIN32_WINNT=0x0501 -lmsvcrt"
 
 REM NOTE: '-D_WIN32_WINNT=0x0501' forces compiler to use APIs that are compatible with Windows XP.
 REM @ref: https://www.yoctopuce.com/EN/article/running-on-an-antique-windows-xp
 
-set cl_warnings=^
-    /W4 ^
-    /WX ^
-    /wd4146 ^
-    /wd4210 ^
-    /wd4310
+set "cl_warnings=/W4 /WX /wd4146 /wd4210 /wd4310"
+set "cl_common_flags=/std:c11 /Od /Zi /Zo /I. /nologo"
+set "cl_link_flags=/link /INCREMENTAL:NO"
 
-set cl_common_flags=^
-    /std:c11 ^
-    /Od ^
-    /Zi ^
-    /Zo ^
-    /I. ^
-    /nologo ^
-    /fsanitize=address
+if %ENABLE_ASAN% EQU 1 (
+   set "clang_common_flags=%clang_common_flags% -fsanitize=address"
+   set "cl_common_flags=%cl_common_flags% /fsanitize=address"
+)
 
-set cl_link_flags=/link /INCREMENTAL:NO
-
+if exist build rmdir /S /Q build
 if not exist build mkdir build
 if not exist build\grammar mkdir build\grammar
 if not exist build\tests mkdir build\tests
 if not exist build\tests\eon mkdir build\tests\eon
 if not exist build\tests\eon\sanitizers mkdir build\tests\eon\sanitizers
 
-call :compile grammar\check_grammar_soundness.c ^
-              build\grammar\check_grammar_soundness || exit /B 1
+call :compile grammar\check_grammar_soundness.c build\grammar\check_grammar_soundness || exit /B 1
 
 build\grammar\check_grammar_soundness.exe grammar\eon-grammar || exit /B 1
 
 call :compile_and_run_unit_test eon\memory_ut.c || exit /B 1
+call :compile_and_run_unit_test eon\containers_ut.c || exit /B 1
 call :compile_and_run_unit_test eon\string_ut.c || exit /B 1
+call :compile_and_run_unit_test eon\diff_ut.c || exit /B 1
+
+if %USE_CLANG% EQU 1 (
+   setlocal
+   set "clang_common_flags=%clang_common_flags% -fsanitize=address -fsanitize-recover=address"
+   rem call :compile_and_run_unit_test eon/sanitizers/asan_ut.c || exit /B 1
+   endlocal
+) else (
+  REM call :compile_and_run_unit_test eon/sanitizers/asan_ut.c /fsanitize=address /fsanitize-recover=address || exit /B 1
+)
+
 call :compile_and_run_unit_test eon_lexer_ut.c || exit /B 1
 call :compile_and_run_unit_test eon_parser_ut.c || exit /B 1
 call :compile_and_run_unit_test eon_lexical_scopes_ut.c || exit /B 1
@@ -74,16 +53,8 @@ call :compile_and_run_unit_test eon_types_ut.c || exit /B 1
 call :compile_and_run_unit_test eon_tac_ut.c || exit /B 1
 call :compile_and_run_unit_test eon_cfg_ut.c || exit /B 1
 
-if %USE_CLANG% EQU 1 (
-REM FIXME: Support additional arguments here.
-REM call :compile_and_run_unit_test eon/sanitizers/asan_ut.c -fsanitize=address -fsanitize-recover=address || exit /B 1
-) else (
-  REM call :compile_and_run_unit_test eon/sanitizers/asan_ut.c /fsanitize=address /fsanitize-recover=address || exit /B 1
-)
-
 if not exist build\tests\ssa-tests mkdir build\tests\ssa-tests
-call :compile tests\ssa-tests\run_ssa_test.c ^
-              build\tests\ssa-tests\run_ssa_test || exit /B 1
+call :compile tests\ssa-tests\run_ssa_test.c build\tests\ssa-tests\run_ssa_test || exit /B 1
 
 call :run_ssa_test tests\ssa-tests\general-cases || exit /B 1
 call :run_ssa_test tests\ssa-tests\regression-if-statement-with-return || exit /B 1
@@ -112,18 +83,9 @@ for /f "tokens=1-4 delims=:., " %%a in ("%starttime%") do (
 set /a start_total_ms = (start_h*3600 + start_m*60 + start_s) * 1000 + start_ms
 
 if %USE_CLANG% EQU 1 (
-  clang "%source%" -o "%output%.exe" ^
-        %clang_warnings% ^
-        %clang_common_flags% ^
-        || exit /B 1
+  clang "%source%" -o "%output%.exe" %clang_warnings% %clang_common_flags% || exit /B 1
 ) else (
-  cl %cl_common_flags% %cl_warnings% ^
-     "%source%" ^
-     /Fo:"%output%.obj" ^
-     /Fe:"%output%.exe" ^
-     /Fd:"%output%.pdb" ^
-     %cl_link_flags% ^
-     || exit /B 1
+  cl %cl_common_flags% %cl_warnings% "%source%" /Fo:"%output%.obj" /Fe:"%output%.exe" /Fd:"%output%.pdb" %cl_link_flags% || exit /B 1
 )
 
 set endtime="%TIME%"
@@ -194,5 +156,3 @@ endlocal
 
 goto :eof
 REM NOTE: End of ':run_ssa_test'.
-
-endlocal
