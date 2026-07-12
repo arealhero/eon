@@ -966,6 +966,17 @@ insert_phi_nodes(Compilation_Context* context)
              variable_index < tac_function->last_tac_variable_index;
              ++variable_index)
         {
+            Tac_Variable_Id this_variable_id = {0};
+            this_variable_id.index = variable_index;
+
+            {
+                Tac_Variable* this_variable = get_tac_variable_by_id(tac, this_variable_id);
+                if (this_variable->is_temporary)
+                {
+                    continue;
+                }
+            }
+
             struct Block_Ids_Stack
             {
                 stack(Cfg_Block_Id, ids);
@@ -1008,9 +1019,6 @@ insert_phi_nodes(Compilation_Context* context)
             Bool* block_has_phi_node_for_this_variable = allocate_array(context->scratch_arena,
                                                                         tac_function->cfg_blocks_count,
                                                                         Bool);
-
-            Tac_Variable_Id this_variable_id = {0};
-            this_variable_id.index = variable_index;
 
             while (blocks_that_need_phi_nodes.ids_count > 0)
             {
@@ -1166,6 +1174,12 @@ set_tac_variable_versions_in_cfg_block(Compilation_Context* context,
          ++phi_node_index)
     {
         Phi_Node* phi_node = &block->phi_nodes[phi_node_index];
+
+        {
+            const Tac_Variable_Id destination_id = phi_node->destination;
+            Tac_Variable* destination = get_tac_variable_by_id(&context->tac, destination_id);
+            ASSERT(!destination->is_temporary);
+        }
 
         const Index version = push_new_tac_variable_version(renaming_info, phi_node->destination);
         phi_node->destination.ssa_version = version;
