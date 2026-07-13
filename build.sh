@@ -151,6 +151,7 @@ run_ssa_test()
 }
 
 run_ssa_test tests/ssa-tests/general-cases
+run_ssa_test tests/ssa-tests/constant-folding
 run_ssa_test tests/ssa-tests/regression-if-statement-with-return
 run_ssa_test tests/ssa-tests/regression-nested-if-statement
 

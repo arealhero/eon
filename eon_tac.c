@@ -177,17 +177,277 @@ create_tac_temporary_variable(Compilation_Context* context,
     return operand;
 }
 
+// TODO(vlad): Remove code duplication here and in type-to-string conversion function.
+internal Tac_Constant_Kind
+get_constant_kind_by_type_id(Compilation_Context* context,
+                             const Type_Id type_id)
+{
+    const Type* type = get_type_by_id(context, type_id);
+
+    switch (type->kind)
+    {
+        case TYPE_NUMBER_VARIABLE:
+        {
+            const Number_Constraints* constraints = &type->number_constraints;
+
+            if (constraints->must_be_a_floating_point_number)
+            {
+                switch (constraints->min_bit_width)
+                {
+                    case 0:
+                    case 32:
+                    {
+                        return TAC_CONSTANT_FLOAT32;
+                    } break;
+
+                    case 64:
+                    {
+                        return TAC_CONSTANT_FLOAT64;
+                    } break;
+
+                    default:
+                    {
+                        UNREACHABLE();
+                    } break;
+                }
+
+                UNREACHABLE();
+            }
+            else
+            {
+                if (constraints->sign == SIGN_UNSIGNED)
+                {
+                    switch (constraints->min_bit_width)
+                    {
+                        case 8:
+                        {
+                            return TAC_CONSTANT_UINT8;
+                        } break;
+
+                        case 16:
+                        {
+                            return TAC_CONSTANT_UINT16;
+                        } break;
+
+                        case 0:
+                        case 32:
+                        {
+                            return TAC_CONSTANT_UINT32;
+                        } break;
+
+                        case 64:
+                        {
+                            return TAC_CONSTANT_UINT64;
+                        } break;
+
+                        default:
+                        {
+                            UNREACHABLE();
+                        } break;
+                    }
+
+                    UNREACHABLE();
+                }
+                else
+                {
+                    switch (constraints->min_bit_width)
+                    {
+                        case 8:
+                        {
+                            return TAC_CONSTANT_INT8;
+                        } break;
+
+                        case 16:
+                        {
+                            return TAC_CONSTANT_INT16;
+                        } break;
+
+                        case 0:
+                        case 32:
+                        {
+                            return TAC_CONSTANT_INT32;
+                        } break;
+
+                        case 64:
+                        {
+                            return TAC_CONSTANT_INT64;
+                        } break;
+
+                        default:
+                        {
+                            UNREACHABLE();
+                        } break;
+                    }
+
+                    UNREACHABLE();
+                }
+            }
+        } break;
+
+        case TYPE_INTEGER:
+        {
+            const Integer_Type_Info* integer_info = &type->integer_info;
+
+            if (integer_info->is_signed)
+            {
+                switch (integer_info->width_in_bits)
+                {
+                    case 8:
+                    {
+                        return TAC_CONSTANT_INT8;
+                    } break;
+
+                    case 16:
+                    {
+                        return TAC_CONSTANT_INT16;
+                    } break;
+
+                    case 0:
+                    case 32:
+                    {
+                        return TAC_CONSTANT_INT32;
+                    } break;
+
+                    case 64:
+                    {
+                        return TAC_CONSTANT_INT64;
+                    } break;
+
+                    default:
+                    {
+                        UNREACHABLE();
+                    } break;
+                }
+
+                UNREACHABLE();
+            }
+            else
+            {
+                switch (integer_info->width_in_bits)
+                {
+                    case 8:
+                    {
+                        return TAC_CONSTANT_UINT8;
+                    } break;
+
+                    case 16:
+                    {
+                        return TAC_CONSTANT_UINT16;
+                    } break;
+
+                    case 0:
+                    case 32:
+                    {
+                        return TAC_CONSTANT_UINT32;
+                    } break;
+
+                    case 64:
+                    {
+                        return TAC_CONSTANT_UINT64;
+                    } break;
+
+                    default:
+                    {
+                        UNREACHABLE();
+                    } break;
+                }
+
+                UNREACHABLE();
+            }
+        } break;
+
+        case TYPE_FLOAT:
+        {
+            const Float_Type_Info* float_info = &type->float_info;
+
+            switch (float_info->width_in_bits)
+            {
+                case 0:
+                case 32:
+                {
+                    return TAC_CONSTANT_FLOAT32;
+                } break;
+
+                case 64:
+                {
+                    return TAC_CONSTANT_FLOAT64;
+                } break;
+
+                default:
+                {
+                    UNREACHABLE();
+                } break;
+            }
+
+            UNREACHABLE();
+        } break;
+
+        case TYPE_BOOLEAN:
+        {
+            return TAC_CONSTANT_BOOLEAN;
+        } break;
+
+        case TYPE_UNDEFINED:
+        case TYPE_INVALID:
+        case TYPE_VOID:
+        case TYPE_VARIABLE:
+        case TYPE_POINTER:
+        case TYPE_FUNCTION:
+        {
+            UNREACHABLE();
+        } break;
+    }
+
+    UNREACHABLE();
+}
+
 internal Tac_Operand
 create_tac_constant_for_number(Compilation_Context* context,
                                const Ast_Expression* expression)
 {
+    ASSERT(expression->kind == AST_EXPRESSION_NUMBER);
+
     const Tac_Constant_Id id = create_tac_constant(context);
 
     Tac_Constant* constant = get_tac_constant_by_id(&context->tac, id);
-    constant->type_id = expression->type_id;
+    constant->kind = get_constant_kind_by_type_id(context, expression->type_id);
 
-    ASSERT(expression->kind == AST_EXPRESSION_NUMBER);
-    constant->ast_number = &expression->number;
+    const Ast_Number* number = &expression->number;
+
+    switch (constant->kind)
+    {
+        case TAC_CONSTANT_UNDEFINED:
+        {
+            UNREACHABLE();
+        } break;
+
+        case TAC_CONSTANT_BOOLEAN:
+        {
+            FAIL("[TAC] Booleans are not supported yet");
+        } break;
+
+        case TAC_CONSTANT_INT8:
+        case TAC_CONSTANT_INT16:
+        case TAC_CONSTANT_INT32:
+        case TAC_CONSTANT_INT64:
+        case TAC_CONSTANT_UINT8:
+        case TAC_CONSTANT_UINT16:
+        case TAC_CONSTANT_UINT32:
+        case TAC_CONSTANT_UINT64:
+        {
+            ASSERT(parse_integer(number->token.lexeme, &constant->integer_value));
+        } break;
+
+        case TAC_CONSTANT_FLOAT32:
+        {
+            ASSERT(parse_float(number->token.lexeme, &constant->float32_value));
+        } break;
+
+        case TAC_CONSTANT_FLOAT64:
+        {
+            ASSERT(parse_float(number->token.lexeme, &constant->float64_value));
+        } break;
+    }
 
     Tac_Operand operand = {0};
     operand.kind = TAC_OPERAND_CONSTANT;

@@ -96,14 +96,41 @@ struct Tac_Variable_Id
 };
 typedef struct Tac_Variable_Id Tac_Variable_Id;
 
+enum Tac_Constant_Kind
+{
+    TAC_CONSTANT_UNDEFINED = 0,
+
+    TAC_CONSTANT_BOOLEAN,
+
+    TAC_CONSTANT_INT8,
+    TAC_CONSTANT_INT16,
+    TAC_CONSTANT_INT32,
+    TAC_CONSTANT_INT64,
+
+    TAC_CONSTANT_UINT8,
+    TAC_CONSTANT_UINT16,
+    TAC_CONSTANT_UINT32,
+    TAC_CONSTANT_UINT64,
+
+    TAC_CONSTANT_FLOAT32,
+    TAC_CONSTANT_FLOAT64,
+};
+typedef enum Tac_Constant_Kind Tac_Constant_Kind;
+
 struct Tac_Constant
 {
-    Type_Id type_id;
+    Tac_Constant_Kind kind;
 
     union
     {
         // TODO(vlad): Support string literals.
-        const Ast_Number* ast_number;
+
+        Bool boolean_value;
+
+        u64 integer_value;
+
+        f32 float32_value;
+        f64 float64_value;
     };
 };
 typedef struct Tac_Constant Tac_Constant;
@@ -175,6 +202,8 @@ struct Tac
 typedef struct Tac Tac;
 
 maybe_unused internal void lower_ast_to_tac(struct Compilation_Context* context);
+
+maybe_unused internal Tac_Constant_Id create_tac_constant(struct Compilation_Context* context);
 
 maybe_unused internal inline Tac_Function* get_tac_function_by_label(Tac* tac, const Tac_Function_Label_Id label_id);
 maybe_unused internal inline Tac_Function_Label* get_tac_function_label_by_id(Tac* tac, const Tac_Function_Label_Id id);

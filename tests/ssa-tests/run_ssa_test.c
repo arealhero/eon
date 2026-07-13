@@ -46,6 +46,12 @@ print_usage(void)
 
 internal String_View convert_ssa_to_string(Arena* arena, Compilation_Context* context);
 
+internal Bool compare_outputs_and_optionally_canonize(Arena* scratch_arena,
+                                                      const String_View test_name,
+                                                      const String_View filename,
+                                                      const String_View output,
+                                                      const Bool canonize_output);
+
 int
 main(const int argc, const char* argv[])
 {
@@ -224,45 +230,44 @@ main(const int argc, const char* argv[])
         goto cleanup;
     }
 
-    const String_View ssa_string = convert_ssa_to_string(ssa_string_arena, &context);
-
-    START_TIMER(reading_canon_file);
-    const String_View canon_filename = string_view(format_string(source_code_arena, "{}/main.ssa", test_directory));
-    const Read_File_Result result = platform_read_entire_text_file(source_code_arena, canon_filename);
-
-    const String_View canon = string_view(result.content);
-    END_TIMER(reading_canon_file, "Canon file read");
-
-    if (strings_are_equal(ssa_string, canon))
     {
-        if (canonize_output)
-        {
-            println("Outputs are the same, so there is no need to canonize");
-        }
+        START_TIMER(comparing_plain_ssa);
+        const String_View plain_ssa_string = convert_ssa_to_string(ssa_string_arena, &context);
+        const String_View plain_ssa_filename = string_view(format_string(source_code_arena, "{}/plain.ssa", test_directory));
 
+        const Bool success = compare_outputs_and_optionally_canonize(context.scratch_arena,
+                                                                     string_view("Plain SSA"),
+                                                                     plain_ssa_filename,
+                                                                     plain_ssa_string,
+                                                                     canonize_output);
+        test_failed = !success;
+
+        END_TIMER(comparing_plain_ssa, "Plain SSA processed");
+    }
+
+    START_TIMER(constant_folding);
+    perform_constant_folding(&context);
+    END_TIMER(constant_folding, "Constant folding performed");
+
+    if (has_diagnostic_messages(&context))
+    {
+        test_failed = true;
         goto cleanup;
     }
 
-    if (canonize_output)
     {
-        platform_write_string_to_file(context.scratch_arena, canon_filename, ssa_string);
-        println("Output canonized");
-        goto cleanup;
-    }
+        START_TIMER(comparing_ssa_after_constant_folding);
+        const String_View ssa_string_after_constant_folding = convert_ssa_to_string(ssa_string_arena, &context);
+        const String_View ssa_after_constant_folding_filename = string_view(format_string(source_code_arena, "{}/after-constant-folding.ssa", test_directory));
 
-    if (canon.length == 0)
-    {
-        println("Canon is empty. To canonize this output, execute '{} {} canonize'\n\n{}",
-                argv[0],
-                argv[1],
-                ssa_string);
-    }
-    else
-    {
-        const Diff diff = calculate_line_diff(context.scratch_arena, canon, ssa_string);
-        const String_View diff_string = line_diff_to_string(context.scratch_arena, &diff);
+        const Bool success = compare_outputs_and_optionally_canonize(context.scratch_arena,
+                                                                     string_view("SSA after constant folding"),
+                                                                     ssa_after_constant_folding_filename,
+                                                                     ssa_string_after_constant_folding,
+                                                                     canonize_output);
+        test_failed = !success;
 
-        println("Test failed with this diff:\n\n{}", diff_string);
+        END_TIMER(comparing_ssa_after_constant_folding, "SSA after constant folding processed");
     }
 
 cleanup:
@@ -382,7 +387,60 @@ convert_tac_operand_to_string(Compilation_Context* context,
             ASSERT(constant_id.index != INVALID_TAC_INDEX);
 
             const Tac_Constant* constant = &tac->constants[constant_id.index];
-            append_string(builder, string_view(format_string(context->scratch_arena, " CONSTANT {}", constant->ast_number->token.lexeme)));
+
+            append_string(builder, string_view(" CONSTANT "));
+
+            String_View constant_string = {0};
+
+            switch (constant->kind)
+            {
+                case TAC_CONSTANT_UNDEFINED:
+                {
+                    UNREACHABLE();
+                } break;
+
+                case TAC_CONSTANT_BOOLEAN:
+                {
+                    if (constant->boolean_value)
+                    {
+                        constant_string = string_view("bool TRUE");
+                    }
+                    else
+                    {
+                        constant_string = string_view("bool FALSE");
+                    }
+                } break;
+
+#define DECLARE_INTEGER_CASE(kind, Type)                                \
+                case kind:                                              \
+                {                                                       \
+                    constant_string = string_view(format_string(context->scratch_arena, #Type " {}", constant->integer_value)); \
+                } break
+
+                DECLARE_INTEGER_CASE(TAC_CONSTANT_INT8,  s8);
+                DECLARE_INTEGER_CASE(TAC_CONSTANT_INT16, s16);
+                DECLARE_INTEGER_CASE(TAC_CONSTANT_INT32, s32);
+                DECLARE_INTEGER_CASE(TAC_CONSTANT_INT64, s64);
+
+                DECLARE_INTEGER_CASE(TAC_CONSTANT_UINT8,  u8);
+                DECLARE_INTEGER_CASE(TAC_CONSTANT_UINT16, u16);
+                DECLARE_INTEGER_CASE(TAC_CONSTANT_UINT32, u32);
+                DECLARE_INTEGER_CASE(TAC_CONSTANT_UINT64, u64);
+
+                case TAC_CONSTANT_FLOAT32:
+                {
+                    constant_string = string_view(format_string(context->scratch_arena, "f32 {}", constant->float32_value));
+                } break;
+
+                case TAC_CONSTANT_FLOAT64:
+                {
+                    constant_string = string_view(format_string(context->scratch_arena, "f64 {}", constant->float64_value));
+                } break;
+            }
+
+            ASSERT(!strings_are_equal(constant_string, string_view("")));
+
+            append_string(builder, string_view(constant_string));
         } break;
 
         case TAC_OPERAND_PARAMETER_INDEX:
@@ -463,22 +521,28 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                  instruction_index < range->end_instruction_index;
                  ++instruction_index)
             {
+                const Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
+
+                if (instruction->operation == TAC_NOP)
+                {
+                    // NOTE(vlad): Sanity check.
+                    ASSERT(instruction->destination.kind == TAC_OPERAND_NONE);
+                    ASSERT(instruction->first_argument.kind == TAC_OPERAND_NONE);
+                    ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
+
+                    continue;
+                }
+
                 append_string(&builder, string_view(format_string(context->scratch_arena,
                                                                   "{left-pad-count: 6} | ",
                                                                   current_instruction_index)));
                 current_instruction_index += 1;
 
-                const Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
-
                 switch (instruction->operation)
                 {
                     case TAC_NOP:
                     {
-                        append_string(&builder, string_view("          NOP"));
-
-                        ASSERT(instruction->destination.kind == TAC_OPERAND_NONE);
-                        ASSERT(instruction->first_argument.kind == TAC_OPERAND_NONE);
-                        ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
+                        UNREACHABLE();
                     } break;
 
                     case TAC_ASSIGN:
@@ -795,6 +859,49 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
     }
 
     return string_builder_to_string(&builder);
+}
+
+internal Bool
+compare_outputs_and_optionally_canonize(Arena* scratch_arena,
+                                        const String_View test_name,
+                                        const String_View filename,
+                                        const String_View output,
+                                        const Bool canonize_output)
+{
+    const Read_File_Result result = platform_read_entire_text_file(scratch_arena, filename);
+
+    const String_View canon = string_view(result.content);
+
+    if (strings_are_equal(output, canon))
+    {
+        if (canonize_output)
+        {
+            println("{}: Outputs are the same, so there is no need to canonize", test_name);
+        }
+
+        return true;
+    }
+
+    if (canonize_output)
+    {
+        platform_write_string_to_file(scratch_arena, filename, output);
+        println("{}: Output canonized", test_name);
+        return true;
+    }
+
+    if (canon.length == 0)
+    {
+        println("{}: Canon is empty. Current output:\n\n{}", test_name, output);
+        return false;
+    }
+    else
+    {
+        const Diff diff = calculate_line_diff(scratch_arena, canon, output);
+        const String_View diff_string = line_diff_to_string(scratch_arena, &diff);
+
+        println("{}: Test failed with this diff:\n\n{}", test_name, diff_string);
+        return false;
+    }
 }
 
 #include <eon/diff.c>

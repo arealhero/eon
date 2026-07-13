@@ -1,0 +1,9 @@
+regression_if_statement_with_return:
+     1 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
+     2 |           JUMP_IF_FALSE    LABEL_1, CONSTANT bool TRUE
+     3 |           ASSIGN           VARIABLE a@2, CONSTANT s32 21
+     4 |           RETURN           VARIABLE a@2
+     5 | LABEL_1:
+     6 |           ASSIGN           VARIABLE a@3, CONSTANT s32 22
+     7 | LABEL_2:
+     8 |           RETURN           CONSTANT s32 30

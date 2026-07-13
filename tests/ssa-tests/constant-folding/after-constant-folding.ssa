@@ -1,0 +1,7 @@
+arithmetic_operations:
+     1 |           ASSIGN           VARIABLE a@1, CONSTANT s32 6
+     2 |           ASSIGN           VARIABLE b@1, CONSTANT s32 5
+     3 |           RETURN
+
+non_trivial_conditional:
+     1 |           RETURN           CONSTANT bool TRUE

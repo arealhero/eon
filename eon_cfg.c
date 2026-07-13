@@ -1572,6 +1572,228 @@ find_unused_ssa_assignments(Compilation_Context* context)
     }
 }
 
+internal void
+perform_constant_folding(Compilation_Context* context)
+{
+    Tac* tac = &context->tac;
+
+    for (Index function_index = 0;
+         function_index < tac->functions_count;
+         ++function_index)
+    {
+        Tac_Function* tac_function = &tac->functions[function_index];
+
+        Bool constant_was_folded = false;
+        do
+        {
+            constant_was_folded = false;
+
+            for (Index instruction_index = 0;
+                 instruction_index < tac_function->instructions_count;
+                 ++instruction_index)
+            {
+                Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
+
+                const Bool can_fold =
+                    instruction->destination.kind == TAC_OPERAND_VARIABLE
+                    && instruction->first_argument.kind == TAC_OPERAND_CONSTANT
+                    && instruction->second_argument.kind == TAC_OPERAND_CONSTANT
+                    && (instruction->operation == TAC_ADD
+                        || instruction->operation == TAC_SUBTRACT
+                        || instruction->operation == TAC_MULTIPLY
+                        || instruction->operation == TAC_DIVIDE
+                        || instruction->operation == TAC_EQUAL
+                        || instruction->operation == TAC_NOT_EQUAL
+                        || instruction->operation == TAC_LESS
+                        || instruction->operation == TAC_LESS_OR_EQUAL
+                        || instruction->operation == TAC_GREATER
+                        || instruction->operation == TAC_GREATER_OR_EQUAL);
+
+                if (!can_fold)
+                {
+                    continue;
+                }
+
+                const Tac_Variable_Id destination_id = instruction->destination.variable_id;
+                Tac_Variable* destination = get_tac_variable_by_id(tac, destination_id);
+
+                // TODO(vlad): Support constant folding for non-temporary variables if optimisations are enabled. We
+                //             then also would need to fix PHI nodes (temporary variables cannot have PHI nodes, thus we
+                //             do not bother checking them).
+                if (!destination->is_temporary)
+                {
+                    continue;
+                }
+
+                Tac_Constant* first_argument = get_tac_constant_by_id(tac, instruction->first_argument.constant_id);
+                Tac_Constant* second_argument = get_tac_constant_by_id(tac, instruction->second_argument.constant_id);
+
+                ASSERT(first_argument->kind == second_argument->kind);
+
+                Tac_Constant folded_constant = {0};
+
+                const Tac_Constant_Kind argument_kind = first_argument->kind;
+
+                switch (instruction->operation)
+                {
+                    // FIXME(vlad): Add overflow/underflow detection.
+#define DECLARE_ARITHMETIC_CASE(operation, operator)                    \
+                    case operation:                                     \
+                    {                                                   \
+                        folded_constant.kind = argument_kind;           \
+                                                                        \
+                        switch (argument_kind)                          \
+                        {                                               \
+                            case TAC_CONSTANT_UNDEFINED:                \
+                            case TAC_CONSTANT_BOOLEAN:                  \
+                            {                                           \
+                                UNREACHABLE();                          \
+                            } break;                                    \
+                                                                        \
+                            case TAC_CONSTANT_INT8:                     \
+                            case TAC_CONSTANT_INT16:                    \
+                            case TAC_CONSTANT_INT32:                    \
+                            case TAC_CONSTANT_INT64:                    \
+                            case TAC_CONSTANT_UINT8:                    \
+                            case TAC_CONSTANT_UINT16:                   \
+                            case TAC_CONSTANT_UINT32:                   \
+                            case TAC_CONSTANT_UINT64:                   \
+                            {                                           \
+                                folded_constant.kind = argument_kind;   \
+                                folded_constant.integer_value = first_argument->integer_value operator second_argument->integer_value; \
+                            } break;                                    \
+                                                                        \
+                            case TAC_CONSTANT_FLOAT32:                  \
+                            {                                           \
+                                folded_constant.kind = argument_kind;   \
+                                folded_constant.float32_value = first_argument->float32_value operator second_argument->float32_value; \
+                            } break;                                    \
+                                                                        \
+                            case TAC_CONSTANT_FLOAT64:                  \
+                            {                                           \
+                                folded_constant.kind = argument_kind;   \
+                                folded_constant.float64_value = first_argument->float64_value operator second_argument->float64_value; \
+                            } break;                                    \
+                        }                                               \
+                    } break
+
+                    DECLARE_ARITHMETIC_CASE(TAC_ADD, +);
+                    DECLARE_ARITHMETIC_CASE(TAC_SUBTRACT, -);
+                    DECLARE_ARITHMETIC_CASE(TAC_MULTIPLY, *);
+                    DECLARE_ARITHMETIC_CASE(TAC_DIVIDE, /);
+
+#undef DECLARE_ARITHMETIC_CASE
+
+#define DECLARE_COMPARISON_CASE(operation, operator)                    \
+                    case operation:                                     \
+                    {                                                   \
+                        folded_constant.kind = TAC_CONSTANT_BOOLEAN;    \
+                                                                        \
+                        switch (argument_kind)                          \
+                        {                                               \
+                            case TAC_CONSTANT_UNDEFINED:                \
+                            {                                           \
+                                UNREACHABLE();                          \
+                            } break;                                    \
+                                                                        \
+                            case TAC_CONSTANT_BOOLEAN:                  \
+                            {                                           \
+                                folded_constant.boolean_value = first_argument->boolean_value operator second_argument->boolean_value; \
+                            } break;                                    \
+                                                                        \
+                            case TAC_CONSTANT_INT8:                     \
+                            case TAC_CONSTANT_INT16:                    \
+                            case TAC_CONSTANT_INT32:                    \
+                            case TAC_CONSTANT_INT64:                    \
+                            case TAC_CONSTANT_UINT8:                    \
+                            case TAC_CONSTANT_UINT16:                   \
+                            case TAC_CONSTANT_UINT32:                   \
+                            case TAC_CONSTANT_UINT64:                   \
+                            {                                           \
+                                folded_constant.integer_value = first_argument->integer_value operator second_argument->integer_value; \
+                            } break;                                    \
+                                                                        \
+                            case TAC_CONSTANT_FLOAT32:                  \
+                            {                                           \
+                                folded_constant.float32_value = first_argument->float32_value operator second_argument->float32_value; \
+                            } break;                                    \
+                                                                        \
+                            case TAC_CONSTANT_FLOAT64:                  \
+                            {                                           \
+                                folded_constant.float64_value = first_argument->float64_value operator second_argument->float64_value; \
+                            } break;                                    \
+                        }                                               \
+                    } break
+
+                    DECLARE_COMPARISON_CASE(TAC_EQUAL, ==);
+                    DECLARE_COMPARISON_CASE(TAC_NOT_EQUAL, !=);
+
+                    DECLARE_COMPARISON_CASE(TAC_LESS, <);
+                    DECLARE_COMPARISON_CASE(TAC_LESS_OR_EQUAL, <=);
+                    DECLARE_COMPARISON_CASE(TAC_GREATER, >);
+                    DECLARE_COMPARISON_CASE(TAC_GREATER_OR_EQUAL, >=);
+
+#undef DECLARE_COMPARISON_CASE
+
+                    default:
+                    {
+                        UNREACHABLE();
+                    } break;
+                }
+
+                first_argument = NULL;
+                second_argument = NULL;
+
+                const Tac_Constant_Id folded_constant_id = create_tac_constant(context);
+                {
+                    Tac_Constant* created_constant = get_tac_constant_by_id(tac, folded_constant_id);
+                    *created_constant = folded_constant;
+                }
+
+                // TODO(vlad): Improve the asymptotic complexity of this code.
+                for (Index following_instruction_index = instruction_index + 1;
+                     following_instruction_index < tac_function->instructions_count;
+                     ++following_instruction_index)
+                {
+                    Tac_Instruction* following_instruction = &tac_function->instructions[following_instruction_index];
+
+                    {
+                        Tac_Operand* argument = &following_instruction->first_argument;
+
+                        if (argument->kind == TAC_OPERAND_VARIABLE
+                            && argument->variable_id.index == destination_id.index
+                            && argument->variable_id.ssa_version == destination_id.ssa_version)
+                        {
+                            argument->kind = TAC_OPERAND_CONSTANT;
+                            argument->constant_id = folded_constant_id;
+                        }
+                    }
+
+                    {
+                        Tac_Operand* argument = &following_instruction->second_argument;
+
+                        if (argument->kind == TAC_OPERAND_VARIABLE
+                            && argument->variable_id.index == destination_id.index
+                            && argument->variable_id.ssa_version == destination_id.ssa_version)
+                        {
+                            argument->kind = TAC_OPERAND_CONSTANT;
+                            argument->constant_id = folded_constant_id;
+                        }
+                    }
+                }
+
+                instruction->operation = TAC_NOP;
+                instruction->destination.kind = TAC_OPERAND_NONE;
+                instruction->first_argument.kind = TAC_OPERAND_NONE;
+                instruction->second_argument.kind = TAC_OPERAND_NONE;
+
+                constant_was_folded = true;
+            }
+        }
+        while (constant_was_folded);
+    }
+}
+
 internal inline void
 free_cfg_block(Compilation_Context* context, Cfg_Block* block)
 {

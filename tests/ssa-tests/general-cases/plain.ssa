@@ -1,28 +1,28 @@
 simple_reassignment:
-     1 |           ASSIGN           VARIABLE a@1, CONSTANT 10
-     2 |           ASSIGN           VARIABLE a@2, CONSTANT 20
+     1 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
+     2 |           ASSIGN           VARIABLE a@2, CONSTANT s32 20
      3 |           RETURN
 
 parameter_reassignment:
      1 |           GET_PARAMETER    VARIABLE parameter@1, ARGUMENT 0
-     2 |           ASSIGN           VARIABLE parameter@2, CONSTANT 20
+     2 |           ASSIGN           VARIABLE parameter@2, CONSTANT s32 20
      3 |           RETURN
 
 returning_value_from_a_function:
-     1 |           ASSIGN           VARIABLE a@1, CONSTANT 10
+     1 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
      2 |           RETURN           VARIABLE a@1
 
 returning_mutable_value_from_a_function:
-     1 |           ASSIGN           VARIABLE a@1, CONSTANT 10
-     2 |           ASSIGN           VARIABLE a@2, CONSTANT 20
-     3 |           ASSIGN           VARIABLE a@3, CONSTANT 30
+     1 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
+     2 |           ASSIGN           VARIABLE a@2, CONSTANT s32 20
+     3 |           ASSIGN           VARIABLE a@3, CONSTANT s32 30
      4 |           RETURN           VARIABLE a@3
 
 simple_conditional_assignment:
-     1 |           ASSIGN           VARIABLE a@1, CONSTANT 10
-     2 |           EQUAL            VARIABLE <temp_1>@1, CONSTANT 1, CONSTANT 2
+     1 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
+     2 |           EQUAL            VARIABLE <temp_1>@1, CONSTANT s32 1, CONSTANT s32 2
      3 |           JUMP_IF_FALSE    LABEL_1, VARIABLE <temp_1>@1
-     4 |           ASSIGN           VARIABLE a@2, CONSTANT 20
+     4 |           ASSIGN           VARIABLE a@2, CONSTANT s32 20
      5 |           JUMP             LABEL_2
      6 | LABEL_1:
        |
@@ -31,15 +31,15 @@ simple_conditional_assignment:
      8 |           RETURN           VARIABLE a@3
 
 conditional_assignment_of_multiple_variables:
-     1 |           ASSIGN           VARIABLE a@1, CONSTANT 10
-     2 |           ASSIGN           VARIABLE b@1, CONSTANT 11
-     3 |           EQUAL            VARIABLE <temp_1>@1, CONSTANT 1, CONSTANT 2
+     1 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
+     2 |           ASSIGN           VARIABLE b@1, CONSTANT s32 11
+     3 |           EQUAL            VARIABLE <temp_1>@1, CONSTANT s32 1, CONSTANT s32 2
      4 |           JUMP_IF_FALSE    LABEL_3, VARIABLE <temp_1>@1
-     5 |           ASSIGN           VARIABLE a@2, CONSTANT 20
-     6 |           ASSIGN           VARIABLE b@2, CONSTANT 21
+     5 |           ASSIGN           VARIABLE a@2, CONSTANT s32 20
+     6 |           ASSIGN           VARIABLE b@2, CONSTANT s32 21
      7 |           JUMP             LABEL_4
      8 | LABEL_3:
-     9 |           ASSIGN           VARIABLE a@3, CONSTANT 30
+     9 |           ASSIGN           VARIABLE a@3, CONSTANT s32 30
        |
        |           PHI              VARIABLE a@4, VARIABLE a@2, VARIABLE a@3
        |           PHI              VARIABLE b@3, VARIABLE b@2, VARIABLE b@1

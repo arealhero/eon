@@ -48,6 +48,7 @@ maybe_unused internal void insert_phi_nodes(struct Compilation_Context* context)
 maybe_unused internal void set_tac_variable_versions(struct Compilation_Context* context);
 
 maybe_unused internal void find_unused_ssa_assignments(struct Compilation_Context* context);
+maybe_unused internal void perform_constant_folding(struct Compilation_Context* context);
 
 maybe_unused internal inline void free_cfg_block(struct Compilation_Context* context, Cfg_Block* block);
 
