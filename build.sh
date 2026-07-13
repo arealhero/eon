@@ -5,7 +5,7 @@ mkdir -p build
 
 set -e
 
-ENABLE_ASAN=0
+ENABLE_ASAN=1
 USE_GCC=0
 
 asan_is_broken=0
@@ -14,18 +14,23 @@ if [ $(uname) = "Darwin" ]; then
     # NOTE(vlad): https://stackoverflow.com/a/70209891
     export MallocNanoZone=0
 
-    macos_version=$(sw_vers -productVersion)
-    major=$(echo "$macos_version" | cut -d. -f1)
-    minor=$(echo "$macos_version" | cut -d. -f2)
-    patch=$(echo "$macos_version" | cut -d. -f3)
+    if [ $USE_GCC -eq 0 ];
+    then
+        macos_version=$(sw_vers -productVersion)
+        major=$(echo "$macos_version" | cut -d. -f1)
+        minor=$(echo "$macos_version" | cut -d. -f2)
+        patch=$(echo "$macos_version" | cut -d. -f3)
 
-    if [ "$major" -eq 26 ] && [ "$minor" -gt 4 ]; then
-        # NOTE(vlad): ASAN deadlocks on these versions. I reproduced this deadlock on Tahoe 26.5.2 (2026-07-12).
-        #             @ref: https://github.com/fragcolor-xyz/shards/blob/devel/CLAUDE.md#clt-26x-addresssanitizer-deadlocks-at-startup
-        asan_is_broken=1
-        if [ "$ENABLE_ASAN" -eq 1 ]; then
-            echo "ASAN is broken on this version of macOS."
-            exit 1
+        clang_version=$(clang --version | head -n 1 | awk '{print $4}')
+
+        if [ "$major" -eq 26 ] && [ "$minor" -gt 4 ] && [ "$clang_version" = "17.0.0" ]; then
+            # NOTE(vlad): ASAN deadlocks on these versions. I reproduced this deadlock on Tahoe 26.5.2 (2026-07-12).
+            #             @ref: https://github.com/fragcolor-xyz/shards/blob/devel/CLAUDE.md#clt-26x-addresssanitizer-deadlocks-at-startup
+            asan_is_broken=1
+            if [ "$ENABLE_ASAN" -eq 1 ]; then
+                echo "ASAN is broken on this version of macOS."
+                exit 1
+            fi
         fi
     fi
 fi
