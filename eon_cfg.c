@@ -136,6 +136,16 @@ remove_predecessor(Cfg_Block* block, const Cfg_Block_Id block_id)
             const Index last_predecessor_index = block->predecessors_count - 1;
             block->predecessors[predecessor_index] = block->predecessors[last_predecessor_index];
             block->predecessors_count -= 1;
+
+            for (Index phi_node_index = 0;
+                 phi_node_index < block->phi_nodes_count;
+                 ++phi_node_index)
+            {
+                Phi_Node* phi_node = &block->phi_nodes[phi_node_index];
+                phi_node->previous_variables[predecessor_index] = phi_node->previous_variables[last_predecessor_index];
+                phi_node->previous_variables_count -= 1;
+            }
+
             return true;
         }
     }
@@ -234,14 +244,12 @@ construct_cfg_from_tac(Compilation_Context* context)
 
     // NOTE(vlad): Creating basic blocks for TAC functions.
 
-    Cfg_Block_Id* label_index_to_cfg_block_id = NULL;
-
     const Size total_labels_count = tac->labels_count;
     if (total_labels_count > 0)
     {
-        label_index_to_cfg_block_id = allocate_array(context->scratch_arena,
-                                                     total_labels_count,
-                                                     Cfg_Block_Id);
+        tac->label_index_to_cfg_block_id_map = allocate_array(context->tac_label_to_cfg_block_map_arena,
+                                                              total_labels_count,
+                                                              Cfg_Block_Id);
     }
 
     for (Index function_index = 0;
@@ -253,40 +261,50 @@ construct_cfg_from_tac(Compilation_Context* context)
         Cfg_Block_Id entry_block_id = {0};
         entry_block_id.index = tac_function->cfg_blocks_count;
 
-        Index block_start_instruction_index = 0;
-
-        for (Index instruction_index = 0;
-             instruction_index < tac_function->instructions_count;
-             ++instruction_index)
         {
-            const Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
+            Index block_start_instruction_index = 0;
 
-            if (instruction->operation == TAC_LABEL && instruction_index != block_start_instruction_index)
+            for (Index instruction_index = 0;
+                 instruction_index < tac_function->instructions_count;
+                 ++instruction_index)
             {
-              // NOTE(vlad): Closing current CFG block.
+                const Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
 
-              Tac_Instructions_Range range = {0};
-              range.function_label_id = tac_function->label_id;
-              range.start_instruction_index = block_start_instruction_index;
-              range.end_instruction_index = instruction_index;
+                if (instruction->operation == TAC_LABEL && instruction_index != block_start_instruction_index)
+                {
+                    // NOTE(vlad): Closing current CFG block.
 
-              create_cfg_block(context, tac_function, range);
-              block_start_instruction_index = instruction_index;
+                    Tac_Instructions_Range range = {0};
+                    range.function_label_id = tac_function->label_id;
+                    range.start_instruction_index = block_start_instruction_index;
+                    range.end_instruction_index = instruction_index;
+
+                    create_cfg_block(context, tac_function, range);
+                    block_start_instruction_index = instruction_index;
+                }
+
+                if (tac_operation_is_a_cfg_block_terminator(instruction->operation))
+                {
+                    Tac_Instructions_Range range = {0};
+                    range.function_label_id = tac_function->label_id;
+                    range.start_instruction_index = block_start_instruction_index;
+                    range.end_instruction_index = instruction_index + 1;
+
+                    create_cfg_block(context, tac_function, range);
+                    block_start_instruction_index = instruction_index + 1;
+                }
             }
 
-            if (tac_operation_is_a_cfg_block_terminator(instruction->operation))
+            if (block_start_instruction_index < tac_function->instructions_count)
             {
                 Tac_Instructions_Range range = {0};
                 range.function_label_id = tac_function->label_id;
                 range.start_instruction_index = block_start_instruction_index;
-                range.end_instruction_index = instruction_index + 1;
+                range.end_instruction_index = tac_function->instructions_count;
 
                 create_cfg_block(context, tac_function, range);
-                block_start_instruction_index = instruction_index + 1;
             }
         }
-
-        ASSERT(block_start_instruction_index == tac_function->instructions_count);
 
         {
             ASSERT(entry_block_id.index != tac_function->cfg_blocks_count);
@@ -310,8 +328,8 @@ construct_cfg_from_tac(Compilation_Context* context)
                 Cfg_Block_Id block_id = {0};
                 block_id.index = block_index;
 
-                ASSERT(label_index_to_cfg_block_id[label_id.index].index == 0);
-                label_index_to_cfg_block_id[label_id.index] = block_id;
+                ASSERT(tac->label_index_to_cfg_block_id_map[label_id.index].index == 0);
+                tac->label_index_to_cfg_block_id_map[label_id.index] = block_id;
             }
         }
 
@@ -336,7 +354,7 @@ construct_cfg_from_tac(Compilation_Context* context)
                 case TAC_JUMP:
                 {
                     const Tac_Label_Id destination_label_id = last_instruction->destination.label_id;
-                    const Cfg_Block_Id destination_block_id = label_index_to_cfg_block_id[destination_label_id.index];
+                    const Cfg_Block_Id destination_block_id = tac->label_index_to_cfg_block_id_map[destination_label_id.index];
 
                     add_cfg_edge(tac_function, source_block_id, destination_block_id);
                 } break;
@@ -345,7 +363,7 @@ construct_cfg_from_tac(Compilation_Context* context)
                 case TAC_JUMP_IF_FALSE:
                 {
                     const Tac_Label_Id destination_label_id = last_instruction->destination.label_id;
-                    const Cfg_Block_Id destination_block_id = label_index_to_cfg_block_id[destination_label_id.index];
+                    const Cfg_Block_Id destination_block_id = tac->label_index_to_cfg_block_id_map[destination_label_id.index];
 
                     add_cfg_edge(tac_function, source_block_id, destination_block_id);
                     add_cfg_fall_through_edge_if_needed(tac_function, source_block_id);
@@ -673,10 +691,66 @@ remove_unreachable_cfg_blocks(Compilation_Context* context)
                             insert_edge(block, new_block_id);
                         }
 
-                        remove_predecessor(block, new_block_id);
-                        if (remove_predecessor(block, old_block_id))
+                        Index old_block_index_in_predecessors_list = -1;
+                        Index new_block_index_in_predecessors_list = -1;
+                        for (Index predecessor_index = 0;
+                             predecessor_index < block->predecessors_count;
+                             ++predecessor_index)
                         {
-                            insert_predecessor(block, new_block_id);
+                            const Cfg_Block_Id predecessor_block_id = block->predecessors[predecessor_index];
+
+                            if (predecessor_block_id.index == old_block_id.index)
+                            {
+                                old_block_index_in_predecessors_list = predecessor_index;
+                            }
+
+                            if (predecessor_block_id.index == new_block_id.index)
+                            {
+                                new_block_index_in_predecessors_list = predecessor_index;
+                            }
+                        }
+
+                        if (old_block_index_in_predecessors_list != -1)
+                        {
+                            block->predecessors[old_block_index_in_predecessors_list] = new_block_id;
+                        }
+
+                        if (new_block_index_in_predecessors_list != -1)
+                        {
+                            remove_predecessor(block, new_block_id);
+                        }
+
+                        for (Index phi_node_index = 0;
+                             phi_node_index < block->phi_nodes_count;
+                             ++phi_node_index)
+                        {
+                            const Phi_Node* phi_node = &block->phi_nodes[phi_node_index];
+                            ASSERT(phi_node->previous_variables_count == block->predecessors_count);
+                        }
+                    }
+
+                    // TODO(vlad): Only process labels that belongs to the current TAC function.
+                    for (Index label_index = INVALID_TAC_INDEX + 1;
+                         label_index < tac->labels_count;
+                         ++label_index)
+                    {
+                        Tac_Label_Id label_id = {0};
+                        label_id.index = label_index;
+
+                        const Tac_Label* label = get_tac_label_by_id(tac, label_id);
+                        if (label->instruction_id.function_label_id.index != tac_function->label_id.index)
+                        {
+                            continue;
+                        }
+
+                        Cfg_Block_Id* linked_block_id = &tac->label_index_to_cfg_block_id_map[label_index];
+                        if (linked_block_id->index == old_block_id.index)
+                        {
+                            linked_block_id->index = new_block_id.index;
+                        }
+                        else if (linked_block_id->index == new_block_id.index)
+                        {
+                            linked_block_id->index = INVALID_TAC_INDEX;
                         }
                     }
                 }
@@ -1791,6 +1865,154 @@ perform_constant_folding(Compilation_Context* context)
             }
         }
         while (constant_was_folded);
+    }
+}
+
+internal void
+remove_unreachable_jumps(Compilation_Context* context)
+{
+    Tac* tac = &context->tac;
+
+    for (Index function_index = 0;
+         function_index < tac->functions_count;
+         ++function_index)
+    {
+        Tac_Function* tac_function = &tac->functions[function_index];
+
+        for (Index this_block_index = 0;
+             this_block_index < tac_function->cfg_blocks_count;
+             ++this_block_index)
+        {
+            Cfg_Block_Id this_block_id = {0};
+            this_block_id.index = this_block_index;
+
+            Cfg_Block* this_block = get_cfg_block_by_id(tac_function, this_block_id);
+
+            const Tac_Instructions_Range* instructions_range = &this_block->instructions_range;
+
+            for (Index instruction_index = instructions_range->start_instruction_index;
+                 instruction_index < instructions_range->end_instruction_index;
+                 ++instruction_index)
+            {
+                Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
+
+                if (instruction->operation != TAC_JUMP_IF_TRUE && instruction->operation != TAC_JUMP_IF_FALSE)
+                {
+                    continue;
+                }
+
+                ASSERT(instruction->destination.kind == TAC_OPERAND_LABEL);
+
+                const Tac_Operand* condition = &instruction->first_argument;
+                if (condition->kind != TAC_OPERAND_CONSTANT)
+                {
+                    continue;
+                }
+
+                const Tac_Constant* constant = get_tac_constant_by_id(tac, condition->constant_id);
+                ASSERT(constant->kind == TAC_CONSTANT_BOOLEAN);
+
+                switch (instruction->operation)
+                {
+                    case TAC_JUMP_IF_TRUE:
+                    {
+                        if (constant->boolean_value)
+                        {
+                            // NOTE(vlad): Removing fall through edge.
+
+                            const Index next_instruction_index = this_block->instructions_range.end_instruction_index;
+                            ASSERT(next_instruction_index != tac_function->instructions_count);
+
+                            for (Index successor_block_index = this_block_id.index + 1;
+                                 successor_block_index < tac_function->cfg_blocks_count;
+                                 ++successor_block_index)
+                            {
+                                const Cfg_Block* candidate_block = &tac_function->cfg_blocks[successor_block_index];
+                                const Tac_Instructions_Range* candidate_instructions_range = &candidate_block->instructions_range;
+
+                                if (candidate_instructions_range->start_instruction_index <= next_instruction_index
+                                    && next_instruction_index < candidate_instructions_range->end_instruction_index)
+                                {
+                                    Cfg_Block_Id destination_block_id = {0};
+                                    destination_block_id.index = successor_block_index;
+
+                                    Cfg_Block* destination_block = get_cfg_block_by_id(tac_function, destination_block_id);
+
+                                    remove_edge(this_block, destination_block_id);
+                                    remove_predecessor(destination_block, this_block_id);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            const Tac_Label_Id label_id = instruction->destination.label_id;
+                            const Cfg_Block_Id destination_block_id = tac->label_index_to_cfg_block_id_map[label_id.index];
+
+                            Cfg_Block* destination_block = get_cfg_block_by_id(tac_function, destination_block_id);
+
+                            remove_edge(this_block, destination_block_id);
+                            remove_predecessor(destination_block, this_block_id);
+
+                            instruction->operation = TAC_NOP;
+                            instruction->destination.kind = TAC_OPERAND_NONE;
+                            instruction->first_argument.kind = TAC_OPERAND_NONE;
+                            instruction->second_argument.kind = TAC_OPERAND_NONE;
+                        }
+                    } break;
+
+                    case TAC_JUMP_IF_FALSE:
+                    {
+                        if (constant->boolean_value)
+                        {
+                            const Tac_Label_Id label_id = instruction->destination.label_id;
+                            const Cfg_Block_Id destination_block_id = tac->label_index_to_cfg_block_id_map[label_id.index];
+
+                            Cfg_Block* destination_block = get_cfg_block_by_id(tac_function, destination_block_id);
+
+                            remove_edge(this_block, destination_block_id);
+                            remove_predecessor(destination_block, this_block_id);
+                        }
+                        else
+                        {
+                            // NOTE(vlad): Removing fall through edge.
+
+                            const Index next_instruction_index = this_block->instructions_range.end_instruction_index;
+                            ASSERT(next_instruction_index != tac_function->instructions_count);
+
+                            for (Index successor_block_index = this_block_id.index + 1;
+                                 successor_block_index < tac_function->cfg_blocks_count;
+                                 ++successor_block_index)
+                            {
+                                const Cfg_Block* candidate_block = &tac_function->cfg_blocks[successor_block_index];
+                                const Tac_Instructions_Range* candidate_instructions_range = &candidate_block->instructions_range;
+
+                                if (candidate_instructions_range->start_instruction_index <= next_instruction_index
+                                    && next_instruction_index < candidate_instructions_range->end_instruction_index)
+                                {
+                                    Cfg_Block_Id destination_block_id = {0};
+                                    destination_block_id.index = successor_block_index;
+
+                                    Cfg_Block* destination_block = get_cfg_block_by_id(tac_function, destination_block_id);
+
+                                    remove_edge(this_block, destination_block_id);
+                                    remove_predecessor(destination_block, this_block_id);
+                                }
+                            }
+                        }
+
+                        instruction->operation = TAC_NOP;
+                        instruction->destination.kind = TAC_OPERAND_NONE;
+                        instruction->first_argument.kind = TAC_OPERAND_NONE;
+                        instruction->second_argument.kind = TAC_OPERAND_NONE;
+                    } break;
+
+                    default:
+                    {
+                        UNREACHABLE();
+                    } break;
+                }
+            }
+        }
     }
 }
 

@@ -27,6 +27,7 @@ create_compilation_context(Compilation_Context* context,
     context->tac_variables_arena = acquire_arena_from_provider(arena_provider, string_view("tac-variables"), GiB(1), MiB(1));
     context->tac_constants_arena = acquire_arena_from_provider(arena_provider, string_view("tac-constants"), GiB(1), MiB(1));
     context->tac_labels_arena = acquire_arena_from_provider(arena_provider, string_view("tac-labels"), GiB(1), MiB(1));
+    context->tac_label_to_cfg_block_map_arena = acquire_arena_from_provider(arena_provider, string_view("tac-label-to-cfg-block-map"), GiB(1), MiB(1));
 
     context->cfg_blocks_arena = acquire_arena_from_provider(arena_provider, string_view("cfg-blocks"), GiB(1), MiB(1));
     context->phi_node_arguments_arena = acquire_arena_from_provider(arena_provider, string_view("cfg-phi-node-arguments"), GiB(1), MiB(1));
@@ -76,6 +77,7 @@ destroy_compilation_context(Compilation_Context* context)
     release_arena_to_provider(context->arena_provider, context->tac_variables_arena);
     release_arena_to_provider(context->arena_provider, context->tac_constants_arena);
     release_arena_to_provider(context->arena_provider, context->tac_labels_arena);
+    release_arena_to_provider(context->arena_provider, context->tac_label_to_cfg_block_map_arena);
 
     release_arena_to_provider(context->arena_provider, context->cfg_blocks_arena);
     release_arena_to_provider(context->arena_provider, context->phi_node_arguments_arena);

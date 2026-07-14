@@ -11,3 +11,17 @@ non_trivial_conditional:
      2 |           EQUAL            VARIABLE <temp_2>@1, CONSTANT f32 3.00, CONSTANT f32 4.00
      3 |           EQUAL            VARIABLE <temp_3>@1, VARIABLE <temp_1>@1, VARIABLE <temp_2>@1
      4 |           RETURN           VARIABLE <temp_3>@1
+
+then_branch_elimination:
+     1 |           EQUAL            VARIABLE <temp_1>@1, CONSTANT s32 1, CONSTANT s32 2
+     2 |           JUMP_IF_FALSE    LABEL_1, VARIABLE <temp_1>@1
+     3 |           RETURN           CONSTANT s32 10
+     4 | LABEL_1:
+     5 |           RETURN           CONSTANT s32 20
+
+else_branch_elimination:
+     1 |           NOT_EQUAL        VARIABLE <temp_1>@1, CONSTANT s32 1, CONSTANT s32 2
+     2 |           JUMP_IF_FALSE    LABEL_3, VARIABLE <temp_1>@1
+     3 |           RETURN           CONSTANT s32 10
+     4 | LABEL_3:
+     5 |           RETURN           CONSTANT s32 20

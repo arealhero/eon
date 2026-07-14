@@ -198,6 +198,8 @@ struct Tac
     array(Tac_Variable, variables);
     array(Tac_Constant, constants);
     array(Tac_Label, labels);
+
+    Cfg_Block_Id* label_index_to_cfg_block_id_map;
 };
 typedef struct Tac Tac;
 

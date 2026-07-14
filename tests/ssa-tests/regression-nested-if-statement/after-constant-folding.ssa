@@ -1,15 +1,4 @@
 regression_nested_if_statement:
      1 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
-     2 |           JUMP_IF_FALSE    LABEL_1, CONSTANT bool TRUE
-     3 |           JUMP_IF_FALSE    LABEL_3, CONSTANT bool TRUE
-     4 |           ASSIGN           VARIABLE a@2, CONSTANT s32 21
-     5 |           RETURN           VARIABLE a@2
-     6 | LABEL_3:
-     7 |           ASSIGN           VARIABLE a@3, CONSTANT s32 22
-     8 | LABEL_4:
-     9 |           JUMP             LABEL_2
-    10 | LABEL_1:
-       |
-       |           PHI              VARIABLE a@4, VARIABLE a@3, VARIABLE a@1
-    11 | LABEL_2:
-    12 |           RETURN           CONSTANT s32 30
+     2 |           ASSIGN           VARIABLE a@2, CONSTANT s32 21
+     3 |           RETURN           VARIABLE a@2

@@ -37,6 +37,7 @@ struct Compilation_Context
     Arena* tac_variables_arena;
     Arena* tac_constants_arena;
     Arena* tac_labels_arena;
+    Arena* tac_label_to_cfg_block_map_arena;
 
     Arena* cfg_blocks_arena;
     Arena* phi_node_arguments_arena;

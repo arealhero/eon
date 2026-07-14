@@ -20,30 +20,23 @@ returning_mutable_value_from_a_function:
 
 simple_conditional_assignment:
      1 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
-     2 |           JUMP_IF_FALSE    LABEL_1, CONSTANT bool FALSE
-     3 |           ASSIGN           VARIABLE a@2, CONSTANT s32 20
-     4 |           JUMP             LABEL_2
-     5 | LABEL_1:
+     2 | LABEL_1:
        |
-       |           PHI              VARIABLE a@3, VARIABLE a@2, VARIABLE a@1
-     6 | LABEL_2:
-     7 |           RETURN           VARIABLE a@3
+       |           PHI              VARIABLE a@3, VARIABLE a@1
+     3 | LABEL_2:
+     4 |           RETURN           VARIABLE a@3
 
 conditional_assignment_of_multiple_variables:
      1 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
      2 |           ASSIGN           VARIABLE b@1, CONSTANT s32 11
-     3 |           JUMP_IF_FALSE    LABEL_3, CONSTANT bool FALSE
-     4 |           ASSIGN           VARIABLE a@2, CONSTANT s32 20
-     5 |           ASSIGN           VARIABLE b@2, CONSTANT s32 21
-     6 |           JUMP             LABEL_4
-     7 | LABEL_3:
-     8 |           ASSIGN           VARIABLE a@3, CONSTANT s32 30
+     3 | LABEL_3:
+     4 |           ASSIGN           VARIABLE a@3, CONSTANT s32 30
        |
-       |           PHI              VARIABLE a@4, VARIABLE a@2, VARIABLE a@3
-       |           PHI              VARIABLE b@3, VARIABLE b@2, VARIABLE b@1
-     9 | LABEL_4:
-    10 |           ADD              VARIABLE <temp_1>@1, VARIABLE a@4, VARIABLE b@3
-    11 |           RETURN           VARIABLE <temp_1>@1
+       |           PHI              VARIABLE a@4, VARIABLE a@3
+       |           PHI              VARIABLE b@3, VARIABLE b@1
+     5 | LABEL_4:
+     6 |           ADD              VARIABLE <temp_1>@1, VARIABLE a@4, VARIABLE b@3
+     7 |           RETURN           VARIABLE <temp_1>@1
 
 function_calls:
      1 |           CALL             simple_reassignment

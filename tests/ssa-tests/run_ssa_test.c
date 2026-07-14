@@ -245,6 +245,8 @@ main(const int argc, const char* argv[])
         END_TIMER(comparing_plain_ssa, "Plain SSA processed");
     }
 
+    // TODO(vlad): 'find_unused_ssa_assignments()'.
+
     START_TIMER(constant_folding);
     perform_constant_folding(&context);
     END_TIMER(constant_folding, "Constant folding performed");
@@ -253,6 +255,28 @@ main(const int argc, const char* argv[])
     {
         test_failed = true;
         goto cleanup;
+    }
+
+    START_TIMER(unreachable_jumps_removal);
+    remove_unreachable_jumps(&context);
+    END_TIMER(unreachable_jumps_removal, "Unreachable jumps removed");
+
+    if (has_diagnostic_messages(&context))
+    {
+        test_failed = true;
+        goto cleanup;
+    }
+
+    {
+        START_TIMER(unreachable_cfg_blocks_removed_v2);
+        remove_unreachable_cfg_blocks(&context);
+        END_TIMER(unreachable_cfg_blocks_removed_v2, "Unreachable CFG blocks removed");
+
+        // if (has_diagnostic_messages(&context))
+        // {
+        //     test_failed = true;
+        //     goto cleanup;
+        // }
     }
 
     {
@@ -490,6 +514,8 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                 append_string(&builder, string_view("       | "));
                 append_string(&builder, string_view("          PHI             "));
                 const Phi_Node* phi_node = &block->phi_nodes[phi_node_index];
+
+                ASSERT(phi_node->previous_variables_count == block->predecessors_count);
 
                 Tac_Operand destination = {0};
                 destination.kind = TAC_OPERAND_VARIABLE;
