@@ -6,6 +6,9 @@
 #include "eon_parser.h"
 #include "eon_types.h"
 
+// NOTE(vlad): Including CFG implementation to be able to test every step in the SSA construction process.
+#include "eon_cfg.c"
+
 internal void
 test_functions_without_jumps(Test_Context* test_context)
 {
@@ -4198,7 +4201,6 @@ REGISTER_TESTS(
     test_unused_ssa_assignments
 )
 
-#include "eon_cfg.c"
 #include "eon_compilation_context.c"
 #include "eon_diagnostics.c"
 #include "eon_lexer.c"

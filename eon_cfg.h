@@ -41,12 +41,6 @@ maybe_unused internal void remove_unreachable_cfg_blocks(struct Compilation_Cont
 
 maybe_unused internal void construct_ssa_from_cfg(struct Compilation_Context* context);
 
-// TODO(vlad): Merge these into 'construct_ssa_from_cfg()'?
-maybe_unused internal void compute_cfg_dominators(struct Compilation_Context* context);
-maybe_unused internal void compute_cfg_dominance_frontiers(struct Compilation_Context* context);
-maybe_unused internal void insert_phi_nodes(struct Compilation_Context* context);
-maybe_unused internal void set_tac_variable_versions(struct Compilation_Context* context);
-
 // FIXME(vlad): Move to 'eon_ssa.h'.
 maybe_unused internal void find_unused_ssa_assignments(struct Compilation_Context* context);
 maybe_unused internal void perform_constant_folding(struct Compilation_Context* context);

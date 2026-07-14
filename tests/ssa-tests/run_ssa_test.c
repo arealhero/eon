@@ -180,55 +180,9 @@ main(const int argc, const char* argv[])
         goto cleanup;
     }
 
-    START_TIMER(unreachable_cfg_blocks_removed);
-    remove_unreachable_cfg_blocks(&context);
-    END_TIMER(unreachable_cfg_blocks_removed, "Unreachable CFG blocks removed");
-
-    if (has_diagnostic_messages(&context))
-    {
-        test_failed = true;
-        goto cleanup;
-    }
-
-    START_TIMER(cfg_dominators_computed);
-    compute_cfg_dominators(&context);
-    END_TIMER(cfg_dominators_computed, "CFG dominators computed");
-
-    if (has_diagnostic_messages(&context))
-    {
-        test_failed = true;
-        goto cleanup;
-    }
-
-    START_TIMER(cfg_dominance_frontiers_computed);
-    compute_cfg_dominance_frontiers(&context);
-    END_TIMER(cfg_dominance_frontiers_computed, "Dominance frontiers computed");
-
-    if (has_diagnostic_messages(&context))
-    {
-        test_failed = true;
-        goto cleanup;
-    }
-
-    START_TIMER(phi_nodes_inserted);
-    insert_phi_nodes(&context);
-    END_TIMER(phi_nodes_inserted, "PHI nodes inserted");
-
-    if (has_diagnostic_messages(&context))
-    {
-        test_failed = true;
-        goto cleanup;
-    }
-
     START_TIMER(ssa_construction);
-    set_tac_variable_versions(&context);
+    construct_ssa_from_cfg(&context);
     END_TIMER(ssa_construction, "SSA constructed");
-
-    if (has_diagnostic_messages(&context))
-    {
-        test_failed = true;
-        goto cleanup;
-    }
 
     {
         START_TIMER(comparing_plain_ssa);
@@ -271,12 +225,6 @@ main(const int argc, const char* argv[])
         START_TIMER(unreachable_cfg_blocks_removed_v2);
         remove_unreachable_cfg_blocks(&context);
         END_TIMER(unreachable_cfg_blocks_removed_v2, "Unreachable CFG blocks removed");
-
-        // if (has_diagnostic_messages(&context))
-        // {
-        //     test_failed = true;
-        //     goto cleanup;
-        // }
     }
 
     {

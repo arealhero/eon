@@ -1393,6 +1393,16 @@ set_tac_variable_versions(Compilation_Context* context)
     request_arena_reset(context->arena_provider, context->scratch_arena);
 }
 
+internal void
+construct_ssa_from_cfg(Compilation_Context* context)
+{
+    remove_unreachable_cfg_blocks(context);
+    compute_cfg_dominators(context);
+    compute_cfg_dominance_frontiers(context);
+    insert_phi_nodes(context);
+    set_tac_variable_versions(context);
+}
+
 struct Version_Info
 {
     Bool was_used;
