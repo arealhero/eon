@@ -522,6 +522,18 @@ INTERNAL_format_tag_c_string(const char* string)
 }
 
 internal inline Format_Type_Info
+INTERNAL_format_pointer(const void* pointer)
+{
+    return (Format_Type_Info){
+        .tag = TYPE_TAG_POINTER,
+        .max_size_in_bytes = 2 + 16,
+        .argument = {
+            .pointer = pointer,
+        },
+    };
+}
+
+internal inline Format_Type_Info
 INTERNAL_format_tag_char(const char c)
 {
     return (Format_Type_Info){
@@ -1170,6 +1182,29 @@ vformat_string_impl(Arena* const arena,
                         buffer_index += info.argument.string_view.length;
                     } break;
 
+                    case TYPE_TAG_POINTER:
+                    {
+                        if (format_specification.length != 0)
+                        {
+                            FAIL("Pointer format specification is not yet supported");
+                        }
+
+                        buffer[buffer_index++] = '0';
+                        buffer[buffer_index++] = 'x';
+
+                        String target = {0};
+                        target.data = buffer + buffer_index;
+                        target.length = info.max_size_in_bytes - 2;
+
+#if ARCH_32BIT
+                        u32_to_string_inplace(&target, (USize)info.argument.pointer, NUMBER_BASE_HEXADECIMAL);
+#elif ARCH_64BIT
+                        u64_to_string_inplace(&target, (USize)info.argument.pointer, NUMBER_BASE_HEXADECIMAL);
+#endif
+
+                        buffer_index += target.length;
+                    } break;
+
                     case TYPE_TAG_char:
                     {
                         if (format_specification.length != 0)
@@ -1257,12 +1292,6 @@ vformat_string_impl(Arena* const arena,
                 {
                     buffer[buffer_index++] = c;
                 }
-
-                // if (brace_was_opened)
-                // {
-                //     buffer[buffer_index++] = '{';
-                //     brace_was_opened = false;
-                // }
             } break;
         }
     }

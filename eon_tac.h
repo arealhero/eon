@@ -68,7 +68,7 @@ struct Tac_Function_Label
     Symbol_Id symbol_id;
 };
 typedef struct Tac_Function_Label Tac_Function_Label;
-// NOTE(vlad): "Tac_Function_Label_Id" is defined inside 'eon_forward_declarations.h'.
+// NOTE(vlad): 'Tac_Function_Label_Id' is defined inside 'eon_forward_declarations.h'.
 
 enum
 {
@@ -141,7 +141,7 @@ struct Tac_Label
     Tac_Instruction_Id instruction_id;
 };
 typedef struct Tac_Label Tac_Label;
-DEFINE_TAC_ID_FOR(Tac_Label);
+// NOTE(vlad): 'Tac_Label_Id' is defined inside 'eon_forward_declarations.h'.
 
 struct Tac_Parameter_Index
 {

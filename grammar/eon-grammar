@@ -40,7 +40,9 @@ statement: variable_definition
          | while_statement
          | return_statement
          | if_statement
-         | call_statement;
+         | call_statement
+         | break_statement
+         | continue_statement;
 
 variable_definition: identifier ":" optional_variable_type optional_variable_assignment ";";
 optional_variable_type: EPS | type;
@@ -58,6 +60,9 @@ call_statement: call_expression;
 if_statement: "if" expression code_block optional_else_statement;
 optional_else_statement: EPS | "else" if_statement_or_code_block;
 if_statement_or_code_block: if_statement | code_block;
+
+break_statement: "break" ";";
+continue_statement: "continue" ";";
 
 function_type: "(" parameters_declaration ")" "->" type;
 type: optional_type_qualifiers type_tail;

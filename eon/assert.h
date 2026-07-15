@@ -51,6 +51,18 @@ TRAP(void)
 #endif
 
 noreturn internal inline void
+INTERNAL_abort(void)
+{
+    // TODO(vlad): Print backtrace?
+    // TODO(vlad): Use trap in debug builds only and 'quick_exit()' in release builds?
+    DEBUGTRAP();
+
+    // NOTE(vlad): GCC will emit an implicit call to `abort()` here.
+    //             @tag(libc)
+    TRAP();
+}
+
+noreturn internal inline void
 INTERNAL_exit(const String_View filename,
               const String_View line_number,
               const String_View message)
@@ -62,13 +74,7 @@ INTERNAL_exit(const String_View filename,
     print_message_directly_to_stdout(message);
     print_message_directly_to_stdout("\n");
 
-    // TODO(vlad): Print backtrace?
-    // TODO(vlad): Use trap in debug builds only and 'quick_exit()' in release builds?
-    DEBUGTRAP();
-
-    // NOTE(vlad): GCC will emit an implicit call to `abort()` here.
-    //             @tag(libc)
-    TRAP();
+    INTERNAL_abort();
 }
 #define FAIL(message) INTERNAL_exit(string_view(__FILE__), string_view(AS_STRING_LITERAL(__LINE__)), string_view(message))
 #define UNREACHABLE() FAIL("This should be unreachable")
@@ -85,8 +91,7 @@ INTERNAL_exit(const String_View filename,
         {                                                               \
             println("{}:{}: Assertion failed in function {}: {}",       \
                     file, line, function, #expression);                 \
-            /* FIXME(vlad): Print backtrace (use libunwind?). */        \
-            FAIL("Assertion failed");                                   \
+            INTERNAL_abort();                                           \
         }                                                               \
     } while (0)
 

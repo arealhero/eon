@@ -284,4 +284,11 @@ registry_register_test(Arena* arena,
     ASSERT_FLOATS_ARE_EQUAL_WITH_EPS(actual, expected, 1e-6)
 
 #define ASSERT_ENUM_VALUES_ARE_EQUAL(expected, actual)  \
-    ASSERT_EQUAL((u64)expected, (u64)actual)
+    ASSERT_EQUAL((u64)(expected), (u64)(actual))
+
+#define ASSERT_POINTERS_ARE_EQUAL(expected, actual)             \
+    do                                                          \
+    {                                                           \
+        ASSERT_EQUAL((void*)(expected), (void*)(actual));       \
+    }                                                           \
+    while (0)

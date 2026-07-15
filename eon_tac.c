@@ -780,6 +780,9 @@ lower_statement_to_tac(Compilation_Context* context,
             const Tac_Label_Id start_label_id = create_tac_label(context);
             const Tac_Label_Id end_label_id = create_tac_label(context);
 
+            while_statement->start_label_id = start_label_id;
+            while_statement->end_label_id = end_label_id;
+
             {
                 Tac_Instruction start_label_instruction = {0};
                 start_label_instruction.operation = TAC_LABEL;
@@ -823,6 +826,7 @@ lower_statement_to_tac(Compilation_Context* context,
                 loop_instruction.operation = TAC_JUMP;
                 loop_instruction.destination.kind = TAC_OPERAND_LABEL;
                 loop_instruction.destination.label_id = start_label_id;
+                loop_instruction.was_automatically_inserted = true;
 
                 emit_tac_instruction(tac_function, loop_instruction);
             }
@@ -929,6 +933,64 @@ lower_statement_to_tac(Compilation_Context* context,
             Ast_Call_Statement* call_statement = &statement->call_statement;
             ASSERT(call_statement->call_expression.kind == AST_EXPRESSION_CALL);
             lower_expression_to_tac(context, tac_function, &call_statement->call_expression);
+        } break;
+
+        case AST_STATEMENT_BREAK:
+        {
+            Ast_Jump* jump = &statement->jump;
+
+            ASSERT(jump->destination != NULL);
+
+            Ast_Statement* loop = jump->destination;
+
+            switch (loop->kind)
+            {
+                case AST_STATEMENT_WHILE:
+                {
+                    Ast_While_Statement* while_statement = &loop->while_statement;
+
+                    Tac_Instruction loop_instruction = {0};
+                    loop_instruction.operation = TAC_JUMP;
+                    loop_instruction.destination.kind = TAC_OPERAND_LABEL;
+                    loop_instruction.destination.label_id = while_statement->end_label_id;
+
+                    emit_tac_instruction(tac_function, loop_instruction);
+                } break;
+
+                default:
+                {
+                    UNREACHABLE();
+                } break;
+            }
+        } break;
+
+        case AST_STATEMENT_CONTINUE:
+        {
+            Ast_Jump* jump = &statement->jump;
+
+            ASSERT(jump->destination != NULL);
+
+            Ast_Statement* loop = jump->destination;
+
+            switch (loop->kind)
+            {
+                case AST_STATEMENT_WHILE:
+                {
+                    Ast_While_Statement* while_statement = &loop->while_statement;
+
+                    Tac_Instruction loop_instruction = {0};
+                    loop_instruction.operation = TAC_JUMP;
+                    loop_instruction.destination.kind = TAC_OPERAND_LABEL;
+                    loop_instruction.destination.label_id = while_statement->start_label_id;
+
+                    emit_tac_instruction(tac_function, loop_instruction);
+                } break;
+
+                default:
+                {
+                    UNREACHABLE();
+                } break;
+            }
         } break;
     }
 
@@ -1131,6 +1193,12 @@ find_statement_in_code_block_by_tac_instruction_index(const Ast_Code_Block* code
                 }
 
                 return statement;
+            } break;
+
+            case AST_STATEMENT_BREAK:
+            case AST_STATEMENT_CONTINUE:
+            {
+                FAIL("[TAC] Break and continue are not supported yet");
             } break;
         }
 

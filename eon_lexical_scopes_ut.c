@@ -19,6 +19,9 @@ test_function_scopes(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
@@ -90,6 +93,9 @@ test_function_scopes(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -203,6 +209,9 @@ test_function_scopes(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
@@ -292,6 +301,9 @@ test_function_pointers(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -412,6 +424,9 @@ test_function_pointers(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -570,6 +585,9 @@ test_if_statements_scopes(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
@@ -697,6 +715,9 @@ test_if_statements_scopes(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -830,6 +851,9 @@ test_while_loops_scopes(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
@@ -909,9 +933,9 @@ test_while_loops_scopes(Test_Context* test_context)
                 const Ast_Code_Block* while_code_block = &while_statement->body;
                 ASSERT_EQUAL(while_code_block->lexical_scope_id, function_scope_id + 1);
 
-                const Lexical_Scope* then_code_block_scope = &context.lexical_scopes[while_code_block->lexical_scope_id];
-                ASSERT_EQUAL(then_code_block_scope->parent_lexical_scope_id, function_scope_id);
-                ASSERT_EQUAL(then_code_block_scope->symbol_ids_count, 0);
+                const Lexical_Scope* while_body_scope = &context.lexical_scopes[while_code_block->lexical_scope_id];
+                ASSERT_EQUAL(while_body_scope->parent_lexical_scope_id, function_scope_id);
+                ASSERT_EQUAL(while_body_scope->symbol_ids_count, 0);
             }
         }
 
@@ -935,6 +959,9 @@ test_while_loops_scopes(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1020,11 +1047,11 @@ test_while_loops_scopes(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(while_code_block->statements[0].kind, AST_STATEMENT_VARIABLE_DEFINITION);
                 const Ast_Variable_Definition* variable_definition = &while_code_block->statements[0].variable_definition;
 
-                const Lexical_Scope* then_code_block_scope = &context.lexical_scopes[while_code_block->lexical_scope_id];
-                ASSERT_EQUAL(then_code_block_scope->parent_lexical_scope_id, function_scope_id);
-                ASSERT_EQUAL(then_code_block_scope->symbol_ids_count, 1);
+                const Lexical_Scope* while_body_scope = &context.lexical_scopes[while_code_block->lexical_scope_id];
+                ASSERT_EQUAL(while_body_scope->parent_lexical_scope_id, function_scope_id);
+                ASSERT_EQUAL(while_body_scope->symbol_ids_count, 1);
 
-                const Symbol_Id symbol_id = then_code_block_scope->symbol_ids[0];
+                const Symbol_Id symbol_id = while_body_scope->symbol_ids[0];
                 ASSERT_EQUAL(variable_definition->name.symbol_id, symbol_id);
 
                 const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
@@ -1057,6 +1084,9 @@ test_while_loops_scopes(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
@@ -1140,17 +1170,113 @@ test_while_loops_scopes(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(while_code_block->statements[0].kind, AST_STATEMENT_VARIABLE_DEFINITION);
                 const Ast_Variable_Definition* variable_definition = &while_code_block->statements[0].variable_definition;
 
-                const Lexical_Scope* then_code_block_scope = &context.lexical_scopes[while_code_block->lexical_scope_id];
-                ASSERT_EQUAL(then_code_block_scope->parent_lexical_scope_id, function_scope_id);
-                ASSERT_EQUAL(then_code_block_scope->symbol_ids_count, 1);
+                const Lexical_Scope* while_body_scope = &context.lexical_scopes[while_code_block->lexical_scope_id];
+                ASSERT_EQUAL(while_body_scope->parent_lexical_scope_id, function_scope_id);
+                ASSERT_EQUAL(while_body_scope->symbol_ids_count, 1);
 
-                const Symbol_Id symbol_id = then_code_block_scope->symbol_ids[0];
+                const Symbol_Id symbol_id = while_body_scope->symbol_ids[0];
                 ASSERT_EQUAL(variable_definition->name.symbol_id, symbol_id);
 
                 const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
                 ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_VARIABLE);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "a");
                 ASSERT_FALSE(symbol->binding_is_mutable);
+            }
+        }
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    while 1 != 2 {"
+                                                 "        break;"
+                                                 "    }"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+        ASSERT_EQUAL(function_definition->body.lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        {
+            const Lexical_Scope* global_scope = &context.lexical_scopes[GLOBAL_LEXICAL_SCOPE_ID];
+            ASSERT_EQUAL(global_scope->parent_lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
+
+            {
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           function_definition->name.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
+
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
+                ASSERT_FALSE(symbol->binding_is_mutable);
+            }
+        }
+
+        {
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            const Ast_Function_Type* function_type = &function_definition->type->function;
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->return_type->kind, AST_TYPE_NAME);
+
+            const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       function_type->return_type->named_type.token.lexeme);
+            ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
+            ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
+
+            const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_TYPE);
+            ASSERT_STRINGS_ARE_EQUAL(symbol->name, "void");
+            ASSERT_FALSE(symbol->binding_is_mutable);
+            ASSERT_TRUE(symbol->is_builtin);
+        }
+
+        const Lexical_Scope_Id function_scope_id = function_definition->body.lexical_scope_id;
+        ASSERT_EQUAL(function_scope_id, GLOBAL_LEXICAL_SCOPE_ID + 1);
+
+        const Lexical_Scope* scope = &context.lexical_scopes[function_scope_id];
+        ASSERT_EQUAL(scope->parent_lexical_scope_id, GLOBAL_LEXICAL_SCOPE_ID);
+        ASSERT_EQUAL(scope->symbol_ids_count, 0);
+
+        ASSERT_EQUAL(function_definition->body.statements_count, 1);
+
+        {
+            const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_WHILE);
+
+            const Ast_While_Statement* while_statement = &statement->while_statement;
+
+            {
+                const Ast_Code_Block* while_code_block = &while_statement->body;
+                ASSERT_EQUAL(while_code_block->lexical_scope_id, function_scope_id + 1);
+
+                ASSERT_EQUAL(while_code_block->statements_count, 1);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(while_code_block->statements[0].kind, AST_STATEMENT_BREAK);
+
+                const Lexical_Scope* while_body_scope = &context.lexical_scopes[while_code_block->lexical_scope_id];
+                ASSERT_EQUAL(while_body_scope->parent_lexical_scope_id, function_scope_id);
+                ASSERT_EQUAL(while_body_scope->symbol_ids_count, 0);
             }
         }
 
@@ -1176,6 +1302,9 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1310,6 +1439,9 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1489,6 +1621,9 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         ASSERT_EQUAL(context.ast.function_definitions_count, 3);
 
         create_lexical_scopes(&context);
@@ -1605,6 +1740,9 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 3);
@@ -1726,6 +1864,9 @@ test_uses_of_undeclared_identifiers(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_TRUE(has_compilation_errors(&context));
 
@@ -1756,6 +1897,9 @@ test_uses_of_undeclared_identifiers(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_TRUE(has_compilation_errors(&context));
 
@@ -1783,6 +1927,9 @@ test_uses_of_undeclared_identifiers(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -1815,6 +1962,9 @@ test_uses_of_undeclared_identifiers(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_TRUE(has_compilation_errors(&context));
 
@@ -1843,6 +1993,9 @@ test_uses_of_undeclared_identifiers(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -1881,6 +2034,9 @@ test_redefinitions(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_TRUE(has_compilation_errors(&context));
 
@@ -1915,6 +2071,9 @@ test_redefinitions(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_TRUE(has_compilation_errors(&context));
 
@@ -1945,6 +2104,7 @@ REGISTER_TESTS(
     test_redefinitions
 )
 
+#include "eon_ast.c"
 #include "eon_cfg.c"
 #include "eon_compilation_context.c"
 #include "eon_diagnostics.c"

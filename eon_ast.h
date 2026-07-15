@@ -203,6 +203,8 @@ enum Ast_Statement_Kind
     AST_STATEMENT_WHILE,
     AST_STATEMENT_IF,
     AST_STATEMENT_CALL,
+    AST_STATEMENT_BREAK,
+    AST_STATEMENT_CONTINUE,
 };
 typedef enum Ast_Statement_Kind Ast_Statement_Kind;
 
@@ -237,8 +239,8 @@ typedef struct Ast_Return_Statement Ast_Return_Statement;
 struct Ast_If_Statement
 {
     Ast_Expression condition;
-    Ast_Code_Block if_statements; // TODO(vlad): Rename to 'if_branch'?
-    Ast_Code_Block else_statements; // TODO(vlad): Rename to 'else_branch'?
+    Ast_Code_Block if_statements; // TODO(vlad): Rename to 'then_statements'?
+    Ast_Code_Block else_statements; // TODO(vlad): Rename to 'else_statements'?
 };
 typedef struct Ast_If_Statement Ast_If_Statement;
 
@@ -246,6 +248,9 @@ struct Ast_While_Statement
 {
     Ast_Expression condition;
     Ast_Code_Block body;
+
+    Tac_Label_Id start_label_id;
+    Tac_Label_Id end_label_id;
 };
 typedef struct Ast_While_Statement Ast_While_Statement;
 
@@ -254,6 +259,13 @@ struct Ast_Call_Statement
     Ast_Expression call_expression;
 };
 typedef struct Ast_Call_Statement Ast_Call_Statement;
+
+struct Ast_Jump
+{
+    Token token;
+    struct Ast_Statement* destination;
+};
+typedef struct Ast_Jump Ast_Jump;
 
 struct Ast_Statement
 {
@@ -270,6 +282,7 @@ struct Ast_Statement
         Ast_While_Statement while_statement;
         Ast_Assignment assignment;
         Ast_Call_Statement call_statement;
+        Ast_Jump jump;
     };
 };
 typedef struct Ast_Statement Ast_Statement;
@@ -288,4 +301,6 @@ struct Ast
     array(Ast_Function_Definition, function_definitions);
 };
 typedef struct Ast Ast;
+
+maybe_unused internal void validate_ast(struct Compilation_Context* context);
 

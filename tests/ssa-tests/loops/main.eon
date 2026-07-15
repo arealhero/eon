@@ -1,0 +1,62 @@
+unreachable_while_loop: () -> s32 =
+{
+    while 1 == 2
+    {
+        return 10;
+    }
+
+    return 20;
+}
+
+redundant_while_loop: () -> s32 =
+{
+    while 1 != 2
+    {
+        return 10;
+    }
+
+    return 20; // FIXME(vlad): Fix diagnostic message.
+}
+
+redundant_continue: () -> void =
+{
+    a: mutable _ = 10;
+    while a > 0
+    {
+        a = a - 1;
+        continue; // TODO(vlad): Emit warning about redundant 'continue' statement?
+    }
+}
+
+while_loops: () -> void =
+{
+    while 1 == 2 {}
+
+    a: mutable _ = 10;
+    while a > 0
+    {
+        a = a - 1;
+    }
+
+    b: mutable _ = 20;
+    while 1 == 1 // FIXME(vlad): Add 'true' and 'false' keywords.
+    {
+        b = b - 1;
+        if b < 0
+        {
+            break;
+        }
+    }
+
+    // c: mutable _ = 20;
+    // while 1 == 1 // FIXME(vlad): Add 'true' and 'false' keywords.
+    // {
+    //     c = c - 1;
+    //     if c >= 0
+    //     {
+    //         continue;
+    //     }
+
+    //     break;
+    // }
+}

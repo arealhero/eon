@@ -770,6 +770,52 @@ test_keywords_and_digraphs(Test_Context* test_context)
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("break");
+
+        Lexer lexer = {0};
+        create_lexer(&lexer, &context);
+
+        Token token = {0};
+
+        ASSERT_TRUE(get_next_token(&lexer, &token));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+        ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_BREAK);
+        ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "break");
+        ASSERT_EQUAL(token.location.line, 0);
+        ASSERT_EQUAL(token.location.column, 0);
+
+        ASSERT_TRUE(get_next_token(&lexer, &token));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+        ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
+
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("continue");
+
+        Lexer lexer = {0};
+        create_lexer(&lexer, &context);
+
+        Token token = {0};
+
+        ASSERT_TRUE(get_next_token(&lexer, &token));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+        ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_CONTINUE);
+        ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "continue");
+        ASSERT_EQUAL(token.location.line, 0);
+        ASSERT_EQUAL(token.location.column, 0);
+
+        ASSERT_TRUE(get_next_token(&lexer, &token));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+        ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
+
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
 }
 
 internal void

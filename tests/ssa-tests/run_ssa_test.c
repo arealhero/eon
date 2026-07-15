@@ -75,7 +75,7 @@ main(const int argc, const char* argv[])
         }
         else
         {
-            println("Unknown argument {} encountered", argv[2]);
+            println("Unknown argument encountered: '{}'", argv[2]);
             print_usage();
             return EXIT_FAILURE;
         }
@@ -134,6 +134,16 @@ main(const int argc, const char* argv[])
         goto cleanup;
     }
     END_TIMER(ast_parsing, "AST parsed");
+
+    if (has_diagnostic_messages(&context))
+    {
+        test_failed = true;
+        goto cleanup;
+    }
+
+    START_TIMER(ast_validation);
+    validate_ast(&context);
+    END_TIMER(ast_validation, "AST validated");
 
     if (has_diagnostic_messages(&context))
     {
@@ -879,6 +889,7 @@ compare_outputs_and_optionally_canonize(Arena* scratch_arena,
 #include <eon/memory.c>
 #include <eon/string.c>
 
+#include <eon_ast.c>
 #include <eon_cfg.c>
 #include <eon_compilation_context.c>
 #include <eon_diagnostics.c>

@@ -380,6 +380,11 @@ create_lexical_scopes_for_code_block(Compilation_Context* context, Ast_Code_Bloc
                                                                   &call_statement->call_expression.call,
                                                                   this_lexical_scope_id);
             } break;
+
+            case AST_STATEMENT_BREAK:
+            case AST_STATEMENT_CONTINUE:
+            {
+            } break;
         }
     }
 }

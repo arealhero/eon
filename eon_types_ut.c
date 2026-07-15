@@ -21,6 +21,9 @@ test_builtin_types_resolving(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -128,6 +131,9 @@ test_builtin_types_resolving(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -246,6 +252,9 @@ test_pointers(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -348,6 +357,9 @@ test_pointers(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -425,6 +437,9 @@ test_comparisons(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -524,6 +539,9 @@ test_comparisons(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -619,6 +637,9 @@ test_comparisons(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -718,6 +739,9 @@ test_comparisons(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -815,6 +839,9 @@ test_comparisons(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -910,6 +937,9 @@ test_comparisons(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -1013,6 +1043,9 @@ test_if_statements(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -1112,6 +1145,9 @@ test_if_statements(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -1214,6 +1250,9 @@ test_if_statements(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -1339,6 +1378,9 @@ test_while_statements(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -1431,6 +1473,9 @@ test_while_statements(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -1533,6 +1578,9 @@ test_assignments(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -1626,6 +1674,9 @@ test_assignments(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -1717,6 +1768,9 @@ test_assignments(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -1825,6 +1879,9 @@ test_pointers_to_mutable_binding(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -1946,6 +2003,9 @@ test_pointers_to_mutable_binding(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -2106,6 +2166,9 @@ test_pointers_to_mutable_binding(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -2269,6 +2332,9 @@ test_calls(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -2372,6 +2438,9 @@ test_calls(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         parse_ast(&parser);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -2490,6 +2559,9 @@ test_calls(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -2634,6 +2706,9 @@ test_calls(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -2774,6 +2849,9 @@ test_calls(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -2887,6 +2965,9 @@ test_signed_integers(Test_Context* test_context)
             ASSERT_TRUE(parse_ast(&parser));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+            validate_ast(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
             create_lexical_scopes(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -2961,6 +3042,9 @@ test_signed_integers(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            validate_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             create_lexical_scopes(&context);
@@ -3039,6 +3123,9 @@ test_signed_integers(Test_Context* test_context)
             ASSERT_TRUE(parse_ast(&parser));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+            validate_ast(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
             create_lexical_scopes(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -3113,6 +3200,9 @@ test_signed_integers(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            validate_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             create_lexical_scopes(&context);
@@ -3198,6 +3288,9 @@ test_unsigned_integers(Test_Context* test_context)
             ASSERT_TRUE(parse_ast(&parser));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+            validate_ast(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
             create_lexical_scopes(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -3272,6 +3365,9 @@ test_unsigned_integers(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            validate_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             create_lexical_scopes(&context);
@@ -3350,6 +3446,9 @@ test_unsigned_integers(Test_Context* test_context)
             ASSERT_TRUE(parse_ast(&parser));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+            validate_ast(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
             create_lexical_scopes(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -3424,6 +3523,9 @@ test_unsigned_integers(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            validate_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             create_lexical_scopes(&context);
@@ -3509,6 +3611,9 @@ test_floats(Test_Context* test_context)
             ASSERT_TRUE(parse_ast(&parser));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+            validate_ast(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
             create_lexical_scopes(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -3583,6 +3688,9 @@ test_floats(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            validate_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             create_lexical_scopes(&context);
@@ -3664,6 +3772,9 @@ test_floats(Test_Context* test_context)
             ASSERT_TRUE(parse_ast(&parser));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+            validate_ast(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
             create_lexical_scopes(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -3738,6 +3849,9 @@ test_floats(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            validate_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             create_lexical_scopes(&context);
@@ -3819,6 +3933,9 @@ test_floats(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            validate_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             create_lexical_scopes(&context);
@@ -3976,6 +4093,9 @@ test_number_types_inference_in_arithmetic_expressions(Test_Context* test_context
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -4116,6 +4236,9 @@ test_number_types_inference_in_arithmetic_expressions(Test_Context* test_context
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -4224,6 +4347,9 @@ test_variables_of_invalid_types(Test_Context* test_context)
             ASSERT_TRUE(parse_ast(&parser));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+            validate_ast(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
             create_lexical_scopes(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -4255,6 +4381,9 @@ test_variables_of_invalid_types(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            validate_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             create_lexical_scopes(&context);
@@ -4290,6 +4419,9 @@ test_variables_of_invalid_types(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            validate_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             create_lexical_scopes(&context);
@@ -4331,6 +4463,9 @@ test_variables_of_invalid_types(Test_Context* test_context)
             ASSERT_TRUE(parse_ast(&parser));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+            validate_ast(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
             create_lexical_scopes(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -4370,6 +4505,9 @@ test_variables_of_invalid_types(Test_Context* test_context)
             ASSERT_TRUE(parse_ast(&parser));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+            validate_ast(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
             create_lexical_scopes(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -4401,6 +4539,9 @@ test_variables_of_invalid_types(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            validate_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             create_lexical_scopes(&context);
@@ -4437,6 +4578,9 @@ test_variables_of_invalid_types(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            validate_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             create_lexical_scopes(&context);
@@ -4479,6 +4623,9 @@ test_type_mismatches(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -4515,6 +4662,9 @@ test_type_mismatches(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -4548,6 +4698,9 @@ test_type_mismatches(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -4586,6 +4739,9 @@ test_type_mismatches(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -4619,6 +4775,9 @@ test_type_mismatches(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -4659,6 +4818,9 @@ test_type_mismatches(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -4690,6 +4852,9 @@ test_type_mismatches(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -4728,6 +4893,9 @@ test_type_mismatches(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -4764,6 +4932,9 @@ test_type_mismatches(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -4794,6 +4965,9 @@ test_type_mismatches(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -4831,6 +5005,9 @@ test_type_mismatches(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -4862,6 +5039,9 @@ test_type_mismatches(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -4897,6 +5077,9 @@ test_type_mismatches(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -4938,6 +5121,9 @@ test_number_type_mismatches(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -4971,6 +5157,9 @@ test_number_type_mismatches(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -5002,6 +5191,9 @@ test_number_type_mismatches(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -5042,6 +5234,9 @@ test_number_type_mismatches(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -5075,6 +5270,9 @@ test_number_type_mismatches(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -5112,6 +5310,9 @@ test_number_type_mismatches(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -5145,6 +5346,9 @@ test_number_type_mismatches(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -5184,6 +5388,9 @@ test_lvalue_mismatches(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -5218,6 +5425,9 @@ test_lvalue_mismatches(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -5250,6 +5460,9 @@ test_lvalue_mismatches(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -5290,6 +5503,9 @@ test_mutability_mismatches(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -5323,6 +5539,9 @@ test_mutability_mismatches(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -5360,6 +5579,9 @@ test_mutability_mismatches(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -5392,6 +5614,9 @@ test_mutability_mismatches(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -5429,6 +5654,9 @@ test_mutability_mismatches(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -5462,6 +5690,9 @@ test_mutability_mismatches(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -5504,6 +5735,7 @@ REGISTER_TESTS(
     test_mutability_mismatches
 )
 
+#include "eon_ast.c"
 #include "eon_cfg.c"
 #include "eon_compilation_context.c"
 #include "eon_diagnostics.c"

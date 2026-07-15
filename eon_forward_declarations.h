@@ -33,6 +33,12 @@ struct Tac_Function_Label_Id
 };
 typedef struct Tac_Function_Label_Id Tac_Function_Label_Id;
 
+struct Tac_Label_Id
+{
+    Index index;
+};
+typedef struct Tac_Label_Id Tac_Label_Id;
+
 struct Tac_Instruction_Id
 {
     Tac_Function_Label_Id function_label_id;

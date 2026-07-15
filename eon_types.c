@@ -1506,6 +1506,11 @@ resolve_types_in_code_block(Compilation_Context* context,
                     // FIXME(vlad): Test if returned value is discardable.
                 }
             } break;
+
+            case AST_STATEMENT_BREAK:
+            case AST_STATEMENT_CONTINUE:
+            {
+            } break;
         }
     }
 

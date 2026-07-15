@@ -23,8 +23,11 @@ create_lexer(Lexer* lexer, Compilation_Context* context)
         { .type = TOKEN_FALSE, .lexeme = string_view("false"), },
         { .type = TOKEN_ARROW, .lexeme = string_view("->"), },
         { .type = TOKEN_RETURN, .lexeme = string_view("return"), },
-        { .type = TOKEN_MUTABLE, .lexeme = string_view("mutable"), },
+        { .type = TOKEN_BREAK, .lexeme = string_view("break"), },
+        { .type = TOKEN_CONTINUE, .lexeme = string_view("continue"), },
         { .type = TOKEN_WILDCARD, .lexeme = string_view("_"), },
+
+        { .type = TOKEN_MUTABLE, .lexeme = string_view("mutable"), },
     };
 
     lexer->keywords_count = NUMBER_OF_STATIC_ARRAY_ELEMENTS(keywords);

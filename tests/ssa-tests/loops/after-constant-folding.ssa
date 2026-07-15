@@ -1,0 +1,51 @@
+unreachable_while_loop:
+     1 | LABEL_1:
+     2 | LABEL_2:
+     3 |           RETURN           CONSTANT s32 20
+
+redundant_while_loop:
+     1 | LABEL_3:
+     2 |           RETURN           CONSTANT s32 10
+
+redundant_continue:
+     1 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
+       |
+       |           PHI              VARIABLE a@2, VARIABLE a@1, VARIABLE a@3
+     2 | LABEL_5:
+     3 |           GREATER          VARIABLE <temp_1>@1, VARIABLE a@2, CONSTANT s32 0
+     4 |           JUMP_IF_FALSE    LABEL_6, VARIABLE <temp_1>@1
+     5 |           SUBTRACT         VARIABLE <temp_2>@1, VARIABLE a@2, CONSTANT s32 1
+     6 |           ASSIGN           VARIABLE a@3, VARIABLE <temp_2>@1
+     7 |           JUMP             LABEL_5
+     8 | LABEL_6:
+     9 |           RETURN
+
+while_loops:
+     1 | LABEL_7:
+     2 | LABEL_8:
+     3 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
+       |
+       |           PHI              VARIABLE a@2, VARIABLE a@1, VARIABLE a@3
+     4 | LABEL_9:
+     5 |           GREATER          VARIABLE <temp_1>@1, VARIABLE a@2, CONSTANT s32 0
+     6 |           JUMP_IF_FALSE    LABEL_10, VARIABLE <temp_1>@1
+     7 |           SUBTRACT         VARIABLE <temp_2>@1, VARIABLE a@2, CONSTANT s32 1
+     8 |           ASSIGN           VARIABLE a@3, VARIABLE <temp_2>@1
+     9 |           JUMP             LABEL_9
+    10 | LABEL_10:
+    11 |           ASSIGN           VARIABLE b@1, CONSTANT s32 20
+       |
+       |           PHI              VARIABLE b@2, VARIABLE b@1, VARIABLE b@3
+    12 | LABEL_11:
+    13 |           SUBTRACT         VARIABLE <temp_5>@1, VARIABLE b@2, CONSTANT s32 1
+    14 |           ASSIGN           VARIABLE b@3, VARIABLE <temp_5>@1
+    15 |           LESS             VARIABLE <temp_6>@1, VARIABLE b@3, CONSTANT s32 0
+    16 |           JUMP_IF_FALSE    LABEL_13, VARIABLE <temp_6>@1
+    17 |           JUMP             LABEL_12
+    18 | LABEL_13:
+    19 | LABEL_14:
+    20 |           JUMP             LABEL_11
+       |
+       |           PHI              VARIABLE b@4, VARIABLE b@3
+    21 | LABEL_12:
+    22 |           RETURN

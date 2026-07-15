@@ -130,6 +130,7 @@ fi
 
 compile_and_run_unit_test eon_lexer_ut.c
 compile_and_run_unit_test eon_parser_ut.c
+compile_and_run_unit_test eon_ast_ut.c
 compile_and_run_unit_test eon_lexical_scopes_ut.c
 compile_and_run_unit_test eon_types_ut.c
 compile_and_run_unit_test eon_tac_ut.c
@@ -144,44 +145,23 @@ compile tests/ssa-tests/run_ssa_test.c -o build/tests/ssa-tests/run_ssa_test \
 run_ssa_test()
 {
     test_directory="$1"
+
+    shift
+    additional_flags="$@"
+
     test_name=$(basename "$test_directory")
 
     echo
     echo "Running SSA test '$test_name'"
-    "build/tests/ssa-tests/run_ssa_test" "$test_directory"
-}
-
-run_ssa_test tests/ssa-tests/general-cases
-run_ssa_test tests/ssa-tests/constant-folding
-run_ssa_test tests/ssa-tests/regression-if-statement-with-return
-run_ssa_test tests/ssa-tests/regression-nested-if-statement
-
-exit 0
-
-mkdir -p build/tests
-compile tests/run_test.c -o build/tests/run_test \
-        $compiler_common_flags \
-        $compiler_warnings
-
-run_test()
-{
-    test_directory="$1"
-    test_name=$(basename "$test_directory")
-    eon_executable="build/eon"
-
-    echo
-    echo "Running test '$test_name'"
-    "build/tests/run_test" "$eon_executable" "$test_directory"
+    "build/tests/ssa-tests/run_ssa_test" "$test_directory" $additional_flags
 }
 
 echo
-echo " === Running interpreter tests ==="
+echo " === Running SSA tests ==="
 
-run_test tests/calls
-run_test tests/empty-file
-run_test tests/empty-main-with-return
-run_test tests/factorial
-run_test tests/fibonacci
-run_test tests/fibonacci-without-recursion
-run_test tests/simple-floats-operations
-run_test tests/square-root
+run_ssa_test tests/ssa-tests/general-cases
+run_ssa_test tests/ssa-tests/constant-folding
+run_ssa_test tests/ssa-tests/loops
+
+run_ssa_test tests/ssa-tests/regression-if-statement-with-return
+run_ssa_test tests/ssa-tests/regression-nested-if-statement

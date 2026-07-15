@@ -22,6 +22,9 @@ test_functions_without_jumps(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -74,6 +77,9 @@ test_functions_without_jumps(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -130,6 +136,9 @@ test_functions_without_jumps(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -216,6 +225,9 @@ test_if_statements(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -333,6 +345,9 @@ test_if_statements(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -461,6 +476,9 @@ test_while_loops(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -565,6 +583,9 @@ test_complex_statements(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -748,6 +769,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -858,6 +882,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -987,6 +1014,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -1124,6 +1154,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -1354,6 +1387,7 @@ REGISTER_TESTS(
     test_unreachable_blocks_removal
 )
 
+#include "eon_ast.c"
 #include "eon_cfg.c"
 #include "eon_compilation_context.c"
 #include "eon_diagnostics.c"

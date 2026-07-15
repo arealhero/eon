@@ -455,6 +455,8 @@ emit_diagnostic_message_about_dead_code_if_needed(Compilation_Context* context,
 
             emit_diagnostic_message(context, &error);
         }
+
+        this_block_reachability_info->diagnostic_message_was_emitted = true;
     }
 
     for (Index edge_index = 0;

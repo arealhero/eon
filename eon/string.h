@@ -126,6 +126,8 @@ enum Format_Type_Tag
 {
     TYPE_TAG_STRING_VIEW,
 
+    TYPE_TAG_POINTER,
+
     TYPE_TAG_char,
 
     TYPE_TAG_f32,
@@ -146,6 +148,8 @@ struct Format_Type_Info
     {
         String_View string_view;
 
+        const void* pointer;
+
         char char_value;
         f32 f32_value;
         f64 f64_value;
@@ -161,7 +165,9 @@ typedef struct Format_Type_Info Format_Type_Info;
 //             from the 'format_string()'s call site.
 internal inline Format_Type_Info INTERNAL_format_tag_string(const String string);
 internal inline Format_Type_Info INTERNAL_format_tag_string_view(const String_View string);
-internal inline Format_Type_Info INTERNAL_format_tag_c_string(const char* string);
+internal inline Format_Type_Info INTERNAL_format_tag_c_string(const char* pointer);
+
+internal inline Format_Type_Info INTERNAL_format_pointer(const void* string);
 
 internal inline Format_Type_Info INTERNAL_format_tag_char(const char c);
 
@@ -192,6 +198,8 @@ internal String format_string_impl(struct Arena* const arena,
                                                                     \
         char*: INTERNAL_format_tag_c_string,                        \
         const char*: INTERNAL_format_tag_c_string,                  \
+                                                                    \
+        void*: INTERNAL_format_pointer,                             \
                                                                     \
         f32: INTERNAL_format_tag_f32,                               \
         f64: INTERNAL_format_tag_f64,                               \

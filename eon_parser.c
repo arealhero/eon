@@ -53,6 +53,8 @@ token_type_to_string(const Token_Type type)
         ADD_TOKEN(TOKEN_FALSE, "'false'");
         ADD_TOKEN(TOKEN_ARROW, "'->'");
         ADD_TOKEN(TOKEN_RETURN, "'return'");
+        ADD_TOKEN(TOKEN_BREAK, "'break'");
+        ADD_TOKEN(TOKEN_CONTINUE, "'continue'");
         ADD_TOKEN(TOKEN_WILDCARD, "wildcard ('_')");
 
         ADD_TOKEN(TOKEN_MUTABLE, "'mutable'");
@@ -1120,8 +1122,11 @@ parse_assignment_or_definition_or_call(Parser* parser, Ast_Statement* statement)
 }
 
 internal Bool
-parse_return_statement(Parser* parser, Ast_Return_Statement* statement)
+parse_return_statement(Parser* parser, Ast_Statement* statement)
 {
+    statement->kind = AST_STATEMENT_RETURN;
+    Ast_Return_Statement* return_statement = &statement->return_statement;
+
     if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_RETURN))
     {
         return false;
@@ -1138,14 +1143,14 @@ parse_return_statement(Parser* parser, Ast_Return_Statement* statement)
     if (parser->current_token.type == TOKEN_SEMICOLON)
     {
         parser_consume_token(parser);
-        statement->is_empty = true;
-        statement->empty_expression_location = parser->previous_token_location;
+        return_statement->is_empty = true;
+        return_statement->empty_expression_location = parser->previous_token_location;
         return true;
     }
 
-    statement->is_empty = false;
+    return_statement->is_empty = false;
 
-    if (!parse_expression(parser, &statement->expression))
+    if (!parse_expression(parser, &return_statement->expression))
     {
         return false;
     }
@@ -1173,13 +1178,13 @@ parse_code_block(Parser* parser, Ast_Code_Block* code_block)
 
     while (parser->current_token.type != TOKEN_RIGHT_BRACE)
     {
-        Ast_Statement statement = {0};
-        if (!parse_statement(parser, &statement))
+        append_array(parser->context->ast_arena, code_block->statements, Ast_Statement, (Ast_Statement){0});
+
+        Ast_Statement* statement = &code_block->statements[code_block->statements_count - 1];
+        if (!parse_statement(parser, statement))
         {
             return false;
         }
-
-        append_array(parser->context->ast_arena, code_block->statements, Ast_Statement, statement);
 
         if (!parser_fetch_token(parser))
         {
@@ -1198,8 +1203,12 @@ parse_code_block(Parser* parser, Ast_Code_Block* code_block)
 }
 
 internal Bool
-parse_while_statement(Parser* parser, Ast_While_Statement* while_statement)
+parse_while_statement(Parser* parser, Ast_Statement* statement)
 {
+    statement->kind = AST_STATEMENT_WHILE;
+
+    Ast_While_Statement* while_statement = &statement->while_statement;
+
     if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_WHILE))
     {
         return false;
@@ -1219,8 +1228,12 @@ parse_while_statement(Parser* parser, Ast_While_Statement* while_statement)
 }
 
 internal Bool
-parse_if_statement(Parser* parser, Ast_If_Statement* if_statement)
+parse_if_statement(Parser* parser, Ast_Statement* statement)
 {
+    statement->kind = AST_STATEMENT_IF;
+
+    Ast_If_Statement* if_statement = &statement->if_statement;
+
     if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_IF))
     {
         return false;
@@ -1273,7 +1286,7 @@ parse_if_statement(Parser* parser, Ast_If_Statement* if_statement)
                 next_branch_statement->start_location.length_in_bytes = 1; // TODO(vlad): Support other encodings.
             }
 
-            if (!parse_if_statement(parser, &next_branch_statement->if_statement))
+            if (!parse_if_statement(parser, next_branch_statement))
             {
                 return false;
             }
@@ -1313,20 +1326,53 @@ parse_statement(Parser* parser, Ast_Statement* statement)
     {
         case TOKEN_RETURN:
         {
-            statement->kind = AST_STATEMENT_RETURN;
-            return parse_return_statement(parser, &statement->return_statement);
+            return parse_return_statement(parser, statement);
         } break;
 
         case TOKEN_WHILE:
         {
-            statement->kind = AST_STATEMENT_WHILE;
-            return parse_while_statement(parser, &statement->while_statement);
+            return parse_while_statement(parser, statement);
         } break;
 
         case TOKEN_IF:
         {
-            statement->kind = AST_STATEMENT_IF;
-            return parse_if_statement(parser, &statement->if_statement);
+            return parse_if_statement(parser, statement);
+        } break;
+
+        case TOKEN_BREAK:
+        {
+            statement->kind = AST_STATEMENT_BREAK;
+            statement->jump.token = parser->current_token;
+
+            if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_BREAK))
+            {
+                return false;
+            }
+
+            if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_SEMICOLON))
+            {
+                return false;
+            }
+
+            return true;
+        } break;
+
+        case TOKEN_CONTINUE:
+        {
+            statement->kind = AST_STATEMENT_CONTINUE;
+            statement->jump.token = parser->current_token;
+
+            if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_CONTINUE))
+            {
+                return false;
+            }
+
+            if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_SEMICOLON))
+            {
+                return false;
+            }
+
+            return true;
         } break;
 
         default:
@@ -1334,6 +1380,8 @@ parse_statement(Parser* parser, Ast_Statement* statement)
             return parse_assignment_or_definition_or_call(parser, statement);
         } break;
     }
+
+    UNREACHABLE();
 }
 
 internal Bool

@@ -25,6 +25,9 @@ test_dominators_and_dominance_frontiers_computing(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -96,6 +99,9 @@ test_dominators_and_dominance_frontiers_computing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -242,6 +248,9 @@ test_dominators_and_dominance_frontiers_computing(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -363,6 +372,9 @@ test_dominators_and_dominance_frontiers_computing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -561,6 +573,9 @@ test_dominators_and_dominance_frontiers_computing(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -773,6 +788,9 @@ test_phi_nodes_insertion(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -852,6 +870,9 @@ test_phi_nodes_insertion(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            validate_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             create_lexical_scopes(&context);
@@ -1012,6 +1033,9 @@ test_phi_nodes_insertion(Test_Context* test_context)
             ASSERT_TRUE(parse_ast(&parser));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+            validate_ast(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
             create_lexical_scopes(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -1151,6 +1175,9 @@ test_phi_nodes_insertion(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            validate_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             create_lexical_scopes(&context);
@@ -1313,6 +1340,9 @@ test_phi_nodes_insertion(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            validate_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             create_lexical_scopes(&context);
@@ -1489,6 +1519,9 @@ test_phi_nodes_insertion(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -1737,6 +1770,9 @@ test_phi_nodes_insertion(Test_Context* test_context)
             ASSERT_TRUE(parse_ast(&parser));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+            validate_ast(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
             create_lexical_scopes(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -1948,6 +1984,9 @@ test_phi_nodes_insertion(Test_Context* test_context)
             create_parser(&parser, &lexer, &context);
 
             ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            validate_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             create_lexical_scopes(&context);
@@ -2177,6 +2216,9 @@ test_ssa_versions_of_variables(Test_Context* test_context)
             ASSERT_TRUE(parse_ast(&parser));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+            validate_ast(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
             create_lexical_scopes(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -2342,6 +2384,9 @@ test_unused_ssa_assignments(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -2399,6 +2444,9 @@ test_unused_ssa_assignments(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -2467,6 +2515,9 @@ test_unused_ssa_assignments(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -2532,6 +2583,9 @@ test_unused_ssa_assignments(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -2586,6 +2640,9 @@ test_unused_ssa_assignments(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -2655,6 +2712,9 @@ test_unused_ssa_assignments(Test_Context* test_context)
         create_parser(&parser, &lexer, &context);
 
         ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         create_lexical_scopes(&context);
@@ -2732,6 +2792,9 @@ test_unused_ssa_assignments(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -2805,6 +2868,9 @@ test_unused_ssa_assignments(Test_Context* test_context)
         ASSERT_TRUE(parse_ast(&parser));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
         create_lexical_scopes(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
@@ -2856,6 +2922,7 @@ REGISTER_TESTS(
     test_unused_ssa_assignments
 )
 
+#include "eon_ast.c"
 #include "eon_cfg.c"
 #include "eon_compilation_context.c"
 #include "eon_diagnostics.c"
