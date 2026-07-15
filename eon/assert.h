@@ -51,9 +51,14 @@ TRAP(void)
 #endif
 
 noreturn internal inline void
-INTERNAL_exit(const String_View message)
+INTERNAL_exit(const String_View filename,
+              const String_View line_number,
+              const String_View message)
 {
-    print_message_directly_to_stdout("FAIL: ");
+    print_message_directly_to_stdout(filename);
+    print_message_directly_to_stdout(":");
+    print_message_directly_to_stdout(line_number);
+    print_message_directly_to_stdout(": FAIL: ");
     print_message_directly_to_stdout(message);
     print_message_directly_to_stdout("\n");
 
@@ -65,7 +70,7 @@ INTERNAL_exit(const String_View message)
     //             @tag(libc)
     TRAP();
 }
-#define FAIL(message) INTERNAL_exit(string_view(message))
+#define FAIL(message) INTERNAL_exit(string_view(__FILE__), string_view(AS_STRING_LITERAL(__LINE__)), string_view(message))
 #define UNREACHABLE() FAIL("This should be unreachable")
 
 #if EON_DISABLE_ASSERTS

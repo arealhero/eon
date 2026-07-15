@@ -1,5 +1,9 @@
 #pragma once
 
+#define AS_STRING_LITERAL(arg) AS_STRING_LITERAL_2(arg)
+#define AS_STRING_LITERAL_2(arg) AS_STRING_LITERAL_1(arg)
+#define AS_STRING_LITERAL_1(arg) #arg
+
 #define CONCATENATE(lhs, rhs)   CONCATENATE_2(lhs, rhs)
 #define CONCATENATE_2(lhs, rhs) CONCATENATE_1(lhs, rhs)
 #define CONCATENATE_1(lhs, rhs) lhs ## rhs
