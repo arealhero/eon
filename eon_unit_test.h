@@ -52,9 +52,9 @@ release_arena_to_provider(struct Arena_Provider* provider, Arena* arena)
     {                                                                   \
         if (has_diagnostic_messages(&context))                          \
         {                                                               \
-            const String dumped_messages = dump_diagnostic_messages(test_context->arena, \
-                                                                    &context, \
-                                                                    MAX_MESSAGE_LEVEL); \
+            const String_View dumped_messages = dump_diagnostic_messages(test_context->arena, \
+                                                                         &context, \
+                                                                         MAX_MESSAGE_LEVEL); \
             ASSERT_STRINGS_ARE_EQUAL(dumped_messages, "");              \
         }                                                               \
     } while (0)

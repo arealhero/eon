@@ -934,9 +934,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
 
         ASSERT_TRUE(has_diagnostic_messages(&context));
         {
-            const String dumped_messages = dump_diagnostic_messages(test_context->arena,
-                                                                    &context,
-                                                                    MAX_MESSAGE_LEVEL);
+            const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                         &context,
+                                                                         MAX_MESSAGE_LEVEL);
             const String_View expected_output = string_view("<test-input>:3:5: error: This code is unreachable\n"
                                                             "  3 |     a := 10;\n"
                                                             "    |     ^");
@@ -1069,9 +1069,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
 
         ASSERT_TRUE(has_diagnostic_messages(&context));
         {
-            const String dumped_messages = dump_diagnostic_messages(test_context->arena,
-                                                                    &context,
-                                                                    MAX_MESSAGE_LEVEL);
+            const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                         &context,
+                                                                         MAX_MESSAGE_LEVEL);
             const String_View expected_output = string_view("<test-input>:3:5: error: This code is unreachable\n"
                                                             "  3 |     a := 10;\n"
                                                             "    |     ^");
@@ -1247,9 +1247,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
         remove_unreachable_cfg_blocks(&context);
         ASSERT_TRUE(has_diagnostic_messages(&context));
         {
-            const String dumped_messages = dump_diagnostic_messages(test_context->arena,
-                                                                    &context,
-                                                                    MAX_MESSAGE_LEVEL);
+            const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                         &context,
+                                                                         MAX_MESSAGE_LEVEL);
             const String_View expected_output = string_view("<test-input>:5:9: error: This code is unreachable\n"
                                                             "  5 |         a := 10;\n"
                                                             "    |         ^");

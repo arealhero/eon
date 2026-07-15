@@ -66,9 +66,9 @@ maybe_unused internal inline Bool has_diagnostic_messages(const Compilation_Cont
 maybe_unused internal void emit_diagnostic_message(Compilation_Context* context, const Diagnostic_Message* message);
 
 // FIXME(vlad): Return 'Scattered_String'?
-maybe_unused internal String dump_diagnostic_messages(Arena* messages_arena,
-                                                      Compilation_Context* context,
-                                                      const Message_Level max_level);
+maybe_unused internal String_View dump_diagnostic_messages(Arena* messages_arena,
+                                                           Compilation_Context* context,
+                                                           const Message_Level max_level);
 
 maybe_unused internal Symbol_Id create_symbol(Compilation_Context* context);
 

@@ -786,9 +786,9 @@ test_errors(Test_Context* test_context)
 
         ASSERT_TRUE(has_compilation_errors(&context));
 
-        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
-                                                         &context,
-                                                         MAX_MESSAGE_LEVEL);
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
 
         const String_View expected_output = string_view("<test-input>:1:1: error: Unexpected character encountered\n"
                                                         "  1 | ?\n"

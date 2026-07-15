@@ -115,7 +115,7 @@ emit_diagnostic_message(Compilation_Context* context, const Diagnostic_Message* 
                  *message);
 }
 
-internal String
+internal String_View
 dump_diagnostic_messages(Arena* messages_arena,
                          Compilation_Context* context,
                          const Message_Level max_level)
@@ -136,7 +136,7 @@ dump_diagnostic_messages(Arena* messages_arena,
 
     if (suitable_messages_count == 0)
     {
-        return (String){0};
+        return (String_View){0};
     }
 
     String* formatted_messages = allocate_uninitialized_array(messages_arena, suitable_messages_count, String);
@@ -184,7 +184,7 @@ dump_diagnostic_messages(Arena* messages_arena,
         }
     }
 
-    return result;
+    return string_view(result);
 }
 
 internal Symbol_Id

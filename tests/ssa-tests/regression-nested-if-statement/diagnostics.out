@@ -1,0 +1,12 @@
+tests/ssa-tests/regression-nested-if-statement/main.eon:13:13: error: This assignment is unused
+  13 |             a = 22;
+     |             ^
+tests/ssa-tests/regression-nested-if-statement/main.eon:2:5: error: This assignment is unused
+  2 |     a: mutable _ = 10;
+    |     ^
+tests/ssa-tests/regression-nested-if-statement/main.eon:6:9: error: This code is unreachable
+  6 |         if 1 != 2
+    |         ^
+tests/ssa-tests/regression-nested-if-statement/main.eon:4:5: error: This code is unreachable
+  4 |     if 1 != 2
+    |     ^

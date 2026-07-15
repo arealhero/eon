@@ -3709,9 +3709,9 @@ test_syntax_errors(Test_Context* test_context)
 
         ASSERT_TRUE(has_compilation_errors(&context));
 
-        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
-                                                                &context,
-                                                                MAX_MESSAGE_LEVEL);
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:1:1: error: Expected identifier, found end of file\n"
                                                         "  1 | \n"
                                                         "    | ^");
@@ -3735,9 +3735,9 @@ test_syntax_errors(Test_Context* test_context)
 
         ASSERT_TRUE(has_compilation_errors(&context));
 
-        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
-                                                                &context,
-                                                                MAX_MESSAGE_LEVEL);
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:1:4: error: Expected ':', found end of file\n"
                                                         "  1 | foo\n"
                                                         "    |    ^");
@@ -3763,9 +3763,9 @@ test_syntax_errors(Test_Context* test_context)
 
         ASSERT_TRUE(has_compilation_errors(&context));
 
-        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
-                                                                &context,
-                                                                MAX_MESSAGE_LEVEL);
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
         // TODO(vlad): Can we produce a better error message here?
         const String_View expected_output = string_view("<test-input>:2:15: error: Expected ';', found identifier\n"
                                                         "  2 |     var := 123a;\n"

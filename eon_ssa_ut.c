@@ -2372,9 +2372,9 @@ test_unused_ssa_assignments(Test_Context* test_context)
         find_unused_ssa_assignments(&context);
         ASSERT_TRUE(has_diagnostic_messages(&context));
 
-        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
-                                                                &context,
-                                                                MAX_MESSAGE_LEVEL);
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:5: error: This variable was never used\n"
                                                         "  2 |     a := 10;\n"
                                                         "    |     ^");
@@ -2431,9 +2431,9 @@ test_unused_ssa_assignments(Test_Context* test_context)
         find_unused_ssa_assignments(&context);
         ASSERT_TRUE(has_diagnostic_messages(&context));
 
-        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
-                                                                &context,
-                                                                MAX_MESSAGE_LEVEL);
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
         // FIXME(vlad): Highlight assignment here.
         const String_View expected_output = string_view("<test-input>:2:5: error: This assignment is unused\n"
                                                         "  2 |     a: mutable _ = 10;\n"
@@ -2497,9 +2497,9 @@ test_unused_ssa_assignments(Test_Context* test_context)
         find_unused_ssa_assignments(&context);
         ASSERT_TRUE(has_diagnostic_messages(&context));
 
-        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
-                                                                &context,
-                                                                MAX_MESSAGE_LEVEL);
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
         // FIXME(vlad): Highlight assignment here.
         const String_View expected_output = string_view("<test-input>:2:5: error: This assignment is unused\n"
                                                         "  2 |     a: mutable _ = 10;\n"
@@ -2562,9 +2562,9 @@ test_unused_ssa_assignments(Test_Context* test_context)
         find_unused_ssa_assignments(&context);
         ASSERT_TRUE(has_diagnostic_messages(&context));
 
-        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
-                                                                &context,
-                                                                MAX_MESSAGE_LEVEL);
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
         // FIXME(vlad): Highlight assignment here.
         const String_View expected_output = string_view("<test-input>:2:5: error: This variable was never used\n"
                                                         "  2 |     a: mutable _ = 10;\n"
@@ -2618,9 +2618,9 @@ test_unused_ssa_assignments(Test_Context* test_context)
         find_unused_ssa_assignments(&context);
         ASSERT_TRUE(has_diagnostic_messages(&context));
 
-        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
-                                                                &context,
-                                                                MAX_MESSAGE_LEVEL);
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:1:7: error: This variable was never used\n"
                                                         "  1 | foo: (parameter: s32) -> void = {}\n"
                                                         "    |       ^~~~~~~~~");
@@ -2687,9 +2687,9 @@ test_unused_ssa_assignments(Test_Context* test_context)
         find_unused_ssa_assignments(&context);
         ASSERT_TRUE(has_diagnostic_messages(&context));
 
-        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
-                                                                &context,
-                                                                MAX_MESSAGE_LEVEL);
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:5: error: This assignment is unused\n"
                                                         "  2 |     a: mutable _ = 10;\n"
                                                         "    |     ^\n"
@@ -2762,9 +2762,9 @@ test_unused_ssa_assignments(Test_Context* test_context)
         find_unused_ssa_assignments(&context);
         ASSERT_TRUE(has_diagnostic_messages(&context));
 
-        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
-                                                                &context,
-                                                                MAX_MESSAGE_LEVEL);
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:12:13: error: This assignment is unused\n"
                                                         "  12 |             a = 22;\n"
                                                         "     |             ^\n"
@@ -2835,9 +2835,9 @@ test_unused_ssa_assignments(Test_Context* test_context)
         find_unused_ssa_assignments(&context);
         ASSERT_TRUE(has_diagnostic_messages(&context));
 
-        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
-                                                                &context,
-                                                                MAX_MESSAGE_LEVEL);
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:5: error: This assignment is unused\n"
                                                         "  2 |     a: mutable _ = 10;\n"
                                                         "    |     ^");

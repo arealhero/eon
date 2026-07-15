@@ -1,0 +1,12 @@
+tests/ssa-tests/constant-folding/main.eon:3:5: error: This variable was never used
+  3 |     a := 2 + 2 * 2;
+    |     ^
+tests/ssa-tests/constant-folding/main.eon:4:5: error: This variable was never used
+  4 |     b := 10 / 2;
+    |     ^
+tests/ssa-tests/constant-folding/main.eon:16:9: error: This code is unreachable
+  16 |         return 10;
+     |         ^
+tests/ssa-tests/constant-folding/main.eon:26:5: error: This code is unreachable
+  26 |     if 1 != 2
+     |     ^

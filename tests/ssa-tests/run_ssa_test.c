@@ -200,33 +200,21 @@ main(const int argc, const char* argv[])
         END_TIMER(comparing_plain_ssa, "Plain SSA processed");
     }
 
-    // TODO(vlad): 'find_unused_ssa_assignments()'.
+    START_TIMER(unused_ssa_assignments);
+    find_unused_ssa_assignments(&context);
+    END_TIMER(unused_ssa_assignments, "Unused SSA assignments checked");
 
     START_TIMER(constant_folding);
     perform_constant_folding(&context);
     END_TIMER(constant_folding, "Constant folding performed");
 
-    if (has_diagnostic_messages(&context))
-    {
-        test_failed = true;
-        goto cleanup;
-    }
-
     START_TIMER(unreachable_jumps_removal);
     remove_unreachable_jumps(&context);
     END_TIMER(unreachable_jumps_removal, "Unreachable jumps removed");
 
-    if (has_diagnostic_messages(&context))
-    {
-        test_failed = true;
-        goto cleanup;
-    }
-
-    {
-        START_TIMER(unreachable_cfg_blocks_removed_v2);
-        remove_unreachable_cfg_blocks(&context);
-        END_TIMER(unreachable_cfg_blocks_removed_v2, "Unreachable CFG blocks removed");
-    }
+    START_TIMER(unreachable_cfg_blocks_removed_v2);
+    remove_unreachable_cfg_blocks(&context);
+    END_TIMER(unreachable_cfg_blocks_removed_v2, "Unreachable CFG blocks removed");
 
     {
         START_TIMER(comparing_ssa_after_constant_folding);
@@ -245,19 +233,26 @@ main(const int argc, const char* argv[])
 
 cleanup:
     {
-        if (has_diagnostic_messages(&context))
-        {
-            const String messages = dump_diagnostic_messages(context.scratch_arena, &context, MAX_MESSAGE_LEVEL);
-            println("{}", messages);
-        }
+        START_TIMER(comparing_diagnostic_messages);
+        const String_View diagnostic_messages = dump_diagnostic_messages(context.scratch_arena, &context, MAX_MESSAGE_LEVEL);
+        const String_View diagnostics_filename = string_view(format_string(source_code_arena, "{}/diagnostics.out", test_directory));
 
-        const Timestamp test_end_timestamp = platform_get_current_monotonic_timestamp();
-        println("Test took {} mcs to complete", test_end_timestamp - test_start_timestamp);
+        const Bool success = compare_outputs_and_optionally_canonize(context.scratch_arena,
+                                                                     string_view("Diagnostics"),
+                                                                     diagnostics_filename,
+                                                                     diagnostic_messages,
+                                                                     canonize_output);
+        test_failed = !success;
 
-        destroy_compilation_context(&context);
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
+        END_TIMER(comparing_diagnostic_messages, "Diagnostic messages compared");
     }
+
+    const Timestamp test_end_timestamp = platform_get_current_monotonic_timestamp();
+    println("Test took {} mcs to complete", test_end_timestamp - test_start_timestamp);
+
+    destroy_compilation_context(&context);
+    destroy_parser(&parser);
+    destroy_lexer(&lexer);
 
     destroy_arena(ssa_string_arena);
 
@@ -851,7 +846,7 @@ compare_outputs_and_optionally_canonize(Arena* scratch_arena,
     {
         if (canonize_output)
         {
-            println("{}: Outputs are the same, so there is no need to canonize", test_name);
+            println("{}: Outputs are the same", test_name);
         }
 
         return true;

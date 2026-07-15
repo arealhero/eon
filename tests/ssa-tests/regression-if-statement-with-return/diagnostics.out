@@ -1,0 +1,9 @@
+tests/ssa-tests/regression-if-statement-with-return/main.eon:2:5: error: This assignment is unused
+  2 |     a: mutable _ = 10;
+    |     ^
+tests/ssa-tests/regression-if-statement-with-return/main.eon:11:9: error: This assignment is unused
+  11 |         a = 22;
+     |         ^
+tests/ssa-tests/regression-if-statement-with-return/main.eon:4:5: error: This code is unreachable
+  4 |     if 1 != 2
+    |     ^

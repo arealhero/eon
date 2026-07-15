@@ -2,6 +2,7 @@
 
 #include "eon_cfg.h"
 #include "eon_compilation_context.h"
+#include "eon_lexical_scopes.h"
 #include "eon_tac.h"
 
 internal void
@@ -632,6 +633,7 @@ struct Version_Info
 {
     Bool was_used;
     Bool was_used_outside_of_phi_nodes;
+    Bool was_assigned_to;
     Bool declared_in_phi_node;
 
     union
@@ -796,6 +798,7 @@ find_unused_ssa_assignments(Compilation_Context* context)
                 instruction_id.instruction_index = instruction_index;
 
                 info->version_infos[variable_id.ssa_version].instruction_id = instruction_id;
+                info->version_infos[variable_id.ssa_version].was_assigned_to = true;
             }
 
             if (instruction->first_argument.kind == TAC_OPERAND_VARIABLE)
@@ -836,17 +839,21 @@ find_unused_ssa_assignments(Compilation_Context* context)
 
         Ssa_Variable_Versions_Info* info = &infos[variable_index];
         Bool variable_was_never_used = true;
+        Bool variable_was_reassigned = false;
 
         for (Index version = SSA_VERSION_UNDEFINED + 1;
              version < info->versions_count;
              ++version)
         {
-            if (info->version_infos[version].was_used_outside_of_phi_nodes)
-            // if (info->version_infos[version].was_used)
+            const Version_Info* version_info = &info->version_infos[version];
+
+            if (version_info->was_used_outside_of_phi_nodes)
             {
                 variable_was_never_used = false;
                 break;
             }
+
+            variable_was_reassigned = (version != SSA_VERSION_UNDEFINED + 1) && version_info->was_assigned_to;
         }
 
         if (variable_was_never_used)
@@ -856,7 +863,15 @@ find_unused_ssa_assignments(Compilation_Context* context)
             Diagnostic_Message error = {0};
             error.level = MESSAGE_LEVEL_ERROR;
             error.location = symbol->location;
-            error.text = string_view("This variable was never used");
+
+            if (variable_was_reassigned)
+            {
+                error.text = string_view("This variable was set but not used");
+            }
+            else
+            {
+                error.text = string_view("This variable was never used");
+            }
 
             emit_diagnostic_message(context, &error);
 

@@ -1729,9 +1729,9 @@ test_uses_of_undeclared_identifiers(Test_Context* test_context)
         create_lexical_scopes(&context);
         ASSERT_TRUE(has_compilation_errors(&context));
 
-        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
-                                                                &context,
-                                                                MAX_MESSAGE_LEVEL);
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:12: error: Use of undeclared identifier 'a'\n"
                                                         "  2 |     var := a;\n"
                                                         "    |            ^");
@@ -1759,9 +1759,9 @@ test_uses_of_undeclared_identifiers(Test_Context* test_context)
         create_lexical_scopes(&context);
         ASSERT_TRUE(has_compilation_errors(&context));
 
-        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
-                                                                &context,
-                                                                MAX_MESSAGE_LEVEL);
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:12: error: Use of undeclared identifier 'bar'\n"
                                                         "  2 |     var := bar();\n"
                                                         "    |            ^~~");
@@ -1788,9 +1788,9 @@ test_uses_of_undeclared_identifiers(Test_Context* test_context)
         create_lexical_scopes(&context);
         ASSERT_TRUE(has_compilation_errors(&context));
 
-        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
-                                                                &context,
-                                                                MAX_MESSAGE_LEVEL);
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:1:12: error: Use of undeclared identifier 'Undeclared_Type'\n"
                                                         "  1 | foo: () -> Undeclared_Type = {\n"
                                                         "    |            ^~~~~~~~~~~~~~~");
@@ -1818,9 +1818,9 @@ test_uses_of_undeclared_identifiers(Test_Context* test_context)
         create_lexical_scopes(&context);
         ASSERT_TRUE(has_compilation_errors(&context));
 
-        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
-                                                                &context,
-                                                                MAX_MESSAGE_LEVEL);
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:24: error: Use of undeclared identifier 'Whatever'\n"
                                                         "  2 |     var: * (parameter: Whatever) -> void;\n"
                                                         "    |                        ^~~~~~~~");
@@ -1848,9 +1848,9 @@ test_uses_of_undeclared_identifiers(Test_Context* test_context)
         create_lexical_scopes(&context);
         ASSERT_TRUE(has_compilation_errors(&context));
 
-        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
-                                                                &context,
-                                                                MAX_MESSAGE_LEVEL);
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:10: error: Use of undeclared identifier 'Undeclared_Type'\n"
                                                         "  2 |     var: Undeclared_Type = bar();\n"
                                                         "    |          ^~~~~~~~~~~~~~~\n"
@@ -1884,9 +1884,9 @@ test_redefinitions(Test_Context* test_context)
         create_lexical_scopes(&context);
         ASSERT_TRUE(has_compilation_errors(&context));
 
-        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
-                                                                &context,
-                                                                MAX_MESSAGE_LEVEL);
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:1: error: Redefinition of 'foo'\n"
                                                         "  2 | foo: () -> void = {}\n"
                                                         "    | ^~~\n"
@@ -1918,9 +1918,9 @@ test_redefinitions(Test_Context* test_context)
         create_lexical_scopes(&context);
         ASSERT_TRUE(has_compilation_errors(&context));
 
-        const String dumped_messages = dump_diagnostic_messages(test_context->arena,
-                                                                &context,
-                                                                MAX_MESSAGE_LEVEL);
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:3:5: error: Redefinition of 'var'\n"
                                                         "  3 |     var := 20;\n"
                                                         "    |     ^~~\n"

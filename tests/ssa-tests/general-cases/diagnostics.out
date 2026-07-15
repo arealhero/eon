@@ -1,0 +1,21 @@
+tests/ssa-tests/general-cases/main.eon:3:5: error: This variable was set but not used
+  3 |     a: mutable _ = 10;
+    |     ^
+tests/ssa-tests/general-cases/main.eon:7:26: error: This variable was set but not used
+  7 | parameter_reassignment: (parameter: mutable s32) -> void =
+    |                          ^~~~~~~~~
+tests/ssa-tests/general-cases/main.eon:20:5: error: This assignment is unused
+  20 |     a: mutable _ = 10;
+     |     ^
+tests/ssa-tests/general-cases/main.eon:21:5: error: This assignment is unused
+  21 |     a = 20;
+     |     ^
+tests/ssa-tests/general-cases/main.eon:40:5: error: This assignment is unused
+  40 |     a: mutable _ = 10;
+     |     ^
+tests/ssa-tests/general-cases/main.eon:32:9: error: This code is unreachable
+  32 |         a = 20;
+     |         ^
+tests/ssa-tests/general-cases/main.eon:45:9: error: This code is unreachable
+  45 |         a = 20;
+     |         ^
