@@ -5,6 +5,13 @@
 #include "eon_forward_declarations.h"
 #include "eon_tac.h"
 
+enum
+{
+    ENTRY_BLOCK_INDEX = 0,
+
+    INVALID_IMMEDIATE_DOMINATOR_INDEX = -1,
+};
+
 struct Phi_Node
 {
     Tac_Variable_Id destination;
@@ -39,12 +46,8 @@ typedef struct Cfg_Block Cfg_Block;
 maybe_unused internal void construct_cfg_from_tac(struct Compilation_Context* context);
 maybe_unused internal void remove_unreachable_cfg_blocks(struct Compilation_Context* context);
 
-maybe_unused internal void construct_ssa_from_cfg(struct Compilation_Context* context);
-
-// FIXME(vlad): Move to 'eon_ssa.h'.
-maybe_unused internal void find_unused_ssa_assignments(struct Compilation_Context* context);
-maybe_unused internal void perform_constant_folding(struct Compilation_Context* context);
-maybe_unused internal void remove_unreachable_jumps(struct Compilation_Context* context);
+maybe_unused internal Bool remove_edge(Cfg_Block* block, const Cfg_Block_Id block_id);
+maybe_unused internal Bool remove_predecessor(Cfg_Block* block, const Cfg_Block_Id block_id);
 
 maybe_unused internal inline void free_cfg_block(struct Compilation_Context* context, Cfg_Block* block);
 

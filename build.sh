@@ -134,6 +134,7 @@ compile_and_run_unit_test eon_lexical_scopes_ut.c
 compile_and_run_unit_test eon_types_ut.c
 compile_and_run_unit_test eon_tac_ut.c
 compile_and_run_unit_test eon_cfg_ut.c
+compile_and_run_unit_test eon_ssa_ut.c
 
 mkdir -p build/tests/ssa-tests
 compile tests/ssa-tests/run_ssa_test.c -o build/tests/ssa-tests/run_ssa_test \

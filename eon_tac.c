@@ -1060,3 +1060,117 @@ lower_ast_to_tac(Compilation_Context* context)
         tac_function->last_tac_variable_index = tac->variables_count;
     }
 }
+
+internal const Ast_Statement*
+find_statement_in_code_block_by_tac_instruction_index(const Ast_Code_Block* code_block,
+                                                      const Index tac_instruction_index)
+{
+    for (Index statement_index = 0;
+         statement_index < code_block->statements_count;
+         ++statement_index)
+    {
+        const Ast_Statement* statement = &code_block->statements[statement_index];
+        const Tac_Instructions_Range* statement_range = &statement->tac_instructions_range;
+
+        const Bool instruction_is_in_range = statement_range->start_instruction_index <= tac_instruction_index
+                                             && tac_instruction_index < statement_range->end_instruction_index;
+
+        if (!instruction_is_in_range)
+        {
+            continue;
+        }
+
+        switch (statement->kind)
+        {
+            case AST_STATEMENT_UNDEFINED:
+            {
+                UNREACHABLE();
+            } break;
+
+            case AST_STATEMENT_VARIABLE_DEFINITION:
+            case AST_STATEMENT_ASSIGNMENT:
+            case AST_STATEMENT_RETURN:
+            case AST_STATEMENT_CALL:
+            {
+                return statement;
+            } break;
+
+            case AST_STATEMENT_WHILE:
+            {
+                const Ast_While_Statement* while_loop = &statement->while_statement;
+                const Ast_Code_Block* loop_body = &while_loop->body;
+
+                const Ast_Statement* found_statement_in_loop_body = find_statement_in_code_block_by_tac_instruction_index(loop_body,
+                                                                                                                         tac_instruction_index);
+                if (found_statement_in_loop_body)
+                {
+                    return found_statement_in_loop_body;
+                }
+
+                return statement;
+            } break;
+
+            case AST_STATEMENT_IF:
+            {
+                const Ast_If_Statement* if_loop = &statement->if_statement;
+
+                const Ast_Code_Block* then_body = &if_loop->if_statements;
+                const Ast_Statement* found_statement_in_then_body = find_statement_in_code_block_by_tac_instruction_index(then_body,
+                                                                                                                         tac_instruction_index);
+                if (found_statement_in_then_body)
+                {
+                    return found_statement_in_then_body;
+                }
+
+                const Ast_Code_Block* else_body = &if_loop->else_statements;
+                const Ast_Statement* found_statement_in_else_body = find_statement_in_code_block_by_tac_instruction_index(else_body,
+                                                                                                                         tac_instruction_index);
+                if (found_statement_in_else_body)
+                {
+                    return found_statement_in_else_body;
+                }
+
+                return statement;
+            } break;
+        }
+
+        UNREACHABLE();
+    }
+
+    return NULL;
+}
+
+internal const Ast_Statement*
+find_statement_by_tac_instructions_range(Compilation_Context* context,
+                                         const Tac_Instructions_Range* instructions_range)
+{
+    Tac* tac = &context->tac;
+
+    const Tac_Function* tac_function = get_tac_function_by_label(tac, instructions_range->function_label_id);
+
+    Index first_non_automatic_instruction_index = -1;
+    for (Index instruction_index = instructions_range->start_instruction_index;
+         instruction_index < instructions_range->end_instruction_index;
+         ++instruction_index)
+    {
+        const Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
+        if (!instruction->was_automatically_inserted)
+        {
+            first_non_automatic_instruction_index = instruction_index;
+            break;
+        }
+    }
+
+    if (first_non_automatic_instruction_index == -1)
+    {
+        return NULL;
+    }
+
+    const Ast_Function_Definition* ast_function = tac_function->ast_function_definition;
+    const Ast_Code_Block* body = &ast_function->body;
+
+    const Ast_Statement* found_statement = find_statement_in_code_block_by_tac_instruction_index(body, first_non_automatic_instruction_index);
+    ASSERT(found_statement != NULL);
+
+    return found_statement;
+}

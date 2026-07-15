@@ -55,11 +55,13 @@ call :compile_and_run_unit_test eon_lexical_scopes_ut.c || exit /B 1
 call :compile_and_run_unit_test eon_types_ut.c || exit /B 1
 call :compile_and_run_unit_test eon_tac_ut.c || exit /B 1
 call :compile_and_run_unit_test eon_cfg_ut.c || exit /B 1
+call :compile_and_run_unit_test eon_ssa_ut.c || exit /B 1
 
 if not exist build\tests\ssa-tests mkdir build\tests\ssa-tests
 call :compile tests\ssa-tests\run_ssa_test.c build\tests\ssa-tests\run_ssa_test || exit /B 1
 
 call :run_ssa_test tests\ssa-tests\general-cases || exit /B 1
+call :run_ssa_test tests\ssa-tests\constant-folding || exit /B 1
 call :run_ssa_test tests\ssa-tests\regression-if-statement-with-return || exit /B 1
 call :run_ssa_test tests\ssa-tests\regression-nested-if-statement || exit /B 1
 

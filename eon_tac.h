@@ -213,4 +213,10 @@ maybe_unused internal inline Tac_Variable* get_tac_variable_by_id(Tac* tac, cons
 maybe_unused internal inline Tac_Constant* get_tac_constant_by_id(Tac* tac, const Tac_Constant_Id id);
 maybe_unused internal inline Tac_Label* get_tac_label_by_id(Tac* tac, const Tac_Label_Id id);
 
+maybe_unused internal const Ast_Statement* find_statement_in_code_block_by_tac_instruction_index(const Ast_Code_Block* code_block,
+                                                                                                 const Index tac_instruction_index);
+
+maybe_unused internal const Ast_Statement* find_statement_by_tac_instructions_range(struct Compilation_Context* context,
+                                                                                    const Tac_Instructions_Range* instructions_range);
+
 #undef DEFINE_TAC_ID_FOR

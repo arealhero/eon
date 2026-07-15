@@ -11,6 +11,7 @@
 #include <eon_lexer.h>
 #include <eon_lexical_scopes.h>
 #include <eon_parser.h>
+#include <eon_ssa.h>
 #include <eon_tac.h>
 #include <eon_types.h>
 
@@ -889,5 +890,6 @@ compare_outputs_and_optionally_canonize(Arena* scratch_arena,
 #include <eon_lexer.c>
 #include <eon_lexical_scopes.c>
 #include <eon_parser.c>
+#include <eon_ssa.c>
 #include <eon_tac.c>
 #include <eon_types.c>
