@@ -836,6 +836,7 @@ lower_statement_to_tac(Compilation_Context* context,
                 end_label_instruction.operation = TAC_LABEL;
                 end_label_instruction.destination.kind = TAC_OPERAND_LABEL;
                 end_label_instruction.destination.label_id = end_label_id;
+                end_label_instruction.was_automatically_inserted = true;
 
                 const Index instruction_index = emit_tac_instruction(tac_function, end_label_instruction);
 

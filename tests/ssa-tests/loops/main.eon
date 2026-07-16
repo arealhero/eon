@@ -15,7 +15,7 @@ redundant_while_loop: () -> s32 =
         return 10;
     }
 
-    return 20; // FIXME(vlad): Fix diagnostic message.
+    return 20;
 }
 
 redundant_continue: () -> void =
