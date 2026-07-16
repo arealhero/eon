@@ -952,6 +952,8 @@ lower_statement_to_tac(Compilation_Context* context,
                     Tac_Instruction loop_instruction = {0};
                     loop_instruction.operation = TAC_JUMP;
                     loop_instruction.destination.kind = TAC_OPERAND_LABEL;
+
+                    ASSERT(while_statement->end_label_id.index != INVALID_TAC_INDEX);
                     loop_instruction.destination.label_id = while_statement->end_label_id;
 
                     emit_tac_instruction(tac_function, loop_instruction);
@@ -981,6 +983,8 @@ lower_statement_to_tac(Compilation_Context* context,
                     Tac_Instruction loop_instruction = {0};
                     loop_instruction.operation = TAC_JUMP;
                     loop_instruction.destination.kind = TAC_OPERAND_LABEL;
+
+                    ASSERT(while_statement->start_label_id.index != INVALID_TAC_INDEX);
                     loop_instruction.destination.label_id = while_statement->start_label_id;
 
                     emit_tac_instruction(tac_function, loop_instruction);
@@ -1067,6 +1071,7 @@ lower_ast_to_tac(Compilation_Context* context)
                                                                        MiB(1));
 
         tac_function->first_tac_variable_index = tac->variables_count;
+        tac_function->first_tac_label_index = tac->labels_count;
 
         ASSERT(ast_function->type->kind == AST_TYPE_FUNCTION);
         const Ast_Function_Type* ast_function_type = &ast_function->type->function;
@@ -1120,6 +1125,7 @@ lower_ast_to_tac(Compilation_Context* context)
         }
 
         tac_function->last_tac_variable_index = tac->variables_count;
+        tac_function->last_tac_label_index = tac->labels_count;
     }
 }
 

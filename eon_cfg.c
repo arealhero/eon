@@ -1,7 +1,6 @@
 #include "eon_cfg.h"
 
 #include "eon_compilation_context.h"
-#include "eon_lexical_scopes.h"
 #include "eon_tac.h"
 
 internal inline Cfg_Block_Id
@@ -39,11 +38,31 @@ create_cfg_block(Compilation_Context* context,
                                                                    MiB(1));
 
     block->instructions_range = instructions_range;
-    block->immediate_dominator_id.index = INVALID_IMMEDIATE_DOMINATOR_INDEX;
+    block->immediate_dominator_id.index = INVALID_CFG_BLOCK_INDEX;
 
     Cfg_Block_Id id = {0};
     id.index = this_block_index;
     return id;
+}
+
+internal inline Bool
+cfg_block_ids_are_equal(const Cfg_Block_Id lhs, const Cfg_Block_Id rhs)
+{
+    return lhs.index == rhs.index;
+}
+
+// FIXME(vlad): Move to 'eon_tac.h' or to 'eon_forward_declarations.h'.
+internal inline Bool
+tac_label_ids_are_equal(const Tac_Label_Id lhs, const Tac_Label_Id rhs)
+{
+    return lhs.index == rhs.index;
+}
+
+// FIXME(vlad): Move to 'eon_tac.h' or to 'eon_forward_declarations.h'.
+internal inline Bool
+tac_function_label_ids_are_equal(const Tac_Function_Label_Id lhs, const Tac_Function_Label_Id rhs)
+{
+    return lhs.index == rhs.index;
 }
 
 internal void
@@ -83,7 +102,7 @@ remove_edge(Cfg_Block* block, const Cfg_Block_Id block_id)
         {
             const Index last_edge_index = block->edges_count - 1;
             block->edges[edge_index] = block->edges[last_edge_index];
-            block->edges_count -= 1;
+            remove_last_array_element(block->edges, Cfg_Block_Id);
             return true;
         }
     }
@@ -113,6 +132,8 @@ insert_predecessor(Cfg_Block* block, const Cfg_Block_Id new_block_id)
                      block->predecessors,
                      Cfg_Block_Id,
                      new_block_id);
+
+        ASSERT(block->phi_nodes_count == 0);
     }
 }
 
@@ -128,7 +149,7 @@ remove_predecessor(Cfg_Block* block, const Cfg_Block_Id block_id)
         {
             const Index last_predecessor_index = block->predecessors_count - 1;
             block->predecessors[predecessor_index] = block->predecessors[last_predecessor_index];
-            block->predecessors_count -= 1;
+            remove_last_array_element(block->predecessors, Cfg_Block_Id);
 
             for (Index phi_node_index = 0;
                  phi_node_index < block->phi_nodes_count;
@@ -136,7 +157,7 @@ remove_predecessor(Cfg_Block* block, const Cfg_Block_Id block_id)
             {
                 Phi_Node* phi_node = &block->phi_nodes[phi_node_index];
                 phi_node->previous_variables[predecessor_index] = phi_node->previous_variables[last_predecessor_index];
-                phi_node->previous_variables_count -= 1;
+                remove_last_array_element(phi_node->previous_variables, Tac_Variable_Id);
             }
 
             return true;
@@ -144,6 +165,180 @@ remove_predecessor(Cfg_Block* block, const Cfg_Block_Id block_id)
     }
 
     return false;
+}
+
+internal void
+swap_cfg_blocks(Tac* tac,
+                Tac_Function* tac_function,
+                const Cfg_Block_Id first_block_id,
+                const Cfg_Block_Id second_block_id)
+{
+    Cfg_Block* first_block = get_cfg_block_by_id(tac_function, first_block_id);
+    Cfg_Block* second_block = get_cfg_block_by_id(tac_function, second_block_id);
+
+    // FIXME(vlad): Use first and second block edges and predecessors instead of traversing every block.
+    for (Index block_index = 0;
+         block_index < tac_function->cfg_blocks_count;
+         ++block_index)
+    {
+        Cfg_Block_Id block_id = {0};
+        block_id.index = block_index;
+
+        Cfg_Block* block = get_cfg_block_by_id(tac_function, block_id);
+
+        // NOTE(vlad): Renaming edges.
+        {
+            Index index_of_first_block_in_edges = -1;
+            Index index_of_second_block_in_edges = -1;
+
+            for (Index edge_index = 0;
+                 edge_index < block->edges_count;
+                 ++edge_index)
+            {
+                const Cfg_Block_Id edge = block->edges[edge_index];
+
+                if (cfg_block_ids_are_equal(edge, first_block_id))
+                {
+                    ASSERT(index_of_first_block_in_edges == -1);
+                    index_of_first_block_in_edges = edge_index;
+                }
+
+                if (cfg_block_ids_are_equal(edge, second_block_id))
+                {
+                    ASSERT(index_of_second_block_in_edges == -1);
+                    index_of_second_block_in_edges = edge_index;
+                }
+            }
+
+            if (index_of_first_block_in_edges != -1)
+            {
+                block->edges[index_of_first_block_in_edges] = second_block_id;
+            }
+
+            if (index_of_second_block_in_edges != -1)
+            {
+                block->edges[index_of_second_block_in_edges] = first_block_id;
+            }
+        }
+
+        // NOTE(vlad): Renaming predecessors.
+        {
+            Index index_of_first_block_in_predecessors = -1;
+            Index index_of_second_block_in_predecessors = -1;
+
+            for (Index predecessor_index = 0;
+                 predecessor_index < block->predecessors_count;
+                 ++predecessor_index)
+            {
+                const Cfg_Block_Id predecessor = block->predecessors[predecessor_index];
+
+                if (cfg_block_ids_are_equal(predecessor, first_block_id))
+                {
+                    ASSERT(index_of_first_block_in_predecessors == -1);
+                    index_of_first_block_in_predecessors = predecessor_index;
+                }
+
+                if (cfg_block_ids_are_equal(predecessor, second_block_id))
+                {
+                    ASSERT(index_of_second_block_in_predecessors == -1);
+                    index_of_second_block_in_predecessors = predecessor_index;
+                }
+            }
+
+            if (index_of_first_block_in_predecessors != -1)
+            {
+                block->predecessors[index_of_first_block_in_predecessors] = second_block_id;
+            }
+
+            if (index_of_second_block_in_predecessors != -1)
+            {
+                block->predecessors[index_of_second_block_in_predecessors] = first_block_id;
+            }
+        }
+    }
+
+    ASSERT(tac->label_index_to_cfg_block_id_map != NULL);
+
+    for (Index label_index = tac_function->first_tac_label_index;
+         label_index < tac_function->last_tac_label_index;
+         ++label_index)
+    {
+        Tac_Label_Id label_id = {0};
+        label_id.index = label_index;
+
+        const Tac_Label* label = get_tac_label_by_id(tac, label_id);
+        if (!tac_function_label_ids_are_equal(label->instruction_id.function_label_id,
+                                              tac_function->label_id))
+        {
+            continue;
+        }
+
+        Cfg_Block_Id* linked_block_id = &tac->label_index_to_cfg_block_id_map[label_index];
+        if (cfg_block_ids_are_equal(*linked_block_id, first_block_id))
+        {
+            *linked_block_id = second_block_id;
+        }
+        else if (cfg_block_ids_are_equal(*linked_block_id, second_block_id))
+        {
+            *linked_block_id = first_block_id;
+        }
+    }
+
+    const Cfg_Block temp = *first_block;
+    *first_block = *second_block;
+    *second_block = temp;
+}
+
+internal void
+remove_last_cfg_block(Compilation_Context* context, Tac_Function* tac_function)
+{
+    ASSERT(tac_function->cfg_blocks_count != 0);
+
+    Cfg_Block_Id last_block_id = {0};
+    last_block_id.index = tac_function->cfg_blocks_count - 1;
+
+    Cfg_Block* last_block = get_cfg_block_by_id(tac_function, last_block_id);
+
+    for (Index edge_index = 0;
+         edge_index < last_block->edges_count;
+         ++edge_index)
+    {
+        const Cfg_Block_Id successor_id = last_block->edges[edge_index];
+
+        Cfg_Block* successor = get_cfg_block_by_id(tac_function, successor_id);
+        remove_predecessor(successor, last_block_id);
+    }
+
+    for (Index predecessor_index = 0;
+         predecessor_index < last_block->predecessors_count;
+         ++predecessor_index)
+    {
+        const Cfg_Block_Id predecessor_id = last_block->predecessors[predecessor_index];
+
+        Cfg_Block* predecessor = get_cfg_block_by_id(tac_function, predecessor_id);
+        remove_edge(predecessor, last_block_id);
+    }
+
+    Tac* tac = &context->tac;
+
+    ASSERT(tac->label_index_to_cfg_block_id_map != NULL);
+
+    for (Index label_index = tac_function->first_tac_label_index;
+         label_index < tac_function->last_tac_label_index;
+         ++label_index)
+    {
+        Cfg_Block_Id* block_id = &tac->label_index_to_cfg_block_id_map[label_index];
+
+        if (cfg_block_ids_are_equal(*block_id, last_block_id))
+        {
+            block_id->index = INVALID_CFG_BLOCK_INDEX;
+            // TODO(vlad): Can we break here?
+        }
+    }
+
+    free_cfg_block(context, last_block);
+
+    remove_last_array_element(tac_function->cfg_blocks, Cfg_Block);
 }
 
 internal void
@@ -243,6 +438,13 @@ construct_cfg_from_tac(Compilation_Context* context)
         tac->label_index_to_cfg_block_id_map = allocate_array(context->tac_label_to_cfg_block_map_arena,
                                                               total_labels_count,
                                                               Cfg_Block_Id);
+
+        for (Index label_index = 0;
+             label_index < total_labels_count;
+             ++label_index)
+        {
+            tac->label_index_to_cfg_block_id_map[label_index].index = INVALID_CFG_BLOCK_INDEX;
+        }
     }
 
     for (Index function_index = 0;
@@ -312,7 +514,9 @@ construct_cfg_from_tac(Compilation_Context* context)
         {
             const Cfg_Block* block = &tac_function->cfg_blocks[block_index];
 
+            ASSERT(block->instructions_range.start_instruction_index != block->instructions_range.end_instruction_index);
             const Tac_Instruction* instruction = &tac_function->instructions[block->instructions_range.start_instruction_index];
+
             if (instruction->operation == TAC_LABEL)
             {
                 const Tac_Label_Id label_id = instruction->destination.label_id;
@@ -321,7 +525,7 @@ construct_cfg_from_tac(Compilation_Context* context)
                 Cfg_Block_Id block_id = {0};
                 block_id.index = block_index;
 
-                ASSERT(tac->label_index_to_cfg_block_id_map[label_id.index].index == 0);
+                ASSERT(tac->label_index_to_cfg_block_id_map[label_id.index].index == INVALID_CFG_BLOCK_INDEX);
                 tac->label_index_to_cfg_block_id_map[label_id.index] = block_id;
             }
         }
@@ -391,6 +595,13 @@ construct_cfg_from_tac(Compilation_Context* context)
                 } break;
             }
         }
+    }
+
+    for (Index label_index = INVALID_TAC_INDEX + 1;
+         label_index < total_labels_count;
+         ++label_index)
+    {
+        ASSERT(tac->label_index_to_cfg_block_id_map[label_index].index != INVALID_CFG_BLOCK_INDEX);
     }
 
     request_arena_reset(context->arena_provider, context->scratch_arena);
@@ -556,104 +767,21 @@ remove_unreachable_cfg_blocks(Compilation_Context* context)
                     Cfg_Block_Id new_block_id = {0};
                     new_block_id.index = unreachable_block_index;
 
-                    for (Index block_index = 0;
-                         block_index < tac_function->cfg_blocks_count;
-                         ++block_index)
-                    {
-                        Cfg_Block_Id block_id = {0};
-                        block_id.index = block_index;
-
-                        Cfg_Block* block = get_cfg_block_by_id(tac_function, block_id);
-
-                        // NOTE(vlad): Technically we should remove edges to an old block, but since it's unreachable
-                        //             there are no such edges.
-                        if (remove_edge(block, old_block_id))
-                        {
-                            insert_edge(block, new_block_id);
-                        }
-
-                        Index old_block_index_in_predecessors_list = -1;
-                        Index new_block_index_in_predecessors_list = -1;
-                        for (Index predecessor_index = 0;
-                             predecessor_index < block->predecessors_count;
-                             ++predecessor_index)
-                        {
-                            const Cfg_Block_Id predecessor_block_id = block->predecessors[predecessor_index];
-
-                            if (predecessor_block_id.index == old_block_id.index)
-                            {
-                                old_block_index_in_predecessors_list = predecessor_index;
-                            }
-
-                            if (predecessor_block_id.index == new_block_id.index)
-                            {
-                                new_block_index_in_predecessors_list = predecessor_index;
-                            }
-                        }
-
-                        if (old_block_index_in_predecessors_list != -1)
-                        {
-                            block->predecessors[old_block_index_in_predecessors_list] = new_block_id;
-                        }
-
-                        if (new_block_index_in_predecessors_list != -1)
-                        {
-                            remove_predecessor(block, new_block_id);
-                        }
-
-                        for (Index phi_node_index = 0;
-                             phi_node_index < block->phi_nodes_count;
-                             ++phi_node_index)
-                        {
-                            const Phi_Node* phi_node = &block->phi_nodes[phi_node_index];
-                            ASSERT(phi_node->previous_variables_count == block->predecessors_count);
-                        }
-                    }
-
-                    // TODO(vlad): Only process labels that belongs to the current TAC function.
-                    for (Index label_index = INVALID_TAC_INDEX + 1;
-                         label_index < tac->labels_count;
-                         ++label_index)
-                    {
-                        Tac_Label_Id label_id = {0};
-                        label_id.index = label_index;
-
-                        const Tac_Label* label = get_tac_label_by_id(tac, label_id);
-                        if (label->instruction_id.function_label_id.index != tac_function->label_id.index)
-                        {
-                            continue;
-                        }
-
-                        Cfg_Block_Id* linked_block_id = &tac->label_index_to_cfg_block_id_map[label_index];
-                        if (linked_block_id->index == old_block_id.index)
-                        {
-                            linked_block_id->index = new_block_id.index;
-                        }
-                        else if (linked_block_id->index == new_block_id.index)
-                        {
-                            linked_block_id->index = INVALID_TAC_INDEX;
-                        }
-                    }
+                    swap_cfg_blocks(tac, tac_function, old_block_id, new_block_id);
                 }
 
-                {
-                    const Cfg_Block temp = tac_function->cfg_blocks[unreachable_block_index];
-                    tac_function->cfg_blocks[unreachable_block_index] = tac_function->cfg_blocks[reachable_block_index];
-                    tac_function->cfg_blocks[reachable_block_index] = temp;
-
-                    reachability_info[unreachable_block_index].was_reached = true;
-                    reachability_info[reachable_block_index].was_reached = false;
-                }
+                reachability_info[unreachable_block_index].was_reached = true;
+                reachability_info[reachable_block_index].was_reached = false;
             }
 
-            for (Index i = unreachable_block_index;
-                 i < tac_function->cfg_blocks_count;
+            ASSERT(tac_function->cfg_blocks_count - unreachable_block_index == unreachable_blocks_count);
+
+            for (Index i = 0;
+                 i < unreachable_blocks_count;
                  ++i)
             {
-                Cfg_Block* unreachable_block = &tac_function->cfg_blocks[i];
-                free_cfg_block(context, unreachable_block);
+                remove_last_cfg_block(context, tac_function);
             }
-            tac_function->cfg_blocks_count = unreachable_block_index;
         }
     }
 

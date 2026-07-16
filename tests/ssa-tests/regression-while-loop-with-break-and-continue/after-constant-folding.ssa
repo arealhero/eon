@@ -1,0 +1,17 @@
+regression_while_loop_with_break_and_continue:
+     1 |           ASSIGN           VARIABLE c@1, CONSTANT s32 20
+       |
+       |           PHI              VARIABLE c@2, VARIABLE c@1, VARIABLE c@3
+     2 | LABEL_1:
+     3 |           SUBTRACT         VARIABLE <temp_1>@1, VARIABLE c@2, CONSTANT s32 1
+     4 |           ASSIGN           VARIABLE c@3, VARIABLE <temp_1>@1
+     5 |           GREATER_OR_EQUAL VARIABLE <temp_2>@1, VARIABLE c@3, CONSTANT s32 0
+     6 |           JUMP_IF_FALSE    LABEL_3, VARIABLE <temp_2>@1
+     7 |           JUMP             LABEL_1
+     8 | LABEL_3:
+     9 | LABEL_4:
+    10 |           JUMP             LABEL_2
+       |
+       |           PHI              VARIABLE c@4, VARIABLE c@3
+    11 | LABEL_2:
+    12 |           RETURN

@@ -121,7 +121,7 @@ compute_cfg_dominators(Compilation_Context* context)
                     const Cfg_Block_Id predecessor_block_id = this_block->predecessors[predecessor_index];
                     Cfg_Block* predecessor_block = get_cfg_block_by_id(tac_function, predecessor_block_id);
 
-                    if (predecessor_block->immediate_dominator_id.index != INVALID_IMMEDIATE_DOMINATOR_INDEX)
+                    if (predecessor_block->immediate_dominator_id.index != INVALID_CFG_BLOCK_INDEX)
                     {
                         new_immediate_dominator = predecessor_block;
                         new_immediate_dominator_index = predecessor_block_id.index;
@@ -144,7 +144,7 @@ compute_cfg_dominators(Compilation_Context* context)
                     const Cfg_Block_Id predecessor_block_id = this_block->predecessors[predecessor_index];
                     Cfg_Block* predecessor_block = get_cfg_block_by_id(tac_function, predecessor_block_id);
 
-                    if (predecessor_block->immediate_dominator_id.index != INVALID_IMMEDIATE_DOMINATOR_INDEX)
+                    if (predecessor_block->immediate_dominator_id.index != INVALID_CFG_BLOCK_INDEX)
                     {
                         // NOTE(vlad): Intersecting 'predecessor_block' and 'new_immediate_dominator'.
                         Cfg_Block* finger1 = predecessor_block;
@@ -387,7 +387,7 @@ build_dominator_tree(Compilation_Context* context)
 
             Cfg_Block* block = get_cfg_block_by_id(tac_function, block_id);
 
-            if (block->immediate_dominator_id.index != INVALID_IMMEDIATE_DOMINATOR_INDEX)
+            if (block->immediate_dominator_id.index != INVALID_CFG_BLOCK_INDEX)
             {
                 Cfg_Block* immediate_dominator_block = get_cfg_block_by_id(tac_function, block->immediate_dominator_id);
                 append_array(immediate_dominator_block->dominated_block_ids_arena,

@@ -47,16 +47,4 @@ while_loops: () -> void =
             break;
         }
     }
-
-    // c: mutable _ = 20;
-    // while 1 == 1 // FIXME(vlad): Add 'true' and 'false' keywords.
-    // {
-    //     c = c - 1;
-    //     if c >= 0
-    //     {
-    //         continue;
-    //     }
-
-    //     break;
-    // }
 }

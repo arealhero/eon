@@ -1310,8 +1310,8 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP_IF_FALSE);
 
                 ASSERT_EQUAL(block->edges_count, 2);
-                ASSERT_EQUAL(block->edges[0].index, then_block_index);
-                ASSERT_EQUAL(block->edges[1].index, else_block_index);
+                ASSERT_EQUAL(block->edges[0].index, else_block_index);
+                ASSERT_EQUAL(block->edges[1].index, then_block_index);
 
                 ASSERT_EQUAL(block->predecessors_count, 0);
             }

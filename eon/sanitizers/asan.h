@@ -57,3 +57,9 @@ ASAN_UNPOISON_MEMORY_REGION(Byte* memory, const Size number_of_bytes)
 #    define ASAN_POISON_MEMORY_REGION(address, size)
 #    define ASAN_UNPOISON_MEMORY_REGION(address, size)
 #endif
+
+#define ASAN_POISON_ARRAY_ELEMENT(array, Type, index)                   \
+    ASAN_POISON_MEMORY_REGION(as_bytes(array) + size_of(Type) * (index), size_of(Type)); \
+
+#define ASAN_UNPOISON_ARRAY_ELEMENT(array, Type, index)                 \
+    ASAN_UNPOISON_MEMORY_REGION(as_bytes(array) + size_of(Type) * (index), size_of(Type)); \

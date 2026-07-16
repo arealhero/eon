@@ -1,0 +1,14 @@
+regression_while_loop_with_break_and_continue: () -> void =
+{
+    c: mutable _ = 20;
+    while 1 == 1 // FIXME(vlad): Add 'true' and 'false' keywords.
+    {
+        c = c - 1;
+        if c >= 0
+        {
+            continue;
+        }
+
+        break;
+    }
+}

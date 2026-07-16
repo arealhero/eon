@@ -165,3 +165,4 @@ run_ssa_test tests/ssa-tests/loops
 
 run_ssa_test tests/ssa-tests/regression-if-statement-with-return
 run_ssa_test tests/ssa-tests/regression-nested-if-statement
+run_ssa_test tests/ssa-tests/regression-while-loop-with-break-and-continue

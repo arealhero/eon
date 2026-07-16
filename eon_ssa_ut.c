@@ -426,8 +426,8 @@ test_dominators_and_dominance_frontiers_computing(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP_IF_FALSE);
 
                 ASSERT_EQUAL(block->edges_count, 2);
-                ASSERT_EQUAL(block->edges[0].index, before_if_block_index);
-                ASSERT_EQUAL(block->edges[1].index, final_block_index);
+                ASSERT_EQUAL(block->edges[0].index, final_block_index);
+                ASSERT_EQUAL(block->edges[1].index, before_if_block_index);
 
                 ASSERT_EQUAL(block->predecessors_count, 1);
                 ASSERT_EQUAL(block->predecessors[0].index, jump_after_if_block_index);
@@ -449,8 +449,8 @@ test_dominators_and_dominance_frontiers_computing(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP_IF_FALSE);
 
                 ASSERT_EQUAL(block->edges_count, 2);
-                ASSERT_EQUAL(block->edges[0].index, then_block_index);
-                ASSERT_EQUAL(block->edges[1].index, else_block_index);
+                ASSERT_EQUAL(block->edges[0].index, else_block_index);
+                ASSERT_EQUAL(block->edges[1].index, then_block_index);
 
                 ASSERT_EQUAL(block->predecessors_count, 1);
                 ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
@@ -1825,8 +1825,8 @@ test_phi_nodes_insertion(Test_Context* test_context)
                     ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP_IF_FALSE);
 
                     ASSERT_EQUAL(block->edges_count, 2);
-                    ASSERT_EQUAL(block->edges[0].index, before_if_block_index);
-                    ASSERT_EQUAL(block->edges[1].index, final_block_index);
+                    ASSERT_EQUAL(block->edges[0].index, final_block_index);
+                    ASSERT_EQUAL(block->edges[1].index, before_if_block_index);
 
                     ASSERT_EQUAL(block->predecessors_count, 1);
                     ASSERT_EQUAL(block->predecessors[0].index, jump_after_if_block_index);
@@ -1850,8 +1850,8 @@ test_phi_nodes_insertion(Test_Context* test_context)
                     ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP_IF_FALSE);
 
                     ASSERT_EQUAL(block->edges_count, 2);
-                    ASSERT_EQUAL(block->edges[0].index, then_block_index);
-                    ASSERT_EQUAL(block->edges[1].index, else_block_index);
+                    ASSERT_EQUAL(block->edges[0].index, else_block_index);
+                    ASSERT_EQUAL(block->edges[1].index, then_block_index);
 
                     ASSERT_EQUAL(block->predecessors_count, 1);
                     ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);

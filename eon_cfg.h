@@ -8,8 +8,7 @@
 enum
 {
     ENTRY_BLOCK_INDEX = 0,
-
-    INVALID_IMMEDIATE_DOMINATOR_INDEX = -1,
+    INVALID_CFG_BLOCK_INDEX = -1,
 };
 
 struct Phi_Node

@@ -1,7 +1,10 @@
 #pragma once
 
+#include <eon/assert.h>
 #include <eon/build_info.h>
 #include <eon/memory.h>
+
+#include <eon/sanitizers/asan.h>
 
 #if ASAN_ENABLED
 #    define ensure_array_has_enough_capacity(arena, array, Type, requested_size) \
@@ -43,13 +46,25 @@
     Size CONCATENATE(name, _count);             \
     Size CONCATENATE(name, _capacity)
 
-#define append_array(arena, array, Type, element)               \
-    do                                                          \
-    {                                                           \
-        grow_array_if_needed(arena, array, Type);               \
-        (array)[CONCATENATE(array, _count)++] = (element);      \
-    }                                                           \
-    while (0)                                                   \
+#define append_array(arena, array, Type, element)                       \
+    do                                                                  \
+    {                                                                   \
+        grow_array_if_needed(arena, array, Type);                       \
+        ASAN_UNPOISON_ARRAY_ELEMENT(array, Type, CONCATENATE(array, _count)); \
+        (array)[CONCATENATE(array, _count)++] = (element);              \
+    }                                                                   \
+    while (0)                                                           \
+
+#define remove_last_array_element(array, Type)                          \
+    do                                                                  \
+    {                                                                   \
+        ASSERT(CONCATENATE(array, _count) != 0);                        \
+        CONCATENATE(array, _count) -= 1;                                \
+        const Index last_element_index = CONCATENATE(array, _count);    \
+        (array)[last_element_index] = (Type){0};                        \
+        ASAN_POISON_ARRAY_ELEMENT(array, Type, last_element_index);     \
+    }                                                                   \
+    while (0)
 
 #define stack(Type, name) array(Type, name)
 #define stack_push(arena, stack, Type, element) append_array(arena, stack, Type, element)

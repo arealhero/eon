@@ -185,6 +185,9 @@ struct Tac_Function
     Index first_tac_variable_index;
     Index last_tac_variable_index; // NOTE(vlad): This index is not included.
 
+    Index first_tac_label_index;
+    Index last_tac_label_index; // NOTE(vlad): This index is not included.
+
     array(Tac_Instruction, instructions);
     array(struct Cfg_Block, cfg_blocks);
 };
