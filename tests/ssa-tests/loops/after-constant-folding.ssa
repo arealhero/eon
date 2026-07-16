@@ -37,10 +37,10 @@ while_loops:
        |
        |           PHI              VARIABLE b@2, VARIABLE b@1, VARIABLE b@3
     12 | LABEL_11:
-    13 |           SUBTRACT         VARIABLE <temp_5>@1, VARIABLE b@2, CONSTANT s32 1
-    14 |           ASSIGN           VARIABLE b@3, VARIABLE <temp_5>@1
-    15 |           LESS             VARIABLE <temp_6>@1, VARIABLE b@3, CONSTANT s32 0
-    16 |           JUMP_IF_FALSE    LABEL_13, VARIABLE <temp_6>@1
+    13 |           SUBTRACT         VARIABLE <temp_4>@1, VARIABLE b@2, CONSTANT s32 1
+    14 |           ASSIGN           VARIABLE b@3, VARIABLE <temp_4>@1
+    15 |           LESS             VARIABLE <temp_5>@1, VARIABLE b@3, CONSTANT s32 0
+    16 |           JUMP_IF_FALSE    LABEL_13, VARIABLE <temp_5>@1
     17 |           JUMP             LABEL_12
     18 | LABEL_13:
     19 | LABEL_14:

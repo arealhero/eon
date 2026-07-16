@@ -2915,11 +2915,234 @@ test_unused_ssa_assignments(Test_Context* test_context)
     }
 }
 
+internal void
+test_unreachable_jumps_elimination(Test_Context* test_context)
+{
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    if false\n"
+                                                 "    {\n"
+                                                 "        return;\n"
+                                                 "    }\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        lower_ast_to_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        construct_cfg_from_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        remove_unreachable_cfg_blocks(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        compute_cfg_dominators(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        compute_cfg_dominance_frontiers(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        insert_phi_nodes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        set_tac_variable_versions(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        find_unused_ssa_assignments(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        perform_constant_folding(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        remove_unreachable_jumps(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        remove_unreachable_cfg_blocks(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:4:9: error: This code is unreachable\n"
+                                                        "  4 |         return;\n"
+                                                        "    |         ^");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {\n"
+                                                 "    while false\n"
+                                                 "    {\n"
+                                                 "        return 10;\n"
+                                                 "    }\n"
+                                                 "    return 20;\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        lower_ast_to_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        construct_cfg_from_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        remove_unreachable_cfg_blocks(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        compute_cfg_dominators(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        compute_cfg_dominance_frontiers(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        insert_phi_nodes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        set_tac_variable_versions(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        find_unused_ssa_assignments(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        perform_constant_folding(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        remove_unreachable_jumps(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        remove_unreachable_cfg_blocks(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:4:9: error: This code is unreachable\n"
+                                                        "  4 |         return 10;\n"
+                                                        "    |         ^");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {\n"
+                                                 "    while true\n"
+                                                 "    {\n"
+                                                 "        return 10;\n"
+                                                 "    }\n"
+                                                 "    return 20;\n"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        lower_ast_to_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        construct_cfg_from_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        remove_unreachable_cfg_blocks(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        compute_cfg_dominators(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        compute_cfg_dominance_frontiers(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        insert_phi_nodes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        set_tac_variable_versions(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        find_unused_ssa_assignments(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        perform_constant_folding(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        remove_unreachable_jumps(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        remove_unreachable_cfg_blocks(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:6:5: error: This code is unreachable\n"
+                                                        "  6 |     return 20;\n"
+                                                        "    |     ^");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+}
+
 REGISTER_TESTS(
     test_dominators_and_dominance_frontiers_computing,
     test_phi_nodes_insertion,
     test_ssa_versions_of_variables,
-    test_unused_ssa_assignments
+    test_unused_ssa_assignments,
+    test_unreachable_jumps_elimination
 )
 
 #include "eon_ast.c"

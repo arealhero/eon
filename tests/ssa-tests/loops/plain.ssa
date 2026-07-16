@@ -1,18 +1,16 @@
 unreachable_while_loop:
      1 | LABEL_1:
-     2 |           EQUAL            VARIABLE <temp_1>@1, CONSTANT s32 1, CONSTANT s32 2
-     3 |           JUMP_IF_FALSE    LABEL_2, VARIABLE <temp_1>@1
-     4 |           RETURN           CONSTANT s32 10
-     5 | LABEL_2:
-     6 |           RETURN           CONSTANT s32 20
+     2 |           JUMP_IF_FALSE    LABEL_2, CONSTANT bool FALSE
+     3 |           RETURN           CONSTANT s32 10
+     4 | LABEL_2:
+     5 |           RETURN           CONSTANT s32 20
 
 redundant_while_loop:
      1 | LABEL_3:
-     2 |           NOT_EQUAL        VARIABLE <temp_1>@1, CONSTANT s32 1, CONSTANT s32 2
-     3 |           JUMP_IF_FALSE    LABEL_4, VARIABLE <temp_1>@1
-     4 |           RETURN           CONSTANT s32 10
-     5 | LABEL_4:
-     6 |           RETURN           CONSTANT s32 20
+     2 |           JUMP_IF_FALSE    LABEL_4, CONSTANT bool TRUE
+     3 |           RETURN           CONSTANT s32 10
+     4 | LABEL_4:
+     5 |           RETURN           CONSTANT s32 20
 
 redundant_continue:
      1 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
@@ -29,35 +27,33 @@ redundant_continue:
 
 while_loops:
      1 | LABEL_7:
-     2 |           EQUAL            VARIABLE <temp_1>@1, CONSTANT s32 1, CONSTANT s32 2
-     3 |           JUMP_IF_FALSE    LABEL_8, VARIABLE <temp_1>@1
-     4 |           JUMP             LABEL_7
-     5 | LABEL_8:
-     6 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
+     2 |           JUMP_IF_FALSE    LABEL_8, CONSTANT bool FALSE
+     3 |           JUMP             LABEL_7
+     4 | LABEL_8:
+     5 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
        |
        |           PHI              VARIABLE a@2, VARIABLE a@1, VARIABLE a@3
-     7 | LABEL_9:
-     8 |           GREATER          VARIABLE <temp_3>@1, VARIABLE a@2, CONSTANT s32 0
-     9 |           JUMP_IF_FALSE    LABEL_10, VARIABLE <temp_3>@1
-    10 |           SUBTRACT         VARIABLE <temp_4>@1, VARIABLE a@2, CONSTANT s32 1
-    11 |           ASSIGN           VARIABLE a@3, VARIABLE <temp_4>@1
-    12 |           JUMP             LABEL_9
-    13 | LABEL_10:
-    14 |           ASSIGN           VARIABLE b@1, CONSTANT s32 20
+     6 | LABEL_9:
+     7 |           GREATER          VARIABLE <temp_1>@1, VARIABLE a@2, CONSTANT s32 0
+     8 |           JUMP_IF_FALSE    LABEL_10, VARIABLE <temp_1>@1
+     9 |           SUBTRACT         VARIABLE <temp_2>@1, VARIABLE a@2, CONSTANT s32 1
+    10 |           ASSIGN           VARIABLE a@3, VARIABLE <temp_2>@1
+    11 |           JUMP             LABEL_9
+    12 | LABEL_10:
+    13 |           ASSIGN           VARIABLE b@1, CONSTANT s32 20
        |
        |           PHI              VARIABLE b@2, VARIABLE b@1, VARIABLE b@3
-    15 | LABEL_11:
-    16 |           EQUAL            VARIABLE <temp_6>@1, CONSTANT s32 1, CONSTANT s32 1
-    17 |           JUMP_IF_FALSE    LABEL_12, VARIABLE <temp_6>@1
-    18 |           SUBTRACT         VARIABLE <temp_7>@1, VARIABLE b@2, CONSTANT s32 1
-    19 |           ASSIGN           VARIABLE b@3, VARIABLE <temp_7>@1
-    20 |           LESS             VARIABLE <temp_8>@1, VARIABLE b@3, CONSTANT s32 0
-    21 |           JUMP_IF_FALSE    LABEL_13, VARIABLE <temp_8>@1
-    22 |           JUMP             LABEL_12
-    23 | LABEL_13:
-    24 | LABEL_14:
-    25 |           JUMP             LABEL_11
+    14 | LABEL_11:
+    15 |           JUMP_IF_FALSE    LABEL_12, CONSTANT bool TRUE
+    16 |           SUBTRACT         VARIABLE <temp_4>@1, VARIABLE b@2, CONSTANT s32 1
+    17 |           ASSIGN           VARIABLE b@3, VARIABLE <temp_4>@1
+    18 |           LESS             VARIABLE <temp_5>@1, VARIABLE b@3, CONSTANT s32 0
+    19 |           JUMP_IF_FALSE    LABEL_13, VARIABLE <temp_5>@1
+    20 |           JUMP             LABEL_12
+    21 | LABEL_13:
+    22 | LABEL_14:
+    23 |           JUMP             LABEL_11
        |
        |           PHI              VARIABLE b@4, VARIABLE b@2, VARIABLE b@3
-    26 | LABEL_12:
-    27 |           RETURN
+    24 | LABEL_12:
+    25 |           RETURN

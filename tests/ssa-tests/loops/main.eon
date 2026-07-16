@@ -1,6 +1,6 @@
 unreachable_while_loop: () -> s32 =
 {
-    while 1 == 2
+    while false
     {
         return 10;
     }
@@ -10,7 +10,7 @@ unreachable_while_loop: () -> s32 =
 
 redundant_while_loop: () -> s32 =
 {
-    while 1 != 2
+    while true
     {
         return 10;
     }
@@ -30,7 +30,7 @@ redundant_continue: () -> void =
 
 while_loops: () -> void =
 {
-    while 1 == 2 {}
+    while false {}
 
     a: mutable _ = 10;
     while a > 0
@@ -39,7 +39,7 @@ while_loops: () -> void =
     }
 
     b: mutable _ = 20;
-    while 1 == 1 // FIXME(vlad): Add 'true' and 'false' keywords.
+    while true
     {
         b = b - 1;
         if b < 0

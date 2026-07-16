@@ -105,7 +105,8 @@ bind_type_id_to_a_builtin_symbol(Compilation_Context* context,
     ASSERT(symbol_id != UNDEFINED_SYMBOL_ID && symbol_id != INVALID_SYMBOL_ID);
 
     Symbol* symbol = &context->symbols[symbol_id];
-    ASSERT(symbol->kind == SYMBOL_TYPE && symbol->is_builtin);
+    ASSERT(symbol->is_builtin);
+    ASSERT(symbol->kind == SYMBOL_TYPE || symbol->kind == SYMBOL_VARIABLE);
     symbol->type_id = type_id;
 }
 
@@ -148,6 +149,9 @@ create_builtin_types(Compilation_Context* context)
 
         const Builtin_Type boolean_builtin_type = BOOLEAN_BUILTIN_TYPE;
         bind_type_id_to_a_builtin_symbol(context, boolean_builtin_type.name, bool_type_id);
+
+        bind_type_id_to_a_builtin_symbol(context, "true", bool_type_id);
+        bind_type_id_to_a_builtin_symbol(context, "false", bool_type_id);
     }
 
     const Integer_Builtin_Type integer_builtin_types[] = INTEGER_BUILTIN_TYPES;

@@ -406,6 +406,23 @@ add_builtin_type_symbol(Compilation_Context* context, const C_String name)
     add_symbol_id_to_lexical_scope(context, GLOBAL_LEXICAL_SCOPE_ID, symbol_id);
 }
 
+internal inline void
+add_builtin_variable_symbol(Compilation_Context* context, const C_String name)
+{
+    const Symbol_Id symbol_id = create_symbol(context);
+    ASSERT(symbol_id != UNDEFINED_SYMBOL_ID && symbol_id != INVALID_SYMBOL_ID);
+
+    {
+        Symbol* symbol = get_symbol_by_id(context, symbol_id);
+        symbol->kind = SYMBOL_VARIABLE;
+        symbol->name = string_view(name);
+        symbol->binding_is_mutable = false;
+        symbol->is_builtin = true;
+    }
+
+    add_symbol_id_to_lexical_scope(context, GLOBAL_LEXICAL_SCOPE_ID, symbol_id);
+}
+
 internal void
 create_lexical_scopes(Compilation_Context* context)
 {
@@ -462,6 +479,12 @@ create_lexical_scopes(Compilation_Context* context)
             const Float_Builtin_Type* type = &float_builtin_types[i];
             add_builtin_type_symbol(context, type->name);
         }
+    }
+
+    // NOTE(vlad): Populating global scope with builtin constants.
+    {
+        add_builtin_variable_symbol(context, "true");
+        add_builtin_variable_symbol(context, "false");
     }
 
     // NOTE(vlad): Populating global scope so that the order of definition does not matter.

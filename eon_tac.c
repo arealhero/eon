@@ -488,6 +488,34 @@ lower_expression_to_tac(Compilation_Context* context,
         {
             const Ast_Identifier* identifier = &expression->identifier;
             const Symbol* identifier_symbol = get_symbol_by_id(context, identifier->symbol_id);
+
+            if (identifier_symbol->is_builtin)
+            {
+                result.kind = TAC_OPERAND_VARIABLE;
+
+                const Tac_Constant_Id constant_id = create_tac_constant(context);
+
+                Tac_Constant* constant = get_tac_constant_by_id(&context->tac, constant_id);
+                constant->kind = TAC_CONSTANT_BOOLEAN;
+
+                if (strings_are_equal(identifier_symbol->name, string_view("true")))
+                {
+                    constant->boolean_value = true;
+                }
+                else if (strings_are_equal(identifier_symbol->name, string_view("false")))
+                {
+                    constant->boolean_value = false;
+                }
+                else
+                {
+                    FAIL("[TAC] Unknown builtin symbol encountered");
+                }
+
+                result.kind = TAC_OPERAND_CONSTANT;
+                result.constant_id = constant_id;
+                break;
+            }
+
             const Tac_Instruction_Id* instruction_id = &identifier_symbol->tac_instruction_id;
 
             if (instruction_id->is_a_global_function)
