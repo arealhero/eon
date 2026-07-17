@@ -81,7 +81,7 @@
 #    define COMPILER_GCC 0
 #    define COMPILER_MSVC 1
 #else
-#    error Unknown compiler found.
+#    error Failed to determine this compiler.
 #endif
 
 // NOTE(vlad): Detecting build type.
