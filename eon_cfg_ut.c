@@ -752,6 +752,264 @@ test_complex_statements(Test_Context* test_context)
     }
 }
 
+#define ASSERT_EDGE_EXISTS(source_block_index, destination_block_index) \
+    do                                                                  \
+    {                                                                   \
+        const Cfg_Block* source_block = &tac_function->cfg_blocks[source_block_index]; \
+        const Cfg_Block* destination_block = &tac_function->cfg_blocks[destination_block_index]; \
+                                                                        \
+        Bool edge_found = false;                                        \
+        for (Index edge_index = 0;                                      \
+             edge_index < source_block->edges_count;                    \
+             ++edge_index)                                              \
+        {                                                               \
+            if (source_block->edges[edge_index].index == destination_block_index) \
+            {                                                           \
+                edge_found = true;                                      \
+                break;                                                  \
+            }                                                           \
+        }                                                               \
+        ASSERT_TRUE(edge_found);                                        \
+                                                                        \
+        Bool predecessor_found = false;                                 \
+        for (Index predecessor_index = 0;                               \
+             predecessor_index < destination_block->predecessors_count; \
+             ++predecessor_index)                                       \
+        {                                                               \
+            if (destination_block->predecessors[predecessor_index].index == source_block_index) \
+            {                                                           \
+                predecessor_found = true;                               \
+                break;                                                  \
+            }                                                           \
+        }                                                               \
+        ASSERT_TRUE(predecessor_found);                                 \
+    }                                                                   \
+    while (0)
+
+#define ASSERT_EDGE_IS_CRITICAL(source_block_index, destination_block_index) \
+    do                                                                  \
+    {                                                                   \
+        ASSERT_EDGE_EXISTS(source_block_index, destination_block_index); \
+                                                                        \
+        const Cfg_Block* source_block = &tac_function->cfg_blocks[source_block_index]; \
+        const Cfg_Block* destination_block = &tac_function->cfg_blocks[destination_block_index]; \
+        ASSERT(source_block->edges_count > 1 && destination_block->predecessors_count > 1); \
+    }                                                                   \
+    while (0)
+
+#define ASSERT_EDGE_IS_NOT_CRITICAL(source_block_index, destination_block_index) \
+    do                                                                  \
+    {                                                                   \
+        ASSERT_EDGE_EXISTS(source_block_index, destination_block_index); \
+                                                                        \
+        const Cfg_Block* source_block = &tac_function->cfg_blocks[source_block_index]; \
+        const Cfg_Block* destination_block = &tac_function->cfg_blocks[destination_block_index]; \
+        ASSERT(source_block->edges_count == 1 || destination_block->predecessors_count == 1); \
+    }                                                                   \
+    while (0)
+
+internal void
+test_critical_edges(Test_Context* test_context)
+{
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    while true"
+                                                 "    {"
+                                                 "        if false"
+                                                 "        {"
+                                                 "            break;"
+                                                 "        }"
+                                                 "        a := 10;"
+                                                 "    }"
+                                                 "}");
+
+        Lexer lexer = {0};
+        Parser parser = {0};
+
+        create_lexer(&lexer, &context);
+        create_parser(&parser, &lexer, &context);
+
+        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        lower_ast_to_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        construct_cfg_from_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        const Tac* tac = &context.tac;
+
+        ASSERT_EQUAL(tac->functions_count, 1);
+        const Tac_Function* tac_function = &tac->functions[0];
+
+        ASSERT_EQUAL(tac_function->cfg_blocks_count, 7);
+
+        const Index while_loop_header_block_index = 0;
+        const Index if_condition_block_index = 1;
+        const Index then_block_index = 2;
+        const Index after_break_block_index = 3;
+        const Index else_block_index = 4;
+        const Index after_if_block_index = 5;
+        const Index final_block_index = 6;
+
+        {
+            const Cfg_Block* block = &tac_function->cfg_blocks[while_loop_header_block_index];
+
+            const Tac_Instructions_Range* range = &block->instructions_range;
+            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+            ASSERT_FALSE(cfg_block_is_empty(block));
+
+            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
+            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
+            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP_IF_FALSE);
+
+            ASSERT_EQUAL(block->edges_count, 2);
+            ASSERT_EQUAL(block->edges[0].index, final_block_index);
+            ASSERT_EQUAL(block->edges[1].index, if_condition_block_index);
+
+            ASSERT_EDGE_IS_CRITICAL(while_loop_header_block_index, final_block_index);
+            ASSERT_EDGE_IS_NOT_CRITICAL(while_loop_header_block_index, if_condition_block_index);
+
+            ASSERT_EQUAL(block->predecessors_count, 1);
+            ASSERT_EQUAL(block->predecessors[0].index, after_if_block_index);
+        }
+
+        {
+            const Cfg_Block* block = &tac_function->cfg_blocks[if_condition_block_index];
+
+            const Tac_Instructions_Range* range = &block->instructions_range;
+            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+            ASSERT_FALSE(cfg_block_is_empty(block));
+
+            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
+            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
+            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP_IF_FALSE);
+
+            ASSERT_EQUAL(block->edges_count, 2);
+            ASSERT_EQUAL(block->edges[0].index, else_block_index);
+            ASSERT_EQUAL(block->edges[1].index, then_block_index);
+
+            ASSERT_EDGE_IS_NOT_CRITICAL(if_condition_block_index, else_block_index);
+            ASSERT_EDGE_IS_NOT_CRITICAL(if_condition_block_index, then_block_index);
+
+            ASSERT_EQUAL(block->predecessors_count, 1);
+            ASSERT_EQUAL(block->predecessors[0].index, while_loop_header_block_index);
+        }
+
+        {
+            const Cfg_Block* block = &tac_function->cfg_blocks[then_block_index];
+
+            const Tac_Instructions_Range* range = &block->instructions_range;
+            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+            ASSERT_FALSE(cfg_block_is_empty(block));
+
+            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
+            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
+            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP);
+
+            ASSERT_EQUAL(block->edges_count, 1);
+            ASSERT_EQUAL(block->edges[0].index, final_block_index);
+
+            ASSERT_EDGE_IS_NOT_CRITICAL(then_block_index, final_block_index);
+
+            ASSERT_EQUAL(block->predecessors_count, 1);
+            ASSERT_EQUAL(block->predecessors[0].index, if_condition_block_index);
+        }
+
+        {
+            const Cfg_Block* block = &tac_function->cfg_blocks[after_break_block_index];
+
+            const Tac_Instructions_Range* range = &block->instructions_range;
+            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+            ASSERT_FALSE(cfg_block_is_empty(block));
+
+            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
+            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
+            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP);
+
+            ASSERT_EQUAL(block->edges_count, 1);
+            ASSERT_EQUAL(block->edges[0].index, after_if_block_index);
+
+            ASSERT_EDGE_IS_NOT_CRITICAL(after_break_block_index, after_if_block_index);
+
+            ASSERT_EQUAL(block->predecessors_count, 0);
+        }
+
+        {
+            const Cfg_Block* block = &tac_function->cfg_blocks[else_block_index];
+
+            const Tac_Instructions_Range* range = &block->instructions_range;
+            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+            ASSERT_FALSE(cfg_block_is_empty(block));
+
+            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
+            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
+            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_LABEL);
+
+            ASSERT_EQUAL(block->edges_count, 1);
+            ASSERT_EQUAL(block->edges[0].index, after_if_block_index);
+
+            ASSERT_EDGE_IS_NOT_CRITICAL(else_block_index, after_if_block_index);
+
+            ASSERT_EQUAL(block->predecessors_count, 1);
+            ASSERT_EQUAL(block->predecessors[0].index, if_condition_block_index);
+        }
+
+        {
+            const Cfg_Block* block = &tac_function->cfg_blocks[after_if_block_index];
+
+            const Tac_Instructions_Range* range = &block->instructions_range;
+            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+            ASSERT_FALSE(cfg_block_is_empty(block));
+
+            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
+            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
+            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP);
+
+            ASSERT_EQUAL(block->edges_count, 1);
+            ASSERT_EQUAL(block->edges[0].index, while_loop_header_block_index);
+
+            ASSERT_EDGE_IS_NOT_CRITICAL(after_if_block_index, while_loop_header_block_index);
+
+            ASSERT_EQUAL(block->predecessors_count, 2);
+            ASSERT_EQUAL(block->predecessors[0].index, after_break_block_index);
+            ASSERT_EQUAL(block->predecessors[1].index, else_block_index);
+        }
+
+        {
+            const Cfg_Block* block = &tac_function->cfg_blocks[final_block_index];
+
+            const Tac_Instructions_Range* range = &block->instructions_range;
+            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
+            ASSERT_FALSE(cfg_block_is_empty(block));
+
+            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
+            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
+            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
+
+            ASSERT_EQUAL(block->edges_count, 0);
+
+            ASSERT_EQUAL(block->predecessors_count, 2);
+            ASSERT_EQUAL(block->predecessors[0].index, while_loop_header_block_index);
+            ASSERT_EQUAL(block->predecessors[1].index, then_block_index);
+        }
+
+        destroy_parser(&parser);
+        destroy_lexer(&lexer);
+        destroy_compilation_context(&context);
+    }
+}
+
 internal void
 test_unreachable_blocks_removal(Test_Context* test_context)
 {
@@ -1384,6 +1642,7 @@ REGISTER_TESTS(
     test_if_statements,
     test_while_loops,
     test_complex_statements,
+    test_critical_edges,
     test_unreachable_blocks_removal
 )
 
