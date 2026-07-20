@@ -854,6 +854,7 @@ REGISTER_TESTS(
     test_errors
 )
 
+#include "eon_ast.c"
 #include "eon_cfg.c"
 #include "eon_compilation_context.c"
 #include "eon_diagnostics.c"
