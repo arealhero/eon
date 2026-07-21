@@ -244,7 +244,42 @@ main(const int argc, const char* argv[])
 cleanup:
     {
         START_TIMER(comparing_diagnostic_messages);
+
+#if OS_WINDOWS
+        const String_View plain_diagnostic_messages = dump_diagnostic_messages(context.scratch_arena, &context, MAX_MESSAGE_LEVEL);
+        String diagnostic_messages_copy = copy_string(context.scratch_arena, plain_diagnostic_messages);
+
+        Bool should_replace_slashes = true;
+        for (Index i = 0;
+             i < diagnostic_messages_copy.length;
+             ++i)
+        {
+            switch (diagnostic_messages_copy.data[i])
+            {
+                case '\\':
+                {
+                    if (should_replace_slashes)
+                    {
+                        diagnostic_messages_copy.data[i] = '/';
+                    }
+                } break;
+
+                case ' ':
+                {
+                    should_replace_slashes = false;
+                } break;
+
+                case '\n':
+                {
+                    should_replace_slashes = true;
+                }
+            }
+        }
+        const String_View diagnostic_messages = string_view(diagnostic_messages_copy);
+#else
         const String_View diagnostic_messages = dump_diagnostic_messages(context.scratch_arena, &context, MAX_MESSAGE_LEVEL);
+#endif
+
         const String_View diagnostics_filename = string_view(format_string(source_code_arena, "{}/diagnostics.out", test_directory));
 
         const Bool success = compare_outputs_and_optionally_canonize(context.scratch_arena,

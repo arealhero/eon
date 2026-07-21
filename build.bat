@@ -51,6 +51,7 @@ if %USE_CLANG% EQU 1 (
 
 call :compile_and_run_unit_test eon_lexer_ut.c || exit /B 1
 call :compile_and_run_unit_test eon_parser_ut.c || exit /B 1
+call :compile_and_run_unit_test eon_ast_ut.c || exit /B 1
 call :compile_and_run_unit_test eon_lexical_scopes_ut.c || exit /B 1
 call :compile_and_run_unit_test eon_types_ut.c || exit /B 1
 call :compile_and_run_unit_test eon_tac_ut.c || exit /B 1
@@ -62,8 +63,11 @@ call :compile tests\ssa-tests\run_ssa_test.c build\tests\ssa-tests\run_ssa_test 
 
 call :run_ssa_test tests\ssa-tests\general-cases || exit /B 1
 call :run_ssa_test tests\ssa-tests\constant-folding || exit /B 1
+call :run_ssa_test tests\ssa-tests\loops || exit /B 1
+
 call :run_ssa_test tests\ssa-tests\regression-if-statement-with-return || exit /B 1
 call :run_ssa_test tests\ssa-tests\regression-nested-if-statement || exit /B 1
+call :run_ssa_test tests\ssa-tests\regression-while-loop-with-break-and-continue || exit /B 1
 
 exit /B %ERRORLEVEL%
 
@@ -140,7 +144,7 @@ endlocal
 
 goto :eof
 
-REM Usage: call :run_ssa_test <test-directory>
+REM Usage: call :run_ssa_test <test-directory>.
 :run_ssa_test
 setlocal
 
