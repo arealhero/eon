@@ -6,7 +6,8 @@ set ERROR_ON=1
 set ENABLE_ASAN=1
 set USE_CLANG=1
 
-set "clang_warnings=-pedantic -Wall -Wextra -Werror -Wconversion -Wshadow -Wunreachable-code -Wno-variadic-macro-arguments-omitted -Wno-error=unused-function -Wno-error=unused-variable -Wno-error=unused-parameter"
+REM FIXME: Remove no-c23-extensions suppression. AFAIK we only need to remove __VA_OPT__ in 'macros.h'.
+set "clang_warnings=-pedantic -Wall -Wextra -Werror -Wconversion -Wshadow -Wunreachable-code -Wno-c23-extensions -Wno-error=unused-function -Wno-error=unused-variable -Wno-error=unused-parameter"
 set "clang_common_flags=-std=gnu11 -I. -ferror-limit=0 -O0 -fno-omit-frame-pointer -g -gcodeview -fuse-ld=lld -D_DLL -D_WIN32_WINNT=0x0501 -lmsvcrt"
 
 REM NOTE: '-D_WIN32_WINNT=0x0501' forces compiler to use APIs that are compatible with Windows XP.

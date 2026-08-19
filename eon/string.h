@@ -82,11 +82,11 @@ enum Number_Base
 typedef enum Number_Base Number_Base;
 
 // TODO(vlad): Make these functions internal and use _Generic-based macro instead.
-#define DECLARE_NUMBER_TO_STRING_INPLACE_FUNCTION(Integer_Type)         \
+#define DECLARE_NUMBER_TO_STRING_INPLACE_FUNCTION(Integer_Type, ...)    \
     internal void Integer_Type##_to_string_inplace(String* string,      \
                                                    Integer_Type number, \
                                                    const Number_Base base);
-#define DECLARE_STRING_TO_NUMBER_FUNCTION(Integer_Type)                 \
+#define DECLARE_STRING_TO_NUMBER_FUNCTION(Integer_Type, ...)            \
     maybe_unused internal Bool INTERNAL_parse_##Integer_Type(const String_View string, \
                                                              Integer_Type* out_integer);
 
@@ -96,7 +96,7 @@ FOR_EACH_INTEGER_TYPE(DECLARE_STRING_TO_NUMBER_FUNCTION)
 #undef DECLARE_TO_STRING_INPLACE_FUNCTION_FOR_INTEGER
 #undef DECLARE_STRING_TO_NUMBER_FUNCTION
 
-#define DECLARE_PARSE_INTEGER_OVERLOAD(Integer_Type) \
+#define DECLARE_PARSE_INTEGER_OVERLOAD(Integer_Type, ...)       \
     Integer_Type*: INTERNAL_parse_##Integer_Type,
 #define parse_integer(string, out_integer)                              \
     _Generic((out_integer),                                             \
@@ -106,13 +106,13 @@ FOR_EACH_INTEGER_TYPE(DECLARE_STRING_TO_NUMBER_FUNCTION)
 // NOTE(vlad): We cannot #undef 'DECLARE_PARSE_INTEGER_OVERLOAD' macro here
 //             because it will be needed upon calling 'parse_integer'.
 
-#define DECLARE_PARSE_FLOAT_FUNCTION(Float_Type)                        \
+#define DECLARE_PARSE_FLOAT_FUNCTION(Float_Type, ...)                   \
     maybe_unused internal Bool INTERNAL_parse_##Float_Type(const String_View string, \
                                                            Float_Type* out_float);
 FOR_EACH_FLOAT_TYPE(DECLARE_PARSE_FLOAT_FUNCTION)
 #undef DECLARE_PARSE_FLOAT_FUNCTION
 
-#define DECLARE_PARSE_FLOAT_OVERLOAD(Float_Type)        \
+#define DECLARE_PARSE_FLOAT_OVERLOAD(Float_Type, ...)   \
     Float_Type*: INTERNAL_parse_##Float_Type,
 #define parse_float(string, out_float)                                  \
     _Generic((out_float),                                               \
@@ -133,7 +133,7 @@ enum Format_Type_Tag
     TYPE_TAG_f32,
     TYPE_TAG_f64,
 
-#define DECLARE_INTEGER_TYPE_TAG(Integer_Type) TYPE_TAG_##Integer_Type,
+#define DECLARE_INTEGER_TYPE_TAG(Integer_Type, ...) TYPE_TAG_##Integer_Type,
     FOR_EACH_INTEGER_TYPE(DECLARE_INTEGER_TYPE_TAG)
 #undef DECLARE_INTEGER_TYPE_TAG
 };
@@ -154,7 +154,7 @@ struct Format_Type_Info
         f32 f32_value;
         f64 f64_value;
 
-#define DECLARE_INTEGER_VALUE(Integer_Type) Integer_Type Integer_Type##_value;
+#define DECLARE_INTEGER_VALUE(Integer_Type, ...) Integer_Type Integer_Type##_value;
         FOR_EACH_INTEGER_TYPE(DECLARE_INTEGER_VALUE)
 #undef DECLARE_INTEGER_VALUE
     } argument;
@@ -174,7 +174,7 @@ internal inline Format_Type_Info INTERNAL_format_tag_char(const char c);
 internal inline Format_Type_Info INTERNAL_format_tag_f32(const f32 number);
 internal inline Format_Type_Info INTERNAL_format_tag_f64(const f64 number);
 
-#define DECLARE_FORMAT_TAG_FOR_INTEGER(Integer_Type)                    \
+#define DECLARE_FORMAT_TAG_FOR_INTEGER(Integer_Type, ...)               \
     internal inline Format_Type_Info INTERNAL_format_tag_##Integer_Type(Integer_Type number);
 FOR_EACH_INTEGER_TYPE(DECLARE_FORMAT_TAG_FOR_INTEGER)
 #undef DECLARE_FORMAT_TAG_FOR_INTEGER
@@ -184,7 +184,7 @@ internal String format_string_impl(struct Arena* const arena,
                                    const Size number_of_arguments,
                                    ...);
 
-#define DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(Integer_Type)      \
+#define DECLARE_GENERIC_OVERLOAD_FOR_INTEGER(Integer_Type, ...) \
     Integer_Type: INTERNAL_format_tag_##Integer_Type,
 
 #define FORMAT_GET_TYPE_INFO(arg)                                   \

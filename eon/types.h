@@ -184,25 +184,30 @@ typedef s32 Bool;
 #define TYPE_WIDTH_IN_BITS(Integer_Type) WIDTH_IN_BITS((Integer_Type)0)
 #define TYPE_IS_SIGNED(Integer_Type) IS_SIGNED((Integer_Type)0)
 
-#define FOR_EACH_SIGNED_INTEGER_TYPE(DO, ...)   \
-    DO(s8 __VA_OPT__(,) __VA_ARGS__)            \
-    DO(s16 __VA_OPT__(,) __VA_ARGS__)           \
-    DO(s32 __VA_OPT__(,) __VA_ARGS__)           \
-    DO(s64 __VA_OPT__(,) __VA_ARGS__)           \
+#define FOR_EACH_SIGNED_INTEGER_TYPE_WITH_ARGS(DO, ...) \
+    DO(s8, __VA_ARGS__)                                 \
+    DO(s16, __VA_ARGS__)                                \
+    DO(s32, __VA_ARGS__)                                \
+    DO(s64, __VA_ARGS__)                                \
 
-#define FOR_EACH_UNSIGNED_INTEGER_TYPE(DO, ...)   \
-    DO(u8 __VA_OPT__(,) __VA_ARGS__)              \
-    DO(u16 __VA_OPT__(,) __VA_ARGS__)             \
-    DO(u32 __VA_OPT__(,) __VA_ARGS__)             \
-    DO(u64 __VA_OPT__(,) __VA_ARGS__)             \
+#define FOR_EACH_UNSIGNED_INTEGER_TYPE_WITH_ARGS(DO, ...) \
+    DO(u8, __VA_ARGS__)                                   \
+    DO(u16, __VA_ARGS__)                                  \
+    DO(u32, __VA_ARGS__)                                  \
+    DO(u64, __VA_ARGS__)                                  \
 
-#define FOR_EACH_INTEGER_TYPE(DO, ...)                                  \
-    FOR_EACH_SIGNED_INTEGER_TYPE(DO __VA_OPT__(,) __VA_ARGS__)          \
-    FOR_EACH_UNSIGNED_INTEGER_TYPE(DO __VA_OPT__(,) __VA_ARGS__)
+#define FOR_EACH_INTEGER_TYPE_WITH_ARGS(DO, ...)                        \
+    FOR_EACH_SIGNED_INTEGER_TYPE_WITH_ARGS(DO, __VA_ARGS__)             \
+    FOR_EACH_UNSIGNED_INTEGER_TYPE_WITH_ARGS(DO, __VA_ARGS__)
 
-#define FOR_EACH_FLOAT_TYPE(DO, ...)            \
-    DO(f32 __VA_OPT__(,) __VA_ARGS__)           \
-    DO(f64 __VA_OPT__(,) __VA_ARGS__)
+#define FOR_EACH_FLOAT_TYPE_WITH_ARGS(DO, ...)  \
+    DO(f32, __VA_ARGS__)                        \
+    DO(f64, __VA_ARGS__)
+
+#define FOR_EACH_SIGNED_INTEGER_TYPE(DO) FOR_EACH_SIGNED_INTEGER_TYPE_WITH_ARGS(DO, 0)
+#define FOR_EACH_UNSIGNED_INTEGER_TYPE(DO) FOR_EACH_UNSIGNED_INTEGER_TYPE_WITH_ARGS(DO, 0)
+#define FOR_EACH_INTEGER_TYPE(DO) FOR_EACH_INTEGER_TYPE_WITH_ARGS(DO, 0)
+#define FOR_EACH_FLOAT_TYPE(DO) FOR_EACH_FLOAT_TYPE_WITH_ARGS(DO, 0)
 
 // NOTE(vlad): Compile-time tests.
 

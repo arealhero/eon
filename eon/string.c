@@ -165,7 +165,7 @@ string_builder_to_string(String_Builder* builder)
 
 // TODO(vlad): Change 'NUMBER' to 'INTEGER' here.
 #define NUMBER_TO_STRING_ALPHABET "fedcba9876543210123456789abcdef"
-#define DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(Integer_Type)          \
+#define DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION(Integer_Type, ...)     \
     internal void                                                       \
     Integer_Type##_to_string_inplace(String* string,                    \
                                      Integer_Type number,               \
@@ -207,7 +207,7 @@ MSVC_POP_DIAGNOSTIC()
 
 GCC_PUSH_DIAGNOSTIC()
 GCC_IGNORE_WARNING(-Wconversion)
-#define DEFINE_PARSE_INTEGER_FUNCTION(Integer_Type)                     \
+#define DEFINE_PARSE_INTEGER_FUNCTION(Integer_Type, ...)                \
     internal Bool                                                       \
     INTERNAL_parse_##Integer_Type(const String_View string,             \
                                   Integer_Type* out_integer)            \
@@ -291,7 +291,7 @@ FOR_EACH_INTEGER_TYPE(DEFINE_PARSE_INTEGER_FUNCTION)
 MSVC_POP_DIAGNOSTIC()
 #undef DEFINE_PARSE_INTEGER_FUNCTION
 
-#define DEFINE_FLOAT_TO_STRING_INPLACE_FUNCTION(Float_Type)             \
+#define DEFINE_FLOAT_TO_STRING_INPLACE_FUNCTION(Float_Type, ...)        \
     internal void                                                       \
     Float_Type##_to_string_inplace(String* string, const Float_Type number, Size precision) \
     {                                                                   \
@@ -390,7 +390,7 @@ FOR_EACH_FLOAT_TYPE(DEFINE_FLOAT_TO_STRING_INPLACE_FUNCTION)
 
 GCC_POP_DIAGNOSTIC()
 
-#define DEFINE_PARSE_FLOAT_FUNCTION(Float_Type)                         \
+#define DEFINE_PARSE_FLOAT_FUNCTION(Float_Type, ...)                    \
     maybe_unused internal Bool                                          \
     INTERNAL_parse_##Float_Type(const String_View string, Float_Type* out_float) \
     {                                                                   \
@@ -460,7 +460,7 @@ GCC_POP_DIAGNOSTIC()
 FOR_EACH_FLOAT_TYPE(DEFINE_PARSE_FLOAT_FUNCTION)
 #undef DEFINE_PARSE_FLOAT_FUNCTION
 
-#define DEFINE_GET_NUMBER_LENGTH_AS_A_STRING_FUNCTION(Integer_Type)     \
+#define DEFINE_GET_NUMBER_LENGTH_AS_A_STRING_FUNCTION(Integer_Type, ...) \
     internal inline Size                                                \
     get_##Integer_Type##_length_as_a_string(Integer_Type number,        \
                                             const Number_Base base)     \
@@ -578,7 +578,7 @@ INTERNAL_format_tag_f64(const f64 number)
     };
 }
 
-#define DEFINE_FORMAT_TAG_FOR_INTEGER(Integer_Type)                     \
+#define DEFINE_FORMAT_TAG_FOR_INTEGER(Integer_Type, ...)                \
     internal inline Format_Type_Info                                    \
     INTERNAL_format_tag_##Integer_Type(const Integer_Type number)       \
     {                                                                   \
@@ -1225,7 +1225,7 @@ vformat_string_impl(Arena* const arena,
                         buffer_index += 1;
                     } break;
 
-#define HANDLE_INTEGER_CASE(Integer_Type)                               \
+#define HANDLE_INTEGER_CASE(Integer_Type, ...)                          \
                     case TYPE_TAG_##Integer_Type:                       \
                     {                                                   \
                         const Integer_Format_Settings settings = parse_integer_format_settings(format_specification); \
@@ -1258,7 +1258,7 @@ vformat_string_impl(Arena* const arena,
                     FOR_EACH_INTEGER_TYPE(HANDLE_INTEGER_CASE);
 #undef HANDLE_INTEGER_CASE
 
-#define HANDLE_FLOAT_CASE(Float_Type)                                   \
+#define HANDLE_FLOAT_CASE(Float_Type, ...)                              \
                     case TYPE_TAG_##Float_Type:                         \
                     {                                                   \
                         const Float_Format_Settings settings = parse_float_format_settings(format_specification); \
