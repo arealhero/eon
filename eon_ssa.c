@@ -1034,17 +1034,17 @@ perform_constant_folding(Compilation_Context* context)
                             case TAC_CONSTANT_UINT32:                   \
                             case TAC_CONSTANT_UINT64:                   \
                             {                                           \
-                                folded_constant.integer_value = first_argument->integer_value operator second_argument->integer_value; \
+                                folded_constant.boolean_value = first_argument->integer_value operator second_argument->integer_value; \
                             } break;                                    \
                                                                         \
                             case TAC_CONSTANT_FLOAT32:                  \
                             {                                           \
-                                folded_constant.float32_value = first_argument->float32_value operator second_argument->float32_value; \
+                                folded_constant.boolean_value = first_argument->float32_value operator second_argument->float32_value; \
                             } break;                                    \
                                                                         \
                             case TAC_CONSTANT_FLOAT64:                  \
                             {                                           \
-                                folded_constant.float64_value = first_argument->float64_value operator second_argument->float64_value; \
+                                folded_constant.boolean_value = first_argument->float64_value operator second_argument->float64_value; \
                             } break;                                    \
                         }                                               \
                     } break

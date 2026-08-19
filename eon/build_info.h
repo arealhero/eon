@@ -106,20 +106,33 @@
 #    error This compiler is not supported yet.
 #endif
 
+#define PRAGMA(arg) _Pragma(#arg)
+
 // NOTE(vlad): Defining pragmas.
 #if COMPILER_CLANG
 #    define GCC_PUSH_DIAGNOSTIC()
 #    define GCC_IGNORE_WARNING(warning)
 #    define GCC_POP_DIAGNOSTIC()
+
+#    define MSVC_PUSH_DIAGNOSTIC()
+#    define MSVC_IGNORE_WARNING(warning_number)
+#    define MSVC_POP_DIAGNOSTIC()
 #elif COMPILER_GCC
-#    define GCC_PRAGMA(arg) _Pragma(#arg)
-#    define GCC_PUSH_DIAGNOSTIC() GCC_PRAGMA(GCC diagnostic push)
-#    define GCC_IGNORE_WARNING(warning) GCC_PRAGMA(GCC diagnostic ignored #warning)
-#    define GCC_POP_DIAGNOSTIC() GCC_PRAGMA(GCC diagnostic pop)
+#    define GCC_PUSH_DIAGNOSTIC() PRAGMA(GCC diagnostic push)
+#    define GCC_IGNORE_WARNING(warning) PRAGMA(GCC diagnostic ignored #warning)
+#    define GCC_POP_DIAGNOSTIC() PRAGMA(GCC diagnostic pop)
+
+#    define MSVC_PUSH_DIAGNOSTIC()
+#    define MSVC_IGNORE_WARNING(warning_number)
+#    define MSVC_POP_DIAGNOSTIC()
 #elif COMPILER_MSVC
 #    define GCC_PUSH_DIAGNOSTIC()
 #    define GCC_IGNORE_WARNING(warning)
 #    define GCC_POP_DIAGNOSTIC()
+
+#    define MSVC_PUSH_DIAGNOSTIC() PRAGMA(warning(push))
+#    define MSVC_IGNORE_WARNING(warning_number) PRAGMA(warning(disable: warning_number))
+#    define MSVC_POP_DIAGNOSTIC() PRAGMA(warning(pop))
 #else
 #    error Unknown compiler found.
 #endif

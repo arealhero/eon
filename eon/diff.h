@@ -14,6 +14,8 @@ struct Diff
 };
 typedef struct Diff Diff;
 
+internal String_View get_next_line(const String_View string, const Index start_index);
+
 internal Diff calculate_line_diff(Arena* arena,
                                   const String_View lhs,
                                   const String_View rhs);

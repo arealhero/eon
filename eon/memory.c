@@ -124,8 +124,7 @@ INTERNAL_create_arena(const String_View name,
 
     if (!platform_commit_memory(as_bytes(arena), number_of_bytes_to_commit))
     {
-        ASSERT(0 && "Failed to commit memory");
-        return NULL;
+        FAIL("Failed to commit memory");
     }
 
     arena->name = name;
@@ -173,8 +172,7 @@ arena_push_uninitialized(Arena* arena, const Size number_of_bytes)
     {
         // TODO(vlad): Implement growable arenas.
         //             @tag(growable-arena)
-        ASSERT(0 && "Failed to allocate memory");
-        return NULL;
+        FAIL("Failed to allocate memory");
     }
 
     if (free_memory_offset_after_allocation > arena->committed_memory_offset)
@@ -195,8 +193,7 @@ arena_push_uninitialized(Arena* arena, const Size number_of_bytes)
 
         if (!platform_commit_memory(memory_to_commit, number_of_bytes_to_commit))
         {
-            ASSERT(0 && "Failed to commit memory");
-            return NULL;
+            FAIL("Failed to commit memory");
         }
 
         arena->committed_memory_offset = new_committed_memory_offset;

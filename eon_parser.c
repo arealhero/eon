@@ -1380,8 +1380,6 @@ parse_statement(Parser* parser, Ast_Statement* statement)
             return parse_assignment_or_definition_or_call(parser, statement);
         } break;
     }
-
-    UNREACHABLE();
 }
 
 internal Bool

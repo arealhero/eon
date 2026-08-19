@@ -199,7 +199,10 @@ string_builder_to_string(String_Builder* builder)
         reverse_string(*string);                                        \
     }
 
+MSVC_PUSH_DIAGNOSTIC()
+MSVC_IGNORE_WARNING(4127)
 FOR_EACH_INTEGER_TYPE(DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION)
+MSVC_POP_DIAGNOSTIC()
 #undef DEFINE_NUMBER_TO_STRING_INPLACE_FUNCTION
 
 GCC_PUSH_DIAGNOSTIC()
@@ -282,7 +285,10 @@ GCC_IGNORE_WARNING(-Wconversion)
         return true;                                                    \
     }
 
+MSVC_PUSH_DIAGNOSTIC()
+MSVC_IGNORE_WARNING(4127)
 FOR_EACH_INTEGER_TYPE(DEFINE_PARSE_INTEGER_FUNCTION)
+MSVC_POP_DIAGNOSTIC()
 #undef DEFINE_PARSE_INTEGER_FUNCTION
 
 #define DEFINE_FLOAT_TO_STRING_INPLACE_FUNCTION(Float_Type)             \
@@ -481,7 +487,10 @@ FOR_EACH_FLOAT_TYPE(DEFINE_PARSE_FLOAT_FUNCTION)
         return result;                                                  \
     }
 
+MSVC_PUSH_DIAGNOSTIC()
+MSVC_IGNORE_WARNING(4127)
 FOR_EACH_INTEGER_TYPE(DEFINE_GET_NUMBER_LENGTH_AS_A_STRING_FUNCTION)
+MSVC_POP_DIAGNOSTIC()
 #undef DEFINE_GET_NUMBER_LENGTH_AS_A_STRING_FUNCTION
 
 internal inline Format_Type_Info

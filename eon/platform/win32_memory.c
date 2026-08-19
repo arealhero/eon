@@ -4,6 +4,7 @@
 
 // FIXME(vlad): Test this -- I just stole this functions without testing.
 
+#include "win32_hacks.h"
 #include <windows.h>
 
 internal Size

@@ -151,7 +151,7 @@ parse_identifier_expressions(Arena* arena,
                 return true;
             }
 
-            ASSERT(0 && "Unreachable");
+            UNREACHABLE();
         }
 
         println("Parser error: Unexpected {} encountered while parsing a production rule",

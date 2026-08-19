@@ -210,8 +210,6 @@ get_constant_kind_by_type_id(Compilation_Context* context,
                         UNREACHABLE();
                     } break;
                 }
-
-                UNREACHABLE();
             }
             else
             {
@@ -245,8 +243,6 @@ get_constant_kind_by_type_id(Compilation_Context* context,
                             UNREACHABLE();
                         } break;
                     }
-
-                    UNREACHABLE();
                 }
                 else
                 {
@@ -278,8 +274,6 @@ get_constant_kind_by_type_id(Compilation_Context* context,
                             UNREACHABLE();
                         } break;
                     }
-
-                    UNREACHABLE();
                 }
             }
         } break;
@@ -318,8 +312,6 @@ get_constant_kind_by_type_id(Compilation_Context* context,
                         UNREACHABLE();
                     } break;
                 }
-
-                UNREACHABLE();
             }
             else
             {
@@ -351,8 +343,6 @@ get_constant_kind_by_type_id(Compilation_Context* context,
                         UNREACHABLE();
                     } break;
                 }
-
-                UNREACHABLE();
             }
         } break;
 
@@ -378,8 +368,6 @@ get_constant_kind_by_type_id(Compilation_Context* context,
                     UNREACHABLE();
                 } break;
             }
-
-            UNREACHABLE();
         } break;
 
         case TYPE_BOOLEAN:
