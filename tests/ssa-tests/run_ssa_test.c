@@ -887,6 +887,51 @@ compare_outputs_and_optionally_canonize(Arena* scratch_arena,
 
     const String_View canon = string_view(result.content);
 
+    // NOTE(vlad): Alas we cannot just use 'strings_are_equal' on Windows because it uses CRLF by default and that
+    //             messes up the comparison. We could in theory emit a '\r\n' instead of '\n' during the output
+    //             construction, but that will be fragile as well: git on Windows supports both CRLF and LF checkouts so
+    //             we do not know what line ending style is used right now.
+    //
+    //             Also note that we will use 'strings_are_equal' on other platforms because we do not want
+    //             CRLF-style canon files in our repository.
+
+#if OS_WINDOWS
+    Index current_canon_index = 0;
+    Index current_output_index = 0;
+
+    Bool diff_detected = false;
+
+    while (current_canon_index < canon.length && current_output_index < output.length)
+    {
+        String_View canon_line = get_next_line(canon, current_canon_index);
+        String_View output_line = get_next_line(output, current_output_index);
+
+        current_canon_index += canon_line.length + 1;
+        current_output_index += output_line.length + 1;
+
+        if (canon_line.length != 0 && canon_line.data[canon_line.length - 1] == '\r')
+        {
+            // NOTE(vlad): CRLF detected.
+            canon_line.length -= 1;
+        }
+
+        if (!strings_are_equal(canon_line, output_line))
+        {
+            diff_detected = true;
+            break;
+        }
+    }
+
+    if (!diff_detected)
+    {
+        if (canonize_output)
+        {
+            println("{}: Outputs are the same", test_name);
+        }
+
+        return true;
+    }
+#else
     if (strings_are_equal(output, canon))
     {
         if (canonize_output)
@@ -896,6 +941,7 @@ compare_outputs_and_optionally_canonize(Arena* scratch_arena,
 
         return true;
     }
+#endif
 
     if (canonize_output)
     {

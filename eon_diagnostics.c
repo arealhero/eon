@@ -65,6 +65,11 @@ format_diagnostic_message(Arena* arena,
         current_line_end_index += 1;
     }
 
+    if (current_line_end_index != 0 && context->source_file.code.data[current_line_end_index - 1] == '\r')
+    {
+        current_line_end_index -= 1;
+    }
+
     const String_View current_line = (String_View) {
         .data = context->source_file.code.data + current_line_start_index,
         .length = current_line_end_index - current_line_start_index,
