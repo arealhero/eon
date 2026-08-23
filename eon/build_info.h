@@ -86,6 +86,7 @@
 
 // NOTE(vlad): Detecting build type.
 
+// FIXME(vlad): Use our own EON_INTERNAL_BUILD definition that is explicitly provided to the compiler during the build.
 #if COMPILER_CLANG
 #    if defined(__OPTIMIZE__)
 #        define RELEASE_BUILD 1

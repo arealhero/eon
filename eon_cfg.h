@@ -22,7 +22,7 @@ typedef struct Phi_Node Phi_Node;
 
 struct Cfg_Block
 {
-    Arena* edges_arena;
+    Arena* edges_arena; // FIXME(vlad): Rename to 'successors_arena'.
     Arena* predecessors_arena;
     Arena* dominance_frontier_arena;
     Arena* dominated_block_ids_arena;
@@ -30,7 +30,7 @@ struct Cfg_Block
 
     Tac_Instructions_Range instructions_range;
 
-    array(Cfg_Block_Id, edges);
+    array(Cfg_Block_Id, edges); // FIXME(vlad): Rename to 'successors'.
     array(Cfg_Block_Id, predecessors);
     array(Cfg_Block_Id, dominance_frontier);
     array(Cfg_Block_Id, dominated_block_ids);

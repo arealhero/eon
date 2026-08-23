@@ -8,6 +8,7 @@
 #include "eon_ast.h"
 #include "eon_diagnostics.h"
 #include "eon_tac.h"
+#include "eon_machine_ir.h"
 
 struct Arena_Provider;
 internal Arena* acquire_arena_from_provider(struct Arena_Provider* provider,
@@ -42,6 +43,11 @@ struct Compilation_Context
     Arena* cfg_blocks_arena;
     Arena* phi_node_arguments_arena;
 
+    Arena* mir_functions_arena;
+    Arena* mir_blocks_arena;
+    Arena* mir_edges_arena;
+    Arena* mir_instructions_arena;
+
     Source_File source_file;
 
     array(Diagnostic_Message, diagnostic_messages);
@@ -53,6 +59,8 @@ struct Compilation_Context
     array(struct Type, types);
 
     Tac tac;
+
+    MIR mir;
 };
 typedef struct Compilation_Context Compilation_Context;
 
