@@ -47,6 +47,7 @@ struct Compilation_Context
     Arena* mir_blocks_arena;
     Arena* mir_edges_arena;
     Arena* mir_instructions_arena;
+    Arena* mir_operands_arena;
 
     Source_File source_file;
 

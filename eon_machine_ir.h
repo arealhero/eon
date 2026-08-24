@@ -59,7 +59,10 @@ enum MIR_Opcode
     MIR_ADD, MIR_SUBTRACT, MIR_MULTIPLY, MIR_DIVIDE,
     MIR_AND, MIR_OR,
 
-    MIR_LOAD, MIR_STORE, // TODO(vlad): 64-bit loads and stores. Should we rename them to LOAD64 and STORE64?
+    MIR_LOAD32, MIR_STORE32,
+    MIR_LOAD64, MIR_STORE64,
+
+    MIR_MOVE, MIR_GET_ADDRESS,
 
     MIR_JUMP,
     MIR_JUMP_IF_TRUE,
@@ -68,8 +71,6 @@ enum MIR_Opcode
     MIR_PHI,
 
     MIR_CALL, MIR_RET,
-
-    MIR_MOVE, // TODO(vlad): MIR_CONST for <dst> = <immediate value>?
 };
 typedef enum MIR_Opcode MIR_Opcode;
 
@@ -82,7 +83,8 @@ typedef struct MIR_PHI_Argument MIR_PHI_Argument;
 
 enum
 {
-    MAX_OPERANDS_IN_MIR_INSTRUCTION = 8, // NOTE(vlad): This does not include PHI nodes.
+    MAX_DEFINITIONS_IN_MIR_INSTRUCTION = 3,
+    MAX_USES_IN_MIR_INSTRUCTION = 3, // NOTE(vlad): This does not include PHI nodes.
 };
 
 struct MIR_Instruction
@@ -92,13 +94,24 @@ struct MIR_Instruction
 
     MIR_Opcode opcode;
 
-    Size definitions_count;
-    Size uses_count;
-    // NOTE(vlad): Definitions come first.
-    MIR_Operand operands[MAX_OPERANDS_IN_MIR_INSTRUCTION];
+    union
+    {
+        struct
+        {
+            MIR_Operand definitions[MAX_DEFINITIONS_IN_MIR_INSTRUCTION];
+            Size definitions_count;
 
-    // NOTE(vlad): For MIR_PHI.
-    array(MIR_PHI_Argument, phi_arguments);
+            MIR_Operand uses[MAX_USES_IN_MIR_INSTRUCTION];
+            Size uses_count;
+        };
+
+        struct
+        {
+            // NOTE(vlad): For MIR_PHI.
+            MIR_PHI_Argument* phi_arguments;
+            Size phi_arguments_count;
+        };
+    };
 };
 typedef struct MIR_Instruction MIR_Instruction;
 
@@ -125,6 +138,8 @@ struct MIR
 {
     MIR_Function* functions;
     Size functions_count;
+
+    array(Virtual_Register, virtual_registers);
 };
 typedef struct MIR MIR;
 

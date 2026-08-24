@@ -10,6 +10,7 @@
 #include <eon_compilation_context.h>
 #include <eon_lexer.h>
 #include <eon_lexical_scopes.h>
+#include <eon_machine_ir.h>
 #include <eon_parser.h>
 #include <eon_ssa.h>
 #include <eon_tac.h>
@@ -240,6 +241,10 @@ main(const int argc, const char* argv[])
 
         END_TIMER(comparing_ssa_after_constant_folding, "SSA after constant folding processed");
     }
+
+    START_TIMER(ssa_to_mir_lowering);
+    lower_ssa_to_mir(&context);
+    END_TIMER(ssa_to_mir_lowering, "SSA lowered to MIR");
 
 cleanup:
     {
@@ -976,6 +981,7 @@ compare_outputs_and_optionally_canonize(Arena* scratch_arena,
 #include <eon_diagnostics.c>
 #include <eon_lexer.c>
 #include <eon_lexical_scopes.c>
+#include <eon_machine_ir.c>
 #include <eon_parser.c>
 #include <eon_ssa.c>
 #include <eon_tac.c>
