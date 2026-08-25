@@ -692,6 +692,14 @@ lower_expression_to_tac(Compilation_Context* context,
 
             call_instruction.first_argument = called_expression_operand;
 
+            {
+                Tac_Operand number_of_arguments_operand = {0};
+                number_of_arguments_operand.kind = TAC_OPERAND_NUMBER_OF_ARGUMENTS;
+                number_of_arguments_operand.number_of_arguments = call->arguments_count;
+
+                call_instruction.second_argument = number_of_arguments_operand;
+            }
+
             emit_tac_instruction(tac_function, call_instruction);
             result = call_instruction.destination;
         } break;

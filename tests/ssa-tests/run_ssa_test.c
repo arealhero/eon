@@ -465,6 +465,11 @@ convert_tac_operand_to_string(Compilation_Context* context,
         {
             append_string(builder, string_view(format_string(context->scratch_arena, " ARGUMENT {}", operand->parameter_index.index)));
         } break;
+
+        case TAC_OPERAND_NUMBER_OF_ARGUMENTS:
+        {
+            append_string(builder, string_view(format_string(context->scratch_arena, " ARGUMENTS COUNT {}", operand->number_of_arguments)));
+        } break;
     }
 }
 
@@ -842,7 +847,7 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                     {
                         append_string(&builder, string_view("          CALL            "));
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
-                        ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
+                        ASSERT(instruction->second_argument.kind == TAC_OPERAND_NUMBER_OF_ARGUMENTS);
 
                         if (instruction->destination.kind != TAC_OPERAND_NONE)
                         {
@@ -851,6 +856,8 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         }
 
                         convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
+                        append_string(&builder, string_view(","));
+                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
                     case TAC_RETURN:

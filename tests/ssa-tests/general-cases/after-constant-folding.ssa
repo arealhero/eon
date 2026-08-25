@@ -39,10 +39,10 @@ conditional_assignment_of_multiple_variables:
      7 |           RETURN           VARIABLE <temp_1>@1
 
 function_calls:
-     1 |           CALL             simple_reassignment
-     2 |           CALL             VARIABLE <temp_1>@1, returning_value_from_a_function
+     1 |           CALL             simple_reassignment, ARGUMENTS COUNT 0
+     2 |           CALL             VARIABLE <temp_1>@1, returning_value_from_a_function, ARGUMENTS COUNT 0
      3 |           ASSIGN           VARIABLE a@1, VARIABLE <temp_1>@1
      4 |           SET_PARAMETER    VARIABLE a@1
-     5 |           CALL             parameter_reassignment
-     6 |           CALL             VARIABLE <temp_3>@1, returning_value_from_a_function
+     5 |           CALL             parameter_reassignment, ARGUMENTS COUNT 1
+     6 |           CALL             VARIABLE <temp_3>@1, returning_value_from_a_function, ARGUMENTS COUNT 0
      7 |           RETURN           VARIABLE <temp_3>@1

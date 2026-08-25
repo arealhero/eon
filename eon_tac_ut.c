@@ -850,7 +850,8 @@ test_calls(Test_Context* test_context)
                 }
 
                 const Tac_Operand* second_argument = &instruction->second_argument;
-                ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NUMBER_OF_ARGUMENTS);
+                ASSERT_EQUAL(second_argument->number_of_arguments, 0);
 
                 ASSERT_FALSE(instruction->was_automatically_inserted);
             }
@@ -969,7 +970,8 @@ test_calls(Test_Context* test_context)
                 }
 
                 const Tac_Operand* second_argument = &instruction->second_argument;
-                ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NUMBER_OF_ARGUMENTS);
+                ASSERT_EQUAL(second_argument->number_of_arguments, 0);
 
                 ASSERT_FALSE(instruction->was_automatically_inserted);
             }

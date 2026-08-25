@@ -165,6 +165,11 @@ arena_push_uninitialized(Arena* arena, const Size number_of_bytes)
 
     ARENA_ADD_REDZONE(arena);
 
+    if (number_of_bytes == 0)
+    {
+        return NULL;
+    }
+
     const Size aligned_memory_offset = ALIGN_UP_TO_POW2(arena->free_memory_offset, ARENA_ALIGNMENT);
 
     const Size free_memory_offset_after_allocation = aligned_memory_offset + number_of_bytes;

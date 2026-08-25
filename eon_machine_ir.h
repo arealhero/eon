@@ -6,6 +6,8 @@
 #include <eon/memory.h>
 #include <eon/types.h>
 
+struct MIR_Block;
+
 enum
 {
     NO_REGISTER = 0,
@@ -28,6 +30,13 @@ struct Virtual_Register
     Index fixed_physical_register;
 };
 typedef struct Virtual_Register Virtual_Register;
+
+struct Virtual_Register_Info
+{
+    Virtual_Register* ssa_versions;
+    Size ssa_versions_count;
+};
+typedef struct Virtual_Register_Info Virtual_Register_Info;
 
 enum MIR_Operand_Kind
 {
@@ -70,14 +79,14 @@ enum MIR_Opcode
 
     MIR_PHI,
 
-    MIR_CALL, MIR_RET,
+    MIR_CALL, MIR_RETURN,
 };
 typedef enum MIR_Opcode MIR_Opcode;
 
 struct MIR_PHI_Argument
 {
     Virtual_Register* virtual_register;
-    // FIXME(vlad): Add a pointer/index to the MIR block which produced this value.
+    struct MIR_Block* source_block;
 };
 typedef struct MIR_PHI_Argument MIR_PHI_Argument;
 
@@ -139,7 +148,8 @@ struct MIR
     MIR_Function* functions;
     Size functions_count;
 
-    array(Virtual_Register, virtual_registers);
+    Virtual_Register_Info* virtual_registers;
+    Size virtual_registers_count;
 };
 typedef struct MIR MIR;
 

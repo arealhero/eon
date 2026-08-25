@@ -60,6 +60,11 @@ enum Tac_Operand_Kind
     TAC_OPERAND_LABEL,
     TAC_OPERAND_CONSTANT,
     TAC_OPERAND_PARAMETER_INDEX,
+    TAC_OPERAND_NUMBER_OF_ARGUMENTS, // TODO(vlad): Should we remove this? Seems like an ad-hoc solution to a problem
+                                     //             that can be solved more elegantly. On the other hand, I don't like
+                                     //             the idea of creating a separate constant just to provide a number
+                                     //             of arguments because this "constant" differs from the other
+                                     //             constants in the code.
 };
 typedef enum Tac_Operand_Kind Tac_Operand_Kind;
 
@@ -160,6 +165,7 @@ struct Tac_Operand
         Tac_Constant_Id constant_id;
         Tac_Label_Id label_id;
         Tac_Parameter_Index parameter_index;
+        Size number_of_arguments;
     };
 };
 typedef struct Tac_Operand Tac_Operand;
