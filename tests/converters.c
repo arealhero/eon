@@ -517,7 +517,7 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                     case TAC_CALL:
                     {
                         append_string(&builder, string_view("          CALL            "));
-                        ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
+                        ASSERT(instruction->first_argument.kind == TAC_OPERAND_FUNCTION_LABEL);
                         ASSERT(instruction->second_argument.kind == TAC_OPERAND_NUMBER_OF_ARGUMENTS);
 
                         if (instruction->destination.kind != TAC_OPERAND_NONE)

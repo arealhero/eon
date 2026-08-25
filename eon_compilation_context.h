@@ -43,6 +43,7 @@ struct Compilation_Context
     Arena* cfg_blocks_arena;
     Arena* phi_node_arguments_arena;
 
+    Arena* mir_virtual_registers_arena;
     Arena* mir_functions_arena;
     Arena* mir_blocks_arena;
     Arena* mir_edges_arena;

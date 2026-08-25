@@ -31,18 +31,12 @@ struct Virtual_Register
 };
 typedef struct Virtual_Register Virtual_Register;
 
-struct Virtual_Register_Info
-{
-    Virtual_Register* ssa_versions;
-    Size ssa_versions_count;
-};
-typedef struct Virtual_Register_Info Virtual_Register_Info;
-
 enum MIR_Operand_Kind
 {
     MIR_OPERAND_NONE = 0,
     MIR_OPERAND_VIRTUAL_REGISTER,
     MIR_OPERAND_IMMEDIATE_VALUE,
+    MIR_OPERAND_FUNCTION,
     // MIR_OPERAND_BLOCK, // TODO(vlad): Do we need this?
 
     // TODO(vlad): Add PHYSICAL_REGISTER, STACK_SLOT, MEMORY, GLOBLAL, FLAGS, etc.
@@ -57,6 +51,9 @@ struct MIR_Operand
     {
         Virtual_Register* virtual_register;
         u64 immediate_value;
+
+        Tac_Function_Label_Id function_label_id; // TODO(vlad): This should no longer belong to TAC alone, move it
+                                                 //             somewhere else.
     };
 };
 typedef struct MIR_Operand MIR_Operand;
@@ -65,13 +62,28 @@ enum MIR_Opcode
 {
     MIR_NOP = 0,
 
-    MIR_ADD, MIR_SUBTRACT, MIR_MULTIPLY, MIR_DIVIDE,
-    MIR_AND, MIR_OR,
+    MIR_ADD,
+    MIR_SUBTRACT,
+    MIR_MULTIPLY,
+    MIR_DIVIDE,
+    // TODO(vlad): MIR_AND, MIR_OR, etc.
 
-    MIR_LOAD32, MIR_STORE32,
-    MIR_LOAD64, MIR_STORE64,
+    MIR_EQUAL,
+    MIR_NOT_EQUAL,
+    MIR_LESS,
+    MIR_LESS_OR_EQUAL,
+    MIR_GREATER,
+    MIR_GREATER_OR_EQUAL,
 
-    MIR_MOVE, MIR_GET_ADDRESS,
+    MIR_LOAD32,
+    MIR_STORE32,
+
+    MIR_LOAD64,
+    MIR_STORE64,
+
+    MIR_GET_ADDRESS,
+
+    MIR_MOVE,
 
     MIR_JUMP,
     MIR_JUMP_IF_TRUE,
@@ -114,11 +126,18 @@ struct MIR_Instruction
             Size uses_count;
         };
 
+        // NOTE(vlad): For MIR_PHI.
         struct
         {
-            // NOTE(vlad): For MIR_PHI.
             MIR_PHI_Argument* phi_arguments;
             Size phi_arguments_count;
+        };
+
+        // NOTE(vlad): For MIR_CALL.
+        struct
+        {
+            MIR_Operand* function_arguments;
+            Size function_arguments_count;
         };
     };
 };
@@ -148,8 +167,7 @@ struct MIR
     MIR_Function* functions;
     Size functions_count;
 
-    Virtual_Register_Info* virtual_registers;
-    Size virtual_registers_count;
+    array(Virtual_Register, virtual_registers);
 };
 typedef struct MIR MIR;
 

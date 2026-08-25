@@ -87,10 +87,9 @@ struct Tac_Variable
     Index max_ssa_version;
 
     Bool is_temporary;
-    union
-    {
-        Symbol_Id symbol_id;
-    };
+    Symbol_Id symbol_id;
+
+    Index mir_virtual_register_offset;
 };
 typedef struct Tac_Variable Tac_Variable;
 

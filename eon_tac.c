@@ -656,9 +656,9 @@ lower_expression_to_tac(Compilation_Context* context,
                                                                                   tac_function,
                                                                                   call->called_expression);
 
-            for (Index argument_index = 0;
-                 argument_index < call->arguments_count;
-                 ++argument_index)
+            for (Index argument_index = call->arguments_count - 1;
+                 argument_index >= 0;
+                 --argument_index)
             {
                 Ast_Expression* argument = call->arguments[argument_index];
 

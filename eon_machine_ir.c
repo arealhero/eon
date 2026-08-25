@@ -26,17 +26,18 @@ create_new_mir_block(Compilation_Context* context)
 internal inline Virtual_Register*
 get_virtual_register_for_ssa_variable(Compilation_Context* context, const Tac_Variable_Id id)
 {
+    Tac* tac = &context->tac;
     MIR* mir = &context->mir;
 
     ASSERT(INVALID_TAC_INDEX < id.index && id.index < mir->virtual_registers_count);
 
-    Virtual_Register_Info* info = &mir->virtual_registers[id.index];
+    Tac_Variable* ssa_variable = get_tac_variable_by_id(tac, id);
 
     ASSERT(id.ssa_version != SSA_VERSION_UNDEFINED);
     ASSERT(id.ssa_version != SSA_VERSION_UNSET);
-    ASSERT(id.ssa_version < info->ssa_versions_count);
+    ASSERT(id.ssa_version <= ssa_variable->max_ssa_version);
 
-    return &info->ssa_versions[id.ssa_version];
+    return &mir->virtual_registers[ssa_variable->mir_virtual_register_offset + id.ssa_version];
 }
 
 internal inline MIR_Operand*
@@ -139,6 +140,11 @@ lower_ssa_block_to_mir(Compilation_Context* context,
 
     mir_blocks_map[this_ssa_block_id.index] = this_block;
 
+    stack(MIR_Operand, parameters_stack);
+    parameters_stack = NULL;
+    parameters_stack_count = 0;
+    parameters_stack_capacity = 0;
+
     for (Index phi_node_index = 0;
          phi_node_index < this_ssa_block->phi_nodes_count;
          ++phi_node_index)
@@ -179,16 +185,23 @@ lower_ssa_block_to_mir(Compilation_Context* context,
         {
             case TAC_NOP:
             {
-                // TODO(vlad): Should we emit these?
+                ASSERT(ssa_destination->kind == TAC_OPERAND_NONE);
+                ASSERT(ssa_first_argument->kind == TAC_OPERAND_NONE);
+                ASSERT(ssa_second_argument->kind == TAC_OPERAND_NONE);
+
+                // TODO(vlad): Should we emit MIR_NOP here?
             } break;
 
             case TAC_ASSIGN:
             {
+                ASSERT(ssa_destination->kind == TAC_OPERAND_VARIABLE);
+                ASSERT(ssa_first_argument->kind != TAC_OPERAND_NONE);
+                ASSERT(ssa_second_argument->kind == TAC_OPERAND_NONE);
+
                 MIR_Instruction* instruction = add_new_instruction_to_mir_block(context, this_block);
                 instruction->opcode = MIR_MOVE;
 
                 MIR_Operand* def = add_new_def_operand(instruction);
-                ASSERT(ssa_destination->kind == TAC_OPERAND_VARIABLE);
                 def->kind = MIR_OPERAND_VIRTUAL_REGISTER;
                 def->virtual_register = get_virtual_register_for_ssa_variable(context, ssa_destination->variable_id);
 
@@ -216,8 +229,6 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                         FAIL("[MIR] Unexpected ASSIGN operand kind encountered.");
                     } break;
                 }
-
-                ASSERT(ssa_second_argument->kind == TAC_OPERAND_NONE);
             } break;
 
             case TAC_GET_ADDRESS:
@@ -236,58 +247,139 @@ lower_ssa_block_to_mir(Compilation_Context* context,
             } break;
 
             case TAC_ADD:
-            {
-                FAIL("[MIR] ADD is not supported yet");
-            } break;
-
             case TAC_SUBTRACT:
-            {
-                FAIL("[MIR] SUBTRACT is not supported yet");
-            } break;
-
             case TAC_MULTIPLY:
-            {
-                FAIL("[MIR] MULTIPLY is not supported yet");
-            } break;
-
             case TAC_DIVIDE:
-            {
-                FAIL("[MIR] DIVIDE is not supported yet");
-            } break;
-
             case TAC_EQUAL:
-            {
-                FAIL("[MIR] EQUAL is not supported yet");
-            } break;
-
             case TAC_NOT_EQUAL:
-            {
-                FAIL("[MIR] NOT_EQUAL is not supported yet");
-            } break;
-
             case TAC_LESS:
-            {
-                FAIL("[MIR] LESS is not supported yet");
-            } break;
-
             case TAC_LESS_OR_EQUAL:
-            {
-                FAIL("[MIR] LESS_OR_EQUAL is not supported yet");
-            } break;
-
             case TAC_GREATER:
-            {
-                FAIL("[MIR] GREATER is not supported yet");
-            } break;
-
             case TAC_GREATER_OR_EQUAL:
             {
-                FAIL("[MIR] GREATER_OR_EQUAL is not supported yet");
+                ASSERT(ssa_destination->kind == TAC_OPERAND_VARIABLE);
+                ASSERT(ssa_first_argument->kind != TAC_OPERAND_NONE);
+                ASSERT(ssa_second_argument->kind != TAC_OPERAND_NONE);
+
+                MIR_Instruction* instruction = add_new_instruction_to_mir_block(context, this_block);
+                switch (ssa_instruction->operation)
+                {
+                    case TAC_ADD:
+                    {
+                        instruction->opcode = MIR_ADD;
+                    } break;
+
+                    case TAC_SUBTRACT:
+                    {
+                        instruction->opcode = MIR_SUBTRACT;
+                    } break;
+
+                    case TAC_MULTIPLY:
+                    {
+                        instruction->opcode = MIR_MULTIPLY;
+                    } break;
+
+                    case TAC_DIVIDE:
+                    {
+                        instruction->opcode = MIR_DIVIDE;
+                    } break;
+
+                    case TAC_EQUAL:
+                    {
+                        instruction->opcode = MIR_EQUAL;
+                    } break;
+
+                    case TAC_NOT_EQUAL:
+                    {
+                        instruction->opcode = MIR_NOT_EQUAL;
+                    } break;
+
+                    case TAC_LESS:
+                    {
+                        instruction->opcode = MIR_LESS;
+                    } break;
+
+                    case TAC_LESS_OR_EQUAL:
+                    {
+                        instruction->opcode = MIR_LESS_OR_EQUAL;
+                    } break;
+
+                    case TAC_GREATER:
+                    {
+                        instruction->opcode = MIR_GREATER;
+                    } break;
+
+                    case TAC_GREATER_OR_EQUAL:
+                    {
+                        instruction->opcode = MIR_GREATER_OR_EQUAL;
+                    } break;
+
+                    default:
+                    {
+                        UNREACHABLE();
+                    } break;
+                }
+
+                MIR_Operand* def = add_new_def_operand(instruction);
+                def->kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                def->virtual_register = get_virtual_register_for_ssa_variable(context, ssa_destination->variable_id);
+
+                {
+                    MIR_Operand* first_use = add_new_use_operand(instruction);
+                    switch (ssa_first_argument->kind)
+                    {
+                        case TAC_OPERAND_VARIABLE:
+                        {
+                            first_use->kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                            first_use->virtual_register = get_virtual_register_for_ssa_variable(context, ssa_first_argument->variable_id);
+                        } break;
+
+                        case TAC_OPERAND_CONSTANT:
+                        {
+                            make_immediate_value_for_constant(context, first_use, ssa_first_argument->constant_id);
+                        } break;
+
+                        case TAC_OPERAND_NONE:
+                        case TAC_OPERAND_FUNCTION_LABEL:
+                        case TAC_OPERAND_LABEL:
+                        case TAC_OPERAND_PARAMETER_INDEX:
+                        case TAC_OPERAND_NUMBER_OF_ARGUMENTS:
+                        {
+                            FAIL("[MIR] Unexpected binary operand kind encountered.");
+                        } break;
+                    }
+                }
+
+                {
+                    MIR_Operand* second_use = add_new_use_operand(instruction);
+                    switch (ssa_second_argument->kind)
+                    {
+                        case TAC_OPERAND_VARIABLE:
+                        {
+                            second_use->kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                            second_use->virtual_register = get_virtual_register_for_ssa_variable(context, ssa_second_argument->variable_id);
+                        } break;
+
+                        case TAC_OPERAND_CONSTANT:
+                        {
+                            make_immediate_value_for_constant(context, second_use, ssa_second_argument->constant_id);
+                        } break;
+
+                        case TAC_OPERAND_NONE:
+                        case TAC_OPERAND_FUNCTION_LABEL:
+                        case TAC_OPERAND_LABEL:
+                        case TAC_OPERAND_PARAMETER_INDEX:
+                        case TAC_OPERAND_NUMBER_OF_ARGUMENTS:
+                        {
+                            FAIL("[MIR] Unexpected binary operand kind encountered.");
+                        } break;
+                    }
+                }
             } break;
 
             case TAC_LABEL:
             {
-                FAIL("[MIR] LABEL is not supported yet");
+                // NOTE(vlad): We already map labels to Cfg_Blocks, so we don't need to lower labels to MIR.
             } break;
 
             case TAC_JUMP:
@@ -307,31 +399,115 @@ lower_ssa_block_to_mir(Compilation_Context* context,
 
             case TAC_SET_PARAMETER:
             {
-                FAIL("[MIR] SET_PARAMETER is not supported yet");
+                ASSERT(ssa_destination->kind == TAC_OPERAND_NONE);
+                ASSERT(ssa_first_argument->kind != TAC_OPERAND_NONE);
+                ASSERT(ssa_second_argument->kind == TAC_OPERAND_NONE);
+
+                MIR_Operand parameter = {0};
+
+                switch (ssa_first_argument->kind)
+                {
+                    case TAC_OPERAND_VARIABLE:
+                    {
+                        parameter.kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                        parameter.virtual_register = get_virtual_register_for_ssa_variable(context, ssa_first_argument->variable_id);
+                    } break;
+
+                    case TAC_OPERAND_CONSTANT:
+                    {
+                        make_immediate_value_for_constant(context, &parameter, ssa_first_argument->constant_id);
+                    } break;
+
+                    case TAC_OPERAND_NONE:
+                    case TAC_OPERAND_FUNCTION_LABEL:
+                    case TAC_OPERAND_LABEL:
+                    case TAC_OPERAND_PARAMETER_INDEX:
+                    case TAC_OPERAND_NUMBER_OF_ARGUMENTS:
+                    {
+                        FAIL("[MIR] Unexpected ASSIGN operand kind encountered.");
+                    } break;
+                }
+
+                stack_push(context->scratch_arena, parameters_stack, MIR_Operand, parameter);
             } break;
 
             case TAC_GET_PARAMETER:
             {
-                FAIL("[MIR] GET_PARAMETER is not supported yet");
+                ASSERT(ssa_destination->kind == TAC_OPERAND_VARIABLE);
+                ASSERT(ssa_first_argument->kind == TAC_OPERAND_PARAMETER_INDEX);
+                ASSERT(ssa_second_argument->kind == TAC_OPERAND_NONE);
+
+                MIR_Instruction* instruction = add_new_instruction_to_mir_block(context, this_block);
+                instruction->opcode = MIR_MOVE;
+
+                MIR_Operand* def = add_new_def_operand(instruction);
+                def->kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                def->virtual_register = get_virtual_register_for_ssa_variable(context, ssa_destination->variable_id);
+
+                ASSERT(ssa_first_argument->parameter_index.index >= 0);
+
+                MIR_Operand* use = add_new_use_operand(instruction);
+                use->kind = MIR_OPERAND_IMMEDIATE_VALUE;
+                use->immediate_value = (u64)(ssa_first_argument->parameter_index.index);
             } break;
 
             case TAC_CALL:
             {
-                FAIL("[MIR] CALL is not supported yet");
+                ASSERT(ssa_first_argument->kind == TAC_OPERAND_FUNCTION_LABEL);
+                ASSERT(ssa_second_argument->kind == TAC_OPERAND_NUMBER_OF_ARGUMENTS);
+
+                MIR_Instruction* instruction = add_new_instruction_to_mir_block(context, this_block);
+                instruction->opcode = MIR_CALL;
+
+                if (ssa_destination->kind != TAC_OPERAND_NONE)
+                {
+                    ASSERT(ssa_destination->kind == TAC_OPERAND_VARIABLE);
+
+                    MIR_Operand* def = add_new_def_operand(instruction);
+                    def->kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                    def->virtual_register = get_virtual_register_for_ssa_variable(context, ssa_destination->variable_id);
+                }
+
+                {
+                    MIR_Operand* function_use = add_new_use_operand(instruction);
+                    function_use->kind = MIR_OPERAND_FUNCTION;
+                    function_use->function_label_id = ssa_first_argument->function_label_id;
+                }
+
+                const Size number_of_arguments = ssa_second_argument->number_of_arguments;
+                if (number_of_arguments > parameters_stack_count)
+                {
+                    FAIL("[MIR] Cannot lower CALL instruction: insufficient number of arguments provided");
+                }
+
+                instruction->function_arguments_count = number_of_arguments;
+                instruction->function_arguments = allocate_array(context->mir_operands_arena,
+                                                                 number_of_arguments,
+                                                                 MIR_Operand);
+                for (Index argument_index = 0;
+                     argument_index < number_of_arguments;
+                     ++argument_index)
+                {
+                    const MIR_Operand argument = *stack_top(parameters_stack);
+                    stack_pop(parameters_stack);
+
+                    instruction->function_arguments[argument_index] = argument;
+                }
             } break;
 
             case TAC_RETURN:
             {
-                MIR_Instruction* instruction = add_new_instruction_to_mir_block(context, this_block);
-                instruction->opcode = MIR_RETURN;
-
                 ASSERT(ssa_destination->kind == TAC_OPERAND_NONE);
                 ASSERT(ssa_second_argument->kind == TAC_OPERAND_NONE);
+
+                MIR_Instruction* instruction = add_new_instruction_to_mir_block(context, this_block);
+                instruction->opcode = MIR_RETURN;
 
                 switch (ssa_first_argument->kind)
                 {
                     case TAC_OPERAND_NONE:
                     {
+                        // NOTE(vlad): OK, no return value here.
                     } break;
 
                     case TAC_OPERAND_VARIABLE:
@@ -371,7 +547,7 @@ lower_ssa_block_to_mir(Compilation_Context* context,
 
         Bool predecessor_found = false;
         for (Index predecessor_index = 0;
-             predecessor_index < this_ssa_block->predecessors_count;
+             predecessor_index < ssa_successor->predecessors_count;
              ++predecessor_index)
         {
             const Cfg_Block_Id predecessor_id = ssa_successor->predecessors[predecessor_index];
@@ -400,18 +576,23 @@ lower_ssa_to_mir(Compilation_Context* context)
     mir->functions = allocate_array(context->mir_functions_arena, tac->functions_count, MIR_Function);
     mir->functions_count = tac->functions_count;
 
-    mir->virtual_registers_count = tac->variables_count;
-    mir->virtual_registers = allocate_array(context->mir_operands_arena, mir->virtual_registers_count, Virtual_Register_Info);
+    // TODO(vlad): Reserve space for virtual registers.
 
     for (Index variable_index = INVALID_TAC_INDEX + 1;
          variable_index < tac->variables_count;
          ++variable_index)
     {
-        const Tac_Variable* ssa_variable = &tac->variables[variable_index];
+        Tac_Variable* ssa_variable = &tac->variables[variable_index];
+        ssa_variable->mir_virtual_register_offset = mir->virtual_registers_count;
 
-        Virtual_Register_Info* info = &mir->virtual_registers[variable_index];
-        info->ssa_versions_count = ssa_variable->max_ssa_version + 1;
-        info->ssa_versions = allocate_array(context->mir_operands_arena, info->ssa_versions_count, Virtual_Register);
+        ASSERT(ssa_variable->max_ssa_version != 0);
+
+        for (Index version = 0;
+             version < ssa_variable->max_ssa_version;
+             ++version)
+        {
+            append_array(context->mir_virtual_registers_arena, mir->virtual_registers, Virtual_Register, (Virtual_Register){0});
+        }
     }
 
     for (Index function_index = 0;
