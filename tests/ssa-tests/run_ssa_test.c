@@ -48,8 +48,6 @@ print_usage(void)
     println("Usage: run_ssa_test <directory> [canonize]");
 }
 
-internal String_View convert_ssa_to_string(Arena* arena, Compilation_Context* context);
-
 internal Bool compare_outputs_and_optionally_canonize(Arena* scratch_arena,
                                                       const String_View test_name,
                                                       const String_View filename,
