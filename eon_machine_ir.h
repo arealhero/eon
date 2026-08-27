@@ -37,7 +37,7 @@ enum MIR_Operand_Kind
     MIR_OPERAND_VIRTUAL_REGISTER,
     MIR_OPERAND_IMMEDIATE_VALUE,
     MIR_OPERAND_FUNCTION,
-    // MIR_OPERAND_BLOCK, // TODO(vlad): Do we need this?
+    MIR_OPERAND_BLOCK,
 
     // TODO(vlad): Add PHYSICAL_REGISTER, STACK_SLOT, MEMORY, GLOBLAL, FLAGS, etc.
 };
@@ -54,6 +54,8 @@ struct MIR_Operand
 
         Tac_Function_Label_Id function_label_id; // TODO(vlad): This should no longer belong to TAC alone, move it
                                                  //             somewhere else.
+
+        struct MIR_Block* block;
     };
 };
 typedef struct MIR_Operand MIR_Operand;

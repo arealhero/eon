@@ -171,8 +171,9 @@ lower_ssa_block_to_mir(Compilation_Context* context,
         }
     }
 
-    for (Index instruction_index = this_ssa_block->instructions_range.start_instruction_index;
-         instruction_index < this_ssa_block->instructions_range.end_instruction_index;
+    const Tac_Instructions_Range* instructions_range = &this_ssa_block->instructions_range;
+    for (Index instruction_index = instructions_range->start_instruction_index;
+         instruction_index < instructions_range->end_instruction_index;
          ++instruction_index)
     {
         const Tac_Instruction* ssa_instruction = &ssa_function->instructions[instruction_index];
@@ -384,17 +385,52 @@ lower_ssa_block_to_mir(Compilation_Context* context,
 
             case TAC_JUMP:
             {
-                FAIL("[MIR] JUMP is not supported yet");
+                ASSERT(ssa_destination->kind == TAC_OPERAND_LABEL);
+                ASSERT(ssa_first_argument->kind == TAC_OPERAND_NONE);
+                ASSERT(ssa_second_argument->kind == TAC_OPERAND_NONE);
+
+                const Tac_Label_Id label_id = ssa_destination->label_id;
+                const Cfg_Block_Id destination_block_id = context->tac.label_index_to_cfg_block_id_map[label_id.index];
+
+                MIR_Instruction* instruction = add_new_instruction_to_mir_block(context, this_block);
+                instruction->opcode = MIR_JUMP;
+
+                MIR_Operand* use = add_new_use_operand(instruction);
+                use->kind = MIR_OPERAND_BLOCK;
+                use->block = lower_ssa_block_to_mir(context, ssa_function, destination_block_id, mir_blocks_map);
             } break;
 
             case TAC_JUMP_IF_TRUE:
-            {
-                FAIL("[MIR] JUMP_IF_TRUE is not supported yet");
-            } break;
-
             case TAC_JUMP_IF_FALSE:
             {
-                FAIL("[MIR] JUMP_IF_FALSE is not supported yet");
+                ASSERT(ssa_destination->kind == TAC_OPERAND_LABEL);
+                ASSERT(ssa_first_argument->kind == TAC_OPERAND_VARIABLE);
+                ASSERT(ssa_second_argument->kind == TAC_OPERAND_NONE);
+
+                const Tac_Label_Id label_id = ssa_destination->label_id;
+                const Cfg_Block_Id destination_block_id = context->tac.label_index_to_cfg_block_id_map[label_id.index];
+
+                MIR_Instruction* instruction = add_new_instruction_to_mir_block(context, this_block);
+                if (ssa_instruction->operation == TAC_JUMP_IF_TRUE)
+                {
+                    instruction->opcode = MIR_JUMP_IF_TRUE;
+                }
+                else if (ssa_instruction->operation == TAC_JUMP_IF_FALSE)
+                {
+                    instruction->opcode = MIR_JUMP_IF_FALSE;
+                }
+                else
+                {
+                    UNREACHABLE();
+                }
+
+                MIR_Operand* condition_operand = add_new_use_operand(instruction);
+                condition_operand->kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                condition_operand->virtual_register = get_virtual_register_for_ssa_variable(context, ssa_first_argument->variable_id);
+
+                MIR_Operand* destination_operand = add_new_use_operand(instruction);
+                destination_operand->kind = MIR_OPERAND_BLOCK;
+                destination_operand->block = lower_ssa_block_to_mir(context, ssa_function, destination_block_id, mir_blocks_map);
             } break;
 
             case TAC_SET_PARAMETER:
@@ -531,6 +567,63 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                         FAIL("[MIR] Unexpected ASSIGN operand kind encountered.");
                     } break;
                 }
+            } break;
+        }
+    }
+
+    // FIXME(vlad): Our current CFG implementation support implicit fallthroughs. This is undesirable in MIR
+    //              because we want to be able to reorder basic blocks. That said, we need to add explicit jumps here.
+    //              That is not ideal, but we are out of luck until we insert explicit jumps during CFG construction
+    //              (in 'add_cfg_fall_through_edge_if_needed()', to be precise).
+    if (instructions_range->start_instruction_index != instructions_range->end_instruction_index)
+    {
+        const Tac_Instruction* last_instruction = &ssa_function->instructions[instructions_range->end_instruction_index - 1];
+
+        switch (last_instruction->operation)
+        {
+            case TAC_JUMP:
+            case TAC_JUMP_IF_TRUE:
+            case TAC_JUMP_IF_FALSE:
+            case TAC_RETURN:
+            {
+                // NOTE(vlad): All is good, no need to insert explicit jumps here.
+            } break;
+
+            default:
+            {
+                // NOTE(vlad): This is a fallthrough, adding an explicit jump to the next block.
+
+                const Index next_instruction_index = instructions_range->end_instruction_index;
+                ASSERT(next_instruction_index < ssa_function->instructions_count);
+
+                Bool explicit_jump_added = false;
+                for (Index successor_block_index = this_ssa_block_id.index + 1;
+                     successor_block_index < ssa_function->cfg_blocks_count;
+                     ++successor_block_index)
+                {
+                    const Cfg_Block* candidate_block = &ssa_function->cfg_blocks[successor_block_index];
+                    const Tac_Instructions_Range* candidate_instructions_range = &candidate_block->instructions_range;
+
+                    // XXX(vlad): Can we just compare 'next_instruction_index' and 'start_instruction_index'?
+                    if (candidate_instructions_range->start_instruction_index <= next_instruction_index
+                        && next_instruction_index < candidate_instructions_range->end_instruction_index)
+                    {
+                        Cfg_Block_Id destination_block_id = {0};
+                        destination_block_id.index = successor_block_index;
+
+                        MIR_Instruction* instruction = add_new_instruction_to_mir_block(context, this_block);
+                        instruction->opcode = MIR_JUMP;
+
+                        MIR_Operand* use = add_new_use_operand(instruction);
+                        use->kind = MIR_OPERAND_BLOCK;
+                        use->block = lower_ssa_block_to_mir(context, ssa_function, destination_block_id, mir_blocks_map);
+
+                        explicit_jump_added = true;
+                        break;
+                    }
+                }
+
+                ASSERT(explicit_jump_added);
             } break;
         }
     }

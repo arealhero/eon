@@ -371,12 +371,14 @@ add_cfg_fall_through_edge_if_needed(Tac_Function* tac_function, const Cfg_Block_
         const Cfg_Block* candidate_block = &tac_function->cfg_blocks[successor_block_index];
         const Tac_Instructions_Range* candidate_instructions_range = &candidate_block->instructions_range;
 
+        // XXX(vlad): Can we just compare 'next_instruction_index' and 'start_instruction_index'?
         if (candidate_instructions_range->start_instruction_index <= next_instruction_index
             && next_instruction_index < candidate_instructions_range->end_instruction_index)
         {
             Cfg_Block_Id destination_block_id = {0};
             destination_block_id.index = successor_block_index;
 
+            // FIXME(vlad): We should add explicit jump and label here; this would simplify the SSA to MIR lowering.
             add_cfg_edge(tac_function, source_block_id, destination_block_id);
             return;
         }
