@@ -1,4 +1,6 @@
 regression_if_statement_with_return:
      1 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
-     2 |           ASSIGN           VARIABLE a@2, CONSTANT s32 21
-     3 |           RETURN           VARIABLE a@2
+     2 |           JUMP             LABEL_3
+     3 | LABEL_3:
+     4 |           ASSIGN           VARIABLE a@2, CONSTANT s32 21
+     5 |           RETURN           VARIABLE a@2

@@ -28,7 +28,9 @@ struct Cfg_Block
     Arena* dominated_block_ids_arena;
     Arena* phi_nodes_arena;
 
-    Tac_Instructions_Range instructions_range;
+    Tac_Instruction* first_tac_instruction;
+    Tac_Instruction* last_tac_instruction; // NOTE(vlad): This instruction is included.
+    Tac_Instruction* next_after_last_tac_instruction;
 
     array(Cfg_Block_Id, edges); // FIXME(vlad): Rename to 'successors'.
     array(Cfg_Block_Id, predecessors);
@@ -51,4 +53,3 @@ maybe_unused internal Bool remove_predecessor(Cfg_Block* block, const Cfg_Block_
 maybe_unused internal inline void free_cfg_block(struct Compilation_Context* context, Cfg_Block* block);
 
 maybe_unused internal inline Cfg_Block* get_cfg_block_by_id(Tac_Function* tac_function, const Cfg_Block_Id id);
-maybe_unused internal inline Bool cfg_block_is_empty(const Cfg_Block* block);

@@ -98,7 +98,8 @@ struct Ast_Expression
 
     Type_Id type_id;
 
-    Tac_Instructions_Range tac_instructions_range;
+    struct Tac_Instruction* first_instruction;
+    struct Tac_Instruction* last_instruction; // NOTE(vlad): This instruction is included.
 
     union
     {
@@ -272,7 +273,9 @@ struct Ast_Statement
     Ast_Statement_Kind kind;
 
     Source_Location start_location; // TODO(vlad): Replace with an entire (potentially multiline) location.
-    Tac_Instructions_Range tac_instructions_range;
+
+    struct Tac_Instruction* first_tac_instruction;
+    struct Tac_Instruction* last_tac_instruction; // NOTE(vlad): This instruction is included.
 
     union
     {

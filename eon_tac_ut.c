@@ -86,10 +86,9 @@ test_function_parameters_lowering(Test_Context* test_context)
         const Tac_Function* tac_function = &tac->functions[0];
         ASSERT_FUNCTION_LABEL_POINTS_TO_FUNCTION(tac_function->label_id, ast_function);
 
-        ASSERT_EQUAL(tac_function->instructions_count, 2);
+        const Tac_Instruction* instruction = tac_function->first_instruction;
 
         {
-            const Tac_Instruction* instruction = &tac_function->instructions[0];
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_GET_PARAMETER);
 
             const Tac_Operand* destination = &instruction->destination;
@@ -106,11 +105,12 @@ test_function_parameters_lowering(Test_Context* test_context)
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
 
-            ASSERT_FALSE(instruction->was_automatically_inserted);
+            ASSERT_TRUE(instruction->was_automatically_inserted);
         }
 
+        instruction = instruction->next_instruction;
+
         {
-            const Tac_Instruction* instruction = &tac_function->instructions[1];
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
 
             const Tac_Operand* destination = &instruction->destination;
@@ -125,12 +125,14 @@ test_function_parameters_lowering(Test_Context* test_context)
             ASSERT_TRUE(instruction->was_automatically_inserted);
         }
 
+        ASSERT_POINTERS_ARE_EQUAL(instruction, tac_function->last_instruction);
+
         // NOTE(vlad): Testing that parameter symbol has a non-empty TAC instruction id.
         {
             const Ast_Function_Parameter* parameter = &ast_function->type->function.parameters[0];
             const Symbol* parameter_symbol = get_symbol_by_id(&context, parameter->name.symbol_id);
-            ASSERT_EQUAL(parameter_symbol->tac_instruction_id.function_label_id.index, 1);
-            ASSERT_EQUAL(parameter_symbol->tac_instruction_id.instruction_index, 0);
+            ASSERT_FALSE(parameter_symbol->is_a_global_function);
+            ASSERT_TRUE(parameter_symbol->defined_at_tac_instruction != NULL);
         }
 
         destroy_parser(&parser);
@@ -179,10 +181,9 @@ test_expression_lowering(Test_Context* test_context)
         const Tac_Function* tac_function = &tac->functions[0];
         ASSERT_FUNCTION_LABEL_POINTS_TO_FUNCTION(tac_function->label_id, ast_function);
 
-        ASSERT_EQUAL(tac_function->instructions_count, 2);
+        const Tac_Instruction* instruction = tac_function->first_instruction;
 
         {
-            const Tac_Instruction* instruction = &tac_function->instructions[0];
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
 
             const Tac_Operand* destination = &instruction->destination;
@@ -191,6 +192,7 @@ test_expression_lowering(Test_Context* test_context)
             {
                 ASSERT_EQUAL(ast_function->body.statements_count, 1);
                 const Ast_Statement* statement = &ast_function->body.statements[0];
+                ASSERT_POINTERS_ARE_EQUAL(instruction->ast_statement, statement);
                 ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
                 const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
@@ -208,8 +210,9 @@ test_expression_lowering(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
+        instruction = instruction->next_instruction;
+
         {
-            const Tac_Instruction* instruction = &tac_function->instructions[1];
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
 
             const Tac_Operand* destination = &instruction->destination;
@@ -224,6 +227,8 @@ test_expression_lowering(Test_Context* test_context)
             ASSERT_TRUE(instruction->was_automatically_inserted);
         }
 
+        ASSERT_POINTERS_ARE_EQUAL(instruction, tac_function->last_instruction);
+
         // NOTE(vlad): Testing that variable symbol has a non-empty TAC instruction id.
         {
             ASSERT_EQUAL(ast_function->body.statements_count, 1);
@@ -234,39 +239,8 @@ test_expression_lowering(Test_Context* test_context)
             const Symbol_Id variable_symbol_id = variable_definition->name.symbol_id;
             const Symbol* variable_symbol = get_symbol_by_id(&context, variable_symbol_id);
 
-            ASSERT_EQUAL(variable_symbol->tac_instruction_id.function_label_id.index, 1);
-            ASSERT_EQUAL(variable_symbol->tac_instruction_id.instruction_index, 0);
-        }
-
-        // NOTE(vlad): Testing that every statement and expression has a valid TAC instructions range.
-        {
-            const Ast_Code_Block* ast_function_body = &ast_function->body;
-            ASSERT_EQUAL(ast_function_body->statements_count, 1);
-
-            const Ast_Statement* statement = &ast_function_body->statements[0];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
-
-            {
-                const Tac_Instructions_Range* instructions_range = &statement->tac_instructions_range;
-                ASSERT_EQUAL(instructions_range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_EQUAL(instructions_range->start_instruction_index, 0);
-                ASSERT_EQUAL(instructions_range->end_instruction_index, 1);
-            }
-
-            ASSERT_TRUE(statement->variable_definition.has_initial_value);
-
-            const Ast_Expression* initial_expression = &statement->variable_definition.initial_value;
-            ASSERT_ENUM_VALUES_ARE_EQUAL(initial_expression->kind, AST_EXPRESSION_NUMBER);
-
-            {
-                const Tac_Instructions_Range* instructions_range = &initial_expression->tac_instructions_range;
-                ASSERT_EQUAL(instructions_range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_EQUAL(instructions_range->start_instruction_index, 0);
-
-                // FIXME(vlad): Should numbers have their own instruction? Like 'ASSIGN temp, CONSTANT'. We will be able
-                //              to get rid of these temp variables later (in SSA, during constant folding).
-                ASSERT_EQUAL(instructions_range->end_instruction_index, 0);
-            }
+            ASSERT_FALSE(variable_symbol->is_a_global_function);
+            ASSERT_TRUE(variable_symbol->defined_at_tac_instruction != NULL);
         }
 
         destroy_parser(&parser);
@@ -323,10 +297,9 @@ test_expression_lowering(Test_Context* test_context)
         }
         ASSERT_NOT_EQUAL(variable_symbol_id, 0);
 
-        ASSERT_EQUAL(tac_function->instructions_count, 3);
+        const Tac_Instruction* instruction = tac_function->first_instruction;
 
         {
-            const Tac_Instruction* instruction = &tac_function->instructions[0];
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
 
             const Tac_Operand* destination = &instruction->destination;
@@ -343,14 +316,16 @@ test_expression_lowering(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
+        instruction = instruction->next_instruction;
+
         {
-            const Tac_Instruction* instruction = &tac_function->instructions[1];
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
 
             const Tac_Operand* destination = &instruction->destination;
             ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_VARIABLE);
             ASSERT_VARIABLE_POINTS_TO_SYMBOL(destination->variable_id, variable_symbol_id);
-            ASSERT_EQUAL(destination->variable_id.index, tac_function->instructions[0].destination.variable_id.index);
+            ASSERT_EQUAL(destination->variable_id.index,
+                         tac_function->first_instruction->destination.variable_id.index);
 
             const Tac_Operand* first_argument = &instruction->first_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
@@ -362,8 +337,9 @@ test_expression_lowering(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
+        instruction = instruction->next_instruction;
+
         {
-            const Tac_Instruction* instruction = &tac_function->instructions[2];
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
 
             const Tac_Operand* destination = &instruction->destination;
@@ -378,78 +354,13 @@ test_expression_lowering(Test_Context* test_context)
             ASSERT_TRUE(instruction->was_automatically_inserted);
         }
 
+        ASSERT_POINTERS_ARE_EQUAL(instruction, tac_function->last_instruction);
+
         // NOTE(vlad): Testing that variable symbol has a non-empty TAC instruction id.
         {
             const Symbol* variable_symbol = get_symbol_by_id(&context, variable_symbol_id);
-
-            ASSERT_EQUAL(variable_symbol->tac_instruction_id.function_label_id.index, 1);
-            ASSERT_EQUAL(variable_symbol->tac_instruction_id.instruction_index, 0);
-        }
-
-        // NOTE(vlad): Testing that every statement and expression has a valid TAC instructions range.
-        {
-            const Ast_Code_Block* ast_function_body = &ast_function->body;
-            ASSERT_EQUAL(ast_function_body->statements_count, 2);
-
-            {
-                const Ast_Statement* statement = &ast_function_body->statements[0];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
-
-                {
-                    const Tac_Instructions_Range* instructions_range = &statement->tac_instructions_range;
-                    ASSERT_EQUAL(instructions_range->function_label_id.index, tac_function->label_id.index);
-                    ASSERT_EQUAL(instructions_range->start_instruction_index, 0);
-                    ASSERT_EQUAL(instructions_range->end_instruction_index, 1);
-                }
-
-                ASSERT_TRUE(statement->variable_definition.has_initial_value);
-
-                const Ast_Expression* initial_expression = &statement->variable_definition.initial_value;
-                ASSERT_ENUM_VALUES_ARE_EQUAL(initial_expression->kind, AST_EXPRESSION_NUMBER);
-
-                {
-                    const Tac_Instructions_Range* instructions_range = &initial_expression->tac_instructions_range;
-                    ASSERT_EQUAL(instructions_range->function_label_id.index, tac_function->label_id.index);
-                    ASSERT_EQUAL(instructions_range->start_instruction_index, 0);
-                    ASSERT_EQUAL(instructions_range->end_instruction_index, 0);
-                }
-            }
-
-            {
-                const Ast_Statement* statement = &ast_function_body->statements[1];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_ASSIGNMENT);
-
-                {
-                    const Tac_Instructions_Range* instructions_range = &statement->tac_instructions_range;
-                    ASSERT_EQUAL(instructions_range->function_label_id.index, tac_function->label_id.index);
-                    ASSERT_EQUAL(instructions_range->start_instruction_index, 1);
-                    ASSERT_EQUAL(instructions_range->end_instruction_index, 2);
-                }
-
-                {
-                    const Ast_Expression* lhs = &statement->assignment.lhs;
-                    ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_IDENTIFIER);
-
-                    {
-                        const Tac_Instructions_Range* instructions_range = &lhs->tac_instructions_range;
-                        ASSERT_EQUAL(instructions_range->function_label_id.index, tac_function->label_id.index);
-                        ASSERT_EQUAL(instructions_range->start_instruction_index, 1);
-                        ASSERT_EQUAL(instructions_range->end_instruction_index, 1);
-                    }
-                }
-
-                {
-                    const Ast_Expression* lhs = &statement->assignment.rhs;
-                    ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_NUMBER);
-
-                    {
-                        const Tac_Instructions_Range* instructions_range = &lhs->tac_instructions_range;
-                        ASSERT_EQUAL(instructions_range->function_label_id.index, tac_function->label_id.index);
-                        ASSERT_EQUAL(instructions_range->start_instruction_index, 1);
-                        ASSERT_EQUAL(instructions_range->end_instruction_index, 1);
-                    }
-                }
-            }
+            ASSERT_FALSE(variable_symbol->is_a_global_function);
+            ASSERT_TRUE(variable_symbol->defined_at_tac_instruction != NULL);
         }
 
         destroy_parser(&parser);
@@ -497,10 +408,9 @@ test_return_statements_lowering(Test_Context* test_context)
         const Tac_Function* tac_function = &tac->functions[0];
         ASSERT_FUNCTION_LABEL_POINTS_TO_FUNCTION(tac_function->label_id, ast_function);
 
-        ASSERT_EQUAL(tac_function->instructions_count, 1);
+        const Tac_Instruction* instruction = tac_function->first_instruction;
 
         {
-            const Tac_Instruction* instruction = &tac_function->instructions[0];
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
 
             const Tac_Operand* destination = &instruction->destination;
@@ -515,13 +425,13 @@ test_return_statements_lowering(Test_Context* test_context)
             ASSERT_TRUE(instruction->was_automatically_inserted);
         }
 
+        ASSERT_POINTERS_ARE_EQUAL(instruction, tac_function->last_instruction);
+
         destroy_parser(&parser);
         destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
-    // NOTE(vlad): We do not perform dead code elimination during TAC construction
-    //             because we cannot determine if the code is actually reachable (e.g. via goto).
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
                                                  "    return;"
@@ -559,10 +469,9 @@ test_return_statements_lowering(Test_Context* test_context)
         const Tac_Function* tac_function = &tac->functions[0];
         ASSERT_FUNCTION_LABEL_POINTS_TO_FUNCTION(tac_function->label_id, ast_function);
 
-        ASSERT_EQUAL(tac_function->instructions_count, 2);
+        const Tac_Instruction* instruction = tac_function->first_instruction;
 
         {
-            const Tac_Instruction* instruction = &tac_function->instructions[0];
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
 
             const Tac_Operand* destination = &instruction->destination;
@@ -577,8 +486,9 @@ test_return_statements_lowering(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
+        instruction = instruction->next_instruction;
+
         {
-            const Tac_Instruction* instruction = &tac_function->instructions[1];
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
 
             const Tac_Operand* destination = &instruction->destination;
@@ -592,6 +502,8 @@ test_return_statements_lowering(Test_Context* test_context)
 
             ASSERT_TRUE(instruction->was_automatically_inserted);
         }
+
+        ASSERT_POINTERS_ARE_EQUAL(instruction, tac_function->last_instruction);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -635,10 +547,9 @@ test_return_statements_lowering(Test_Context* test_context)
         const Tac_Function* tac_function = &tac->functions[0];
         ASSERT_FUNCTION_LABEL_POINTS_TO_FUNCTION(tac_function->label_id, ast_function);
 
-        ASSERT_EQUAL(tac_function->instructions_count, 1);
+        const Tac_Instruction* instruction = tac_function->first_instruction;
 
         {
-            const Tac_Instruction* instruction = &tac_function->instructions[0];
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
 
             const Tac_Operand* destination = &instruction->destination;
@@ -653,6 +564,8 @@ test_return_statements_lowering(Test_Context* test_context)
 
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
+
+        ASSERT_POINTERS_ARE_EQUAL(instruction, tac_function->last_instruction);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -708,10 +621,9 @@ test_return_statements_lowering(Test_Context* test_context)
         }
         ASSERT_NOT_EQUAL(variable_symbol_id, 0);
 
-        ASSERT_EQUAL(tac_function->instructions_count, 2);
+        const Tac_Instruction* instruction = tac_function->first_instruction;
 
         {
-            const Tac_Instruction* instruction = &tac_function->instructions[0];
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
 
             const Tac_Operand* destination = &instruction->destination;
@@ -728,8 +640,9 @@ test_return_statements_lowering(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
+        instruction = instruction->next_instruction;
+
         {
-            const Tac_Instruction* instruction = &tac_function->instructions[1];
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
 
             const Tac_Operand* destination = &instruction->destination;
@@ -738,7 +651,8 @@ test_return_statements_lowering(Test_Context* test_context)
             const Tac_Operand* first_argument = &instruction->first_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_VARIABLE);
             ASSERT_VARIABLE_POINTS_TO_SYMBOL(first_argument->variable_id, variable_symbol_id);
-            ASSERT_EQUAL(first_argument->variable_id.index, tac_function->instructions[0].destination.variable_id.index);
+            ASSERT_EQUAL(first_argument->variable_id.index,
+                         tac_function->first_instruction->destination.variable_id.index);
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
@@ -746,12 +660,13 @@ test_return_statements_lowering(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
+        ASSERT_POINTERS_ARE_EQUAL(instruction, tac_function->last_instruction);
+
         // NOTE(vlad): Testing that variable symbol has a non-empty TAC instruction id.
         {
             const Symbol* variable_symbol = get_symbol_by_id(&context, variable_symbol_id);
-
-            ASSERT_EQUAL(variable_symbol->tac_instruction_id.function_label_id.index, 1);
-            ASSERT_EQUAL(variable_symbol->tac_instruction_id.instruction_index, 0);
+            ASSERT_FALSE(variable_symbol->is_a_global_function);
+            ASSERT_TRUE(variable_symbol->defined_at_tac_instruction != NULL);
         }
 
         destroy_parser(&parser);
@@ -804,10 +719,9 @@ test_calls(Test_Context* test_context)
             const Tac_Function* tac_foo_function = &tac->functions[0];
             ASSERT_FUNCTION_LABEL_POINTS_TO_FUNCTION(tac_foo_function->label_id, ast_foo_function);
 
-            ASSERT_EQUAL(tac_foo_function->instructions_count, 1);
+            const Tac_Instruction* instruction = tac_foo_function->first_instruction;
 
             {
-                const Tac_Instruction* instruction = &tac_foo_function->instructions[0];
                 ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
 
                 const Tac_Operand* destination = &instruction->destination;
@@ -822,6 +736,8 @@ test_calls(Test_Context* test_context)
 
                 ASSERT_FALSE(instruction->was_automatically_inserted);
             }
+
+            ASSERT_POINTERS_ARE_EQUAL(instruction, tac_foo_function->last_instruction);
         }
 
         {
@@ -830,10 +746,9 @@ test_calls(Test_Context* test_context)
             const Tac_Function* tac_bar_function = &tac->functions[1];
             ASSERT_FUNCTION_LABEL_POINTS_TO_FUNCTION(tac_bar_function->label_id, ast_bar_function);
 
-            ASSERT_EQUAL(tac_bar_function->instructions_count, 2);
+            const Tac_Instruction* instruction = tac_bar_function->first_instruction;
 
             {
-                const Tac_Instruction* instruction = &tac_bar_function->instructions[0];
                 ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_CALL);
 
                 const Tac_Operand* destination = &instruction->destination;
@@ -845,8 +760,9 @@ test_calls(Test_Context* test_context)
                 {
                     const Ast_Function_Definition* foo_definition = &ast->function_definitions[0];
                     const Symbol* foo_symbol = get_symbol_by_id(&context, foo_definition->name.symbol_id);
+                    ASSERT_TRUE(foo_symbol->is_a_global_function);
                     ASSERT_EQUAL(first_argument->function_label_id.index,
-                                 foo_symbol->tac_instruction_id.function_label_id.index);
+                                 foo_symbol->tac_function_label_id.index);
                 }
 
                 const Tac_Operand* second_argument = &instruction->second_argument;
@@ -856,8 +772,9 @@ test_calls(Test_Context* test_context)
                 ASSERT_FALSE(instruction->was_automatically_inserted);
             }
 
+            instruction = instruction->next_instruction;
+
             {
-                const Tac_Instruction* instruction = &tac_bar_function->instructions[1];
                 ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
 
                 const Tac_Operand* destination = &instruction->destination;
@@ -867,8 +784,8 @@ test_calls(Test_Context* test_context)
                 ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_VARIABLE);
                 ASSERT_TEMPORARY_VARIABLE_HAS_TYPE(first_argument->variable_id, "s32");
                 {
-                    const Tac_Instruction* first_instruction = &tac_bar_function->instructions[0];
-                    ASSERT_EQUAL(first_argument->variable_id.index, first_instruction->destination.variable_id.index);
+                    ASSERT_EQUAL(first_argument->variable_id.index,
+                                 tac_bar_function->first_instruction->destination.variable_id.index);
                 }
 
                 const Tac_Operand* second_argument = &instruction->second_argument;
@@ -876,6 +793,8 @@ test_calls(Test_Context* test_context)
 
                 ASSERT_FALSE(instruction->was_automatically_inserted);
             }
+
+            ASSERT_POINTERS_ARE_EQUAL(instruction, tac_bar_function->last_instruction);
         }
 
         destroy_parser(&parser);
@@ -924,10 +843,9 @@ test_calls(Test_Context* test_context)
             const Tac_Function* tac_foo_function = &tac->functions[0];
             ASSERT_FUNCTION_LABEL_POINTS_TO_FUNCTION(tac_foo_function->label_id, ast_foo_function);
 
-            ASSERT_EQUAL(tac_foo_function->instructions_count, 1);
+            const Tac_Instruction* instruction = tac_foo_function->first_instruction;
 
             {
-                const Tac_Instruction* instruction = &tac_foo_function->instructions[0];
                 ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
 
                 const Tac_Operand* destination = &instruction->destination;
@@ -942,6 +860,8 @@ test_calls(Test_Context* test_context)
 
                 ASSERT_FALSE(instruction->was_automatically_inserted);
             }
+
+            ASSERT_POINTERS_ARE_EQUAL(instruction, tac_foo_function->last_instruction);
         }
 
         {
@@ -950,10 +870,9 @@ test_calls(Test_Context* test_context)
             const Tac_Function* tac_bar_function = &tac->functions[1];
             ASSERT_FUNCTION_LABEL_POINTS_TO_FUNCTION(tac_bar_function->label_id, ast_bar_function);
 
-            ASSERT_EQUAL(tac_bar_function->instructions_count, 2);
+            const Tac_Instruction* instruction = tac_bar_function->first_instruction;
 
             {
-                const Tac_Instruction* instruction = &tac_bar_function->instructions[0];
                 ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_CALL);
 
                 const Tac_Operand* destination = &instruction->destination;
@@ -965,8 +884,9 @@ test_calls(Test_Context* test_context)
                 {
                     const Ast_Function_Definition* foo_definition = &ast->function_definitions[0];
                     const Symbol* foo_symbol = get_symbol_by_id(&context, foo_definition->name.symbol_id);
+                    ASSERT_TRUE(foo_symbol->is_a_global_function);
                     ASSERT_EQUAL(first_argument->function_label_id.index,
-                                 foo_symbol->tac_instruction_id.function_label_id.index);
+                                 foo_symbol->tac_function_label_id.index);
                 }
 
                 const Tac_Operand* second_argument = &instruction->second_argument;
@@ -976,8 +896,9 @@ test_calls(Test_Context* test_context)
                 ASSERT_FALSE(instruction->was_automatically_inserted);
             }
 
+            instruction = instruction->next_instruction;
+
             {
-                const Tac_Instruction* instruction = &tac_bar_function->instructions[1];
                 ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
 
                 const Tac_Operand* destination = &instruction->destination;
@@ -991,6 +912,8 @@ test_calls(Test_Context* test_context)
 
                 ASSERT_TRUE(instruction->was_automatically_inserted);
             }
+
+            ASSERT_POINTERS_ARE_EQUAL(instruction, tac_bar_function->last_instruction);
         }
 
         destroy_parser(&parser);
@@ -1074,10 +997,9 @@ test_binary_expressions_lowering(Test_Context* test_context)
         const Tac_Function* tac_function = &tac->functions[0];
         ASSERT_FUNCTION_LABEL_POINTS_TO_FUNCTION(tac_function->label_id, ast_function);
 
-        ASSERT_EQUAL(tac_function->instructions_count, 3);
+        const Tac_Instruction* instruction = tac_function->first_instruction;
 
         {
-            const Tac_Instruction* instruction = &tac_function->instructions[0];
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, test_info.expected_operation);
 
             const Tac_Operand* destination = &instruction->destination;
@@ -1095,8 +1017,9 @@ test_binary_expressions_lowering(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
+        instruction = instruction->next_instruction;
+
         {
-            const Tac_Instruction* instruction = &tac_function->instructions[1];
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
 
             const Tac_Operand* destination = &instruction->destination;
@@ -1116,7 +1039,7 @@ test_binary_expressions_lowering(Test_Context* test_context)
             ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_VARIABLE);
             ASSERT_TEMPORARY_VARIABLE_HAS_TYPE(first_argument->variable_id, test_info.expected_type);
             ASSERT_EQUAL(first_argument->variable_id.index,
-                         tac_function->instructions[0].destination.variable_id.index);
+                         tac_function->first_instruction->destination.variable_id.index);
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
@@ -1124,8 +1047,9 @@ test_binary_expressions_lowering(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
+        instruction = instruction->next_instruction;
+
         {
-            const Tac_Instruction* instruction = &tac_function->instructions[2];
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
 
             const Tac_Operand* destination = &instruction->destination;
@@ -1140,6 +1064,8 @@ test_binary_expressions_lowering(Test_Context* test_context)
             ASSERT_TRUE(instruction->was_automatically_inserted);
         }
 
+        ASSERT_POINTERS_ARE_EQUAL(instruction, tac_function->last_instruction);
+
         // NOTE(vlad): Testing that variable symbol has a non-empty TAC instruction id.
         {
             ASSERT_EQUAL(ast_function->body.statements_count, 1);
@@ -1150,8 +1076,8 @@ test_binary_expressions_lowering(Test_Context* test_context)
             const Symbol_Id variable_symbol_id = variable_definition->name.symbol_id;
             const Symbol* variable_symbol = get_symbol_by_id(&context, variable_symbol_id);
 
-            ASSERT_EQUAL(variable_symbol->tac_instruction_id.function_label_id.index, 1);
-            ASSERT_EQUAL(variable_symbol->tac_instruction_id.instruction_index, 1);
+            ASSERT_FALSE(variable_symbol->is_a_global_function);
+            ASSERT_TRUE(variable_symbol->defined_at_tac_instruction != NULL);
         }
 
         destroy_parser(&parser);
@@ -1203,9 +1129,7 @@ test_while_loops_lowering(Test_Context* test_context)
         const Tac_Function* tac_function = &tac->functions[0];
         ASSERT_FUNCTION_LABEL_POINTS_TO_FUNCTION(tac_function->label_id, ast_function);
 
-        ASSERT_EQUAL(tac_function->instructions_count, 7);
-
-        const Tac_Instruction* instruction = &tac_function->instructions[0];
+        const Tac_Instruction* instruction = tac_function->first_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_LABEL);
@@ -1215,9 +1139,7 @@ test_while_loops_lowering(Test_Context* test_context)
             {
                 ASSERT_EQUAL(destination->label_id.index, 1);
                 const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
-                ASSERT_EQUAL(label->instruction_id.function_label_id.index, 1);
-                ASSERT_FALSE(label->instruction_id.is_a_global_function);
-                ASSERT_EQUAL(label->instruction_id.instruction_index, 0);
+                ASSERT_POINTERS_ARE_EQUAL(label->points_to, instruction);
             }
 
             const Tac_Operand* first_argument = &instruction->first_argument;
@@ -1229,7 +1151,7 @@ test_while_loops_lowering(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_NOT_EQUAL);
@@ -1249,7 +1171,7 @@ test_while_loops_lowering(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_JUMP_IF_FALSE);
@@ -1259,9 +1181,7 @@ test_while_loops_lowering(Test_Context* test_context)
             {
                 ASSERT_EQUAL(destination->label_id.index, 2);
                 const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
-                ASSERT_EQUAL(label->instruction_id.function_label_id.index, 1);
-                ASSERT_FALSE(label->instruction_id.is_a_global_function);
-                ASSERT_EQUAL(label->instruction_id.instruction_index, 5);
+                ASSERT_TRUE(label->points_to != NULL);
             }
 
             const Tac_Operand* first_argument = &instruction->first_argument;
@@ -1275,7 +1195,7 @@ test_while_loops_lowering(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
@@ -1309,7 +1229,7 @@ test_while_loops_lowering(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_JUMP);
@@ -1319,9 +1239,7 @@ test_while_loops_lowering(Test_Context* test_context)
             {
                 ASSERT_EQUAL(destination->label_id.index, 1);
                 const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
-                ASSERT_EQUAL(label->instruction_id.function_label_id.index, 1);
-                ASSERT_FALSE(label->instruction_id.is_a_global_function);
-                ASSERT_EQUAL(label->instruction_id.instruction_index, 0);
+                ASSERT_TRUE(label->points_to != NULL);
             }
 
             const Tac_Operand* first_argument = &instruction->first_argument;
@@ -1333,7 +1251,7 @@ test_while_loops_lowering(Test_Context* test_context)
             ASSERT_TRUE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_LABEL);
@@ -1343,9 +1261,7 @@ test_while_loops_lowering(Test_Context* test_context)
             {
                 ASSERT_EQUAL(destination->label_id.index, 2);
                 const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
-                ASSERT_EQUAL(label->instruction_id.function_label_id.index, 1);
-                ASSERT_FALSE(label->instruction_id.is_a_global_function);
-                ASSERT_EQUAL(label->instruction_id.instruction_index, 5);
+                ASSERT_TRUE(label->points_to != NULL);
             }
 
             const Tac_Operand* first_argument = &instruction->first_argument;
@@ -1357,7 +1273,7 @@ test_while_loops_lowering(Test_Context* test_context)
             ASSERT_TRUE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
@@ -1374,8 +1290,7 @@ test_while_loops_lowering(Test_Context* test_context)
             ASSERT_TRUE(instruction->was_automatically_inserted);
         }
 
-        ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(instruction + 1, tac_function->instructions),
-                     tac_function->instructions_count);
+        ASSERT_POINTERS_ARE_EQUAL(instruction, tac_function->last_instruction);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -1430,9 +1345,7 @@ test_if_statements_lowering(Test_Context* test_context)
         const Tac_Function* tac_function = &tac->functions[0];
         ASSERT_FUNCTION_LABEL_POINTS_TO_FUNCTION(tac_function->label_id, ast_function);
 
-        ASSERT_EQUAL(tac_function->instructions_count, 8);
-
-        const Tac_Instruction* instruction = &tac_function->instructions[0];
+        const Tac_Instruction* instruction = tac_function->first_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_NOT_EQUAL);
@@ -1452,7 +1365,7 @@ test_if_statements_lowering(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_JUMP_IF_FALSE);
@@ -1462,9 +1375,7 @@ test_if_statements_lowering(Test_Context* test_context)
             {
                 ASSERT_EQUAL(destination->label_id.index, 1);
                 const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
-                ASSERT_EQUAL(label->instruction_id.function_label_id.index, 1);
-                ASSERT_FALSE(label->instruction_id.is_a_global_function);
-                ASSERT_EQUAL(label->instruction_id.instruction_index, 4);
+                ASSERT_TRUE(label->points_to != NULL);
             }
 
             const Tac_Operand* first_argument = &instruction->first_argument;
@@ -1478,7 +1389,7 @@ test_if_statements_lowering(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
@@ -1513,7 +1424,7 @@ test_if_statements_lowering(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_JUMP);
@@ -1523,9 +1434,7 @@ test_if_statements_lowering(Test_Context* test_context)
             {
                 ASSERT_EQUAL(destination->label_id.index, 2);
                 const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
-                ASSERT_EQUAL(label->instruction_id.function_label_id.index, 1);
-                ASSERT_FALSE(label->instruction_id.is_a_global_function);
-                ASSERT_EQUAL(label->instruction_id.instruction_index, 6);
+                ASSERT_TRUE(label->points_to != NULL);
             }
 
             const Tac_Operand* first_argument = &instruction->first_argument;
@@ -1537,7 +1446,7 @@ test_if_statements_lowering(Test_Context* test_context)
             ASSERT_TRUE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_LABEL);
@@ -1547,9 +1456,7 @@ test_if_statements_lowering(Test_Context* test_context)
             {
                 ASSERT_EQUAL(destination->label_id.index, 1);
                 const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
-                ASSERT_EQUAL(label->instruction_id.function_label_id.index, 1);
-                ASSERT_FALSE(label->instruction_id.is_a_global_function);
-                ASSERT_EQUAL(label->instruction_id.instruction_index, 4);
+                ASSERT_TRUE(label->points_to != NULL);
             }
 
             const Tac_Operand* first_argument = &instruction->first_argument;
@@ -1561,7 +1468,7 @@ test_if_statements_lowering(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
@@ -1596,7 +1503,7 @@ test_if_statements_lowering(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_LABEL);
@@ -1606,9 +1513,7 @@ test_if_statements_lowering(Test_Context* test_context)
             {
                 ASSERT_EQUAL(destination->label_id.index, 2);
                 const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
-                ASSERT_EQUAL(label->instruction_id.function_label_id.index, 1);
-                ASSERT_FALSE(label->instruction_id.is_a_global_function);
-                ASSERT_EQUAL(label->instruction_id.instruction_index, 6);
+                ASSERT_TRUE(label->points_to != NULL);
             }
 
             const Tac_Operand* first_argument = &instruction->first_argument;
@@ -1620,7 +1525,7 @@ test_if_statements_lowering(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
@@ -1637,8 +1542,7 @@ test_if_statements_lowering(Test_Context* test_context)
             ASSERT_TRUE(instruction->was_automatically_inserted);
         }
 
-        ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(instruction + 1, tac_function->instructions),
-                     tac_function->instructions_count);
+        ASSERT_POINTERS_ARE_EQUAL(instruction, tac_function->last_instruction);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -1685,9 +1589,7 @@ test_if_statements_lowering(Test_Context* test_context)
         const Tac_Function* tac_function = &tac->functions[0];
         ASSERT_FUNCTION_LABEL_POINTS_TO_FUNCTION(tac_function->label_id, ast_function);
 
-        ASSERT_EQUAL(tac_function->instructions_count, 7);
-
-        const Tac_Instruction* instruction = &tac_function->instructions[0];
+        const Tac_Instruction* instruction = tac_function->first_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_NOT_EQUAL);
@@ -1707,7 +1609,7 @@ test_if_statements_lowering(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_JUMP_IF_FALSE);
@@ -1717,9 +1619,7 @@ test_if_statements_lowering(Test_Context* test_context)
             {
                 ASSERT_EQUAL(destination->label_id.index, 1);
                 const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
-                ASSERT_EQUAL(label->instruction_id.function_label_id.index, 1);
-                ASSERT_FALSE(label->instruction_id.is_a_global_function);
-                ASSERT_EQUAL(label->instruction_id.instruction_index, 4);
+                ASSERT_TRUE(label->points_to != NULL);
             }
 
             const Tac_Operand* first_argument = &instruction->first_argument;
@@ -1733,7 +1633,7 @@ test_if_statements_lowering(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
@@ -1768,7 +1668,7 @@ test_if_statements_lowering(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_JUMP);
@@ -1778,9 +1678,7 @@ test_if_statements_lowering(Test_Context* test_context)
             {
                 ASSERT_EQUAL(destination->label_id.index, 2);
                 const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
-                ASSERT_EQUAL(label->instruction_id.function_label_id.index, 1);
-                ASSERT_FALSE(label->instruction_id.is_a_global_function);
-                ASSERT_EQUAL(label->instruction_id.instruction_index, 5);
+                ASSERT_TRUE(label->points_to != NULL);
             }
 
             const Tac_Operand* first_argument = &instruction->first_argument;
@@ -1792,7 +1690,7 @@ test_if_statements_lowering(Test_Context* test_context)
             ASSERT_TRUE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_LABEL);
@@ -1802,9 +1700,7 @@ test_if_statements_lowering(Test_Context* test_context)
             {
                 ASSERT_EQUAL(destination->label_id.index, 1);
                 const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
-                ASSERT_EQUAL(label->instruction_id.function_label_id.index, 1);
-                ASSERT_FALSE(label->instruction_id.is_a_global_function);
-                ASSERT_EQUAL(label->instruction_id.instruction_index, 4);
+                ASSERT_TRUE(label->points_to != NULL);
             }
 
             const Tac_Operand* first_argument = &instruction->first_argument;
@@ -1816,7 +1712,7 @@ test_if_statements_lowering(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_LABEL);
@@ -1826,9 +1722,7 @@ test_if_statements_lowering(Test_Context* test_context)
             {
                 ASSERT_EQUAL(destination->label_id.index, 2);
                 const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
-                ASSERT_EQUAL(label->instruction_id.function_label_id.index, 1);
-                ASSERT_FALSE(label->instruction_id.is_a_global_function);
-                ASSERT_EQUAL(label->instruction_id.instruction_index, 5);
+                ASSERT_TRUE(label->points_to != NULL);
             }
 
             const Tac_Operand* first_argument = &instruction->first_argument;
@@ -1840,7 +1734,7 @@ test_if_statements_lowering(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
@@ -1857,8 +1751,7 @@ test_if_statements_lowering(Test_Context* test_context)
             ASSERT_TRUE(instruction->was_automatically_inserted);
         }
 
-        ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(instruction + 1, tac_function->instructions),
-                     tac_function->instructions_count);
+        ASSERT_POINTERS_ARE_EQUAL(instruction, tac_function->last_instruction);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -1909,9 +1802,8 @@ test_indirect_memory_access(Test_Context* test_context)
         ASSERT_FUNCTION_LABEL_POINTS_TO_FUNCTION(tac_function->label_id, ast_function);
 
         ASSERT_EQUAL(ast_function->body.statements_count, 3);
-        ASSERT_EQUAL(tac_function->instructions_count, 5);
 
-        const Tac_Instruction* instruction = &tac_function->instructions[0];
+        const Tac_Instruction* instruction = tac_function->first_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
@@ -1939,7 +1831,7 @@ test_indirect_memory_access(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_GET_ADDRESS);
@@ -1966,7 +1858,7 @@ test_indirect_memory_access(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
@@ -1988,7 +1880,7 @@ test_indirect_memory_access(Test_Context* test_context)
             ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_VARIABLE);
             ASSERT_TEMPORARY_VARIABLE_HAS_TYPE(first_argument->variable_id, "* s32");
             {
-                const Tac_Instruction* previous_instruction = instruction - 1;
+                const Tac_Instruction* previous_instruction = instruction->previous_instruction;
                 ASSERT_EQUAL(first_argument->variable_id.index, previous_instruction->destination.variable_id.index);
             }
 
@@ -1998,7 +1890,7 @@ test_indirect_memory_access(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_LOAD_BY_ADDRESS);
@@ -2025,7 +1917,7 @@ test_indirect_memory_access(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
@@ -2037,7 +1929,7 @@ test_indirect_memory_access(Test_Context* test_context)
             ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_VARIABLE);
             ASSERT_TEMPORARY_VARIABLE_HAS_TYPE(first_argument->variable_id, "s32");
             {
-                const Tac_Instruction* previous_instruction = (instruction - 1);
+                const Tac_Instruction* previous_instruction = instruction->previous_instruction;
                 ASSERT_EQUAL(first_argument->variable_id.index, previous_instruction->destination.variable_id.index);
             }
 
@@ -2047,8 +1939,7 @@ test_indirect_memory_access(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(instruction + 1, tac_function->instructions),
-                     tac_function->instructions_count);
+        ASSERT_POINTERS_ARE_EQUAL(instruction, tac_function->last_instruction);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -2096,9 +1987,8 @@ test_indirect_memory_access(Test_Context* test_context)
         ASSERT_FUNCTION_LABEL_POINTS_TO_FUNCTION(tac_function->label_id, ast_function);
 
         ASSERT_EQUAL(ast_function->body.statements_count, 4);
-        ASSERT_EQUAL(tac_function->instructions_count, 5);
 
-        const Tac_Instruction* instruction = &tac_function->instructions[0];
+        const Tac_Instruction* instruction = tac_function->first_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
@@ -2126,7 +2016,7 @@ test_indirect_memory_access(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_GET_ADDRESS);
@@ -2153,7 +2043,7 @@ test_indirect_memory_access(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
@@ -2175,7 +2065,7 @@ test_indirect_memory_access(Test_Context* test_context)
             ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_VARIABLE);
             ASSERT_TEMPORARY_VARIABLE_HAS_TYPE(first_argument->variable_id, "* mutable s32");
             {
-                const Tac_Instruction* previous_instruction = instruction - 1;
+                const Tac_Instruction* previous_instruction = instruction->previous_instruction;
                 ASSERT_EQUAL(first_argument->variable_id.index, previous_instruction->destination.variable_id.index);
             }
 
@@ -2185,7 +2075,7 @@ test_indirect_memory_access(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_STORE_BY_ADDRESS);
@@ -2212,7 +2102,7 @@ test_indirect_memory_access(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        instruction += 1;
+        instruction = instruction->next_instruction;
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
@@ -2238,8 +2128,7 @@ test_indirect_memory_access(Test_Context* test_context)
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
 
-        ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(instruction + 1, tac_function->instructions),
-                     tac_function->instructions_count);
+        ASSERT_POINTERS_ARE_EQUAL(instruction, tac_function->last_instruction);
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);

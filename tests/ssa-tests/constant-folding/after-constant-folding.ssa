@@ -11,4 +11,6 @@ then_branch_elimination:
      2 |           RETURN           CONSTANT s32 20
 
 else_branch_elimination:
-     1 |           RETURN           CONSTANT s32 10
+     1 |           JUMP             LABEL_6
+     2 | LABEL_6:
+     3 |           RETURN           CONSTANT s32 10

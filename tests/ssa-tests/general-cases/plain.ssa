@@ -22,30 +22,36 @@ simple_conditional_assignment:
      1 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
      2 |           EQUAL            VARIABLE <temp_1>@1, CONSTANT s32 1, CONSTANT s32 2
      3 |           JUMP_IF_FALSE    LABEL_1, VARIABLE <temp_1>@1
-     4 |           ASSIGN           VARIABLE a@2, CONSTANT s32 20
-     5 |           JUMP             LABEL_2
-     6 | LABEL_1:
+     4 |           JUMP             LABEL_5
+     5 | LABEL_5:
+     6 |           ASSIGN           VARIABLE a@2, CONSTANT s32 20
+     7 |           JUMP             LABEL_2
+     8 | LABEL_1:
+     9 |           JUMP             LABEL_2
        |
        |           PHI              VARIABLE a@3, VARIABLE a@2, VARIABLE a@1
-     7 | LABEL_2:
-     8 |           RETURN           VARIABLE a@3
+    10 | LABEL_2:
+    11 |           RETURN           VARIABLE a@3
 
 conditional_assignment_of_multiple_variables:
      1 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
      2 |           ASSIGN           VARIABLE b@1, CONSTANT s32 11
      3 |           EQUAL            VARIABLE <temp_1>@1, CONSTANT s32 1, CONSTANT s32 2
      4 |           JUMP_IF_FALSE    LABEL_3, VARIABLE <temp_1>@1
-     5 |           ASSIGN           VARIABLE a@2, CONSTANT s32 20
-     6 |           ASSIGN           VARIABLE b@2, CONSTANT s32 21
-     7 |           JUMP             LABEL_4
-     8 | LABEL_3:
-     9 |           ASSIGN           VARIABLE a@3, CONSTANT s32 30
+     5 |           JUMP             LABEL_6
+     6 | LABEL_6:
+     7 |           ASSIGN           VARIABLE a@2, CONSTANT s32 20
+     8 |           ASSIGN           VARIABLE b@2, CONSTANT s32 21
+     9 |           JUMP             LABEL_4
+    10 | LABEL_3:
+    11 |           ASSIGN           VARIABLE a@3, CONSTANT s32 30
+    12 |           JUMP             LABEL_4
        |
        |           PHI              VARIABLE a@4, VARIABLE a@2, VARIABLE a@3
        |           PHI              VARIABLE b@3, VARIABLE b@2, VARIABLE b@1
-    10 | LABEL_4:
-    11 |           ADD              VARIABLE <temp_2>@1, VARIABLE a@4, VARIABLE b@3
-    12 |           RETURN           VARIABLE <temp_2>@1
+    13 | LABEL_4:
+    14 |           ADD              VARIABLE <temp_2>@1, VARIABLE a@4, VARIABLE b@3
+    15 |           RETURN           VARIABLE <temp_2>@1
 
 function_calls:
      1 |           CALL             simple_reassignment, ARGUMENTS COUNT 0

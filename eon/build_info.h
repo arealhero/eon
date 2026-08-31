@@ -1,5 +1,9 @@
 #pragma once
 
+#if !defined(EON_SLOW_BUILD)
+#    define EON_SLOW_BUILD 1
+#endif
+
 #if defined(_WIN32)
 #    define OS_WINDOWS 1
 #    define OS_LINUX   0

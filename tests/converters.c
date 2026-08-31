@@ -211,14 +211,10 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                 append_string(&builder, string_view("\n"));
             }
 
-            const Tac_Instructions_Range* range = &block->instructions_range;
-
-            for (Index instruction_index = range->start_instruction_index;
-                 instruction_index < range->end_instruction_index;
-                 ++instruction_index)
+            for (const Tac_Instruction* instruction = block->first_tac_instruction;
+                 instruction != NULL;
+                 instruction = instruction->next_instruction)
             {
-                const Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
-
                 if (instruction->operation == TAC_NOP)
                 {
                     // NOTE(vlad): Sanity check.

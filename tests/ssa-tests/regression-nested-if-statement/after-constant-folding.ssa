@@ -1,4 +1,8 @@
 regression_nested_if_statement:
      1 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
-     2 |           ASSIGN           VARIABLE a@2, CONSTANT s32 21
-     3 |           RETURN           VARIABLE a@2
+     2 |           JUMP             LABEL_5
+     3 | LABEL_5:
+     4 |           JUMP             LABEL_6
+     5 | LABEL_6:
+     6 |           ASSIGN           VARIABLE a@2, CONSTANT s32 21
+     7 |           RETURN           VARIABLE a@2

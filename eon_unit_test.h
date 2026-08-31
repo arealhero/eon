@@ -3,6 +3,7 @@
 #include <eon/unit_test.h>
 
 #include "eon_compilation_context.h"
+#include "eon_cfg.h"
 
 struct Arena_Provider
 {
@@ -76,5 +77,28 @@ release_arena_to_provider(struct Arena_Provider* provider, Arena* arena)
                                  expected);                             \
     }                                                                   \
     while (0)
+
+#define ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block)                    \
+    do                                                                  \
+    {                                                                   \
+        ASSERT_TRUE((block)->first_tac_instruction != NULL);            \
+        ASSERT_TRUE((block)->last_tac_instruction != NULL);             \
+        ASSERT_TRUE((block)->first_tac_instruction->previous_instruction == NULL); \
+        ASSERT_TRUE((block)->last_tac_instruction->next_instruction == NULL); \
+    }                                                                   \
+    while (0)
+
+maybe_unused internal Size
+count_instructions_in_cfg_block(const Cfg_Block* block)
+{
+    Size count = 0;
+    for (const Tac_Instruction* instruction = block->first_tac_instruction;
+         instruction != NULL;
+         instruction = instruction->next_instruction)
+    {
+        count += 1;
+    }
+    return count;
+}
 
 // FIXME(vlad): Implement 'ASSERT_DIAGNOSTIC_MESSAGES_ARE_EQUAL("<diagnostic-messages>")'.

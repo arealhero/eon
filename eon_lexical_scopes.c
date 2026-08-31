@@ -508,6 +508,7 @@ create_lexical_scopes(Compilation_Context* context)
                     symbol->name = function_definition->name.token.lexeme;
                     symbol->location = function_definition->name.token.location;
                     symbol->binding_is_mutable = function_definition->type->is_mutable;
+                    symbol->is_a_global_function = true;
                 }
 
                 add_symbol_id_to_lexical_scope(context, global_scope_id, symbol_id);

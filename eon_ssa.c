@@ -297,16 +297,11 @@ insert_phi_nodes(Compilation_Context* context)
                 block_id.index = block_index;
 
                 Cfg_Block* block = get_cfg_block_by_id(tac_function, block_id);
-                const Tac_Instructions_Range* instructions_range = &block->instructions_range;
 
-                ASSERT(instructions_range->function_label_id.index == tac_function->label_id.index);
-
-                for (Index instruction_index = instructions_range->start_instruction_index;
-                     instruction_index < instructions_range->end_instruction_index;
-                     ++instruction_index)
+                for (const Tac_Instruction* instruction = block->first_tac_instruction;
+                     instruction != NULL;
+                     instruction = instruction->next_instruction)
                 {
-                    const Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
-
                     if (instruction->destination.kind == TAC_OPERAND_VARIABLE
                         && instruction->destination.variable_id.index == variable_index)
                     {
@@ -464,11 +459,6 @@ set_tac_variable_versions_in_cfg_block(Compilation_Context* context,
 
     Cfg_Block* block = get_cfg_block_by_id(tac_function, this_block_id);
 
-    ensure_array_has_enough_capacity(context->scratch_arena,
-                                     encountered_variables.encountered_variable_ids,
-                                     Tac_Variable_Id,
-                                     block->phi_nodes_count + block->instructions_range.end_instruction_index - block->instructions_range.start_instruction_index);
-
     for (Index phi_node_index = 0;
          phi_node_index < block->phi_nodes_count;
          ++phi_node_index)
@@ -489,14 +479,10 @@ set_tac_variable_versions_in_cfg_block(Compilation_Context* context,
                    phi_node->destination);
     }
 
-    ASSERT(tac_function->label_id.index == block->instructions_range.function_label_id.index);
-
-    for (Index instruction_index = block->instructions_range.start_instruction_index;
-         instruction_index < block->instructions_range.end_instruction_index;
-         ++instruction_index)
+    for (Tac_Instruction* instruction = block->first_tac_instruction;
+         instruction != NULL;
+         instruction = instruction->next_instruction)
     {
-        Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
-
         if (instruction->first_argument.kind == TAC_OPERAND_VARIABLE)
         {
             instruction->first_argument.variable_id.ssa_version = get_tac_variable_version(renaming_info, instruction->first_argument.variable_id);
@@ -639,7 +625,7 @@ struct Version_Info
     union
     {
         Phi_Node* phi_node;
-        Tac_Instruction_Id instruction_id;
+        struct Tac_Instruction* instruction;
     };
 };
 typedef struct Version_Info Version_Info;
@@ -687,13 +673,10 @@ emit_diagnostic_message_about_unused_ssa_version(Compilation_Context* context,
     }
     else
     {
-        const Tac_Instruction_Id instruction_id = this_version_info->instruction_id;
+        const Tac_Instruction* instruction = this_version_info->instruction;
+        ASSERT(instruction);
 
-        const Tac_Function* tac_function = get_tac_function_by_label(&context->tac, instruction_id.function_label_id);
-        const Ast_Function_Definition* ast_function = tac_function->ast_function_definition;
-
-        const Ast_Statement* statement = find_statement_in_code_block_by_tac_instruction_index(&ast_function->body,
-                                                                                               instruction_id.instruction_index);
+        const Ast_Statement* statement = instruction->ast_statement;
         ASSERT(statement);
 
         Diagnostic_Message error = {0};
@@ -780,45 +763,45 @@ find_unused_ssa_assignments(Compilation_Context* context)
             }
         }
 
-        for (Index instruction_index = 0;
-             instruction_index < tac_function->instructions_count;
-             ++instruction_index)
+        for (Index block_index = 0;
+             block_index < tac_function->cfg_blocks_count;
+             ++block_index)
         {
-            Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
+            Cfg_Block* block = &tac_function->cfg_blocks[block_index];
 
-            if (instruction->destination.kind == TAC_OPERAND_VARIABLE)
+            for (Tac_Instruction* instruction = block->first_tac_instruction;
+                 instruction != NULL;
+                 instruction = instruction->next_instruction)
             {
-                const Tac_Variable_Id variable_id = instruction->destination.variable_id;
-                ASSERT(variable_id.ssa_version != SSA_VERSION_UNDEFINED);
+                if (instruction->destination.kind == TAC_OPERAND_VARIABLE)
+                {
+                    const Tac_Variable_Id variable_id = instruction->destination.variable_id;
+                    ASSERT(variable_id.ssa_version != SSA_VERSION_UNDEFINED);
 
-                Ssa_Variable_Versions_Info* info = &infos[variable_id.index];
+                    Ssa_Variable_Versions_Info* info = &infos[variable_id.index];
+                    info->version_infos[variable_id.ssa_version].instruction = instruction;
+                    info->version_infos[variable_id.ssa_version].was_assigned_to = true;
+                }
 
-                Tac_Instruction_Id instruction_id = {0};
-                instruction_id.function_label_id = tac_function->label_id;
-                instruction_id.instruction_index = instruction_index;
+                if (instruction->first_argument.kind == TAC_OPERAND_VARIABLE)
+                {
+                    const Tac_Variable_Id variable_id = instruction->first_argument.variable_id;
+                    ASSERT(variable_id.ssa_version != SSA_VERSION_UNDEFINED);
 
-                info->version_infos[variable_id.ssa_version].instruction_id = instruction_id;
-                info->version_infos[variable_id.ssa_version].was_assigned_to = true;
-            }
+                    Ssa_Variable_Versions_Info* info = &infos[variable_id.index];
+                    info->version_infos[variable_id.ssa_version].was_used = true;
+                    info->version_infos[variable_id.ssa_version].was_used_outside_of_phi_nodes = true;
+                }
 
-            if (instruction->first_argument.kind == TAC_OPERAND_VARIABLE)
-            {
-                const Tac_Variable_Id variable_id = instruction->first_argument.variable_id;
-                ASSERT(variable_id.ssa_version != SSA_VERSION_UNDEFINED);
+                if (instruction->second_argument.kind == TAC_OPERAND_VARIABLE)
+                {
+                    const Tac_Variable_Id variable_id = instruction->second_argument.variable_id;
+                    ASSERT(variable_id.ssa_version != SSA_VERSION_UNDEFINED);
 
-                Ssa_Variable_Versions_Info* info = &infos[variable_id.index];
-                info->version_infos[variable_id.ssa_version].was_used = true;
-                info->version_infos[variable_id.ssa_version].was_used_outside_of_phi_nodes = true;
-            }
-
-            if (instruction->second_argument.kind == TAC_OPERAND_VARIABLE)
-            {
-                const Tac_Variable_Id variable_id = instruction->second_argument.variable_id;
-                ASSERT(variable_id.ssa_version != SSA_VERSION_UNDEFINED);
-
-                Ssa_Variable_Versions_Info* info = &infos[variable_id.index];
-                info->version_infos[variable_id.ssa_version].was_used = true;
-                info->version_infos[variable_id.ssa_version].was_used_outside_of_phi_nodes = true;
+                    Ssa_Variable_Versions_Info* info = &infos[variable_id.index];
+                    info->version_infos[variable_id.ssa_version].was_used = true;
+                    info->version_infos[variable_id.ssa_version].was_used_outside_of_phi_nodes = true;
+                }
             }
         }
     }
@@ -912,206 +895,208 @@ perform_constant_folding(Compilation_Context* context)
         {
             constant_was_folded = false;
 
-            for (Index instruction_index = 0;
-                 instruction_index < tac_function->instructions_count;
-                 ++instruction_index)
+            for (Index block_index = 0;
+                 block_index < tac_function->cfg_blocks_count;
+                 ++block_index)
             {
-                Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
+                Cfg_Block* block = &tac_function->cfg_blocks[block_index];
 
-                const Bool can_fold =
-                    instruction->destination.kind == TAC_OPERAND_VARIABLE
-                    && instruction->first_argument.kind == TAC_OPERAND_CONSTANT
-                    && instruction->second_argument.kind == TAC_OPERAND_CONSTANT
-                    && (instruction->operation == TAC_ADD
-                        || instruction->operation == TAC_SUBTRACT
-                        || instruction->operation == TAC_MULTIPLY
-                        || instruction->operation == TAC_DIVIDE
-                        || instruction->operation == TAC_EQUAL
-                        || instruction->operation == TAC_NOT_EQUAL
-                        || instruction->operation == TAC_LESS
-                        || instruction->operation == TAC_LESS_OR_EQUAL
-                        || instruction->operation == TAC_GREATER
-                        || instruction->operation == TAC_GREATER_OR_EQUAL);
-
-                if (!can_fold)
+                for (Tac_Instruction* instruction = block->first_tac_instruction;
+                     instruction != NULL;
+                     instruction = instruction->next_instruction)
                 {
-                    continue;
-                }
+                    const Bool can_fold = (instruction->destination.kind == TAC_OPERAND_VARIABLE
+                                           && instruction->first_argument.kind == TAC_OPERAND_CONSTANT
+                                           && instruction->second_argument.kind == TAC_OPERAND_CONSTANT
+                                           && (instruction->operation == TAC_ADD
+                                               || instruction->operation == TAC_SUBTRACT
+                                               || instruction->operation == TAC_MULTIPLY
+                                               || instruction->operation == TAC_DIVIDE
+                                               || instruction->operation == TAC_EQUAL
+                                               || instruction->operation == TAC_NOT_EQUAL
+                                               || instruction->operation == TAC_LESS
+                                               || instruction->operation == TAC_LESS_OR_EQUAL
+                                               || instruction->operation == TAC_GREATER
+                                               || instruction->operation == TAC_GREATER_OR_EQUAL));
 
-                const Tac_Variable_Id destination_id = instruction->destination.variable_id;
-                Tac_Variable* destination = get_tac_variable_by_id(tac, destination_id);
+                    if (!can_fold)
+                    {
+                        continue;
+                    }
 
-                // TODO(vlad): Support constant folding for non-temporary variables if optimisations are enabled. We
-                //             then also would need to fix PHI nodes (temporary variables cannot have PHI nodes, thus we
-                //             do not bother checking them).
-                if (!destination->is_temporary)
-                {
-                    continue;
-                }
+                    const Tac_Variable_Id destination_id = instruction->destination.variable_id;
+                    Tac_Variable* destination = get_tac_variable_by_id(tac, destination_id);
 
-                Tac_Constant* first_argument = get_tac_constant_by_id(tac, instruction->first_argument.constant_id);
-                Tac_Constant* second_argument = get_tac_constant_by_id(tac, instruction->second_argument.constant_id);
+                    // TODO(vlad): Support constant folding for non-temporary variables if optimisations are enabled. We
+                    //             then also would need to fix PHI nodes (temporary variables cannot have PHI nodes, thus we
+                    //             do not bother checking them).
+                    if (!destination->is_temporary)
+                    {
+                        continue;
+                    }
 
-                ASSERT(first_argument->kind == second_argument->kind);
+                    Tac_Constant* first_argument = get_tac_constant_by_id(tac, instruction->first_argument.constant_id);
+                    Tac_Constant* second_argument = get_tac_constant_by_id(tac, instruction->second_argument.constant_id);
 
-                Tac_Constant folded_constant = {0};
+                    ASSERT(first_argument->kind == second_argument->kind);
 
-                const Tac_Constant_Kind argument_kind = first_argument->kind;
+                    Tac_Constant folded_constant = {0};
 
-                switch (instruction->operation)
-                {
-                    // FIXME(vlad): Add overflow/underflow detection.
+                    const Tac_Constant_Kind argument_kind = first_argument->kind;
+
+                    switch (instruction->operation)
+                    {
+                        // FIXME(vlad): Add overflow/underflow detection.
 #define DECLARE_ARITHMETIC_CASE(operation, operator)                    \
-                    case operation:                                     \
-                    {                                                   \
-                        folded_constant.kind = argument_kind;           \
-                                                                        \
-                        switch (argument_kind)                          \
+                        case operation:                                 \
                         {                                               \
-                            case TAC_CONSTANT_UNDEFINED:                \
-                            case TAC_CONSTANT_BOOLEAN:                  \
-                            {                                           \
-                                UNREACHABLE();                          \
-                            } break;                                    \
+                            folded_constant.kind = argument_kind;       \
                                                                         \
-                            case TAC_CONSTANT_INT8:                     \
-                            case TAC_CONSTANT_INT16:                    \
-                            case TAC_CONSTANT_INT32:                    \
-                            case TAC_CONSTANT_INT64:                    \
-                            case TAC_CONSTANT_UINT8:                    \
-                            case TAC_CONSTANT_UINT16:                   \
-                            case TAC_CONSTANT_UINT32:                   \
-                            case TAC_CONSTANT_UINT64:                   \
+                            switch (argument_kind)                      \
                             {                                           \
-                                folded_constant.kind = argument_kind;   \
-                                folded_constant.integer_value = first_argument->integer_value operator second_argument->integer_value; \
-                            } break;                                    \
+                                case TAC_CONSTANT_UNDEFINED:            \
+                                case TAC_CONSTANT_BOOLEAN:              \
+                                {                                       \
+                                    UNREACHABLE();                      \
+                                } break;                                \
                                                                         \
-                            case TAC_CONSTANT_FLOAT32:                  \
-                            {                                           \
-                                folded_constant.kind = argument_kind;   \
-                                folded_constant.float32_value = first_argument->float32_value operator second_argument->float32_value; \
-                            } break;                                    \
+                                case TAC_CONSTANT_INT8:                 \
+                                case TAC_CONSTANT_INT16:                \
+                                case TAC_CONSTANT_INT32:                \
+                                case TAC_CONSTANT_INT64:                \
+                                case TAC_CONSTANT_UINT8:                \
+                                case TAC_CONSTANT_UINT16:               \
+                                case TAC_CONSTANT_UINT32:               \
+                                case TAC_CONSTANT_UINT64:               \
+                                {                                       \
+                                    folded_constant.kind = argument_kind; \
+                                    folded_constant.integer_value = first_argument->integer_value operator second_argument->integer_value; \
+                                } break;                                \
                                                                         \
-                            case TAC_CONSTANT_FLOAT64:                  \
-                            {                                           \
-                                folded_constant.kind = argument_kind;   \
-                                folded_constant.float64_value = first_argument->float64_value operator second_argument->float64_value; \
-                            } break;                                    \
-                        }                                               \
-                    } break
+                                case TAC_CONSTANT_FLOAT32:              \
+                                {                                       \
+                                    folded_constant.kind = argument_kind; \
+                                    folded_constant.float32_value = first_argument->float32_value operator second_argument->float32_value; \
+                                } break;                                \
+                                                                        \
+                                case TAC_CONSTANT_FLOAT64:              \
+                                {                                       \
+                                    folded_constant.kind = argument_kind; \
+                                    folded_constant.float64_value = first_argument->float64_value operator second_argument->float64_value; \
+                                } break;                                \
+                            }                                           \
+                        } break
 
-                    DECLARE_ARITHMETIC_CASE(TAC_ADD, +);
-                    DECLARE_ARITHMETIC_CASE(TAC_SUBTRACT, -);
-                    DECLARE_ARITHMETIC_CASE(TAC_MULTIPLY, *);
-                    DECLARE_ARITHMETIC_CASE(TAC_DIVIDE, /);
+                        DECLARE_ARITHMETIC_CASE(TAC_ADD, +);
+                        DECLARE_ARITHMETIC_CASE(TAC_SUBTRACT, -);
+                        DECLARE_ARITHMETIC_CASE(TAC_MULTIPLY, *);
+                        DECLARE_ARITHMETIC_CASE(TAC_DIVIDE, /);
 
 #undef DECLARE_ARITHMETIC_CASE
 
 #define DECLARE_COMPARISON_CASE(operation, operator)                    \
-                    case operation:                                     \
-                    {                                                   \
-                        folded_constant.kind = TAC_CONSTANT_BOOLEAN;    \
-                                                                        \
-                        switch (argument_kind)                          \
+                        case operation:                                 \
                         {                                               \
-                            case TAC_CONSTANT_UNDEFINED:                \
-                            {                                           \
-                                UNREACHABLE();                          \
-                            } break;                                    \
+                            folded_constant.kind = TAC_CONSTANT_BOOLEAN; \
                                                                         \
-                            case TAC_CONSTANT_BOOLEAN:                  \
+                            switch (argument_kind)                      \
                             {                                           \
-                                folded_constant.boolean_value = first_argument->boolean_value operator second_argument->boolean_value; \
-                            } break;                                    \
+                                case TAC_CONSTANT_UNDEFINED:            \
+                                {                                       \
+                                    UNREACHABLE();                      \
+                                } break;                                \
                                                                         \
-                            case TAC_CONSTANT_INT8:                     \
-                            case TAC_CONSTANT_INT16:                    \
-                            case TAC_CONSTANT_INT32:                    \
-                            case TAC_CONSTANT_INT64:                    \
-                            case TAC_CONSTANT_UINT8:                    \
-                            case TAC_CONSTANT_UINT16:                   \
-                            case TAC_CONSTANT_UINT32:                   \
-                            case TAC_CONSTANT_UINT64:                   \
-                            {                                           \
-                                folded_constant.boolean_value = first_argument->integer_value operator second_argument->integer_value; \
-                            } break;                                    \
+                                case TAC_CONSTANT_BOOLEAN:              \
+                                {                                       \
+                                    folded_constant.boolean_value = first_argument->boolean_value operator second_argument->boolean_value; \
+                                } break;                                \
                                                                         \
-                            case TAC_CONSTANT_FLOAT32:                  \
-                            {                                           \
-                                folded_constant.boolean_value = first_argument->float32_value operator second_argument->float32_value; \
-                            } break;                                    \
+                                case TAC_CONSTANT_INT8:                 \
+                                case TAC_CONSTANT_INT16:                \
+                                case TAC_CONSTANT_INT32:                \
+                                case TAC_CONSTANT_INT64:                \
+                                case TAC_CONSTANT_UINT8:                \
+                                case TAC_CONSTANT_UINT16:               \
+                                case TAC_CONSTANT_UINT32:               \
+                                case TAC_CONSTANT_UINT64:               \
+                                {                                       \
+                                    folded_constant.boolean_value = first_argument->integer_value operator second_argument->integer_value; \
+                                } break;                                \
                                                                         \
-                            case TAC_CONSTANT_FLOAT64:                  \
-                            {                                           \
-                                folded_constant.boolean_value = first_argument->float64_value operator second_argument->float64_value; \
-                            } break;                                    \
-                        }                                               \
-                    } break
+                                case TAC_CONSTANT_FLOAT32:              \
+                                {                                       \
+                                    folded_constant.boolean_value = first_argument->float32_value operator second_argument->float32_value; \
+                                } break;                                \
+                                                                        \
+                                case TAC_CONSTANT_FLOAT64:              \
+                                {                                       \
+                                    folded_constant.boolean_value = first_argument->float64_value operator second_argument->float64_value; \
+                                } break;                                \
+                            }                                           \
+                        } break
 
-                    DECLARE_COMPARISON_CASE(TAC_EQUAL, ==);
-                    DECLARE_COMPARISON_CASE(TAC_NOT_EQUAL, !=);
+                        DECLARE_COMPARISON_CASE(TAC_EQUAL, ==);
+                        DECLARE_COMPARISON_CASE(TAC_NOT_EQUAL, !=);
 
-                    DECLARE_COMPARISON_CASE(TAC_LESS, <);
-                    DECLARE_COMPARISON_CASE(TAC_LESS_OR_EQUAL, <=);
-                    DECLARE_COMPARISON_CASE(TAC_GREATER, >);
-                    DECLARE_COMPARISON_CASE(TAC_GREATER_OR_EQUAL, >=);
+                        DECLARE_COMPARISON_CASE(TAC_LESS, <);
+                        DECLARE_COMPARISON_CASE(TAC_LESS_OR_EQUAL, <=);
+                        DECLARE_COMPARISON_CASE(TAC_GREATER, >);
+                        DECLARE_COMPARISON_CASE(TAC_GREATER_OR_EQUAL, >=);
 
 #undef DECLARE_COMPARISON_CASE
 
-                    default:
-                    {
-                        UNREACHABLE();
-                    } break;
-                }
-
-                first_argument = NULL;
-                second_argument = NULL;
-
-                const Tac_Constant_Id folded_constant_id = create_tac_constant(context);
-                {
-                    Tac_Constant* created_constant = get_tac_constant_by_id(tac, folded_constant_id);
-                    *created_constant = folded_constant;
-                }
-
-                // TODO(vlad): Improve the asymptotic complexity of this code.
-                for (Index following_instruction_index = instruction_index + 1;
-                     following_instruction_index < tac_function->instructions_count;
-                     ++following_instruction_index)
-                {
-                    Tac_Instruction* following_instruction = &tac_function->instructions[following_instruction_index];
-
-                    {
-                        Tac_Operand* argument = &following_instruction->first_argument;
-
-                        if (argument->kind == TAC_OPERAND_VARIABLE
-                            && argument->variable_id.index == destination_id.index
-                            && argument->variable_id.ssa_version == destination_id.ssa_version)
+                        default:
                         {
-                            argument->kind = TAC_OPERAND_CONSTANT;
-                            argument->constant_id = folded_constant_id;
+                            UNREACHABLE();
+                        } break;
+                    }
+
+                    first_argument = NULL;
+                    second_argument = NULL;
+
+                    const Tac_Constant_Id folded_constant_id = create_tac_constant(context);
+                    {
+                        Tac_Constant* created_constant = get_tac_constant_by_id(tac, folded_constant_id);
+                        *created_constant = folded_constant;
+                    }
+
+                    // TODO(vlad): Improve the asymptotic complexity of this code.
+                    for (Tac_Instruction* following_instruction = instruction->next_instruction;
+                         following_instruction != NULL;
+                         following_instruction = following_instruction->next_instruction)
+                    {
+                        {
+                            Tac_Operand* argument = &following_instruction->first_argument;
+
+                            if (argument->kind == TAC_OPERAND_VARIABLE
+                                && argument->variable_id.index == destination_id.index
+                                && argument->variable_id.ssa_version == destination_id.ssa_version)
+                            {
+                                argument->kind = TAC_OPERAND_CONSTANT;
+                                argument->constant_id = folded_constant_id;
+                            }
+                        }
+
+                        {
+                            Tac_Operand* argument = &following_instruction->second_argument;
+
+                            if (argument->kind == TAC_OPERAND_VARIABLE
+                                && argument->variable_id.index == destination_id.index
+                                && argument->variable_id.ssa_version == destination_id.ssa_version)
+                            {
+                                argument->kind = TAC_OPERAND_CONSTANT;
+                                argument->constant_id = folded_constant_id;
+                            }
                         }
                     }
 
-                    {
-                        Tac_Operand* argument = &following_instruction->second_argument;
+                    instruction->operation = TAC_NOP;
+                    instruction->destination.kind = TAC_OPERAND_NONE;
+                    instruction->first_argument.kind = TAC_OPERAND_NONE;
+                    instruction->second_argument.kind = TAC_OPERAND_NONE;
 
-                        if (argument->kind == TAC_OPERAND_VARIABLE
-                            && argument->variable_id.index == destination_id.index
-                            && argument->variable_id.ssa_version == destination_id.ssa_version)
-                        {
-                            argument->kind = TAC_OPERAND_CONSTANT;
-                            argument->constant_id = folded_constant_id;
-                        }
-                    }
+                    constant_was_folded = true;
                 }
-
-                instruction->operation = TAC_NOP;
-                instruction->destination.kind = TAC_OPERAND_NONE;
-                instruction->first_argument.kind = TAC_OPERAND_NONE;
-                instruction->second_argument.kind = TAC_OPERAND_NONE;
-
-                constant_was_folded = true;
             }
         }
         while (constant_was_folded);
@@ -1138,14 +1123,10 @@ remove_unreachable_jumps(Compilation_Context* context)
 
             Cfg_Block* this_block = get_cfg_block_by_id(tac_function, this_block_id);
 
-            const Tac_Instructions_Range* instructions_range = &this_block->instructions_range;
-
-            for (Index instruction_index = instructions_range->start_instruction_index;
-                 instruction_index < instructions_range->end_instruction_index;
-                 ++instruction_index)
+            for (Tac_Instruction* instruction = this_block->first_tac_instruction;
+                 instruction != NULL;
+                 instruction = instruction->next_instruction)
             {
-                Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
-
                 if (instruction->operation != TAC_JUMP_IF_TRUE && instruction->operation != TAC_JUMP_IF_FALSE)
                 {
                     continue;
@@ -1170,26 +1151,27 @@ remove_unreachable_jumps(Compilation_Context* context)
                         {
                             // NOTE(vlad): Removing fall through edge.
 
-                            const Index next_instruction_index = this_block->instructions_range.end_instruction_index;
-                            ASSERT(next_instruction_index != tac_function->instructions_count);
+                            Tac_Instruction* last_instruction = this_block->last_tac_instruction;
+                            ASSERT(last_instruction != NULL);
+                            ASSERT(last_instruction->operation = TAC_JUMP);
 
-                            for (Index successor_block_index = this_block_id.index + 1;
-                                 successor_block_index < tac_function->cfg_blocks_count;
-                                 ++successor_block_index)
+                            ASSERT(last_instruction->previous_instruction != NULL);
+                            last_instruction->previous_instruction->next_instruction = NULL;
+
+                            const Tac_Instruction* next_instruction = this_block->next_after_last_tac_instruction;
+                            ASSERT(next_instruction != NULL);
+
+                            for (Index successor_index = 0;
+                                 successor_index < this_block->edges_count;
+                                 ++successor_index)
                             {
-                                const Cfg_Block* candidate_block = &tac_function->cfg_blocks[successor_block_index];
-                                const Tac_Instructions_Range* candidate_instructions_range = &candidate_block->instructions_range;
+                                const Cfg_Block_Id successor_id = this_block->edges[successor_index];
+                                Cfg_Block* successor = get_cfg_block_by_id(tac_function, successor_id);
 
-                                if (candidate_instructions_range->start_instruction_index <= next_instruction_index
-                                    && next_instruction_index < candidate_instructions_range->end_instruction_index)
+                                if (successor->first_tac_instruction == next_instruction)
                                 {
-                                    Cfg_Block_Id destination_block_id = {0};
-                                    destination_block_id.index = successor_block_index;
-
-                                    Cfg_Block* destination_block = get_cfg_block_by_id(tac_function, destination_block_id);
-
-                                    remove_edge(this_block, destination_block_id);
-                                    remove_predecessor(destination_block, this_block_id);
+                                    remove_edge(this_block, successor_id);
+                                    remove_predecessor(successor, this_block_id);
                                 }
                             }
                         }
@@ -1203,6 +1185,7 @@ remove_unreachable_jumps(Compilation_Context* context)
                             remove_edge(this_block, destination_block_id);
                             remove_predecessor(destination_block, this_block_id);
 
+                            // TODO(vlad): Actually remove this instruction.
                             instruction->operation = TAC_NOP;
                             instruction->destination.kind = TAC_OPERAND_NONE;
                             instruction->first_argument.kind = TAC_OPERAND_NONE;
@@ -1226,26 +1209,27 @@ remove_unreachable_jumps(Compilation_Context* context)
                         {
                             // NOTE(vlad): Removing fall through edge.
 
-                            const Index next_instruction_index = this_block->instructions_range.end_instruction_index;
-                            ASSERT(next_instruction_index != tac_function->instructions_count);
+                            Tac_Instruction* last_instruction = this_block->last_tac_instruction;
+                            ASSERT(last_instruction != NULL);
+                            ASSERT(last_instruction->operation = TAC_JUMP);
 
-                            for (Index successor_block_index = this_block_id.index + 1;
-                                 successor_block_index < tac_function->cfg_blocks_count;
-                                 ++successor_block_index)
+                            ASSERT(last_instruction->previous_instruction != NULL);
+                            last_instruction->previous_instruction->next_instruction = NULL;
+
+                            const Tac_Instruction* next_instruction = this_block->next_after_last_tac_instruction;
+                            ASSERT(next_instruction != NULL);
+
+                            for (Index successor_index = 0;
+                                 successor_index < this_block->edges_count;
+                                 ++successor_index)
                             {
-                                const Cfg_Block* candidate_block = &tac_function->cfg_blocks[successor_block_index];
-                                const Tac_Instructions_Range* candidate_instructions_range = &candidate_block->instructions_range;
+                                const Cfg_Block_Id successor_id = this_block->edges[successor_index];
+                                Cfg_Block* successor = get_cfg_block_by_id(tac_function, successor_id);
 
-                                if (candidate_instructions_range->start_instruction_index <= next_instruction_index
-                                    && next_instruction_index < candidate_instructions_range->end_instruction_index)
+                                if (successor->first_tac_instruction == next_instruction)
                                 {
-                                    Cfg_Block_Id destination_block_id = {0};
-                                    destination_block_id.index = successor_block_index;
-
-                                    Cfg_Block* destination_block = get_cfg_block_by_id(tac_function, destination_block_id);
-
-                                    remove_edge(this_block, destination_block_id);
-                                    remove_predecessor(destination_block, this_block_id);
+                                    remove_edge(this_block, successor_id);
+                                    remove_predecessor(successor, this_block_id);
                                 }
                             }
                         }

@@ -23,6 +23,7 @@ create_compilation_context(Compilation_Context* context,
     context->parameter_type_ids_arena = acquire_arena_from_provider(arena_provider, string_view("function-parameter-type-ids"), GiB(1), MiB(1));
 
     context->tac_functions_arena = acquire_arena_from_provider(arena_provider, string_view("tac-functions"), GiB(1), MiB(1));
+    context->tac_instructions_arena = acquire_arena_from_provider(arena_provider, string_view("tac-instructions"), GiB(1), MiB(1));
     context->tac_function_labels_arena = acquire_arena_from_provider(arena_provider, string_view("tac-function-labels"), GiB(1), MiB(1));
     context->tac_variables_arena = acquire_arena_from_provider(arena_provider, string_view("tac-variables"), GiB(1), MiB(1));
     context->tac_constants_arena = acquire_arena_from_provider(arena_provider, string_view("tac-constants"), GiB(1), MiB(1));
@@ -64,6 +65,7 @@ destroy_compilation_context(Compilation_Context* context)
              ++block_index)
         {
             Cfg_Block* block = &tac_function->cfg_blocks[block_index];
+            ASAN_UNPOISON_ARRAY_ELEMENT(tac_function->cfg_blocks, Cfg_Block, block_index);
             free_cfg_block(context, block);
         }
     }
@@ -80,6 +82,7 @@ destroy_compilation_context(Compilation_Context* context)
     release_arena_to_provider(context->arena_provider, context->parameter_type_ids_arena);
 
     release_arena_to_provider(context->arena_provider, context->tac_functions_arena);
+    release_arena_to_provider(context->arena_provider, context->tac_instructions_arena);
     release_arena_to_provider(context->arena_provider, context->tac_function_labels_arena);
     release_arena_to_provider(context->arena_provider, context->tac_variables_arena);
     release_arena_to_provider(context->arena_provider, context->tac_constants_arena);

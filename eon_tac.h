@@ -142,7 +142,7 @@ DEFINE_TAC_ID_FOR(Tac_Constant);
 
 struct Tac_Label
 {
-    Tac_Instruction_Id instruction_id;
+    struct Tac_Instruction* points_to;
 };
 typedef struct Tac_Label Tac_Label;
 // NOTE(vlad): 'Tac_Label_Id' is defined inside 'eon_forward_declarations.h'.
@@ -176,14 +176,18 @@ struct Tac_Instruction
     Tac_Operand first_argument;
     Tac_Operand second_argument;
 
+    struct Tac_Instruction* previous_instruction;
+    struct Tac_Instruction* next_instruction;
+
     Bool was_automatically_inserted;
+
+    Ast_Statement* ast_statement;
+    Ast_Expression* ast_expression;
 };
 typedef struct Tac_Instruction Tac_Instruction;
 
 struct Tac_Function
 {
-    Arena* instructions_arena;
-
     const Ast_Function_Definition* ast_function_definition;
     Tac_Function_Label_Id label_id;
 
@@ -193,7 +197,10 @@ struct Tac_Function
     Index first_tac_label_index;
     Index last_tac_label_index; // NOTE(vlad): This index is not included.
 
-    array(Tac_Instruction, instructions);
+    Tac_Instruction* first_instruction;
+    Tac_Instruction* last_instruction;
+
+    // TODO(vlad): Move this to Compilation_Context.
     array(struct Cfg_Block, cfg_blocks);
 };
 typedef struct Tac_Function Tac_Function;
@@ -207,12 +214,13 @@ struct Tac
     array(Tac_Constant, constants);
     array(Tac_Label, labels);
 
-    Cfg_Block_Id* label_index_to_cfg_block_id_map;
+    array(Cfg_Block_Id, label_index_to_cfg_block_id_map);
 };
 typedef struct Tac Tac;
 
 maybe_unused internal void lower_ast_to_tac(struct Compilation_Context* context);
 
+maybe_unused internal Tac_Label_Id create_tac_label(struct Compilation_Context* context);
 maybe_unused internal Tac_Constant_Id create_tac_constant(struct Compilation_Context* context);
 
 maybe_unused internal inline Tac_Function* get_tac_function_by_label(Tac* tac, const Tac_Function_Label_Id label_id);
@@ -220,11 +228,5 @@ maybe_unused internal inline Tac_Function_Label* get_tac_function_label_by_id(Ta
 maybe_unused internal inline Tac_Variable* get_tac_variable_by_id(Tac* tac, const Tac_Variable_Id id);
 maybe_unused internal inline Tac_Constant* get_tac_constant_by_id(Tac* tac, const Tac_Constant_Id id);
 maybe_unused internal inline Tac_Label* get_tac_label_by_id(Tac* tac, const Tac_Label_Id id);
-
-maybe_unused internal const Ast_Statement* find_statement_in_code_block_by_tac_instruction_index(const Ast_Code_Block* code_block,
-                                                                                                 const Index tac_instruction_index);
-
-maybe_unused internal const Ast_Statement* find_statement_by_tac_instructions_range(struct Compilation_Context* context,
-                                                                                    const Tac_Instructions_Range* instructions_range);
 
 #undef DEFINE_TAC_ID_FOR

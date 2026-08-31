@@ -30,7 +30,12 @@ struct Symbol
     Bool binding_is_mutable;
     Bool is_builtin;
 
-    Tac_Instruction_Id tac_instruction_id;
+    Bool is_a_global_function; // TODO(vlad): Can we do better than this?
+    union
+    {
+        struct Tac_Instruction* defined_at_tac_instruction;
+        Tac_Function_Label_Id tac_function_label_id;
+    };
 };
 typedef struct Symbol Symbol;
 

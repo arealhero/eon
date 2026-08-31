@@ -9,11 +9,43 @@ enum
     GLOBAL_TAC_FUNCTION_LABEL_INDEX = 1,
 };
 
-internal inline Index
-emit_tac_instruction(Tac_Function* function, const Tac_Instruction instruction)
+internal inline Tac_Instruction*
+add_new_instruction_to_tac_function(Compilation_Context* context,
+                                    Tac_Function* function,
+                                    Ast_Statement* statement,
+                                    Ast_Expression* expression)
 {
-    append_array(function->instructions_arena, function->instructions, Tac_Instruction, instruction);
-    return function->instructions_count - 1;
+    Tac_Instruction* instruction = allocate(context->tac_instructions_arena, Tac_Instruction);
+
+    if (statement)
+    {
+        instruction->ast_statement = statement;
+    }
+
+    if (expression)
+    {
+        ASSERT(instruction->ast_statement != NULL);
+        instruction->ast_expression = expression;
+    }
+
+    instruction->was_automatically_inserted = (instruction->ast_statement == NULL
+                                               && instruction->ast_expression == NULL);
+
+    if (function->first_instruction == NULL)
+    {
+        function->first_instruction = instruction;
+        function->last_instruction = instruction;
+    }
+    else
+    {
+        ASSERT(function->last_instruction != NULL);
+
+        instruction->previous_instruction = function->last_instruction;
+        function->last_instruction->next_instruction = instruction;
+        function->last_instruction = instruction;
+    }
+
+    return instruction;
 }
 
 internal Tac_Function_Label_Id
@@ -148,15 +180,13 @@ create_tac_variable_for_symbol(Compilation_Context* context,
 }
 
 internal void
-set_tac_instruction_id_by_variable_id(Compilation_Context* context,
-                                      const Tac_Variable_Id variable_id,
-                                      const Tac_Function* tac_function,
-                                      const Index instruction_index)
+set_variable_definition_in_tac(Compilation_Context* context, Tac_Instruction* instruction)
 {
-    Tac_Variable* variable = get_tac_variable_by_id(&context->tac, variable_id);
+    ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
+
+    Tac_Variable* variable = get_tac_variable_by_id(&context->tac, instruction->destination.variable_id);
     Symbol* symbol = get_symbol_by_id(context, variable->symbol_id);
-    symbol->tac_instruction_id.function_label_id = tac_function->label_id;
-    symbol->tac_instruction_id.instruction_index = instruction_index;
+    symbol->defined_at_tac_instruction = instruction;
 }
 
 internal Tac_Operand
@@ -447,12 +477,9 @@ create_tac_constant_for_number(Compilation_Context* context,
 internal Tac_Operand
 lower_expression_to_tac(Compilation_Context* context,
                         Tac_Function* tac_function,
+                        Ast_Statement* parent_statement,
                         Ast_Expression* expression)
 {
-    Tac_Instructions_Range instructions_range = {0};
-    instructions_range.function_label_id = tac_function->label_id;
-    instructions_range.start_instruction_index = tac_function->instructions_count;
-
     Tac_Operand result = {0};
 
     switch (expression->kind)
@@ -504,18 +531,15 @@ lower_expression_to_tac(Compilation_Context* context,
                 break;
             }
 
-            const Tac_Instruction_Id* instruction_id = &identifier_symbol->tac_instruction_id;
-
-            if (instruction_id->is_a_global_function)
+            if (identifier_symbol->is_a_global_function)
             {
                 result.kind = TAC_OPERAND_FUNCTION_LABEL;
-                result.function_label_id = instruction_id->function_label_id;
+                result.function_label_id = identifier_symbol->tac_function_label_id;
                 break;
             }
 
             // TODO(vlad): Support global variables.
-            ASSERT(instruction_id->function_label_id.index == tac_function->label_id.index);
-            const Tac_Instruction* instruction = &tac_function->instructions[instruction_id->instruction_index];
+            const Tac_Instruction* instruction = identifier_symbol->defined_at_tac_instruction;
             ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
 
             // XXX(vlad): Make this assertion optional?
@@ -540,61 +564,64 @@ lower_expression_to_tac(Compilation_Context* context,
         case AST_EXPRESSION_GREATER_OR_EQUAL:
         {
             const Ast_Binary_Expression* binary_expression = &expression->binary_expression;
-            const Tac_Operand lhs = lower_expression_to_tac(context, tac_function, binary_expression->lhs);
-            const Tac_Operand rhs = lower_expression_to_tac(context, tac_function, binary_expression->rhs);
+            const Tac_Operand lhs = lower_expression_to_tac(context, tac_function, parent_statement, binary_expression->lhs);
+            const Tac_Operand rhs = lower_expression_to_tac(context, tac_function, parent_statement, binary_expression->rhs);
 
-            Tac_Instruction instruction = {0};
+            Tac_Instruction* instruction = add_new_instruction_to_tac_function(context,
+                                                                               tac_function,
+                                                                               parent_statement,
+                                                                               expression);
 
             switch (expression->kind)
             {
                 case AST_EXPRESSION_ADD:
                 {
-                    instruction.operation = TAC_ADD;
+                    instruction->operation = TAC_ADD;
                 } break;
 
                 case AST_EXPRESSION_SUBTRACT:
                 {
-                    instruction.operation = TAC_SUBTRACT;
+                    instruction->operation = TAC_SUBTRACT;
                 } break;
 
                 case AST_EXPRESSION_MULTIPLY:
                 {
-                    instruction.operation = TAC_MULTIPLY;
+                    instruction->operation = TAC_MULTIPLY;
                 } break;
 
                 case AST_EXPRESSION_DIVIDE:
                 {
-                    instruction.operation = TAC_DIVIDE;
+                    instruction->operation = TAC_DIVIDE;
                 } break;
 
                 case AST_EXPRESSION_EQUAL:
                 {
-                    instruction.operation = TAC_EQUAL;
+                    instruction->operation = TAC_EQUAL;
                 } break;
 
                 case AST_EXPRESSION_NOT_EQUAL:
                 {
-                    instruction.operation = TAC_NOT_EQUAL;
+                    instruction->operation = TAC_NOT_EQUAL;
                 } break;
 
                 case AST_EXPRESSION_LESS:
                 {
-                    instruction.operation = TAC_LESS;
+                    instruction->operation = TAC_LESS;
                 } break;
 
                 case AST_EXPRESSION_LESS_OR_EQUAL:
                 {
-                    instruction.operation = TAC_LESS_OR_EQUAL;
+                    instruction->operation = TAC_LESS_OR_EQUAL;
                 } break;
 
                 case AST_EXPRESSION_GREATER:
                 {
-                    instruction.operation = TAC_GREATER;
+                    instruction->operation = TAC_GREATER;
                 } break;
 
                 case AST_EXPRESSION_GREATER_OR_EQUAL:
                 {
-                    instruction.operation = TAC_GREATER_OR_EQUAL;
+                    instruction->operation = TAC_GREATER_OR_EQUAL;
                 } break;
 
                 default:
@@ -603,12 +630,11 @@ lower_expression_to_tac(Compilation_Context* context,
                 } break;
             }
 
-            instruction.destination = create_tac_temporary_variable(context, expression->type_id);
-            instruction.first_argument = lhs;
-            instruction.second_argument = rhs;
+            instruction->destination = create_tac_temporary_variable(context, expression->type_id);
+            instruction->first_argument = lhs;
+            instruction->second_argument = rhs;
 
-            emit_tac_instruction(tac_function, instruction);
-            result = instruction.destination;
+            result = instruction->destination;
         } break;
 
         case AST_EXPRESSION_NEGATE:
@@ -620,32 +646,42 @@ lower_expression_to_tac(Compilation_Context* context,
         {
             const Ast_Unary_Expression* address_of_expression = &expression->unary_expression;
 
-            const Tac_Operand operand = lower_expression_to_tac(context, tac_function, address_of_expression->operand);
+            const Tac_Operand operand = lower_expression_to_tac(context,
+                                                                tac_function,
+                                                                parent_statement,
+                                                                address_of_expression->operand);
             ASSERT(operand.kind == TAC_OPERAND_VARIABLE);
 
-            Tac_Instruction instruction = {0};
-            instruction.operation = TAC_LOAD_BY_ADDRESS;
-            instruction.destination = create_tac_temporary_variable(context, expression->type_id);
-            instruction.first_argument = operand;
+            Tac_Instruction* instruction = add_new_instruction_to_tac_function(context,
+                                                                               tac_function,
+                                                                               parent_statement,
+                                                                               expression);
+            instruction->operation = TAC_LOAD_BY_ADDRESS;
+            instruction->destination = create_tac_temporary_variable(context, expression->type_id);
+            instruction->first_argument = operand;
 
-            emit_tac_instruction(tac_function, instruction);
-            result = instruction.destination;
+            result = instruction->destination;
         } break;
 
         case AST_EXPRESSION_ADDRESS_OF:
         {
             const Ast_Unary_Expression* address_of_expression = &expression->unary_expression;
 
-            const Tac_Operand operand = lower_expression_to_tac(context, tac_function, address_of_expression->operand);
+            const Tac_Operand operand = lower_expression_to_tac(context,
+                                                                tac_function,
+                                                                parent_statement,
+                                                                address_of_expression->operand);
             ASSERT(operand.kind == TAC_OPERAND_VARIABLE);
 
-            Tac_Instruction instruction = {0};
-            instruction.operation = TAC_GET_ADDRESS;
-            instruction.destination = create_tac_temporary_variable(context, expression->type_id);
-            instruction.first_argument = operand;
+            Tac_Instruction* instruction = add_new_instruction_to_tac_function(context,
+                                                                               tac_function,
+                                                                               parent_statement,
+                                                                               expression);
+            instruction->operation = TAC_GET_ADDRESS;
+            instruction->destination = create_tac_temporary_variable(context, expression->type_id);
+            instruction->first_argument = operand;
 
-            emit_tac_instruction(tac_function, instruction);
-            result = instruction.destination;
+            result = instruction->destination;
         } break;
 
         case AST_EXPRESSION_CALL:
@@ -654,6 +690,7 @@ lower_expression_to_tac(Compilation_Context* context,
 
             const Tac_Operand called_expression_operand = lower_expression_to_tac(context,
                                                                                   tac_function,
+                                                                                  parent_statement,
                                                                                   call->called_expression);
 
             for (Index argument_index = call->arguments_count - 1;
@@ -664,21 +701,25 @@ lower_expression_to_tac(Compilation_Context* context,
 
                 const Tac_Operand argument_operand = lower_expression_to_tac(context,
                                                                              tac_function,
+                                                                             parent_statement,
                                                                              argument);
 
-                Tac_Instruction instruction = {0};
-                instruction.operation = TAC_SET_PARAMETER;
-                instruction.first_argument = argument_operand;
-
-                emit_tac_instruction(tac_function, instruction);
+                Tac_Instruction* instruction = add_new_instruction_to_tac_function(context,
+                                                                                   tac_function,
+                                                                                   parent_statement,
+                                                                                   expression);
+                instruction->operation = TAC_SET_PARAMETER;
+                instruction->first_argument = argument_operand;
             }
 
-            Tac_Instruction call_instruction = {0};
-            call_instruction.operation = TAC_CALL;
+            Tac_Instruction* call_instruction = add_new_instruction_to_tac_function(context,
+                                                                                    tac_function,
+                                                                                    parent_statement,
+                                                                                    expression);
+            call_instruction->operation = TAC_CALL;
 
             {
-                const Type* called_expression_type = get_type_by_id(context,
-                                                                    call->called_expression->type_id);
+                const Type* called_expression_type = get_type_by_id(context, call->called_expression->type_id);
                 ASSERT(called_expression_type->kind == TYPE_FUNCTION);
 
                 const Type_Id return_type_id = called_expression_type->function_info.return_type_id;
@@ -686,27 +727,24 @@ lower_expression_to_tac(Compilation_Context* context,
 
                 if (!type_ids_are_equal(context, return_type_id, void_type_id))
                 {
-                    call_instruction.destination = create_tac_temporary_variable(context, expression->type_id);
+                    call_instruction->destination = create_tac_temporary_variable(context, expression->type_id);
                 }
             }
 
-            call_instruction.first_argument = called_expression_operand;
+            call_instruction->first_argument = called_expression_operand;
 
             {
                 Tac_Operand number_of_arguments_operand = {0};
                 number_of_arguments_operand.kind = TAC_OPERAND_NUMBER_OF_ARGUMENTS;
                 number_of_arguments_operand.number_of_arguments = call->arguments_count;
 
-                call_instruction.second_argument = number_of_arguments_operand;
+                call_instruction->second_argument = number_of_arguments_operand;
             }
 
-            emit_tac_instruction(tac_function, call_instruction);
-            result = call_instruction.destination;
+            result = call_instruction->destination;
         } break;
     }
 
-    instructions_range.end_instruction_index = tac_function->instructions_count;
-    expression->tac_instructions_range = instructions_range;
     return result;
 }
 
@@ -715,10 +753,6 @@ lower_statement_to_tac(Compilation_Context* context,
                        Tac_Function* tac_function,
                        Ast_Statement* statement)
 {
-    Tac_Instructions_Range instructions_range = {0};
-    instructions_range.function_label_id = tac_function->label_id;
-    instructions_range.start_instruction_index = tac_function->instructions_count;
-
     switch (statement->kind)
     {
         case AST_STATEMENT_UNDEFINED:
@@ -730,53 +764,53 @@ lower_statement_to_tac(Compilation_Context* context,
         {
             Ast_Variable_Definition* definition = &statement->variable_definition;
 
-            Tac_Instruction instruction = {0};
-            instruction.operation = TAC_ASSIGN;
-
+            Tac_Operand initial_value = {0};
             if (definition->has_initial_value)
             {
-                instruction.first_argument = lower_expression_to_tac(context,
-                                                                     tac_function,
-                                                                     &definition->initial_value);
+                initial_value = lower_expression_to_tac(context,
+                                                        tac_function,
+                                                        statement,
+                                                        &definition->initial_value);
             }
 
-            instruction.destination = create_tac_variable_for_symbol(context, definition->name.symbol_id);
+            Tac_Instruction* instruction = add_new_instruction_to_tac_function(context, tac_function, statement, NULL);
+            instruction->operation = TAC_ASSIGN;
+            instruction->destination = create_tac_variable_for_symbol(context, definition->name.symbol_id);
+            instruction->first_argument = initial_value;
 
-            const Index instruction_index = emit_tac_instruction(tac_function, instruction);
-            set_tac_instruction_id_by_variable_id(context,
-                                                  instruction.destination.variable_id,
-                                                  tac_function,
-                                                  instruction_index);
+            set_variable_definition_in_tac(context, instruction);
         } break;
 
         case AST_STATEMENT_ASSIGNMENT:
         {
             Ast_Assignment* assignment = &statement->assignment;
 
-            const Tac_Operand rhs = lower_expression_to_tac(context, tac_function, &assignment->rhs);
+            const Tac_Operand rhs = lower_expression_to_tac(context, tac_function, statement, &assignment->rhs);
 
             if (assignment->lhs.kind == AST_EXPRESSION_DEREFERENCE)
             {
                 const Ast_Unary_Expression* lhs_dereference = &assignment->lhs.unary_expression;
-                const Tac_Operand lhs_dereference_operand = lower_expression_to_tac(context, tac_function, lhs_dereference->operand);
+                const Tac_Operand lhs_dereference_operand = lower_expression_to_tac(context,
+                                                                                    tac_function,
+                                                                                    statement,
+                                                                                    lhs_dereference->operand);
 
-                Tac_Instruction instruction = {0};
-                instruction.operation = TAC_STORE_BY_ADDRESS;
-                instruction.destination = lhs_dereference_operand;
-                instruction.first_argument = rhs;
-
-                emit_tac_instruction(tac_function, instruction);
+                Tac_Instruction* instruction = add_new_instruction_to_tac_function(context,
+                                                                                   tac_function,
+                                                                                   statement,
+                                                                                   NULL);
+                instruction->operation = TAC_STORE_BY_ADDRESS;
+                instruction->destination = lhs_dereference_operand;
+                instruction->first_argument = rhs;
             }
             else
             {
-                const Tac_Operand lhs = lower_expression_to_tac(context, tac_function, &assignment->lhs);
+                const Tac_Operand lhs = lower_expression_to_tac(context, tac_function, statement, &assignment->lhs);
 
-                Tac_Instruction instruction = {0};
-                instruction.operation = TAC_ASSIGN;
-                instruction.destination = lhs;
-                instruction.first_argument = rhs;
-
-                emit_tac_instruction(tac_function, instruction);
+                Tac_Instruction* instruction = add_new_instruction_to_tac_function(context, tac_function, statement, NULL);
+                instruction->operation = TAC_ASSIGN;
+                instruction->destination = lhs;
+                instruction->first_argument = rhs;
             }
         } break;
 
@@ -784,17 +818,18 @@ lower_statement_to_tac(Compilation_Context* context,
         {
             Ast_Return_Statement* return_statement = &statement->return_statement;
 
-            Tac_Instruction instruction = {0};
-            instruction.operation = TAC_RETURN;
-
+            Tac_Operand return_value = {0};
             if (!return_statement->is_empty)
             {
-                instruction.first_argument = lower_expression_to_tac(context,
-                                                                     tac_function,
-                                                                     &return_statement->expression);
+                return_value = lower_expression_to_tac(context,
+                                                       tac_function,
+                                                       statement,
+                                                       &return_statement->expression);
             }
 
-            emit_tac_instruction(tac_function, instruction);
+            Tac_Instruction* instruction = add_new_instruction_to_tac_function(context, tac_function, statement, NULL);
+            instruction->operation = TAC_RETURN;
+            instruction->first_argument = return_value;
         } break;
 
         case AST_STATEMENT_WHILE:
@@ -808,30 +843,32 @@ lower_statement_to_tac(Compilation_Context* context,
             while_statement->end_label_id = end_label_id;
 
             {
-                Tac_Instruction start_label_instruction = {0};
-                start_label_instruction.operation = TAC_LABEL;
-                start_label_instruction.destination.kind = TAC_OPERAND_LABEL;
-                start_label_instruction.destination.label_id = start_label_id;
-
-                const Index instruction_index = emit_tac_instruction(tac_function, start_label_instruction);
+                Tac_Instruction* start_label_instruction = add_new_instruction_to_tac_function(context,
+                                                                                               tac_function,
+                                                                                               statement,
+                                                                                               NULL);
+                start_label_instruction->operation = TAC_LABEL;
+                start_label_instruction->destination.kind = TAC_OPERAND_LABEL;
+                start_label_instruction->destination.label_id = start_label_id;
 
                 Tac_Label* start_label = get_tac_label_by_id(&context->tac, start_label_id);
-                start_label->instruction_id.function_label_id = tac_function->label_id;
-                start_label->instruction_id.instruction_index = instruction_index;
+                start_label->points_to = start_label_instruction;
             }
 
             {
                 const Tac_Operand condition_operand = lower_expression_to_tac(context,
                                                                               tac_function,
+                                                                              statement,
                                                                               &while_statement->condition);
 
-                Tac_Instruction condition_instruction = {0};
-                condition_instruction.operation = TAC_JUMP_IF_FALSE;
-                condition_instruction.destination.kind = TAC_OPERAND_LABEL;
-                condition_instruction.destination.label_id = end_label_id;
-                condition_instruction.first_argument = condition_operand;
-
-                emit_tac_instruction(tac_function, condition_instruction);
+                Tac_Instruction* condition_instruction = add_new_instruction_to_tac_function(context,
+                                                                                             tac_function,
+                                                                                             statement,
+                                                                                             NULL);
+                condition_instruction->operation = TAC_JUMP_IF_FALSE;
+                condition_instruction->destination.kind = TAC_OPERAND_LABEL;
+                condition_instruction->destination.label_id = end_label_id;
+                condition_instruction->first_argument = condition_operand;
             }
 
             {
@@ -846,27 +883,28 @@ lower_statement_to_tac(Compilation_Context* context,
             }
 
             {
-                Tac_Instruction loop_instruction = {0};
-                loop_instruction.operation = TAC_JUMP;
-                loop_instruction.destination.kind = TAC_OPERAND_LABEL;
-                loop_instruction.destination.label_id = start_label_id;
-                loop_instruction.was_automatically_inserted = true;
-
-                emit_tac_instruction(tac_function, loop_instruction);
+                Tac_Instruction* loop_instruction = add_new_instruction_to_tac_function(context,
+                                                                                        tac_function,
+                                                                                        statement,
+                                                                                        NULL);
+                loop_instruction->operation = TAC_JUMP;
+                loop_instruction->destination.kind = TAC_OPERAND_LABEL;
+                loop_instruction->destination.label_id = start_label_id;
+                loop_instruction->was_automatically_inserted = true;
             }
 
             {
-                Tac_Instruction end_label_instruction = {0};
-                end_label_instruction.operation = TAC_LABEL;
-                end_label_instruction.destination.kind = TAC_OPERAND_LABEL;
-                end_label_instruction.destination.label_id = end_label_id;
-                end_label_instruction.was_automatically_inserted = true;
-
-                const Index instruction_index = emit_tac_instruction(tac_function, end_label_instruction);
+                Tac_Instruction* end_label_instruction = add_new_instruction_to_tac_function(context,
+                                                                                             tac_function,
+                                                                                             statement,
+                                                                                             NULL);
+                end_label_instruction->operation = TAC_LABEL;
+                end_label_instruction->destination.kind = TAC_OPERAND_LABEL;
+                end_label_instruction->destination.label_id = end_label_id;
+                end_label_instruction->was_automatically_inserted = true;
 
                 Tac_Label* end_label = get_tac_label_by_id(&context->tac, end_label_id);
-                end_label->instruction_id.function_label_id = tac_function->label_id;
-                end_label->instruction_id.instruction_index = instruction_index;
+                end_label->points_to = end_label_instruction;
             }
         } break;
 
@@ -883,15 +921,17 @@ lower_statement_to_tac(Compilation_Context* context,
             {
                 const Tac_Operand condition_operand = lower_expression_to_tac(context,
                                                                               tac_function,
+                                                                              statement,
                                                                               &if_statement->condition);
 
-                Tac_Instruction condition_instruction = {0};
-                condition_instruction.operation = TAC_JUMP_IF_FALSE;
-                condition_instruction.destination.kind = TAC_OPERAND_LABEL;
-                condition_instruction.destination.label_id = else_label_id;
-                condition_instruction.first_argument = condition_operand;
-
-                emit_tac_instruction(tac_function, condition_instruction);
+                Tac_Instruction* condition_instruction = add_new_instruction_to_tac_function(context,
+                                                                                             tac_function,
+                                                                                             statement,
+                                                                                             NULL);
+                condition_instruction->operation = TAC_JUMP_IF_FALSE;
+                condition_instruction->destination.kind = TAC_OPERAND_LABEL;
+                condition_instruction->destination.label_id = else_label_id;
+                condition_instruction->first_argument = condition_operand;
             }
 
             {
@@ -906,26 +946,27 @@ lower_statement_to_tac(Compilation_Context* context,
             }
 
             {
-                Tac_Instruction jump_after_then_instruction = {0};
-                jump_after_then_instruction.operation = TAC_JUMP;
-                jump_after_then_instruction.destination.kind = TAC_OPERAND_LABEL;
-                jump_after_then_instruction.destination.label_id = end_label_id;
-                jump_after_then_instruction.was_automatically_inserted = true;
-
-                emit_tac_instruction(tac_function, jump_after_then_instruction);
+                Tac_Instruction* jump_after_then_instruction = add_new_instruction_to_tac_function(context,
+                                                                                                   tac_function,
+                                                                                                   statement,
+                                                                                                   NULL);
+                jump_after_then_instruction->operation = TAC_JUMP;
+                jump_after_then_instruction->destination.kind = TAC_OPERAND_LABEL;
+                jump_after_then_instruction->destination.label_id = end_label_id;
+                jump_after_then_instruction->was_automatically_inserted = true;
             }
 
             {
-                Tac_Instruction else_label_instruction = {0};
-                else_label_instruction.operation = TAC_LABEL;
-                else_label_instruction.destination.kind = TAC_OPERAND_LABEL;
-                else_label_instruction.destination.label_id = else_label_id;
+                Tac_Instruction* else_label_instruction = add_new_instruction_to_tac_function(context,
+                                                                                              tac_function,
+                                                                                              statement,
+                                                                                              NULL);
+                else_label_instruction->operation = TAC_LABEL;
+                else_label_instruction->destination.kind = TAC_OPERAND_LABEL;
+                else_label_instruction->destination.label_id = else_label_id;
 
-                const Index instruction_index = emit_tac_instruction(tac_function, else_label_instruction);
-
-                Tac_Label* end_label = get_tac_label_by_id(&context->tac, else_label_id);
-                end_label->instruction_id.function_label_id = tac_function->label_id;
-                end_label->instruction_id.instruction_index = instruction_index;
+                Tac_Label* else_label = get_tac_label_by_id(&context->tac, else_label_id);
+                else_label->points_to = else_label_instruction;
             }
 
             {
@@ -940,16 +981,16 @@ lower_statement_to_tac(Compilation_Context* context,
             }
 
             {
-                Tac_Instruction end_label_instruction = {0};
-                end_label_instruction.operation = TAC_LABEL;
-                end_label_instruction.destination.kind = TAC_OPERAND_LABEL;
-                end_label_instruction.destination.label_id = end_label_id;
-
-                const Index instruction_index = emit_tac_instruction(tac_function, end_label_instruction);
+                Tac_Instruction* end_label_instruction = add_new_instruction_to_tac_function(context,
+                                                                                             tac_function,
+                                                                                             statement,
+                                                                                             NULL);
+                end_label_instruction->operation = TAC_LABEL;
+                end_label_instruction->destination.kind = TAC_OPERAND_LABEL;
+                end_label_instruction->destination.label_id = end_label_id;
 
                 Tac_Label* end_label = get_tac_label_by_id(&context->tac, end_label_id);
-                end_label->instruction_id.function_label_id = tac_function->label_id;
-                end_label->instruction_id.instruction_index = instruction_index;
+                end_label->points_to = end_label_instruction;
             }
         } break;
 
@@ -957,7 +998,7 @@ lower_statement_to_tac(Compilation_Context* context,
         {
             Ast_Call_Statement* call_statement = &statement->call_statement;
             ASSERT(call_statement->call_expression.kind == AST_EXPRESSION_CALL);
-            lower_expression_to_tac(context, tac_function, &call_statement->call_expression);
+            lower_expression_to_tac(context, tac_function, statement, &call_statement->call_expression);
         } break;
 
         case AST_STATEMENT_BREAK:
@@ -974,14 +1015,15 @@ lower_statement_to_tac(Compilation_Context* context,
                 {
                     Ast_While_Statement* while_statement = &loop->while_statement;
 
-                    Tac_Instruction loop_instruction = {0};
-                    loop_instruction.operation = TAC_JUMP;
-                    loop_instruction.destination.kind = TAC_OPERAND_LABEL;
+                    Tac_Instruction* loop_instruction = add_new_instruction_to_tac_function(context,
+                                                                                            tac_function,
+                                                                                            statement,
+                                                                                            NULL);
+                    loop_instruction->operation = TAC_JUMP;
+                    loop_instruction->destination.kind = TAC_OPERAND_LABEL;
 
                     ASSERT(while_statement->end_label_id.index != INVALID_TAC_INDEX);
-                    loop_instruction.destination.label_id = while_statement->end_label_id;
-
-                    emit_tac_instruction(tac_function, loop_instruction);
+                    loop_instruction->destination.label_id = while_statement->end_label_id;
                 } break;
 
                 default:
@@ -1005,14 +1047,15 @@ lower_statement_to_tac(Compilation_Context* context,
                 {
                     Ast_While_Statement* while_statement = &loop->while_statement;
 
-                    Tac_Instruction loop_instruction = {0};
-                    loop_instruction.operation = TAC_JUMP;
-                    loop_instruction.destination.kind = TAC_OPERAND_LABEL;
+                    Tac_Instruction* loop_instruction = add_new_instruction_to_tac_function(context,
+                                                                                            tac_function,
+                                                                                            statement,
+                                                                                            NULL);
+                    loop_instruction->operation = TAC_JUMP;
+                    loop_instruction->destination.kind = TAC_OPERAND_LABEL;
 
                     ASSERT(while_statement->start_label_id.index != INVALID_TAC_INDEX);
-                    loop_instruction.destination.label_id = while_statement->start_label_id;
-
-                    emit_tac_instruction(tac_function, loop_instruction);
+                    loop_instruction->destination.label_id = while_statement->start_label_id;
                 } break;
 
                 default:
@@ -1022,9 +1065,6 @@ lower_statement_to_tac(Compilation_Context* context,
             }
         } break;
     }
-
-    instructions_range.end_instruction_index = tac_function->instructions_count;
-    statement->tac_instructions_range = instructions_range;
 }
 
 internal void
@@ -1048,7 +1088,7 @@ lower_ast_to_tac(Compilation_Context* context)
         ASSERT(label_id.index == INVALID_TAC_INDEX);
     }
 
-    // NOTE(vlad): Creating variable ids for functions.
+    // NOTE(vlad): Creating variable ids for global functions.
     {
         for (Index function_index = 0;
              function_index < ast->function_definitions_count;
@@ -1056,15 +1096,13 @@ lower_ast_to_tac(Compilation_Context* context)
         {
             const Ast_Function_Definition* ast_function = &ast->function_definitions[function_index];
 
-            Symbol* function_symbol = get_symbol_by_id(context, ast_function->name.symbol_id);
-            function_symbol->tac_instruction_id.function_label_id.index = GLOBAL_TAC_FUNCTION_LABEL_INDEX;
-
             const Tac_Operand operand = create_tac_function_label_for_function(context, ast_function);
             ASSERT(operand.kind == TAC_OPERAND_FUNCTION_LABEL);
             ASSERT(operand.function_label_id.index != INVALID_TAC_INDEX);
 
-            function_symbol->tac_instruction_id.function_label_id = operand.function_label_id;
-            function_symbol->tac_instruction_id.is_a_global_function = true;
+            Symbol* function_symbol = get_symbol_by_id(context, ast_function->name.symbol_id);
+            ASSERT(function_symbol->is_a_global_function);
+            function_symbol->tac_function_label_id = operand.function_label_id;
         }
     }
 
@@ -1084,16 +1122,11 @@ lower_ast_to_tac(Compilation_Context* context)
 
         {
             const Symbol* function_symbol = get_symbol_by_id(context, ast_function->name.symbol_id);
-            ASSERT(function_symbol->tac_instruction_id.function_label_id.index != INVALID_TAC_INDEX);
-            ASSERT(function_symbol->tac_instruction_id.is_a_global_function == true);
+            ASSERT(function_symbol->is_a_global_function);
+            ASSERT(function_symbol->tac_function_label_id.index != INVALID_TAC_INDEX);
 
-            tac_function->label_id = function_symbol->tac_instruction_id.function_label_id;
+            tac_function->label_id = function_symbol->tac_function_label_id;
         }
-
-        tac_function->instructions_arena = acquire_arena_from_provider(context->arena_provider,
-                                                                       string_view("tac-function-instructions"),
-                                                                       GiB(1),
-                                                                       MiB(1));
 
         tac_function->first_tac_variable_index = tac->variables_count;
         tac_function->first_tac_label_index = tac->labels_count;
@@ -1113,16 +1146,12 @@ lower_ast_to_tac(Compilation_Context* context)
             parameter_index_operand.kind = TAC_OPERAND_PARAMETER_INDEX;
             parameter_index_operand.parameter_index.index = parameter_index;
 
-            Tac_Instruction instruction = {0};
-            instruction.operation = TAC_GET_PARAMETER;
-            instruction.destination = parameter_operand;
-            instruction.first_argument = parameter_index_operand;
+            Tac_Instruction* instruction = add_new_instruction_to_tac_function(context, tac_function, NULL, NULL);
+            instruction->operation = TAC_GET_PARAMETER;
+            instruction->destination = parameter_operand;
+            instruction->first_argument = parameter_index_operand;
 
-            const Index instruction_index = emit_tac_instruction(tac_function, instruction);
-            set_tac_instruction_id_by_variable_id(context,
-                                                  instruction.destination.variable_id,
-                                                  tac_function,
-                                                  instruction_index);
+            set_variable_definition_in_tac(context, instruction);
         }
 
         const Type* function_type = get_type_by_id(context, ast_function->type->type_id);
@@ -1143,133 +1172,11 @@ lower_ast_to_tac(Compilation_Context* context)
         const Bool should_emit_empty_return_statement = type_ids_are_equal(context, return_type_id, void_type_id);
         if (should_emit_empty_return_statement)
         {
-            Tac_Instruction instruction = {0};
-            instruction.operation = TAC_RETURN;
-            instruction.was_automatically_inserted = true;
-            emit_tac_instruction(tac_function, instruction);
+            Tac_Instruction* instruction = add_new_instruction_to_tac_function(context, tac_function, NULL, NULL);
+            instruction->operation = TAC_RETURN;
         }
 
         tac_function->last_tac_variable_index = tac->variables_count;
         tac_function->last_tac_label_index = tac->labels_count;
     }
-}
-
-internal const Ast_Statement*
-find_statement_in_code_block_by_tac_instruction_index(const Ast_Code_Block* code_block,
-                                                      const Index tac_instruction_index)
-{
-    for (Index statement_index = 0;
-         statement_index < code_block->statements_count;
-         ++statement_index)
-    {
-        const Ast_Statement* statement = &code_block->statements[statement_index];
-        const Tac_Instructions_Range* statement_range = &statement->tac_instructions_range;
-
-        const Bool instruction_is_in_range = statement_range->start_instruction_index <= tac_instruction_index
-                                             && tac_instruction_index < statement_range->end_instruction_index;
-
-        if (!instruction_is_in_range)
-        {
-            continue;
-        }
-
-        switch (statement->kind)
-        {
-            case AST_STATEMENT_UNDEFINED:
-            {
-                UNREACHABLE();
-            } break;
-
-            case AST_STATEMENT_VARIABLE_DEFINITION:
-            case AST_STATEMENT_ASSIGNMENT:
-            case AST_STATEMENT_RETURN:
-            case AST_STATEMENT_CALL:
-            {
-                return statement;
-            } break;
-
-            case AST_STATEMENT_WHILE:
-            {
-                const Ast_While_Statement* while_loop = &statement->while_statement;
-                const Ast_Code_Block* loop_body = &while_loop->body;
-
-                const Ast_Statement* found_statement_in_loop_body = find_statement_in_code_block_by_tac_instruction_index(loop_body,
-                                                                                                                         tac_instruction_index);
-                if (found_statement_in_loop_body)
-                {
-                    return found_statement_in_loop_body;
-                }
-
-                return statement;
-            } break;
-
-            case AST_STATEMENT_IF:
-            {
-                const Ast_If_Statement* if_loop = &statement->if_statement;
-
-                const Ast_Code_Block* then_body = &if_loop->if_statements;
-                const Ast_Statement* found_statement_in_then_body = find_statement_in_code_block_by_tac_instruction_index(then_body,
-                                                                                                                         tac_instruction_index);
-                if (found_statement_in_then_body)
-                {
-                    return found_statement_in_then_body;
-                }
-
-                const Ast_Code_Block* else_body = &if_loop->else_statements;
-                const Ast_Statement* found_statement_in_else_body = find_statement_in_code_block_by_tac_instruction_index(else_body,
-                                                                                                                         tac_instruction_index);
-                if (found_statement_in_else_body)
-                {
-                    return found_statement_in_else_body;
-                }
-
-                return statement;
-            } break;
-
-            case AST_STATEMENT_BREAK:
-            case AST_STATEMENT_CONTINUE:
-            {
-                FAIL("[TAC] Break and continue are not supported yet");
-            } break;
-        }
-
-        UNREACHABLE();
-    }
-
-    return NULL;
-}
-
-internal const Ast_Statement*
-find_statement_by_tac_instructions_range(Compilation_Context* context,
-                                         const Tac_Instructions_Range* instructions_range)
-{
-    Tac* tac = &context->tac;
-
-    const Tac_Function* tac_function = get_tac_function_by_label(tac, instructions_range->function_label_id);
-
-    Index first_non_automatic_instruction_index = -1;
-    for (Index instruction_index = instructions_range->start_instruction_index;
-         instruction_index < instructions_range->end_instruction_index;
-         ++instruction_index)
-    {
-        const Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
-        if (!instruction->was_automatically_inserted)
-        {
-            first_non_automatic_instruction_index = instruction_index;
-            break;
-        }
-    }
-
-    if (first_non_automatic_instruction_index == -1)
-    {
-        return NULL;
-    }
-
-    const Ast_Function_Definition* ast_function = tac_function->ast_function_definition;
-    const Ast_Code_Block* body = &ast_function->body;
-
-    const Ast_Statement* found_statement = find_statement_in_code_block_by_tac_instruction_index(body, first_non_automatic_instruction_index);
-    ASSERT(found_statement != NULL);
-
-    return found_statement;
 }

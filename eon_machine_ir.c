@@ -171,13 +171,10 @@ lower_ssa_block_to_mir(Compilation_Context* context,
         }
     }
 
-    const Tac_Instructions_Range* instructions_range = &this_ssa_block->instructions_range;
-    for (Index instruction_index = instructions_range->start_instruction_index;
-         instruction_index < instructions_range->end_instruction_index;
-         ++instruction_index)
+    for (const Tac_Instruction* ssa_instruction = this_ssa_block->first_tac_instruction;
+         ssa_instruction != NULL;
+         ssa_instruction = ssa_instruction->next_instruction)
     {
-        const Tac_Instruction* ssa_instruction = &ssa_function->instructions[instruction_index];
-
         const Tac_Operand* ssa_destination = &ssa_instruction->destination;
         const Tac_Operand* ssa_first_argument = &ssa_instruction->first_argument;
         const Tac_Operand* ssa_second_argument = &ssa_instruction->second_argument;
@@ -567,63 +564,6 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                         FAIL("[MIR] Unexpected ASSIGN operand kind encountered.");
                     } break;
                 }
-            } break;
-        }
-    }
-
-    // FIXME(vlad): Our current CFG implementation support implicit fallthroughs. This is undesirable in MIR
-    //              because we want to be able to reorder basic blocks. That said, we need to add explicit jumps here.
-    //              That is not ideal, but we are out of luck until we insert explicit jumps during CFG construction
-    //              (in 'add_cfg_fall_through_edge_if_needed()', to be precise).
-    if (instructions_range->start_instruction_index != instructions_range->end_instruction_index)
-    {
-        const Tac_Instruction* last_instruction = &ssa_function->instructions[instructions_range->end_instruction_index - 1];
-
-        switch (last_instruction->operation)
-        {
-            case TAC_JUMP:
-            case TAC_JUMP_IF_TRUE:
-            case TAC_JUMP_IF_FALSE:
-            case TAC_RETURN:
-            {
-                // NOTE(vlad): All is good, no need to insert explicit jumps here.
-            } break;
-
-            default:
-            {
-                // NOTE(vlad): This is a fallthrough, adding an explicit jump to the next block.
-
-                const Index next_instruction_index = instructions_range->end_instruction_index;
-                ASSERT(next_instruction_index < ssa_function->instructions_count);
-
-                Bool explicit_jump_added = false;
-                for (Index successor_block_index = this_ssa_block_id.index + 1;
-                     successor_block_index < ssa_function->cfg_blocks_count;
-                     ++successor_block_index)
-                {
-                    const Cfg_Block* candidate_block = &ssa_function->cfg_blocks[successor_block_index];
-                    const Tac_Instructions_Range* candidate_instructions_range = &candidate_block->instructions_range;
-
-                    // XXX(vlad): Can we just compare 'next_instruction_index' and 'start_instruction_index'?
-                    if (candidate_instructions_range->start_instruction_index <= next_instruction_index
-                        && next_instruction_index < candidate_instructions_range->end_instruction_index)
-                    {
-                        Cfg_Block_Id destination_block_id = {0};
-                        destination_block_id.index = successor_block_index;
-
-                        MIR_Instruction* instruction = add_new_instruction_to_mir_block(context, this_block);
-                        instruction->opcode = MIR_JUMP;
-
-                        MIR_Operand* use = add_new_use_operand(instruction);
-                        use->kind = MIR_OPERAND_BLOCK;
-                        use->block = lower_ssa_block_to_mir(context, ssa_function, destination_block_id, mir_blocks_map);
-
-                        explicit_jump_added = true;
-                        break;
-                    }
-                }
-
-                ASSERT(explicit_jump_added);
             } break;
         }
     }

@@ -46,6 +46,11 @@
     Size CONCATENATE(name, _count);             \
     Size CONCATENATE(name, _capacity)
 
+#define local_array(Type, name)                 \
+    Type* name = NULL;                          \
+    Size CONCATENATE(name, _count) = 0;         \
+    Size CONCATENATE(name, _capacity) = 0
+
 #define append_array(arena, array, Type, element)                       \
     do                                                                  \
     {                                                                   \
@@ -67,6 +72,8 @@
     while (0)
 
 #define stack(Type, name) array(Type, name)
+#define local_stack(Type, name) local_array(Type, name)
+
 #define stack_push(arena, stack, Type, element) append_array(arena, stack, Type, element)
 #define stack_top(stack) &(stack)[CONCATENATE(stack, _count) - 1]
 #define stack_pop(stack)                        \

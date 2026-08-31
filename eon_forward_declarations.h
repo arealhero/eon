@@ -39,31 +39,14 @@ struct Tac_Label_Id
 };
 typedef struct Tac_Label_Id Tac_Label_Id;
 
-struct Tac_Instruction_Id
-{
-    Tac_Function_Label_Id function_label_id;
-
-    Bool is_a_global_function; // FIXME(vlad): Come up with a better solution.
-    union
-    {
-        Index instruction_index;
-    };
-};
-typedef struct Tac_Instruction_Id Tac_Instruction_Id;
-
-struct Tac_Instructions_Range
-{
-    Tac_Function_Label_Id function_label_id;
-    Index start_instruction_index;
-    Index end_instruction_index; // NOTE(vlad): This index is not included.
-};
-typedef struct Tac_Instructions_Range Tac_Instructions_Range;
+struct Tac_Instruction;
 
 enum
 {
     INVALID_TAC_INDEX = 0,
 };
 
+// FIXME(vlad): Remove these?
 struct Cfg_Block_Id
 {
     Index index;

@@ -41,19 +41,16 @@ test_functions_without_jumps(Test_Context* test_context)
 
         ASSERT_EQUAL(tac->functions_count, 1);
         const Tac_Function* tac_function = &tac->functions[0];
-        ASSERT_EQUAL(tac_function->instructions_count, 1);
+        ASSERT_POINTERS_ARE_EQUAL(tac_function->first_instruction, NULL);
+        ASSERT_POINTERS_ARE_EQUAL(tac_function->last_instruction, NULL);
 
         ASSERT_EQUAL(tac_function->cfg_blocks_count, 1);
 
         const Cfg_Block* block = &tac_function->cfg_blocks[0];
         {
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
+            ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-            ASSERT_EQUAL(block->instructions_range.end_instruction_index - block->instructions_range.start_instruction_index,
-                         tac_function->instructions_count);
-
+            ASSERT_EQUAL(count_instructions_in_cfg_block(block), 1);
             ASSERT_EQUAL(block->edges_count, 0);
             ASSERT_EQUAL(block->predecessors_count, 0);
         }
@@ -98,18 +95,16 @@ test_functions_without_jumps(Test_Context* test_context)
 
         ASSERT_EQUAL(tac->functions_count, 1);
         const Tac_Function* tac_function = &tac->functions[0];
+        ASSERT_POINTERS_ARE_EQUAL(tac_function->first_instruction, NULL);
+        ASSERT_POINTERS_ARE_EQUAL(tac_function->last_instruction, NULL);
 
         ASSERT_EQUAL(tac_function->cfg_blocks_count, 1);
 
         const Cfg_Block* block = &tac_function->cfg_blocks[0];
         {
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
+            ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-            ASSERT_EQUAL(block->instructions_range.end_instruction_index - block->instructions_range.start_instruction_index,
-                         tac_function->instructions_count);
-
+            ASSERT_EQUAL(count_instructions_in_cfg_block(block), 4);
             ASSERT_EQUAL(block->edges_count, 0);
             ASSERT_EQUAL(block->predecessors_count, 0);
         }
@@ -160,18 +155,16 @@ test_functions_without_jumps(Test_Context* test_context)
         // NOTE(vlad): Testing 'foo()'.
         {
             const Tac_Function* tac_function = &tac->functions[0];
+            ASSERT_POINTERS_ARE_EQUAL(tac_function->first_instruction, NULL);
+            ASSERT_POINTERS_ARE_EQUAL(tac_function->last_instruction, NULL);
 
             ASSERT_EQUAL(tac_function->cfg_blocks_count, 1);
 
             const Cfg_Block* block = &tac_function->cfg_blocks[0];
             {
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                ASSERT_EQUAL(block->instructions_range.end_instruction_index - block->instructions_range.start_instruction_index,
-                             tac_function->instructions_count);
-
+                ASSERT_EQUAL(count_instructions_in_cfg_block(block), 6);
                 ASSERT_EQUAL(block->edges_count, 0);
                 ASSERT_EQUAL(block->predecessors_count, 0);
             }
@@ -180,18 +173,16 @@ test_functions_without_jumps(Test_Context* test_context)
         // NOTE(vlad): Testing 'bar()'.
         {
             const Tac_Function* tac_function = &tac->functions[1];
+            ASSERT_POINTERS_ARE_EQUAL(tac_function->first_instruction, NULL);
+            ASSERT_POINTERS_ARE_EQUAL(tac_function->last_instruction, NULL);
 
             ASSERT_EQUAL(tac_function->cfg_blocks_count, 1);
 
             const Cfg_Block* block = &tac_function->cfg_blocks[0];
             {
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                ASSERT_EQUAL(block->instructions_range.end_instruction_index - block->instructions_range.start_instruction_index,
-                             tac_function->instructions_count);
-
+                ASSERT_EQUAL(count_instructions_in_cfg_block(block), 3);
                 ASSERT_EQUAL(block->edges_count, 0);
                 ASSERT_EQUAL(block->predecessors_count, 0);
             }
@@ -246,6 +237,8 @@ test_if_statements(Test_Context* test_context)
 
         ASSERT_EQUAL(tac->functions_count, 1);
         const Tac_Function* tac_function = &tac->functions[0];
+        ASSERT_POINTERS_ARE_EQUAL(tac_function->first_instruction, NULL);
+        ASSERT_POINTERS_ARE_EQUAL(tac_function->last_instruction, NULL);
 
         ASSERT_EQUAL(tac_function->cfg_blocks_count, 4);
 
@@ -257,13 +250,9 @@ test_if_statements(Test_Context* test_context)
         {
             const Cfg_Block* block = &tac_function->cfg_blocks[condition_block_index];
 
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
+            ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP_IF_FALSE);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
             ASSERT_EQUAL(block->edges_count, 2);
             ASSERT_EQUAL(block->edges[0].index, else_block_index);
@@ -275,13 +264,9 @@ test_if_statements(Test_Context* test_context)
         {
             const Cfg_Block* block = &tac_function->cfg_blocks[then_block_index];
 
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
+            ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
             ASSERT_EQUAL(block->edges_count, 1);
             ASSERT_EQUAL(block->edges[0].index, final_block_index);
@@ -293,13 +278,9 @@ test_if_statements(Test_Context* test_context)
         {
             const Cfg_Block* block = &tac_function->cfg_blocks[else_block_index];
 
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
+            ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_ASSIGN);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
             ASSERT_EQUAL(block->edges_count, 1);
             ASSERT_EQUAL(block->edges[0].index, final_block_index);
@@ -311,13 +292,9 @@ test_if_statements(Test_Context* test_context)
         {
             const Cfg_Block* block = &tac_function->cfg_blocks[final_block_index];
 
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
+            ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_RETURN);
 
             ASSERT_EQUAL(block->edges_count, 0);
             ASSERT_EQUAL(block->predecessors_count, 2);
@@ -366,6 +343,8 @@ test_if_statements(Test_Context* test_context)
 
         ASSERT_EQUAL(tac->functions_count, 1);
         const Tac_Function* tac_function = &tac->functions[0];
+        ASSERT_POINTERS_ARE_EQUAL(tac_function->first_instruction, NULL);
+        ASSERT_POINTERS_ARE_EQUAL(tac_function->last_instruction, NULL);
 
         ASSERT_EQUAL(tac_function->cfg_blocks_count, 4);
 
@@ -377,13 +356,9 @@ test_if_statements(Test_Context* test_context)
         {
             const Cfg_Block* block = &tac_function->cfg_blocks[condition_block_index];
 
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
+            ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP_IF_FALSE);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
             ASSERT_EQUAL(block->edges_count, 2);
             ASSERT_EQUAL(block->edges[0].index, else_block_index);
@@ -395,13 +370,9 @@ test_if_statements(Test_Context* test_context)
         {
             const Cfg_Block* block = &tac_function->cfg_blocks[then_block_index];
 
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
+            ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
             ASSERT_EQUAL(block->edges_count, 1);
             ASSERT_EQUAL(block->edges[0].index, final_block_index);
@@ -413,17 +384,11 @@ test_if_statements(Test_Context* test_context)
         {
             const Cfg_Block* block = &tac_function->cfg_blocks[else_block_index];
 
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
+            ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_LABEL);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
-            const Size this_block_instructions_count = block->instructions_range.end_instruction_index
-                                                       - block->instructions_range.start_instruction_index;
-            ASSERT_EQUAL(this_block_instructions_count, 1);
+            ASSERT_EQUAL(count_instructions_in_cfg_block(block), 2);
 
             ASSERT_EQUAL(block->edges_count, 1);
             ASSERT_EQUAL(block->edges[0].index, final_block_index);
@@ -435,13 +400,9 @@ test_if_statements(Test_Context* test_context)
         {
             const Cfg_Block* block = &tac_function->cfg_blocks[final_block_index];
 
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
+            ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_RETURN);
 
             ASSERT_EQUAL(block->edges_count, 0);
 
@@ -495,6 +456,8 @@ test_while_loops(Test_Context* test_context)
 
         ASSERT_EQUAL(tac->functions_count, 1);
         const Tac_Function* tac_function = &tac->functions[0];
+        ASSERT_POINTERS_ARE_EQUAL(tac_function->first_instruction, NULL);
+        ASSERT_POINTERS_ARE_EQUAL(tac_function->last_instruction, NULL);
 
         ASSERT_EQUAL(tac_function->cfg_blocks_count, 3);
 
@@ -505,13 +468,9 @@ test_while_loops(Test_Context* test_context)
         {
             const Cfg_Block* block = &tac_function->cfg_blocks[condition_block_index];
 
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
+            ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP_IF_FALSE);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
             ASSERT_EQUAL(block->edges_count, 2);
             ASSERT_EQUAL(block->edges[0].index, final_block_index);
@@ -524,13 +483,9 @@ test_while_loops(Test_Context* test_context)
         {
             const Cfg_Block* block = &tac_function->cfg_blocks[body_block_index];
 
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
+            ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
             ASSERT_EQUAL(block->edges_count, 1);
             ASSERT_EQUAL(block->edges[0].index, condition_block_index);
@@ -542,13 +497,9 @@ test_while_loops(Test_Context* test_context)
         {
             const Cfg_Block* block = &tac_function->cfg_blocks[final_block_index];
 
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
+            ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_RETURN);
 
             ASSERT_EQUAL(block->edges_count, 0);
             ASSERT_EQUAL(block->predecessors_count, 1);
@@ -604,6 +555,8 @@ test_complex_statements(Test_Context* test_context)
 
         ASSERT_EQUAL(tac->functions_count, 1);
         const Tac_Function* tac_function = &tac->functions[0];
+        ASSERT_POINTERS_ARE_EQUAL(tac_function->first_instruction, NULL);
+        ASSERT_POINTERS_ARE_EQUAL(tac_function->last_instruction, NULL);
 
         ASSERT_EQUAL(tac_function->cfg_blocks_count, 7);
 
@@ -620,13 +573,9 @@ test_complex_statements(Test_Context* test_context)
             {
                 const Cfg_Block* block = &tac_function->cfg_blocks[condition_block_index];
 
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP_IF_FALSE);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
                 ASSERT_EQUAL(block->edges_count, 2);
                 ASSERT_EQUAL(block->edges[0].index, final_block_index);
@@ -639,13 +588,9 @@ test_complex_statements(Test_Context* test_context)
             {
                 const Cfg_Block* block = &tac_function->cfg_blocks[before_if_block_index];
 
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP_IF_FALSE);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
                 ASSERT_EQUAL(block->edges_count, 2);
                 ASSERT_EQUAL(block->edges[0].index, else_block_index);
@@ -658,13 +603,9 @@ test_complex_statements(Test_Context* test_context)
             {
                 const Cfg_Block* block = &tac_function->cfg_blocks[then_block_index];
 
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
                 ASSERT_EQUAL(block->predecessors_count, 1);
@@ -674,13 +615,9 @@ test_complex_statements(Test_Context* test_context)
             {
                 const Cfg_Block* block = &tac_function->cfg_blocks[after_return_block_index];
 
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
                 ASSERT_EQUAL(block->edges_count, 1);
                 ASSERT_EQUAL(block->edges[0].index, jump_after_if_block_index);
@@ -691,17 +628,11 @@ test_complex_statements(Test_Context* test_context)
             {
                 const Cfg_Block* block = &tac_function->cfg_blocks[else_block_index];
 
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_LABEL);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
-                const Size this_block_instructions_count = block->instructions_range.end_instruction_index
-                    - block->instructions_range.start_instruction_index;
-                ASSERT_EQUAL(this_block_instructions_count, 1);
+                ASSERT_EQUAL(count_instructions_in_cfg_block(block), 2);
 
                 ASSERT_EQUAL(block->edges_count, 1);
                 ASSERT_EQUAL(block->edges[0].index, jump_after_if_block_index);
@@ -713,13 +644,9 @@ test_complex_statements(Test_Context* test_context)
             {
                 const Cfg_Block* block = &tac_function->cfg_blocks[jump_after_if_block_index];
 
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
                 ASSERT_EQUAL(block->edges_count, 1);
                 ASSERT_EQUAL(block->edges[0].index, condition_block_index);
@@ -732,13 +659,9 @@ test_complex_statements(Test_Context* test_context)
             {
                 const Cfg_Block* block = &tac_function->cfg_blocks[final_block_index];
 
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
                 ASSERT_EQUAL(block->predecessors_count, 1);
@@ -851,6 +774,8 @@ test_critical_edges(Test_Context* test_context)
 
         ASSERT_EQUAL(tac->functions_count, 1);
         const Tac_Function* tac_function = &tac->functions[0];
+        ASSERT_POINTERS_ARE_EQUAL(tac_function->first_instruction, NULL);
+        ASSERT_POINTERS_ARE_EQUAL(tac_function->last_instruction, NULL);
 
         ASSERT_EQUAL(tac_function->cfg_blocks_count, 7);
 
@@ -865,13 +790,9 @@ test_critical_edges(Test_Context* test_context)
         {
             const Cfg_Block* block = &tac_function->cfg_blocks[while_loop_header_block_index];
 
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
+            ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP_IF_FALSE);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
             ASSERT_EQUAL(block->edges_count, 2);
             ASSERT_EQUAL(block->edges[0].index, final_block_index);
@@ -887,13 +808,9 @@ test_critical_edges(Test_Context* test_context)
         {
             const Cfg_Block* block = &tac_function->cfg_blocks[if_condition_block_index];
 
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
+            ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP_IF_FALSE);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
             ASSERT_EQUAL(block->edges_count, 2);
             ASSERT_EQUAL(block->edges[0].index, else_block_index);
@@ -909,13 +826,9 @@ test_critical_edges(Test_Context* test_context)
         {
             const Cfg_Block* block = &tac_function->cfg_blocks[then_block_index];
 
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
+            ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
             ASSERT_EQUAL(block->edges_count, 1);
             ASSERT_EQUAL(block->edges[0].index, final_block_index);
@@ -929,13 +842,9 @@ test_critical_edges(Test_Context* test_context)
         {
             const Cfg_Block* block = &tac_function->cfg_blocks[after_break_block_index];
 
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
+            ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
             ASSERT_EQUAL(block->edges_count, 1);
             ASSERT_EQUAL(block->edges[0].index, after_if_block_index);
@@ -948,13 +857,9 @@ test_critical_edges(Test_Context* test_context)
         {
             const Cfg_Block* block = &tac_function->cfg_blocks[else_block_index];
 
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
+            ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_LABEL);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
             ASSERT_EQUAL(block->edges_count, 1);
             ASSERT_EQUAL(block->edges[0].index, after_if_block_index);
@@ -968,13 +873,9 @@ test_critical_edges(Test_Context* test_context)
         {
             const Cfg_Block* block = &tac_function->cfg_blocks[after_if_block_index];
 
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
+            ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
             ASSERT_EQUAL(block->edges_count, 1);
             ASSERT_EQUAL(block->edges[0].index, while_loop_header_block_index);
@@ -989,13 +890,9 @@ test_critical_edges(Test_Context* test_context)
         {
             const Cfg_Block* block = &tac_function->cfg_blocks[final_block_index];
 
-            const Tac_Instructions_Range* range = &block->instructions_range;
-            ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-            ASSERT_FALSE(cfg_block_is_empty(block));
+            ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-            const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-            const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-            ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_RETURN);
 
             ASSERT_EQUAL(block->edges_count, 0);
 
@@ -1046,7 +943,8 @@ test_unreachable_blocks_removal(Test_Context* test_context)
 
         ASSERT_EQUAL(tac->functions_count, 1);
         const Tac_Function* tac_function = &tac->functions[0];
-        ASSERT_EQUAL(tac_function->instructions_count, 2);
+        ASSERT_POINTERS_ARE_EQUAL(tac_function->first_instruction, NULL);
+        ASSERT_POINTERS_ARE_EQUAL(tac_function->last_instruction, NULL);
 
         // NOTE(vlad): Before dead code elimination.
         {
@@ -1054,17 +952,10 @@ test_unreachable_blocks_removal(Test_Context* test_context)
 
             const Cfg_Block* block = &tac_function->cfg_blocks[0];
             {
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                const Size this_block_instructions_count = block->instructions_range.end_instruction_index
-                    - block->instructions_range.start_instruction_index;
-                ASSERT_EQUAL(this_block_instructions_count, 1);
-
-                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
+                ASSERT_EQUAL(count_instructions_in_cfg_block(block), 1);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
                 ASSERT_EQUAL(block->predecessors_count, 0);
@@ -1073,19 +964,10 @@ test_unreachable_blocks_removal(Test_Context* test_context)
             block += 1;
 
             {
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                const Size this_block_instructions_count = block->instructions_range.end_instruction_index
-                    - block->instructions_range.start_instruction_index;
-                ASSERT_EQUAL(this_block_instructions_count, 1);
-
-                {
-                    const Index instruction_index = block->instructions_range.start_instruction_index;
-                    const Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
-                    ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
-                }
+                ASSERT_EQUAL(count_instructions_in_cfg_block(block), 1);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
                 ASSERT_EQUAL(block->predecessors_count, 0);
@@ -1095,32 +977,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
         }
 
         remove_unreachable_cfg_blocks(&context);
+
+        // NOTE(vlad): Removal of automatically inserted instructions should not trigger a warning/error emission.
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
-
-        // NOTE(vlad): After dead code elimination.
-        {
-            ASSERT_EQUAL(tac_function->cfg_blocks_count, 1);
-
-            const Cfg_Block* block = &tac_function->cfg_blocks[0];
-            {
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
-
-                const Size this_block_instructions_count = block->instructions_range.end_instruction_index
-                    - block->instructions_range.start_instruction_index;
-                ASSERT_EQUAL(this_block_instructions_count, 1);
-
-                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
-
-                ASSERT_EQUAL(block->edges_count, 0);
-                ASSERT_EQUAL(block->predecessors_count, 0);
-            }
-
-            ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, tac_function->cfg_blocks), tac_function->cfg_blocks_count);
-        }
 
         destroy_parser(&parser);
         destroy_lexer(&lexer);
@@ -1161,7 +1020,8 @@ test_unreachable_blocks_removal(Test_Context* test_context)
 
         ASSERT_EQUAL(tac->functions_count, 1);
         const Tac_Function* tac_function = &tac->functions[0];
-        ASSERT_EQUAL(tac_function->instructions_count, 3);
+        ASSERT_POINTERS_ARE_EQUAL(tac_function->first_instruction, NULL);
+        ASSERT_POINTERS_ARE_EQUAL(tac_function->last_instruction, NULL);
 
         // NOTE(vlad): Before dead code elimination.
         {
@@ -1169,17 +1029,11 @@ test_unreachable_blocks_removal(Test_Context* test_context)
 
             const Cfg_Block* block = &tac_function->cfg_blocks[0];
             {
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                const Size this_block_instructions_count = block->instructions_range.end_instruction_index
-                    - block->instructions_range.start_instruction_index;
-                ASSERT_EQUAL(this_block_instructions_count, 1);
+                ASSERT_EQUAL(count_instructions_in_cfg_block(block), 1);
 
-                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
                 ASSERT_EQUAL(block->predecessors_count, 0);
@@ -1188,25 +1042,17 @@ test_unreachable_blocks_removal(Test_Context* test_context)
             block += 1;
 
             {
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                const Size this_block_instructions_count = block->instructions_range.end_instruction_index
-                    - block->instructions_range.start_instruction_index;
-                ASSERT_EQUAL(this_block_instructions_count, 2);
+                ASSERT_EQUAL(count_instructions_in_cfg_block(block), 2);
 
-                {
-                    const Index instruction_index = block->instructions_range.start_instruction_index;
-                    const Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
-                    ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
-                }
+                const Tac_Instruction* instruction = block->first_tac_instruction;
+                ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
 
-                {
-                    const Index instruction_index = block->instructions_range.start_instruction_index + 1;
-                    const Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
-                    ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
-                }
+                instruction = instruction->next_instruction;
+                ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
+
+                ASSERT_POINTERS_ARE_EQUAL(instruction, block->last_tac_instruction);
 
                 ASSERT_EQUAL(block->edges_count, 0);
                 ASSERT_EQUAL(block->predecessors_count, 0);
@@ -1226,31 +1072,6 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                                                             "  3 |     a := 10;\n"
                                                             "    |     ^");
             ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
-        }
-
-        // NOTE(vlad): After dead code elimination.
-        {
-            ASSERT_EQUAL(tac_function->cfg_blocks_count, 1);
-
-            const Cfg_Block* block = &tac_function->cfg_blocks[0];
-            {
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
-
-                const Size this_block_instructions_count = block->instructions_range.end_instruction_index
-                    - block->instructions_range.start_instruction_index;
-                ASSERT_EQUAL(this_block_instructions_count, 1);
-
-                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
-
-                ASSERT_EQUAL(block->edges_count, 0);
-                ASSERT_EQUAL(block->predecessors_count, 0);
-            }
-
-            ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, tac_function->cfg_blocks), tac_function->cfg_blocks_count);
         }
 
         destroy_parser(&parser);
@@ -1293,7 +1114,8 @@ test_unreachable_blocks_removal(Test_Context* test_context)
 
         ASSERT_EQUAL(tac->functions_count, 1);
         const Tac_Function* tac_function = &tac->functions[0];
-        ASSERT_EQUAL(tac_function->instructions_count, 4);
+        ASSERT_POINTERS_ARE_EQUAL(tac_function->first_instruction, NULL);
+        ASSERT_POINTERS_ARE_EQUAL(tac_function->last_instruction, NULL);
 
         // NOTE(vlad): Before dead code elimination.
         {
@@ -1301,17 +1123,11 @@ test_unreachable_blocks_removal(Test_Context* test_context)
 
             const Cfg_Block* block = &tac_function->cfg_blocks[0];
             {
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                const Size this_block_instructions_count = block->instructions_range.end_instruction_index
-                    - block->instructions_range.start_instruction_index;
-                ASSERT_EQUAL(this_block_instructions_count, 1);
+                ASSERT_EQUAL(count_instructions_in_cfg_block(block), 1);
 
-                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
                 ASSERT_EQUAL(block->predecessors_count, 0);
@@ -1320,31 +1136,20 @@ test_unreachable_blocks_removal(Test_Context* test_context)
             block += 1;
 
             {
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                const Size this_block_instructions_count = block->instructions_range.end_instruction_index
-                    - block->instructions_range.start_instruction_index;
-                ASSERT_EQUAL(this_block_instructions_count, 3);
+                ASSERT_EQUAL(count_instructions_in_cfg_block(block), 3);
 
-                {
-                    const Index instruction_index = block->instructions_range.start_instruction_index;
-                    const Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
-                    ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
-                }
+                const Tac_Instruction* instruction = block->first_tac_instruction;
+                ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
 
-                {
-                    const Index instruction_index = block->instructions_range.start_instruction_index + 1;
-                    const Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
-                    ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
-                }
+                instruction = instruction->next_instruction;
+                ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
 
-                {
-                    const Index instruction_index = block->instructions_range.start_instruction_index + 2;
-                    const Tac_Instruction* instruction = &tac_function->instructions[instruction_index];
-                    ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
-                }
+                instruction = instruction->next_instruction;
+                ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
+
+                ASSERT_POINTERS_ARE_EQUAL(instruction, block->last_tac_instruction);
 
                 ASSERT_EQUAL(block->edges_count, 0);
                 ASSERT_EQUAL(block->predecessors_count, 0);
@@ -1364,31 +1169,6 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                                                             "  3 |     a := 10;\n"
                                                             "    |     ^");
             ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
-        }
-
-        // NOTE(vlad): After dead code elimination.
-        {
-            ASSERT_EQUAL(tac_function->cfg_blocks_count, 1);
-
-            const Cfg_Block* block = &tac_function->cfg_blocks[0];
-            {
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
-
-                const Size this_block_instructions_count = block->instructions_range.end_instruction_index
-                    - block->instructions_range.start_instruction_index;
-                ASSERT_EQUAL(this_block_instructions_count, 1);
-
-                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
-
-                ASSERT_EQUAL(block->edges_count, 0);
-                ASSERT_EQUAL(block->predecessors_count, 0);
-            }
-
-            ASSERT_EQUAL(DISTANCE_BETWEEN_POINTERS(block + 1, tac_function->cfg_blocks), tac_function->cfg_blocks_count);
         }
 
         destroy_parser(&parser);
@@ -1447,13 +1227,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
             {
                 const Cfg_Block* block = &tac_function->cfg_blocks[condition_block_index];
 
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP_IF_FALSE);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
                 ASSERT_EQUAL(block->edges_count, 2);
                 ASSERT_EQUAL(block->edges[0].index, else_block_index);
@@ -1465,13 +1241,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
             {
                 const Cfg_Block* block = &tac_function->cfg_blocks[then_block_index];
 
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
                 ASSERT_EQUAL(block->predecessors_count, 1);
@@ -1481,13 +1253,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
             {
                 const Cfg_Block* block = &tac_function->cfg_blocks[then_unreachable_block_index];
 
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
                 ASSERT_EQUAL(block->edges_count, 1);
                 ASSERT_EQUAL(block->edges[0].index, final_block_index);
@@ -1498,17 +1266,11 @@ test_unreachable_blocks_removal(Test_Context* test_context)
             {
                 const Cfg_Block* block = &tac_function->cfg_blocks[else_block_index];
 
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_LABEL);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
-                const Size this_block_instructions_count = block->instructions_range.end_instruction_index
-                    - block->instructions_range.start_instruction_index;
-                ASSERT_EQUAL(this_block_instructions_count, 1);
+                ASSERT_EQUAL(count_instructions_in_cfg_block(block), 2);
 
                 ASSERT_EQUAL(block->edges_count, 1);
                 ASSERT_EQUAL(block->edges[0].index, final_block_index);
@@ -1520,13 +1282,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
             {
                 const Cfg_Block* block = &tac_function->cfg_blocks[final_block_index];
 
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
                 ASSERT_EQUAL(block->predecessors_count, 2);
@@ -1559,13 +1317,9 @@ test_unreachable_blocks_removal(Test_Context* test_context)
             {
                 const Cfg_Block* block = &tac_function->cfg_blocks[condition_block_index];
 
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_JUMP_IF_FALSE);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
                 ASSERT_EQUAL(block->edges_count, 2);
                 ASSERT_EQUAL(block->edges[0].index, else_block_index);
@@ -1577,16 +1331,11 @@ test_unreachable_blocks_removal(Test_Context* test_context)
             {
                 const Cfg_Block* block = &tac_function->cfg_blocks[then_block_index];
 
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
-
                 ASSERT_EQUAL(block->predecessors_count, 1);
                 ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
             }
@@ -1594,17 +1343,11 @@ test_unreachable_blocks_removal(Test_Context* test_context)
             {
                 const Cfg_Block* block = &tac_function->cfg_blocks[else_block_index];
 
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_LABEL);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_JUMP);
 
-                const Size this_block_instructions_count = block->instructions_range.end_instruction_index
-                    - block->instructions_range.start_instruction_index;
-                ASSERT_EQUAL(this_block_instructions_count, 1);
+                ASSERT_EQUAL(count_instructions_in_cfg_block(block), 2);
 
                 ASSERT_EQUAL(block->edges_count, 1);
                 ASSERT_EQUAL(block->edges[0].index, final_block_index);
@@ -1616,16 +1359,11 @@ test_unreachable_blocks_removal(Test_Context* test_context)
             {
                 const Cfg_Block* block = &tac_function->cfg_blocks[final_block_index];
 
-                const Tac_Instructions_Range* range = &block->instructions_range;
-                ASSERT_EQUAL(range->function_label_id.index, tac_function->label_id.index);
-                ASSERT_FALSE(cfg_block_is_empty(block));
+                ASSERT_INSTRUCTION_POINTERS_ARE_VALID(block);
 
-                const Index last_instruction_index = block->instructions_range.end_instruction_index - 1;
-                const Tac_Instruction* last_instruction = &tac_function->instructions[last_instruction_index];
-                ASSERT_ENUM_VALUES_ARE_EQUAL(last_instruction->operation, TAC_RETURN);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(block->last_tac_instruction->operation, TAC_RETURN);
 
                 ASSERT_EQUAL(block->edges_count, 0);
-
                 ASSERT_EQUAL(block->predecessors_count, 1);
                 ASSERT_EQUAL(block->predecessors[0].index, else_block_index);
             }

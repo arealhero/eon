@@ -34,6 +34,7 @@ struct Compilation_Context
     Arena* parameter_type_ids_arena;
 
     Arena* tac_functions_arena;
+    Arena* tac_instructions_arena;
     Arena* tac_function_labels_arena;
     Arena* tac_variables_arena;
     Arena* tac_constants_arena;
