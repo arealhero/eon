@@ -145,7 +145,7 @@ create_string_builder(String_Builder* builder, struct Arena* arena)
 }
 
 internal void
-append_string(String_Builder* builder, const String_View string_view)
+append_string_impl(String_Builder* builder, const String_View string_view)
 {
     ensure_array_has_enough_capacity(builder->data_arena, builder->data, char, string_view.length);
     copy_memory(as_bytes(builder->data + builder->data_count),

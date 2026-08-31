@@ -20,9 +20,10 @@ enum
 internal inline MIR_Block*
 create_new_mir_block(Compilation_Context* context)
 {
-    return allocate(context->mir_blocks_arena, MIR_Block);
+    MIR_Block* block = allocate(context->mir_blocks_arena, MIR_Block);
+    block->sequence_number = ++context->next_mir_block_sequence_number;
+    return block;
 }
-
 internal inline Virtual_Register*
 get_virtual_register_for_ssa_variable(Compilation_Context* context, const Tac_Variable_Id id)
 {
@@ -154,6 +155,9 @@ lower_ssa_block_to_mir(Compilation_Context* context,
         MIR_Instruction* instruction = add_new_instruction_to_mir_block(context, this_block);
 
         instruction->opcode = MIR_PHI;
+        instruction->phi_definition.kind = MIR_OPERAND_VIRTUAL_REGISTER;
+        instruction->phi_definition.virtual_register = get_virtual_register_for_ssa_variable(context,
+                                                                                             phi_node->destination);
         instruction->phi_arguments_count = phi_node->previous_variables_count;
         instruction->phi_arguments = allocate_array(context->mir_operands_arena,
                                                     instruction->phi_arguments_count,
@@ -479,6 +483,7 @@ lower_ssa_block_to_mir(Compilation_Context* context,
 
                 ASSERT(ssa_first_argument->parameter_index.index >= 0);
 
+                // FIXME(vlad): This is wrong: we will not be able to tell apart constants and parameters.
                 MIR_Operand* use = add_new_use_operand(instruction);
                 use->kind = MIR_OPERAND_IMMEDIATE_VALUE;
                 use->immediate_value = (u64)(ssa_first_argument->parameter_index.index);
@@ -496,16 +501,13 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                 {
                     ASSERT(ssa_destination->kind == TAC_OPERAND_VARIABLE);
 
-                    MIR_Operand* def = add_new_def_operand(instruction);
-                    def->kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                    def->virtual_register = get_virtual_register_for_ssa_variable(context, ssa_destination->variable_id);
+                    instruction->has_return_value = true;
+                    instruction->return_operand.kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                    instruction->return_operand.virtual_register = get_virtual_register_for_ssa_variable(context,
+                                                                                                         ssa_destination->variable_id);
                 }
 
-                {
-                    MIR_Operand* function_use = add_new_use_operand(instruction);
-                    function_use->kind = MIR_OPERAND_FUNCTION;
-                    function_use->function_label_id = ssa_first_argument->function_label_id;
-                }
+                instruction->function_label_id = ssa_first_argument->function_label_id;
 
                 const Size number_of_arguments = ssa_second_argument->number_of_arguments;
                 if (number_of_arguments > parameters_stack_count)
@@ -621,10 +623,13 @@ lower_ssa_to_mir(Compilation_Context* context)
         ASSERT(ssa_variable->max_ssa_version != 0);
 
         for (Index version = 0;
-             version < ssa_variable->max_ssa_version;
+             version <= ssa_variable->max_ssa_version;
              ++version)
         {
             append_array(context->mir_virtual_registers_arena, mir->virtual_registers, Virtual_Register, (Virtual_Register){0});
+
+            const Index this_virtual_register_index = mir->virtual_registers_count - 1;
+            mir->virtual_registers[this_virtual_register_index].sequence_number = this_virtual_register_index + 1;
         }
     }
 
@@ -635,9 +640,11 @@ lower_ssa_to_mir(Compilation_Context* context)
         Tac_Function* tac_function = &tac->functions[function_index];
         MIR_Function* mir_function = &mir->functions[function_index];
 
+        mir_function->ast_function_definition = tac_function->ast_function_definition;
+
         const Cfg_Block_Id entry_block_id = {0};
         MIR_Block** mir_blocks_map = allocate_array(context->scratch_arena, tac_function->cfg_blocks_count, MIR_Block*);
-        mir_function->first_block = lower_ssa_block_to_mir(context, tac_function, entry_block_id, mir_blocks_map);
+        mir_function->entry_block = lower_ssa_block_to_mir(context, tac_function, entry_block_id, mir_blocks_map);
     }
 
     request_arena_reset(context->arena_provider, context->scratch_arena);

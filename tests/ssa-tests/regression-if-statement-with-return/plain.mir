@@ -1,0 +1,9 @@
+regression_if_statement_with_return:
+       |
+       | LABEL_1:
+     1 |           MOVE                VREG 2, IMM 10
+     2 |           JUMP                LABEL_2
+       |
+       | LABEL_2:
+     3 |           MOVE                VREG 3, IMM 21
+     4 |           RETURN              VREG 3

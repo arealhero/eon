@@ -1,0 +1,26 @@
+arithmetic_operations:
+       |
+       | LABEL_1:
+     1 |           MOVE                VREG 6, IMM 6
+     2 |           MOVE                VREG 10, IMM 5
+     3 |           RETURN             
+
+non_trivial_conditional:
+       |
+       | LABEL_2:
+     1 |           RETURN              IMM 1
+
+then_branch_elimination:
+       |
+       | LABEL_3:
+       |
+       | LABEL_4:
+     1 |           RETURN              IMM 20
+
+else_branch_elimination:
+       |
+       | LABEL_5:
+     1 |           JUMP                LABEL_6
+       |
+       | LABEL_6:
+     2 |           RETURN              IMM 10

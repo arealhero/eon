@@ -1,0 +1,81 @@
+unreachable_while_loop:
+       |
+       | LABEL_1:
+       |
+       | LABEL_2:
+     1 |           RETURN              IMM 20
+
+redundant_while_loop:
+       |
+       | LABEL_3:
+     1 |           JUMP                LABEL_4
+       |
+       | LABEL_4:
+     2 |           RETURN              IMM 10
+
+redundant_continue:
+       |
+       | LABEL_5:
+     1 |           MOVE                VREG 2, IMM 10
+     2 |           JUMP                LABEL_6
+       |
+       | LABEL_6:
+     3 |           PHI                 VREG 3, VREG 2, VREG 4
+     4 |           GREATER             VREG 6, VREG 3, IMM 0
+     5 |           JUMP_IF_FALSE       VREG 6, LABEL_8
+     6 |           JUMP                LABEL_7
+       |
+       | LABEL_7:
+     7 |           SUBTRACT            VREG 8, VREG 3, IMM 1
+     8 |           MOVE                VREG 4, VREG 8
+     9 |           JUMP                LABEL_6
+       |
+       | LABEL_8:
+    10 |           RETURN             
+
+while_loops:
+       |
+       | LABEL_9:
+       |
+       | LABEL_10:
+     1 |           MOVE                VREG 10, IMM 10
+     2 |           JUMP                LABEL_11
+       |
+       | LABEL_11:
+     3 |           PHI                 VREG 11, VREG 10, VREG 12
+     4 |           GREATER             VREG 14, VREG 11, IMM 0
+     5 |           JUMP_IF_FALSE       VREG 14, LABEL_13
+     6 |           JUMP                LABEL_13
+       |
+       | LABEL_12:
+     7 |           SUBTRACT            VREG 16, VREG 11, IMM 1
+     8 |           MOVE                VREG 12, VREG 16
+     9 |           JUMP                LABEL_11
+       |
+       | LABEL_13:
+    10 |           MOVE                VREG 18, IMM 20
+    11 |           JUMP                LABEL_14
+       |
+       | LABEL_14:
+    12 |           PHI                 VREG 19, VREG 18, VREG 20
+    13 |           JUMP                LABEL_16
+       |
+       | LABEL_18:
+    14 |           SUBTRACT            VREG 23, VREG 19, IMM 1
+    15 |           MOVE                VREG 20, VREG 23
+    16 |           LESS                VREG 25, VREG 20, IMM 0
+    17 |           JUMP_IF_FALSE       VREG 25, LABEL_19
+    18 |           JUMP                LABEL_19
+       |
+       | LABEL_16:
+    19 |           JUMP                LABEL_17
+       |
+       | LABEL_17:
+    20 |           PHI                 VREG 21, VREG 20
+    21 |           RETURN             
+       |
+       | LABEL_19:
+    22 |           JUMP                LABEL_15
+       |
+       | LABEL_15:
+    23 |           JUMP                LABEL_14

@@ -1,0 +1,29 @@
+regression_while_loop_with_break_and_continue:
+       |
+       | LABEL_1:
+     1 |           MOVE                VREG 2, IMM 20
+     2 |           JUMP                LABEL_2
+       |
+       | LABEL_2:
+     3 |           PHI                 VREG 3, VREG 2, VREG 4
+     4 |           JUMP                LABEL_4
+       |
+       | LABEL_4:
+     5 |           SUBTRACT            VREG 9, VREG 3, IMM 1
+     6 |           MOVE                VREG 4, VREG 9
+     7 |           GREATER_OR_EQUAL    VREG 11, VREG 4, IMM 0
+     8 |           JUMP_IF_FALSE       VREG 11, LABEL_5
+     9 |           JUMP                LABEL_3
+       |
+       | LABEL_3:
+    10 |           JUMP                LABEL_2
+       |
+       | LABEL_5:
+    11 |           JUMP                LABEL_6
+       |
+       | LABEL_6:
+    12 |           JUMP                LABEL_7
+       |
+       | LABEL_7:
+    13 |           PHI                 VREG 5, VREG 4
+    14 |           RETURN             

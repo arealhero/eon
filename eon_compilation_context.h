@@ -64,6 +64,7 @@ struct Compilation_Context
     Tac tac;
 
     MIR mir;
+    Index next_mir_block_sequence_number;
 };
 typedef struct Compilation_Context Compilation_Context;
 

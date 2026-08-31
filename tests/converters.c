@@ -30,7 +30,7 @@ convert_tac_operand_to_string(Compilation_Context* context,
             const Tac_Function_Label_Id function_label_id = operand->function_label_id;
             const Tac_Function* function = get_tac_function_by_label(tac, function_label_id);
 
-            append_string(builder, string_view(" "));
+            append_string(builder, " ");
             append_string(builder, function->ast_function_definition->name.token.lexeme);
         } break;
 
@@ -61,13 +61,13 @@ convert_tac_operand_to_string(Compilation_Context* context,
                 name = symbol->name;
             }
 
-            append_string(builder, string_view(format_string(context->scratch_arena, " VARIABLE {}@{}", name, variable_id.ssa_version)));
+            append_string(builder, format_string(context->scratch_arena, " VARIABLE {}@{}", name, variable_id.ssa_version));
         } break;
 
         case TAC_OPERAND_LABEL:
         {
             ASSERT(operand->label_id.index != INVALID_TAC_INDEX);
-            append_string(builder, string_view(format_string(context->scratch_arena, " LABEL_{}", operand->label_id.index)));
+            append_string(builder, format_string(context->scratch_arena, " LABEL_{}", operand->label_id.index));
         } break;
 
         case TAC_OPERAND_CONSTANT:
@@ -77,7 +77,7 @@ convert_tac_operand_to_string(Compilation_Context* context,
 
             const Tac_Constant* constant = &tac->constants[constant_id.index];
 
-            append_string(builder, string_view(" CONSTANT "));
+            append_string(builder, " CONSTANT ");
 
             String_View constant_string = {0};
 
@@ -129,17 +129,17 @@ convert_tac_operand_to_string(Compilation_Context* context,
 
             ASSERT(!strings_are_equal(constant_string, string_view("")));
 
-            append_string(builder, string_view(constant_string));
+            append_string(builder, constant_string);
         } break;
 
         case TAC_OPERAND_PARAMETER_INDEX:
         {
-            append_string(builder, string_view(format_string(context->scratch_arena, " ARGUMENT {}", operand->parameter_index.index)));
+            append_string(builder, format_string(context->scratch_arena, " ARGUMENT {}", operand->parameter_index.index));
         } break;
 
         case TAC_OPERAND_NUMBER_OF_ARGUMENTS:
         {
-            append_string(builder, string_view(format_string(context->scratch_arena, " ARGUMENTS COUNT {}", operand->number_of_arguments)));
+            append_string(builder, format_string(context->scratch_arena, " ARGUMENTS COUNT {}", operand->number_of_arguments));
         } break;
     }
 }
@@ -160,7 +160,7 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
         const Ast_Function_Definition* ast_definition = tac_function->ast_function_definition;
 
         append_string(&builder, ast_definition->name.token.lexeme);
-        append_string(&builder, string_view(":\n"));
+        append_string(&builder, ":\n");
 
         Index current_instruction_index = 1;
 
@@ -174,15 +174,15 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
 
             if (block->phi_nodes_count > 0)
             {
-                append_string(&builder, string_view("       |\n"));
+                append_string(&builder, "       |\n");
             }
 
             for (Index phi_node_index = 0;
                  phi_node_index < block->phi_nodes_count;
                  ++phi_node_index)
             {
-                append_string(&builder, string_view("       | "));
-                append_string(&builder, string_view("          PHI             "));
+                append_string(&builder, "       | ");
+                append_string(&builder, "          PHI             ");
                 const Phi_Node* phi_node = &block->phi_nodes[phi_node_index];
 
                 ASSERT(phi_node->previous_variables_count == block->predecessors_count);
@@ -203,12 +203,12 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
 
                     if (previous_variable.variable_id.ssa_version != SSA_VERSION_UNSET)
                     {
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &previous_variable, &conversion_context);
                     }
                 }
 
-                append_string(&builder, string_view("\n"));
+                append_string(&builder, "\n");
             }
 
             for (const Tac_Instruction* instruction = block->first_tac_instruction;
@@ -225,9 +225,9 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                     continue;
                 }
 
-                append_string(&builder, string_view(format_string(context->scratch_arena,
-                                                                  "{left-pad-count: 6} | ",
-                                                                  current_instruction_index)));
+                append_string(&builder, format_string(context->scratch_arena,
+                                                      "{left-pad-count: 6} | ",
+                                                      current_instruction_index));
                 current_instruction_index += 1;
 
                 switch (instruction->operation)
@@ -239,203 +239,203 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
 
                     case TAC_ASSIGN:
                     {
-                        append_string(&builder, string_view("          ASSIGN          "));
+                        append_string(&builder, "          ASSIGN          ");
 
                         ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
 
                         convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                     } break;
 
                     case TAC_GET_ADDRESS:
                     {
-                        append_string(&builder, string_view("          GET_ADDRESS     "));
+                        append_string(&builder, "          GET_ADDRESS     ");
 
                         ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
 
                         convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                     } break;
 
                     case TAC_LOAD_BY_ADDRESS:
                     {
-                        append_string(&builder, string_view("          LOAD_BY_ADDRESS "));
+                        append_string(&builder, "          LOAD_BY_ADDRESS ");
 
                         ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
 
                         convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                     } break;
 
                     case TAC_STORE_BY_ADDRESS:
                     {
-                        append_string(&builder, string_view("          STORE_BY_ADDRESS"));
+                        append_string(&builder, "          STORE_BY_ADDRESS");
 
                         ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
 
                         convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                     } break;
 
                     case TAC_ADD:
                     {
-                        append_string(&builder, string_view("          ADD             "));
+                        append_string(&builder, "          ADD             ");
 
                         ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
 
                         convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
                     case TAC_SUBTRACT:
                     {
-                        append_string(&builder, string_view("          SUBTRACT        "));
+                        append_string(&builder, "          SUBTRACT        ");
 
                         ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
 
                         convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
                     case TAC_MULTIPLY:
                     {
-                        append_string(&builder, string_view("          MULTIPLY        "));
+                        append_string(&builder, "          MULTIPLY        ");
 
                         ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
 
                         convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
                     case TAC_DIVIDE:
                     {
-                        append_string(&builder, string_view("          DIVIDE          "));
+                        append_string(&builder, "          DIVIDE          ");
 
                         ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
 
                         convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
                     case TAC_EQUAL:
                     {
-                        append_string(&builder, string_view("          EQUAL           "));
+                        append_string(&builder, "          EQUAL           ");
 
                         ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
 
                         convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
                     case TAC_NOT_EQUAL:
                     {
-                        append_string(&builder, string_view("          NOT_EQUAL       "));
+                        append_string(&builder, "          NOT_EQUAL       ");
 
                         ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
 
                         convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
                     case TAC_LESS:
                     {
-                        append_string(&builder, string_view("          LESS            "));
+                        append_string(&builder, "          LESS            ");
 
                         ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
 
                         convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
                     case TAC_LESS_OR_EQUAL:
                     {
-                        append_string(&builder, string_view("          LESS_OR_EQUAL   "));
+                        append_string(&builder, "          LESS_OR_EQUAL   ");
 
                         ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
 
                         convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
                     case TAC_GREATER:
                     {
-                        append_string(&builder, string_view("          GREATER         "));
+                        append_string(&builder, "          GREATER         ");
 
                         ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
 
                         convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
                     case TAC_GREATER_OR_EQUAL:
                     {
-                        append_string(&builder, string_view("          GREATER_OR_EQUAL"));
+                        append_string(&builder, "          GREATER_OR_EQUAL");
 
                         ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
 
                         convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
@@ -446,12 +446,14 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
 
                         ASSERT(instruction->destination.label_id.index != INVALID_TAC_INDEX);
-                        append_string(&builder, string_view(format_string(context->scratch_arena, "LABEL_{}:", instruction->destination.label_id.index)));
+                        append_string(&builder, format_string(context->scratch_arena,
+                                                              "LABEL_{}:",
+                                                              instruction->destination.label_id.index));
                     } break;
 
                     case TAC_JUMP:
                     {
-                        append_string(&builder, string_view("          JUMP            "));
+                        append_string(&builder, "          JUMP            ");
 
                         ASSERT(instruction->destination.kind == TAC_OPERAND_LABEL);
                         ASSERT(instruction->first_argument.kind == TAC_OPERAND_NONE);
@@ -462,33 +464,33 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
 
                     case TAC_JUMP_IF_TRUE:
                     {
-                        append_string(&builder, string_view("          JUMP_IF_TRUE    "));
+                        append_string(&builder, "          JUMP_IF_TRUE    ");
 
                         ASSERT(instruction->destination.kind == TAC_OPERAND_LABEL);
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
 
                         convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                     } break;
 
                     case TAC_JUMP_IF_FALSE:
                     {
-                        append_string(&builder, string_view("          JUMP_IF_FALSE   "));
+                        append_string(&builder, "          JUMP_IF_FALSE   ");
 
                         ASSERT(instruction->destination.kind == TAC_OPERAND_LABEL);
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
 
                         convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                     } break;
 
                     case TAC_SET_PARAMETER:
                     {
-                        append_string(&builder, string_view("          SET_PARAMETER   "));
+                        append_string(&builder, "          SET_PARAMETER   ");
 
                         ASSERT(instruction->destination.kind == TAC_OPERAND_NONE);
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
@@ -499,56 +501,489 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
 
                     case TAC_GET_PARAMETER:
                     {
-                        append_string(&builder, string_view("          GET_PARAMETER   "));
+                        append_string(&builder, "          GET_PARAMETER   ");
 
                         ASSERT(instruction->destination.kind != TAC_OPERAND_NONE);
                         ASSERT(instruction->first_argument.kind == TAC_OPERAND_PARAMETER_INDEX);
                         ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
 
                         convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                     } break;
 
                     case TAC_CALL:
                     {
-                        append_string(&builder, string_view("          CALL            "));
+                        append_string(&builder, "          CALL            ");
                         ASSERT(instruction->first_argument.kind == TAC_OPERAND_FUNCTION_LABEL);
                         ASSERT(instruction->second_argument.kind == TAC_OPERAND_NUMBER_OF_ARGUMENTS);
 
                         if (instruction->destination.kind != TAC_OPERAND_NONE)
                         {
                             convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                            append_string(&builder, string_view(","));
+                            append_string(&builder, ",");
                         }
 
                         convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
-                        append_string(&builder, string_view(","));
+                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
                     case TAC_RETURN:
                     {
-                        append_string(&builder, string_view("          RETURN"));
+                        append_string(&builder, "          RETURN");
 
                         ASSERT(instruction->destination.kind == TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
 
                         if (instruction->first_argument.kind != TAC_OPERAND_NONE)
                         {
-                            append_string(&builder, string_view("          "));
+                            append_string(&builder, "          ");
                             convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                         }
                     } break;
                 }
 
-                append_string(&builder, string_view("\n"));
+                append_string(&builder, "\n");
             }
         }
 
         if (function_index != tac->functions_count - 1)
         {
-            append_string(&builder, string_view("\n"));
+            append_string(&builder, "\n");
+        }
+    }
+
+    return string_builder_to_string(&builder);
+}
+
+internal void
+convert_mir_operand_to_string(Compilation_Context* context,
+                              String_Builder* builder,
+                              const MIR_Operand* operand)
+{
+    switch (operand->kind)
+    {
+        case MIR_OPERAND_NONE:
+        {
+        } break;
+
+        case MIR_OPERAND_VIRTUAL_REGISTER:
+        {
+            // TODO(vlad): Print register kind here.
+            const Virtual_Register* virtual_register = operand->virtual_register;
+            ASSERT(virtual_register->sequence_number != 0);
+            append_string(builder, format_string(context->scratch_arena,
+                                                 " VREG {}",
+                                                 virtual_register->sequence_number));
+        } break;
+
+        case MIR_OPERAND_IMMEDIATE_VALUE:
+        {
+            const u64 value = operand->immediate_value;
+            append_string(builder, format_string(context->scratch_arena,
+                                                 " IMM {}",
+                                                 value));
+        } break;
+
+        case MIR_OPERAND_BLOCK:
+        {
+            const MIR_Block* block = operand->block;
+            append_string(builder, format_string(context->scratch_arena,
+                                                 "LABEL_{}",
+                                                 block->sequence_number));
+        } break;
+    }
+}
+
+internal String_View
+convert_mir_to_string(Arena* arena, Compilation_Context* context)
+{
+    const MIR* mir = &context->mir;
+
+    String_Builder builder = {0};
+    create_string_builder(&builder, arena);
+
+    for (Index function_index = 0;
+         function_index < mir->functions_count;
+         ++function_index)
+    {
+        const MIR_Function* mir_function = &mir->functions[function_index];
+        const Ast_Function_Definition* ast_definition = mir_function->ast_function_definition;
+
+        append_string(&builder, ast_definition->name.token.lexeme);
+        append_string(&builder, ":\n");
+
+        Index current_instruction_index = 1;
+
+        local_stack(MIR_Block*, blocks_to_visit);
+        local_array(const MIR_Block*, visited_blocks); // TODO(vlad): Speed this up.
+
+        stack_push(context->scratch_arena, blocks_to_visit, MIR_Block*, mir_function->entry_block);
+
+        while (blocks_to_visit_count > 0)
+        {
+            const MIR_Block* block = *stack_top(blocks_to_visit);
+            stack_pop(blocks_to_visit);
+
+            append_array(context->scratch_arena, visited_blocks, const MIR_Block*, block);
+
+            append_string(&builder, format_string(context->scratch_arena,
+                                                  "       |\n"
+                                                  "       | LABEL_{}:\n",
+                                                  block->sequence_number));
+
+            for (MIR_Instruction* instruction = block->first_instruction;
+                 instruction != NULL;
+                 instruction = instruction->next_instruction)
+            {
+                if (instruction->opcode == MIR_NOP)
+                {
+                    // NOTE(vlad): Sanity checks.
+                    ASSERT(instruction->definitions_count == 0);
+                    ASSERT(instruction->uses_count == 0);
+
+                    continue;
+                }
+
+                append_string(&builder, format_string(context->scratch_arena,
+                                                      "{left-pad-count: 6} | ",
+                                                      current_instruction_index));
+                current_instruction_index += 1;
+
+                switch (instruction->opcode)
+                {
+                    case MIR_NOP:
+                    {
+                        UNREACHABLE();
+                    } break;
+
+                    case MIR_ADD:
+                    {
+                        append_string(&builder, "          ADD                ");
+
+                        ASSERT(instruction->definitions_count == 1);
+                        ASSERT(instruction->uses_count == 2);
+
+                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        append_string(&builder, ",");
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        append_string(&builder, ",");
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[1]);
+                    } break;
+
+                    case MIR_SUBTRACT:
+                    {
+                        append_string(&builder, "          SUBTRACT           ");
+
+                        ASSERT(instruction->definitions_count == 1);
+                        ASSERT(instruction->uses_count == 2);
+
+                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        append_string(&builder, ",");
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        append_string(&builder, ",");
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[1]);
+                    } break;
+
+                    case MIR_MULTIPLY:
+                    {
+                        append_string(&builder, "          MULTIPLY           ");
+
+                        ASSERT(instruction->definitions_count == 1);
+                        ASSERT(instruction->uses_count == 2);
+
+                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        append_string(&builder, ",");
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        append_string(&builder, ",");
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[1]);
+                    } break;
+
+                    case MIR_DIVIDE:
+                    {
+                        append_string(&builder, "          DIVIDE             ");
+
+                        ASSERT(instruction->definitions_count == 1);
+                        ASSERT(instruction->uses_count == 2);
+
+                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        append_string(&builder, ",");
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        append_string(&builder, ",");
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[1]);
+                    } break;
+
+                    case MIR_EQUAL:
+                    {
+                        append_string(&builder, "          EQUAL              ");
+
+                        ASSERT(instruction->definitions_count == 1);
+                        ASSERT(instruction->uses_count == 2);
+
+                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        append_string(&builder, ",");
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        append_string(&builder, ",");
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[1]);
+                    } break;
+
+                    case MIR_NOT_EQUAL:
+                    {
+                        append_string(&builder, "          NOT_EQUAL          ");
+
+                        ASSERT(instruction->definitions_count == 1);
+                        ASSERT(instruction->uses_count == 2);
+
+                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        append_string(&builder, ",");
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        append_string(&builder, ",");
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[1]);
+                    } break;
+
+                    case MIR_LESS:
+                    {
+                        append_string(&builder, "          LESS               ");
+
+                        ASSERT(instruction->definitions_count == 1);
+                        ASSERT(instruction->uses_count == 2);
+
+                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        append_string(&builder, ",");
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        append_string(&builder, ",");
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[1]);
+                    } break;
+
+                    case MIR_LESS_OR_EQUAL:
+                    {
+                        append_string(&builder, "          LESS_OR_EQUAL      ");
+
+                        ASSERT(instruction->definitions_count == 1);
+                        ASSERT(instruction->uses_count == 2);
+
+                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        append_string(&builder, ",");
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        append_string(&builder, ",");
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[1]);
+                    } break;
+
+                    case MIR_GREATER:
+                    {
+                        append_string(&builder, "          GREATER            ");
+
+                        ASSERT(instruction->definitions_count == 1);
+                        ASSERT(instruction->uses_count == 2);
+
+                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        append_string(&builder, ",");
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        append_string(&builder, ",");
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[1]);
+                    } break;
+
+                    case MIR_GREATER_OR_EQUAL:
+                    {
+                        append_string(&builder, "          GREATER_OR_EQUAL   ");
+
+                        ASSERT(instruction->definitions_count == 1);
+                        ASSERT(instruction->uses_count == 2);
+
+                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        append_string(&builder, ",");
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        append_string(&builder, ",");
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[1]);
+                    } break;
+
+                    case MIR_LOAD32:
+                    {
+                        FAIL("[MIR] LOAD32 is not supported yet.");
+                    } break;
+
+                    case MIR_STORE32:
+                    {
+                        FAIL("[MIR] STORE32 is not supported yet.");
+                    } break;
+
+                    case MIR_LOAD64:
+                    {
+                        FAIL("[MIR] LOAD64 is not supported yet.");
+                    } break;
+
+                    case MIR_STORE64:
+                    {
+                        FAIL("[MIR] STORE64 is not supported yet.");
+                    } break;
+
+                    case MIR_GET_ADDRESS:
+                    {
+                        FAIL("[MIR] GET_ADDRESS is not supported yet.");
+                    } break;
+
+                    case MIR_MOVE:
+                    {
+                        append_string(&builder, "          MOVE               ");
+
+                        ASSERT(instruction->definitions_count == 1);
+                        ASSERT(instruction->uses_count == 1);
+
+                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        append_string(&builder, ",");
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                    } break;
+
+                    case MIR_JUMP:
+                    {
+                        append_string(&builder, "          JUMP               ");
+
+                        ASSERT(instruction->definitions_count == 0);
+                        ASSERT(instruction->uses_count == 1);
+
+                        const MIR_Operand* destination = &instruction->uses[0];
+                        ASSERT(destination->kind == MIR_OPERAND_BLOCK);
+                        append_string(&builder, " ");
+                        convert_mir_operand_to_string(context, &builder, destination);
+                    } break;
+
+                    case MIR_JUMP_IF_TRUE:
+                    {
+                        append_string(&builder, "          JUMP_IF_TRUE       ");
+
+                        ASSERT(instruction->definitions_count == 0);
+                        ASSERT(instruction->uses_count == 2);
+
+                        const MIR_Operand* condition = &instruction->uses[0];
+                        convert_mir_operand_to_string(context, &builder, condition);
+
+                        append_string(&builder, ", ");
+
+                        const MIR_Operand* destination = &instruction->uses[1];
+                        ASSERT(destination->kind == MIR_OPERAND_BLOCK);
+                        convert_mir_operand_to_string(context, &builder, destination);
+                    } break;
+
+                    case MIR_JUMP_IF_FALSE:
+                    {
+                        append_string(&builder, "          JUMP_IF_FALSE      ");
+
+                        ASSERT(instruction->definitions_count == 0);
+                        ASSERT(instruction->uses_count == 2);
+
+                        const MIR_Operand* condition = &instruction->uses[0];
+                        convert_mir_operand_to_string(context, &builder, condition);
+
+                        append_string(&builder, ", ");
+
+                        const MIR_Operand* destination = &instruction->uses[1];
+                        ASSERT(destination->kind == MIR_OPERAND_BLOCK);
+                        convert_mir_operand_to_string(context, &builder, destination);
+                    } break;
+
+                    case MIR_PHI:
+                    {
+                        ASSERT(instruction->phi_arguments_count != 0);
+
+                        append_string(&builder, "          PHI                ");
+
+                        const MIR_Operand* definition = &instruction->phi_definition;
+                        ASSERT(definition->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+                        convert_mir_operand_to_string(context, &builder, definition);
+
+                        for (Index argument_index = 0;
+                             argument_index < instruction->phi_arguments_count;
+                             ++argument_index)
+                        {
+                            append_string(&builder, ",");
+                            MIR_PHI_Argument* argument = &instruction->phi_arguments[argument_index];
+
+                            MIR_Operand argument_operand = {0};
+                            argument_operand.kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                            argument_operand.virtual_register = argument->virtual_register;
+
+                            convert_mir_operand_to_string(context, &builder, &argument_operand);
+                        }
+                    } break;
+
+                    case MIR_CALL:
+                    {
+                        append_string(&builder, "          CALL               ");
+
+                        if (instruction->has_return_value)
+                        {
+                            convert_mir_operand_to_string(context, &builder, &instruction->return_operand);
+                            append_string(&builder, ", ");
+                        }
+                        else
+                        {
+                            append_string(&builder, " ");
+                        }
+
+                        const Tac_Function* called_function = get_tac_function_by_label(&context->tac,
+                                                                                        instruction->function_label_id);
+                        append_string(&builder, called_function->ast_function_definition->name.token.lexeme);
+
+                        for (Index argument_index = 0;
+                             argument_index < instruction->function_arguments_count;
+                             ++argument_index)
+                        {
+                            MIR_Operand* argument = &instruction->function_arguments[argument_index];
+                            append_string(&builder, ",");
+                            convert_mir_operand_to_string(context, &builder, argument);
+                        }
+                    } break;
+
+                    case MIR_RETURN:
+                    {
+                        append_string(&builder, "          RETURN             ");
+
+                        ASSERT(instruction->definitions_count == 0);
+
+                        if (instruction->uses_count == 1)
+                        {
+                            convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        }
+                        else
+                        {
+                            ASSERT(instruction->uses_count == 0);
+                        }
+                    } break;
+                }
+
+                append_string(&builder, "\n");
+            }
+
+            for (Index successor_index = 0;
+                 successor_index < block->successors_count;
+                 ++successor_index)
+            {
+                MIR_Block* successor = block->successors[successor_index];
+
+                Bool successor_was_visited = false;
+                for (Index visited_block_index = 0;
+                     visited_block_index < visited_blocks_count;
+                     ++visited_block_index)
+                {
+                    const MIR_Block* visited_block = visited_blocks[visited_block_index];
+                    if (visited_block == successor)
+                    {
+                        successor_was_visited = true;
+                        break;
+                    }
+                }
+
+                if (!successor_was_visited)
+                {
+                    stack_push(context->scratch_arena, blocks_to_visit, MIR_Block*, successor);
+                }
+            }
+        }
+
+        if (function_index != mir->functions_count - 1)
+        {
+            append_string(&builder, "\n");
         }
     }
 

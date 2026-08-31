@@ -1,0 +1,65 @@
+simple_reassignment:
+       |
+       | LABEL_1:
+     1 |           MOVE                VREG 2, IMM 10
+     2 |           MOVE                VREG 3, IMM 20
+     3 |           RETURN             
+
+parameter_reassignment:
+       |
+       | LABEL_2:
+     1 |           MOVE                VREG 5, IMM 0
+     2 |           MOVE                VREG 6, IMM 20
+     3 |           RETURN             
+
+returning_value_from_a_function:
+       |
+       | LABEL_3:
+     1 |           MOVE                VREG 8, IMM 10
+     2 |           RETURN              VREG 8
+
+returning_mutable_value_from_a_function:
+       |
+       | LABEL_4:
+     1 |           MOVE                VREG 10, IMM 10
+     2 |           MOVE                VREG 11, IMM 20
+     3 |           MOVE                VREG 12, IMM 30
+     4 |           RETURN              VREG 12
+
+simple_conditional_assignment:
+       |
+       | LABEL_5:
+     1 |           MOVE                VREG 14, IMM 10
+       |
+       | LABEL_6:
+     2 |           JUMP                LABEL_7
+       |
+       | LABEL_7:
+     3 |           PHI                 VREG 16, VREG 14
+     4 |           RETURN              VREG 16
+
+conditional_assignment_of_multiple_variables:
+       |
+       | LABEL_8:
+     1 |           MOVE                VREG 20, IMM 10
+     2 |           MOVE                VREG 25, IMM 11
+       |
+       | LABEL_9:
+     3 |           MOVE                VREG 22, IMM 30
+     4 |           JUMP                LABEL_10
+       |
+       | LABEL_10:
+     5 |           PHI                 VREG 23, VREG 22
+     6 |           PHI                 VREG 27, VREG 25
+     7 |           ADD                 VREG 31, VREG 23, VREG 27
+     8 |           RETURN              VREG 31
+
+function_calls:
+       |
+       | LABEL_11:
+     1 |           CALL                simple_reassignment
+     2 |           CALL                VREG 33, returning_value_from_a_function
+     3 |           MOVE                VREG 35, VREG 33
+     4 |           CALL                parameter_reassignment, VREG 35
+     5 |           CALL                VREG 37, returning_value_from_a_function
+     6 |           RETURN              VREG 37

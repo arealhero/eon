@@ -70,8 +70,10 @@ struct String_Builder
 typedef struct String_Builder String_Builder;
 
 maybe_unused internal void create_string_builder(String_Builder* builder, struct Arena* arena);
-maybe_unused internal void append_string(String_Builder* builder, const String_View string_view);
+maybe_unused internal void append_string_impl(String_Builder* builder, const String_View string_view);
 maybe_unused internal inline String_View string_builder_to_string(String_Builder* builder);
+
+#define append_string(builder, argument) append_string_impl(builder, string_view(argument))
 
 enum Number_Base
 {

@@ -246,6 +246,21 @@ main(const int argc, const char* argv[])
     lower_ssa_to_mir(&context);
     END_TIMER(ssa_to_mir_lowering, "SSA lowered to MIR");
 
+    {
+        START_TIMER(comparing_mir);
+        const String_View mir_string = convert_mir_to_string(ssa_string_arena, &context);
+        const String_View mir_filename = string_view(format_string(source_code_arena, "{}/plain.mir", test_directory));
+
+        const Bool success = compare_outputs_and_optionally_canonize(context.scratch_arena,
+                                                                     string_view("MIR"),
+                                                                     mir_filename,
+                                                                     mir_string,
+                                                                     canonize_output);
+        test_failed = !success;
+
+        END_TIMER(comparing_mir, "MIR processed");
+    }
+
 cleanup:
     {
         START_TIMER(comparing_diagnostic_messages);
@@ -342,21 +357,28 @@ compare_outputs_and_optionally_canonize(Arena* scratch_arena,
 {
     const Read_File_Result result = platform_read_entire_text_file(scratch_arena, filename);
 
-    const String_View canon = string_view(result.content);
+    String_View canon = {0};
+    if (result.status == READ_FILE_SUCCESS)
+    {
+        canon = string_view(result.content);
+    }
 
     // NOTE(vlad): Alas we cannot just use 'strings_are_equal' on Windows because it uses CRLF by default and that
     //             messes up the comparison. We could in theory emit a '\r\n' instead of '\n' during the output
     //             construction, but that will be fragile as well: git on Windows supports both CRLF and LF checkouts so
     //             we do not know what line ending style is used right now.
     //
-    //             Also note that we will use 'strings_are_equal' on other platforms because we do not want
+    //             Also note that we will use 'strings_are_equal' on other platforms because we will not tolerate
     //             CRLF-style canon files in our repository.
 
 #if OS_WINDOWS
     Index current_canon_index = 0;
     Index current_output_index = 0;
 
-    Bool diff_detected = false;
+    const Bool canon_is_empty = canon.length == 0;
+    const Bool output_is_empty = output.length == 0;
+
+    Bool diff_detected = canon_is_empty ^ output_is_empty;
 
     while (current_canon_index < canon.length && current_output_index < output.length)
     {

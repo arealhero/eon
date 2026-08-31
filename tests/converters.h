@@ -6,3 +6,4 @@
 #include <eon_forward_declarations.h>
 
 internal String_View convert_ssa_to_string(Arena* arena, struct Compilation_Context* context);
+internal String_View convert_mir_to_string(Arena* arena, struct Compilation_Context* context);

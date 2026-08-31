@@ -1,10 +1,11 @@
 #pragma once
 
-#include "eon_forward_declarations.h"
-
 #include <eon/containers.h>
 #include <eon/memory.h>
 #include <eon/types.h>
+
+#include "eon_ast.h"
+#include "eon_forward_declarations.h"
 
 struct MIR_Block;
 
@@ -26,6 +27,8 @@ typedef enum Register_Kind Register_Kind;
 
 struct Virtual_Register
 {
+    Index sequence_number;
+
     Register_Kind kind;
     Index fixed_physical_register;
 };
@@ -36,7 +39,6 @@ enum MIR_Operand_Kind
     MIR_OPERAND_NONE = 0,
     MIR_OPERAND_VIRTUAL_REGISTER,
     MIR_OPERAND_IMMEDIATE_VALUE,
-    MIR_OPERAND_FUNCTION,
     MIR_OPERAND_BLOCK,
 
     // TODO(vlad): Add PHYSICAL_REGISTER, STACK_SLOT, MEMORY, GLOBLAL, FLAGS, etc.
@@ -51,9 +53,6 @@ struct MIR_Operand
     {
         Virtual_Register* virtual_register;
         u64 immediate_value;
-
-        Tac_Function_Label_Id function_label_id; // TODO(vlad): This should no longer belong to TAC alone, move it
-                                                 //             somewhere else.
 
         struct MIR_Block* block;
     };
@@ -131,6 +130,8 @@ struct MIR_Instruction
         // NOTE(vlad): For MIR_PHI.
         struct
         {
+            MIR_Operand phi_definition;
+
             MIR_PHI_Argument* phi_arguments;
             Size phi_arguments_count;
         };
@@ -138,6 +139,12 @@ struct MIR_Instruction
         // NOTE(vlad): For MIR_CALL.
         struct
         {
+            Bool has_return_value;
+            MIR_Operand return_operand;
+
+            Tac_Function_Label_Id function_label_id; // TODO(vlad): This should no longer belong to TAC alone, move it
+                                                     //             somewhere else.
+
             MIR_Operand* function_arguments;
             Size function_arguments_count;
         };
@@ -147,6 +154,8 @@ typedef struct MIR_Instruction MIR_Instruction;
 
 struct MIR_Block
 {
+    Index sequence_number;
+
     MIR_Instruction* first_instruction;
     MIR_Instruction* last_instruction;
 
@@ -160,7 +169,9 @@ typedef struct MIR_Block MIR_Block;
 
 struct MIR_Function
 {
-    MIR_Block* first_block;
+    const Ast_Function_Definition* ast_function_definition;
+
+    MIR_Block* entry_block;
 };
 typedef struct MIR_Function MIR_Function;
 
