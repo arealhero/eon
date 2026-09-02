@@ -45,7 +45,7 @@ skip_bytes(PE_File_State* state, const Size number_of_bytes_to_skip)
 
 // @ref: https://coffi.readthedocs.io/en/latest/pecoff_v11.pdf
 
-struct COFF_File_Header
+struct COFF_Header
 {
     u16 machine_type;
     u16 number_of_sections;
@@ -55,60 +55,60 @@ struct COFF_File_Header
     u16 size_of_optional_header_in_bytes;
     u16 characteristics;
 };
-typedef struct COFF_File_Header COFF_File_Header;
+typedef struct COFF_Header COFF_Header;
 
-enum Image_File_Machine_Type
+enum Image_Machine_Type
 {
-    IMAGE_FILE_MACHINE_UNKNOWN   = 0x0,
-    IMAGE_FILE_MACHINE_AM33      = 0x1d3,
-    IMAGE_FILE_MACHINE_AMD64     = 0x8664,
-    IMAGE_FILE_MACHINE_ARM       = 0x1c0,
-    IMAGE_FILE_MACHINE_ARM64     = 0xaa64,
-    IMAGE_FILE_MACHINE_ARMNT     = 0x1c4,
-    IMAGE_FILE_MACHINE_EBC       = 0xebc,
-    IMAGE_FILE_MACHINE_I386      = 0x14c,
-    IMAGE_FILE_MACHINE_IA64      = 0x200,
-    IMAGE_FILE_MACHINE_M32R      = 0x9041,
-    IMAGE_FILE_MACHINE_MIPS16    = 0x266,
-    IMAGE_FILE_MACHINE_MIPSFPU   = 0x366,
-    IMAGE_FILE_MACHINE_MIPSFPU16 = 0x466,
-    IMAGE_FILE_MACHINE_POWERPC   = 0x1f0,
-    IMAGE_FILE_MACHINE_POWERPCFP = 0x1f1,
-    IMAGE_FILE_MACHINE_R4000     = 0x166,
-    IMAGE_FILE_MACHINE_RISCV32   = 0x5032,
-    IMAGE_FILE_MACHINE_RISCV64   = 0x5064,
-    IMAGE_FILE_MACHINE_RISCV128  = 0x5128,
-    IMAGE_FILE_MACHINE_SH3       = 0x1a2,
-    IMAGE_FILE_MACHINE_SH3DSP    = 0x1a3,
-    IMAGE_FILE_MACHINE_SH4       = 0x1a6,
-    IMAGE_FILE_MACHINE_SH5       = 0x1a8,
-    IMAGE_FILE_MACHINE_THUMB     = 0x1c2,
-    IMAGE_FILE_MACHINE_WCEMIPSV2 = 0x169,
+    IMAGE_MACHINE_UNKNOWN   = 0x0,
+    IMAGE_MACHINE_AM33      = 0x1d3,
+    IMAGE_MACHINE_AMD64     = 0x8664,
+    IMAGE_MACHINE_ARM       = 0x1c0,
+    IMAGE_MACHINE_ARM64     = 0xaa64,
+    IMAGE_MACHINE_ARMNT     = 0x1c4,
+    IMAGE_MACHINE_EBC       = 0xebc,
+    IMAGE_MACHINE_I386      = 0x14c,
+    IMAGE_MACHINE_IA64      = 0x200,
+    IMAGE_MACHINE_M32R      = 0x9041,
+    IMAGE_MACHINE_MIPS16    = 0x266,
+    IMAGE_MACHINE_MIPSFPU   = 0x366,
+    IMAGE_MACHINE_MIPSFPU16 = 0x466,
+    IMAGE_MACHINE_POWERPC   = 0x1f0,
+    IMAGE_MACHINE_POWERPCFP = 0x1f1,
+    IMAGE_MACHINE_R4000     = 0x166,
+    IMAGE_MACHINE_RISCV32   = 0x5032,
+    IMAGE_MACHINE_RISCV64   = 0x5064,
+    IMAGE_MACHINE_RISCV128  = 0x5128,
+    IMAGE_MACHINE_SH3       = 0x1a2,
+    IMAGE_MACHINE_SH3DSP    = 0x1a3,
+    IMAGE_MACHINE_SH4       = 0x1a6,
+    IMAGE_MACHINE_SH5       = 0x1a8,
+    IMAGE_MACHINE_THUMB     = 0x1c2,
+    IMAGE_MACHINE_WCEMIPSV2 = 0x169,
 };
-typedef enum Image_File_Machine_Type Image_File_Machine_Type;
+typedef enum Image_Machine_Type Image_Machine_Type;
 
-enum Image_File_Characteristics
+enum Image_Characteristics
 {
-    IMAGE_FILE_RELOCS_STRIPPED         = 0x0001,
-    IMAGE_FILE_EXECUTABLE_IMAGE        = 0x0002,
-    IMAGE_FILE_LINE_NUMS_STRIPPED      = 0x0004,
-    IMAGE_FILE_LOCAL_SYMS_STRIPPED     = 0x0008,
-    IMAGE_FILE_AGGRESSIVE_WS_TRIM      = 0x0010,
-    IMAGE_FILE_LARGE_ADDRESS_AWARE     = 0x0020,
-    // NOTE(vlad):                       0x0040 is reserved for future use.
-    IMAGE_FILE_BYTES_REVERSED_LO       = 0x0080,
-    IMAGE_FILE_32BIT_MACHINE           = 0x0100,
-    IMAGE_FILE_DEBUG_STRIPPED          = 0x0200,
-    IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP = 0x0400,
-    IMAGE_FILE_NET_RUN_FROM_SWAP       = 0x0800,
-    IMAGE_FILE_SYSTEM                  = 0x1000,
-    IMAGE_FILE_DLL                     = 0x2000,
-    IMAGE_FILE_UP_SYSTEM_ONLY          = 0x4000,
-    IMAGE_FILE_BYTES_REVERSED_HI       = 0x8000,
+    IMAGE_RELOCS_STRIPPED         = 0x0001,
+    IMAGE_EXECUTABLE_IMAGE        = 0x0002,
+    IMAGE_LINE_NUMS_STRIPPED      = 0x0004,
+    IMAGE_LOCAL_SYMS_STRIPPED     = 0x0008,
+    IMAGE_AGGRESSIVE_WS_TRIM      = 0x0010,
+    IMAGE_LARGE_ADDRESS_AWARE     = 0x0020,
+    // NOTE(vlad):                  0x0040 is reserved for future use.
+    IMAGE_BYTES_REVERSED_LO       = 0x0080,
+    IMAGE_32BIT_MACHINE           = 0x0100,
+    IMAGE_DEBUG_STRIPPED          = 0x0200,
+    IMAGE_REMOVABLE_RUN_FROM_SWAP = 0x0400,
+    IMAGE_NET_RUN_FROM_SWAP       = 0x0800,
+    IMAGE_SYSTEM                  = 0x1000,
+    IMAGE_DLL                     = 0x2000,
+    IMAGE_UP_SYSTEM_ONLY          = 0x4000,
+    IMAGE_BYTES_REVERSED_HI       = 0x8000,
 };
-typedef enum Image_File_Characteristics Image_File_Characteristics;
+typedef enum Image_Characteristics Image_Characteristics;
 
-struct Image_File_PE32_Header
+struct Image_PE32_Header
 {
     u16 magic_number;
     u8 major_linker_version;
@@ -122,9 +122,9 @@ struct Image_File_PE32_Header
 
     // FIXME(vlad): Add Windows-specific fields here.
 };
-typedef struct Image_File_PE32_Header Image_File_PE32_Header;
+typedef struct Image_PE32_Header Image_PE32_Header;
 
-struct Image_File_PE32Plus_Header
+struct Image_PE32Plus_Header
 {
     // NOTE(vlad): Standard fields.
     u16 magic_number;
@@ -159,45 +159,45 @@ struct Image_File_PE32Plus_Header
     u32 loader_flags; // NOTE(vlad): Reserved, must be zero.
     u32 number_of_data_directory_entries;
 };
-typedef struct Image_File_PE32Plus_Header Image_File_PE32Plus_Header;
+typedef struct Image_PE32Plus_Header Image_PE32Plus_Header;
 
-enum Image_File_Subsystem
+enum Image_Windows_Subsystem
 {
-    IMAGE_SUBSYSTEM_UNKNOWN                  = 0,
-    IMAGE_SUBSYSTEM_NATIVE                   = 1,
-    IMAGE_SUBSYSTEM_WINDOWS_GUI              = 2,
-    IMAGE_SUBSYSTEM_WINDOWS_CUI              = 3,
-    IMAGE_SUBSYSTEM_OS2_CUI                  = 5,
-    IMAGE_SUBSYSTEM_POSIX_CUI                = 7,
-    IMAGE_SUBSYSTEM_NATIVE_WINDOWS           = 8,
-    IMAGE_SUBSYSTEM_WINDOWS_CE_GUI           = 9,
-    IMAGE_SUBSYSTEM_EFI_APPLICATION          = 10,
-    IMAGE_SUBSYSTEM_EFI_BOOT_SERVICE_DRIVER  = 11,
-    IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER       = 12,
-    IMAGE_SUBSYSTEM_EFI_ROM                  = 13,
-    IMAGE_SUBSYSTEM_XBOX                     = 14,
-    IMAGE_SUBSYSTEM_WINDOWS_BOOT_APPLICATION = 16,
+    IMAGE_WINDOWS_SUBSYSTEM_UNKNOWN                  = 0,
+    IMAGE_WINDOWS_SUBSYSTEM_NATIVE                   = 1,
+    IMAGE_WINDOWS_SUBSYSTEM_WINDOWS_GUI              = 2,
+    IMAGE_WINDOWS_SUBSYSTEM_WINDOWS_CUI              = 3,
+    IMAGE_WINDOWS_SUBSYSTEM_OS2_CUI                  = 5,
+    IMAGE_WINDOWS_SUBSYSTEM_POSIX_CUI                = 7,
+    IMAGE_WINDOWS_SUBSYSTEM_NATIVE_WINDOWS           = 8,
+    IMAGE_WINDOWS_SUBSYSTEM_WINDOWS_CE_GUI           = 9,
+    IMAGE_WINDOWS_SUBSYSTEM_EFI_APPLICATION          = 10,
+    IMAGE_WINDOWS_SUBSYSTEM_EFI_BOOT_SERVICE_DRIVER  = 11,
+    IMAGE_WINDOWS_SUBSYSTEM_EFI_RUNTIME_DRIVER       = 12,
+    IMAGE_WINDOWS_SUBSYSTEM_EFI_ROM                  = 13,
+    IMAGE_WINDOWS_SUBSYSTEM_XBOX                     = 14,
+    IMAGE_WINDOWS_SUBSYSTEM_WINDOWS_BOOT_APPLICATION = 16,
 };
-typedef enum Image_File_Subsystem Image_File_Subsystem;
+typedef enum Image_Windows_Subsystem Image_Windows_Subsystem;
 
-enum Image_File_DLL_Characteristics
+enum Image_DLL_Characteristics
 {
-    IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA = 0x00200,
-    IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE = 0x0040,
-    IMAGE_DLLCHARACTERISTICS_FORCE_INTEGRITY = 0x0080,
-    IMAGE_DLLCHARACTERISTICS_NX_COMPAT = 0x0100,
-    IMAGE_DLLCHARACTERISTICS_NO_ISOLATION = 0x0200,
-    IMAGE_DLLCHARACTERISTICS_NO_SEH = 0x0400,
-    IMAGE_DLLCHARACTERISTICS_NO_BIND = 0x0800,
-    IMAGE_DLLCHARACTERISTICS_APPCONTAINER = 0x1000,
-    IMAGE_DLLCHARACTERISTICS_WDM_DRIVER = 0x2000,
-    IMAGE_DLLCHARACTERISTICS_GUARD_CF = 0x4000,
-    IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE = 0x8000,
+    IMAGE_DLL_CHARACTERISTICS_HIGH_ENTROPY_VA = 0x00200,
+    IMAGE_DLL_CHARACTERISTICS_DYNAMIC_BASE = 0x0040,
+    IMAGE_DLL_CHARACTERISTICS_FORCE_INTEGRITY = 0x0080,
+    IMAGE_DLL_CHARACTERISTICS_NX_COMPAT = 0x0100,
+    IMAGE_DLL_CHARACTERISTICS_NO_ISOLATION = 0x0200,
+    IMAGE_DLL_CHARACTERISTICS_NO_SEH = 0x0400,
+    IMAGE_DLL_CHARACTERISTICS_NO_BIND = 0x0800,
+    IMAGE_DLL_CHARACTERISTICS_APPCONTAINER = 0x1000,
+    IMAGE_DLL_CHARACTERISTICS_WDM_DRIVER = 0x2000,
+    IMAGE_DLL_CHARACTERISTICS_GUARD_CF = 0x4000,
+    IMAGE_DLL_CHARACTERISTICS_TERMINAL_SERVER_AWARE = 0x8000,
 };
-typedef enum Image_File_DLL_Characteristics Image_File_DLL_Characteristics;
+typedef enum Image_DLL_Characteristics Image_DLL_Characteristics;
 
-internal String_View convert_machine_type_to_string(const Image_File_Machine_Type machine_type);
-internal String_View convert_subsystem_to_string(const Image_File_Subsystem subsystem);
+internal String_View convert_machine_type_to_string(const Image_Machine_Type machine_type);
+internal String_View convert_windows_subsystem_to_string(const Image_Windows_Subsystem windows_subsystem);
 
 // FIXME(vlad): Inline this function.
 internal String_View convert_characteristics_to_string(Arena* arena,
@@ -251,7 +251,7 @@ main(int argc, const char* argv[])
 
     println("");
 
-    const COFF_File_Header* header = read_data(&state, COFF_File_Header);
+    const COFF_Header* header = read_data(&state, COFF_Header);
     println("COFF header:\n"
             "  machine type: {}\n"
             "  number of sections: {}\n"
@@ -281,7 +281,7 @@ main(int argc, const char* argv[])
     {
         println("PE format: PE32+");
 
-        const Image_File_PE32Plus_Header* optional_header = (const Image_File_PE32Plus_Header*)(raw_optional_header);
+        const Image_PE32Plus_Header* optional_header = (const Image_PE32Plus_Header*)(raw_optional_header);
 
         println("Optional header:\n"
                 "  Standard fields:\n"
@@ -332,7 +332,7 @@ main(int argc, const char* argv[])
                 optional_header->memory_size_of_image_in_bytes,
                 optional_header->total_size_of_headers,
                 optional_header->image_file_checksum,
-                convert_subsystem_to_string(optional_header->required_windows_subsystem),
+                convert_windows_subsystem_to_string(optional_header->required_windows_subsystem),
                 optional_header->size_of_stack_to_reserve_in_bytes,
                 optional_header->size_of_stack_to_commit_in_bytes,
                 optional_header->size_of_heap_to_reserve_in_bytes,
@@ -342,57 +342,57 @@ main(int argc, const char* argv[])
         {
             println("    DLL characteristics:");
 
-            if (optional_header->dll_characteristics & IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA)
+            if (optional_header->dll_characteristics & IMAGE_DLL_CHARACTERISTICS_HIGH_ENTROPY_VA)
             {
                 println("      Image can handle a high entropy 64-bit virtual address space");
             }
 
-            if (optional_header->dll_characteristics & IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE)
+            if (optional_header->dll_characteristics & IMAGE_DLL_CHARACTERISTICS_DYNAMIC_BASE)
             {
                 println("      DLL can be relocated at load time");
             }
 
-            if (optional_header->dll_characteristics & IMAGE_DLLCHARACTERISTICS_FORCE_INTEGRITY)
+            if (optional_header->dll_characteristics & IMAGE_DLL_CHARACTERISTICS_FORCE_INTEGRITY)
             {
                 println("      Code Integrity checks are enforced");
             }
 
-            if (optional_header->dll_characteristics & IMAGE_DLLCHARACTERISTICS_NX_COMPAT)
+            if (optional_header->dll_characteristics & IMAGE_DLL_CHARACTERISTICS_NX_COMPAT)
             {
                 println("      Image is NX compatible");
             }
 
-            if (optional_header->dll_characteristics & IMAGE_DLLCHARACTERISTICS_NO_ISOLATION)
+            if (optional_header->dll_characteristics & IMAGE_DLL_CHARACTERISTICS_NO_ISOLATION)
             {
                 println("      Isolation aware, but do not isolate the image");
             }
 
-            if (optional_header->dll_characteristics & IMAGE_DLLCHARACTERISTICS_NO_SEH)
+            if (optional_header->dll_characteristics & IMAGE_DLL_CHARACTERISTICS_NO_SEH)
             {
                 println("      Does not use structured exception (SE) handling");
             }
 
-            if (optional_header->dll_characteristics & IMAGE_DLLCHARACTERISTICS_NO_BIND)
+            if (optional_header->dll_characteristics & IMAGE_DLL_CHARACTERISTICS_NO_BIND)
             {
                 println("      Do not bind the image");
             }
 
-            if (optional_header->dll_characteristics & IMAGE_DLLCHARACTERISTICS_APPCONTAINER)
+            if (optional_header->dll_characteristics & IMAGE_DLL_CHARACTERISTICS_APPCONTAINER)
             {
                 println("      Image must execute in an AppContainer");
             }
 
-            if (optional_header->dll_characteristics & IMAGE_DLLCHARACTERISTICS_WDM_DRIVER)
+            if (optional_header->dll_characteristics & IMAGE_DLL_CHARACTERISTICS_WDM_DRIVER)
             {
                 println("      WDM driver");
             }
 
-            if (optional_header->dll_characteristics & IMAGE_DLLCHARACTERISTICS_GUARD_CF)
+            if (optional_header->dll_characteristics & IMAGE_DLL_CHARACTERISTICS_GUARD_CF)
             {
                 println("      Image supports Control Flow Guard");
             }
 
-            if (optional_header->dll_characteristics & IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE)
+            if (optional_header->dll_characteristics & IMAGE_DLL_CHARACTERISTICS_TERMINAL_SERVER_AWARE)
             {
                 println("      Image is Terminal Server aware");
             }
@@ -412,131 +412,131 @@ main(int argc, const char* argv[])
 }
 
 internal String_View
-convert_machine_type_to_string(const Image_File_Machine_Type machine_type)
+convert_machine_type_to_string(const Image_Machine_Type machine_type)
 {
     switch (machine_type)
     {
-        case IMAGE_FILE_MACHINE_UNKNOWN:
+        case IMAGE_MACHINE_UNKNOWN:
         {
             return string_view("Any machine");
         } break;
 
-        case IMAGE_FILE_MACHINE_AM33:
+        case IMAGE_MACHINE_AM33:
         {
             return string_view("Matsushita AM33");
         } break;
 
-        case IMAGE_FILE_MACHINE_AMD64:
+        case IMAGE_MACHINE_AMD64:
         {
             return string_view("x64");
         } break;
 
-        case IMAGE_FILE_MACHINE_ARM:
+        case IMAGE_MACHINE_ARM:
         {
             return string_view("ARM little endian");
         } break;
 
-        case IMAGE_FILE_MACHINE_ARM64:
+        case IMAGE_MACHINE_ARM64:
         {
             return string_view("ARM64 little endian");
         } break;
 
-        case IMAGE_FILE_MACHINE_ARMNT:
+        case IMAGE_MACHINE_ARMNT:
         {
             return string_view("ARM Thumb-2 little endian");
         } break;
 
-        case IMAGE_FILE_MACHINE_EBC:
+        case IMAGE_MACHINE_EBC:
         {
             return string_view("EFI byte code");
         } break;
 
-        case IMAGE_FILE_MACHINE_I386:
+        case IMAGE_MACHINE_I386:
         {
             return string_view("Intel 386 or later processors and compatible processors");
         } break;
 
-        case IMAGE_FILE_MACHINE_IA64:
+        case IMAGE_MACHINE_IA64:
         {
             return string_view("Intel Itanium processor family");
         } break;
 
-        case IMAGE_FILE_MACHINE_M32R:
+        case IMAGE_MACHINE_M32R:
         {
             return string_view("Mitsubishi M32R little endian");
         } break;
 
-        case IMAGE_FILE_MACHINE_MIPS16:
+        case IMAGE_MACHINE_MIPS16:
         {
             return string_view("MIPS16");
         } break;
 
-        case IMAGE_FILE_MACHINE_MIPSFPU:
+        case IMAGE_MACHINE_MIPSFPU:
         {
             return string_view("MIPS with FPU");
         } break;
 
-        case IMAGE_FILE_MACHINE_MIPSFPU16:
+        case IMAGE_MACHINE_MIPSFPU16:
         {
             return string_view("MIPS16 with FPU");
         } break;
 
-        case IMAGE_FILE_MACHINE_POWERPC:
+        case IMAGE_MACHINE_POWERPC:
         {
             return string_view("Power PC little endian");
         } break;
 
-        case IMAGE_FILE_MACHINE_POWERPCFP:
+        case IMAGE_MACHINE_POWERPCFP:
         {
             return string_view("Power PC with floating point support");
         } break;
 
-        case IMAGE_FILE_MACHINE_R4000:
+        case IMAGE_MACHINE_R4000:
         {
             return string_view("MIPS little endian");
         } break;
 
-        case IMAGE_FILE_MACHINE_RISCV32:
+        case IMAGE_MACHINE_RISCV32:
         {
             return string_view("RISC-V 32-bit address space");
         } break;
 
-        case IMAGE_FILE_MACHINE_RISCV64:
+        case IMAGE_MACHINE_RISCV64:
         {
             return string_view("RISC-V 64-bit address space");
         } break;
 
-        case IMAGE_FILE_MACHINE_RISCV128:
+        case IMAGE_MACHINE_RISCV128:
         {
             return string_view("RISC-V 128-bit address space");
         } break;
 
-        case IMAGE_FILE_MACHINE_SH3:
+        case IMAGE_MACHINE_SH3:
         {
             return string_view("Hitachi SH3");
         } break;
 
-        case IMAGE_FILE_MACHINE_SH3DSP:
+        case IMAGE_MACHINE_SH3DSP:
         {
             return string_view("Hitachi SH3 DSP");
         } break;
 
-        case IMAGE_FILE_MACHINE_SH4:
+        case IMAGE_MACHINE_SH4:
         {
             return string_view("Hitachi SH4");
         } break;
 
-        case IMAGE_FILE_MACHINE_SH5:
+        case IMAGE_MACHINE_SH5:
         {
             return string_view("Hitachi SH5");
         } break;
 
-        case IMAGE_FILE_MACHINE_THUMB:
+        case IMAGE_MACHINE_THUMB:
         {
             return string_view("Thumb");
         } break;
 
-        case IMAGE_FILE_MACHINE_WCEMIPSV2:
+        case IMAGE_MACHINE_WCEMIPSV2:
         {
             return string_view("MIPS little-endian WCE v2");
         } break;
@@ -549,76 +549,76 @@ convert_machine_type_to_string(const Image_File_Machine_Type machine_type)
 }
 
 internal String_View
-convert_subsystem_to_string(const Image_File_Subsystem subsystem)
+convert_windows_subsystem_to_string(const Image_Windows_Subsystem windows_subsystem)
 {
-    switch (subsystem)
+    switch (windows_subsystem)
     {
-        case IMAGE_SUBSYSTEM_UNKNOWN:
+        case IMAGE_WINDOWS_SUBSYSTEM_UNKNOWN:
         {
             return string_view("None");
         } break;
 
-        case IMAGE_SUBSYSTEM_NATIVE:
+        case IMAGE_WINDOWS_SUBSYSTEM_NATIVE:
         {
             return string_view("Device drivers and native Windows processes");
         } break;
 
-        case IMAGE_SUBSYSTEM_WINDOWS_GUI:
+        case IMAGE_WINDOWS_SUBSYSTEM_WINDOWS_GUI:
         {
             return string_view("Windows GUI");
         } break;
 
-        case IMAGE_SUBSYSTEM_WINDOWS_CUI:
+        case IMAGE_WINDOWS_SUBSYSTEM_WINDOWS_CUI:
         {
             return string_view("Windows character subsystem");
         } break;
 
-        case IMAGE_SUBSYSTEM_OS2_CUI:
+        case IMAGE_WINDOWS_SUBSYSTEM_OS2_CUI:
         {
             return string_view("OS/2 character subsystem");
         } break;
 
-        case IMAGE_SUBSYSTEM_POSIX_CUI:
+        case IMAGE_WINDOWS_SUBSYSTEM_POSIX_CUI:
         {
             return string_view("POSIX character subsystem");
         } break;
 
-        case IMAGE_SUBSYSTEM_NATIVE_WINDOWS:
+        case IMAGE_WINDOWS_SUBSYSTEM_NATIVE_WINDOWS:
         {
             return string_view("Native Win9x driver");
         } break;
 
-        case IMAGE_SUBSYSTEM_WINDOWS_CE_GUI:
+        case IMAGE_WINDOWS_SUBSYSTEM_WINDOWS_CE_GUI:
         {
             return string_view("Windows CE GUI");
         } break;
 
-        case IMAGE_SUBSYSTEM_EFI_APPLICATION:
+        case IMAGE_WINDOWS_SUBSYSTEM_EFI_APPLICATION:
         {
             return string_view("EFI application");
         } break;
 
-        case IMAGE_SUBSYSTEM_EFI_BOOT_SERVICE_DRIVER:
+        case IMAGE_WINDOWS_SUBSYSTEM_EFI_BOOT_SERVICE_DRIVER:
         {
             return string_view("EFI driver with boot services");
         } break;
 
-        case IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER:
+        case IMAGE_WINDOWS_SUBSYSTEM_EFI_RUNTIME_DRIVER:
         {
             return string_view("EFI driver with run-time services");
         } break;
 
-        case IMAGE_SUBSYSTEM_EFI_ROM:
+        case IMAGE_WINDOWS_SUBSYSTEM_EFI_ROM:
         {
             return string_view("EFI ROM image");
         } break;
 
-        case IMAGE_SUBSYSTEM_XBOX:
+        case IMAGE_WINDOWS_SUBSYSTEM_XBOX:
         {
             return string_view("XBOX");
         } break;
 
-        case IMAGE_SUBSYSTEM_WINDOWS_BOOT_APPLICATION:
+        case IMAGE_WINDOWS_SUBSYSTEM_WINDOWS_BOOT_APPLICATION:
         {
             return string_view("Windows boot application");
         } break;
@@ -639,14 +639,14 @@ convert_characteristics_to_string(Arena* arena,
     String_Builder builder = {0};
     builder.data_arena = arena;
 
-    if (characteristics & IMAGE_FILE_RELOCS_STRIPPED)
+    if (characteristics & IMAGE_RELOCS_STRIPPED)
     {
         append_string(&builder, prefix);
         append_string(&builder, "File relocations stripped");
         append_string(&builder, "\n");
     }
 
-    if (characteristics & IMAGE_FILE_EXECUTABLE_IMAGE)
+    if (characteristics & IMAGE_EXECUTABLE_IMAGE)
     {
         append_string(&builder, prefix);
         append_string(&builder, "Image file is valid and can be run");
@@ -659,91 +659,91 @@ convert_characteristics_to_string(Arena* arena,
         append_string(&builder, "\n");
     }
 
-    if (characteristics & IMAGE_FILE_LINE_NUMS_STRIPPED)
+    if (characteristics & IMAGE_LINE_NUMS_STRIPPED)
     {
         append_string(&builder, prefix);
         append_string(&builder, "(DEPRECATED) COFF line numbers have been removed");
         append_string(&builder, "\n");
     }
 
-    if (characteristics & IMAGE_FILE_LOCAL_SYMS_STRIPPED)
+    if (characteristics & IMAGE_LOCAL_SYMS_STRIPPED)
     {
         append_string(&builder, prefix);
         append_string(&builder, "(DEPRECATED) COFF symbol table entries for local symbols have been removed");
         append_string(&builder, "\n");
     }
 
-    if (characteristics & IMAGE_FILE_AGGRESSIVE_WS_TRIM)
+    if (characteristics & IMAGE_AGGRESSIVE_WS_TRIM)
     {
         append_string(&builder, prefix);
         append_string(&builder, "(OBSOLETE) Aggressively trim working set");
         append_string(&builder, "\n");
     }
 
-    if (characteristics & IMAGE_FILE_LARGE_ADDRESS_AWARE)
+    if (characteristics & IMAGE_LARGE_ADDRESS_AWARE)
     {
         append_string(&builder, prefix);
         append_string(&builder, "Application can handle large (2+ GB) addresses");
         append_string(&builder, "\n");
     }
 
-    if (characteristics & IMAGE_FILE_BYTES_REVERSED_LO)
+    if (characteristics & IMAGE_BYTES_REVERSED_LO)
     {
         append_string(&builder, prefix);
         append_string(&builder, "(DEPRECATED) Little endian");
         append_string(&builder, "\n");
     }
 
-    if (characteristics & IMAGE_FILE_32BIT_MACHINE)
+    if (characteristics & IMAGE_32BIT_MACHINE)
     {
         append_string(&builder, prefix);
         append_string(&builder, "32-bit machine");
         append_string(&builder, "\n");
     }
 
-    if (characteristics & IMAGE_FILE_DEBUG_STRIPPED)
+    if (characteristics & IMAGE_DEBUG_STRIPPED)
     {
         append_string(&builder, prefix);
         append_string(&builder, "Debugging information is removed from the image file");
         append_string(&builder, "\n");
     }
 
-    if (characteristics & IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP)
+    if (characteristics & IMAGE_REMOVABLE_RUN_FROM_SWAP)
     {
         append_string(&builder, prefix);
         append_string(&builder, "If the image is on removable media, fully load it and copy it to the swap file");
         append_string(&builder, "\n");
     }
 
-    if (characteristics & IMAGE_FILE_NET_RUN_FROM_SWAP)
+    if (characteristics & IMAGE_NET_RUN_FROM_SWAP)
     {
         append_string(&builder, prefix);
         append_string(&builder, "If the image is on network media, fully load it and copy it to the swap file");
         append_string(&builder, "\n");
     }
 
-    if (characteristics & IMAGE_FILE_SYSTEM)
+    if (characteristics & IMAGE_SYSTEM)
     {
         append_string(&builder, prefix);
         append_string(&builder, "The image is a system file, not a user program");
         append_string(&builder, "\n");
     }
 
-    if (characteristics & IMAGE_FILE_DLL)
+    if (characteristics & IMAGE_DLL)
     {
         append_string(&builder, prefix);
         append_string(&builder, "The image is a DLL");
         append_string(&builder, "\n");
     }
 
-    if (characteristics & IMAGE_FILE_UP_SYSTEM_ONLY)
+    if (characteristics & IMAGE_UP_SYSTEM_ONLY)
     {
         append_string(&builder, prefix);
         append_string(&builder, "The file should be run only on a uniprocessor machine");
         append_string(&builder, "\n");
     }
 
-    if (characteristics & IMAGE_FILE_BYTES_REVERSED_HI)
+    if (characteristics & IMAGE_BYTES_REVERSED_HI)
     {
         append_string(&builder, prefix);
         append_string(&builder, "(DEPRECATED) Big endian");

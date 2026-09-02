@@ -25,11 +25,13 @@ if %ENABLE_ASAN% EQU 1 (
 if exist build rmdir /S /Q build
 if not exist build mkdir build
 if not exist build\grammar mkdir build\grammar
+if not exist build\utils mkdir build\utils
 if not exist build\tests mkdir build\tests
 if not exist build\tests\eon mkdir build\tests\eon
 if not exist build\tests\eon\sanitizers mkdir build\tests\eon\sanitizers
 
 call :compile grammar\check_grammar_soundness.c build\grammar\check_grammar_soundness || exit /B 1
+call :compile utils\pe-viewer.c build\utils\pe-viewer || exit /B 1
 
 build\grammar\check_grammar_soundness.exe grammar\eon-grammar || exit /B 1
 
