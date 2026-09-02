@@ -196,6 +196,30 @@ enum Image_DLL_Characteristics
 };
 typedef enum Image_DLL_Characteristics Image_DLL_Characteristics;
 
+struct Image_Data_Directory
+{
+    u32 table_relative_virtual_address; // IMPORTANT(vlad): Do not assume that this address
+                                        //                  points to the beginning of the section.
+    u32 size_in_bytes;
+};
+typedef struct Image_Data_Directory Image_Data_Directory;
+
+struct Section_Header
+{
+    u64 name;
+    u32 memory_size_of_section_in_bytes;
+    u32 relative_virtual_address_of_section;
+    u32 size_of_raw_data;
+    u32 file_pointer_to_raw_data;
+    u32 file_pointer_to_relocations;
+    u32 file_pointer_to_line_number_entries; // NOTE(vlad): Should be zero for images because COFF debugging info
+                                             //             is deprecated.
+    u16 number_of_relocations;
+    u16 number_of_line_numbers; // NOTE(vlad): Should be zero for images because COFF debugging info is deprecated.
+    u32 characteristics;
+};
+typedef struct Section_Header Section_Header;
+
 internal String_View convert_machine_type_to_string(const Image_Machine_Type machine_type);
 internal String_View convert_windows_subsystem_to_string(const Image_Windows_Subsystem windows_subsystem);
 
@@ -203,6 +227,25 @@ internal String_View convert_windows_subsystem_to_string(const Image_Windows_Sub
 internal String_View convert_characteristics_to_string(Arena* arena,
                                                        const String_View prefix,
                                                        const u16 characteristics);
+
+global_variable const char* global_data_directories_info[] = {
+    "Export table",
+    "Import table",
+    "Resource table",
+    "Exception table",
+    "Certificate table",
+    "Base relocation table",
+    "Debug",
+    "Architecture", // NOTE(vlad): Reserved, must be zero.
+    "Global pointer", // NOTE(vlad): Size must be zero.
+    "TLS table",
+    "Load config table",
+    "Bound import",
+    "Import address table (IAT)",
+    "Delay import descriptor",
+    "CLR runtime header",
+    "Reserved",
+};
 
 int
 main(int argc, const char* argv[])
@@ -219,6 +262,8 @@ main(int argc, const char* argv[])
     Arena* executable_arena = create_arena("executable", GiB(1), MiB(1));
 
     const String_View executable_filename = string_view(argv[1]);
+    println("Reading file '{}'", executable_filename);
+
     const Read_Binary_File_Result result = platform_read_entire_binary_file(executable_arena, executable_filename);
     if (result.status == READ_FILE_FAILURE)
     {
@@ -270,7 +315,11 @@ main(int argc, const char* argv[])
             convert_characteristics_to_string(scratch_arena, string_view("    "), header->characteristics));
 
     const Byte* raw_optional_header = read_next_chunk(&state, header->size_of_optional_header_in_bytes);
+    ASSERT(as_bytes(state.content.data) + state.current_offset - raw_optional_header
+           == header->size_of_optional_header_in_bytes);
     const u16 optional_header_magic_number = *(const u16*)(raw_optional_header);
+
+    Size number_of_data_directory_entries = 0;
 
     if (optional_header_magic_number == 0x10b)
     {
@@ -282,6 +331,7 @@ main(int argc, const char* argv[])
         println("PE format: PE32+");
 
         const Image_PE32Plus_Header* optional_header = (const Image_PE32Plus_Header*)(raw_optional_header);
+        number_of_data_directory_entries = optional_header->number_of_data_directory_entries;
 
         println("Optional header:\n"
                 "  Standard fields:\n"
@@ -397,6 +447,8 @@ main(int argc, const char* argv[])
                 println("      Image is Terminal Server aware");
             }
         }
+
+        set_offset(&state, state.current_offset - header->size_of_optional_header_in_bytes + size_of(*optional_header));
     }
     else if (optional_header_magic_number == 0x107)
     {
@@ -406,6 +458,69 @@ main(int argc, const char* argv[])
     {
         println("Error: unknown PE format: '0x{base: 16}'", optional_header_magic_number);
         return EXIT_FAILURE;
+    }
+
+    println("\nData directory entries:");
+    for (Index entry_index = 0;
+         entry_index < number_of_data_directory_entries;
+         ++entry_index)
+    {
+        const Image_Data_Directory* directory = read_data(&state, Image_Data_Directory);
+        println("  {}:\n"
+                "    RVA  = 0x{base: 16}\n"
+                "    size = {} bytes",
+                global_data_directories_info[entry_index],
+                directory->table_relative_virtual_address,
+                directory->size_in_bytes);
+    }
+
+    ASSERT(as_bytes(state.content.data) + state.current_offset - as_bytes(raw_optional_header)
+           == header->size_of_optional_header_in_bytes);
+
+    println("\nSection headers:");
+    for (Index section_header_index = 0;
+         section_header_index < header->number_of_sections;
+         ++section_header_index)
+    {
+        const Section_Header* section_header = read_data(&state, Section_Header);
+
+        const char* raw_name = (const char*)(&section_header->name);
+
+        Size name_length = size_of(section_header->name);
+        for (Index i = 0;
+             i < size_of(section_header->name);
+             ++i)
+        {
+            if (raw_name[i] == '\0')
+            {
+                name_length = i;
+                break;
+            }
+        }
+
+        String_View name = {0};
+        name.data = raw_name;
+        name.length = name_length;
+        println("  {}:\n"
+                "    memory size of sections: {} bytes\n"
+                "    RVA of section: 0x{base: 16}\n"
+                "    size of raw data: {} bytes\n"
+                "    file pointer to raw data: 0x{base: 16}\n"
+                "    file pointer to relocations: 0x{base: 16}\n"
+                "    file pointer to line number entries: 0x{base: 16}\n"
+                "    number of relocations: {}\n"
+                "    number of line numbers: {}\n"
+                "    characteristics: 0b{base: 2}\n",
+                name,
+                section_header->memory_size_of_section_in_bytes,
+                section_header->relative_virtual_address_of_section,
+                section_header->size_of_raw_data,
+                section_header->file_pointer_to_raw_data,
+                section_header->file_pointer_to_relocations,
+                section_header->file_pointer_to_line_number_entries,
+                section_header->number_of_relocations,
+                section_header->number_of_line_numbers,
+                section_header->characteristics);
     }
 
     return EXIT_SUCCESS;
