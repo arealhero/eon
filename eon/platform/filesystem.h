@@ -21,7 +21,15 @@ struct Read_File_Result
 };
 typedef struct Read_File_Result Read_File_Result;
 
+struct Read_Binary_File_Result
+{
+    Read_File_Status status;
+    Bytes_View content;
+};
+typedef struct Read_Binary_File_Result Read_Binary_File_Result;
+
 maybe_unused internal Read_File_Result platform_read_entire_text_file(Arena* arena, const String_View filename);
+maybe_unused internal Read_Binary_File_Result platform_read_entire_binary_file(Arena* arena, const String_View filename);
 
 maybe_unused internal void platform_write_string_to_file(Arena* scratch_arena,
                                                          const String_View filename,

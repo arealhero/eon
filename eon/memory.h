@@ -18,6 +18,13 @@ internal inline void fill_memory_with_zeros(Byte* memory, const Size number_of_b
 #define fill_with_zeros(pointer, number_of_elements, Type)              \
     fill_memory_with_zeros(as_bytes(pointer), size_of(Type) * number_of_elements)
 
+struct Bytes_View
+{
+    const Byte* data;
+    Size data_size_in_bytes;
+};
+typedef struct Bytes_View Bytes_View;
+
 struct Arena
 {
     String_View name;

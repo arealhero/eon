@@ -59,6 +59,59 @@ platform_read_entire_text_file(Arena* arena, const String_View filename)
     return result;
 }
 
+internal Read_Binary_File_Result
+platform_read_entire_binary_file(Arena* arena, const String_View filename)
+{
+    Read_Binary_File_Result result = {0};
+
+    const char* zero_terminated_filename = to_c_string(arena, filename);
+    const int fd = open(zero_terminated_filename, O_RDONLY);
+    if (fd == -1)
+    {
+        result.status = READ_FILE_FAILURE;
+        // TODO(vlad): Fetch a reason from errno.
+        return result;
+    }
+
+    struct stat file_stats = {0};
+    fstat(fd, &file_stats);
+
+    // TODO(vlad): Handle symlinks: 'fstat' would return the symlink's size, not the size of the target file.
+    const Size content_length = file_stats.st_size;
+
+    if (content_length == 0)
+    {
+        result.status = READ_FILE_SUCCESS;
+        result.content.data = NULL;
+        result.content.data_size_in_bytes = 0;
+    }
+    else
+    {
+        // TODO(vlad): Save arena position and restore it if we could not read the file.
+        char* content = allocate_uninitialized_array(arena, content_length, char);
+        const Size read_result = read(fd, content, (USize)content_length);
+
+        if (read_result == -1)
+        {
+            result.status = READ_FILE_FAILURE;
+            // TODO(vlad): Handle EINTR and maybe EAGAIN?
+        }
+        else
+        {
+            ASSERT(read_result == content_length);
+
+            // TODO(vlad): Check that 'read_result == content_size_in_bytes'.
+            result.status = READ_FILE_SUCCESS;
+            result.content.data = as_bytes(content);
+            result.content.data_size_in_bytes = read_result;
+        }
+    }
+
+    close(fd);
+
+    return result;
+}
+
 internal void
 platform_write_string_to_file(Arena* scratch_arena,
                               const String_View filename,

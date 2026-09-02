@@ -91,6 +91,12 @@ compile grammar/check_grammar_soundness.c -o build/grammar/check_grammar_soundne
 
 ./build/grammar/check_grammar_soundness grammar/eon-grammar
 
+mkdir -p build/utils
+
+compile utils/pe-viewer.c -o build/utils/pe-viewer \
+        $compiler_common_flags \
+        $compiler_warnings
+
 compile_and_run_unit_test()
 {
     test_filename="$1"

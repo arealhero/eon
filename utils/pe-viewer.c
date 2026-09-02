@@ -1,0 +1,758 @@
+#include <eon/common.h>
+#include <eon/string.h>
+#include <eon/io.h>
+
+#include <eon/platform/filesystem.h>
+
+struct PE_File_State
+{
+    Bytes_View content;
+    Index current_offset;
+};
+typedef struct PE_File_State PE_File_State;
+
+internal inline const Byte*
+read_next_chunk(PE_File_State* state, const Size number_of_bytes_to_read)
+{
+    ASSERT(state->current_offset + number_of_bytes_to_read < state->content.data_size_in_bytes);
+    const Byte* result = state->content.data + state->current_offset;
+    state->current_offset += number_of_bytes_to_read;
+    return result;
+}
+
+internal inline const Byte*
+read_chunk_at_address(PE_File_State* state, const Index address, const Size number_of_bytes_to_read)
+{
+    ASSERT(address + number_of_bytes_to_read < state->content.data_size_in_bytes);
+    return state->content.data + address;
+}
+
+internal inline void
+set_offset(PE_File_State* state, const Index offset)
+{
+    ASSERT(0 <= offset && offset < state->content.data_size_in_bytes);
+    state->current_offset = offset;
+}
+
+maybe_unused internal inline void
+skip_bytes(PE_File_State* state, const Size number_of_bytes_to_skip)
+{
+    read_next_chunk(state, number_of_bytes_to_skip);
+}
+
+#define read_data(state, Type) (Type*) (read_next_chunk((state), size_of(Type)))
+#define read_data_at_address(state, Type, address) (Type*) (read_chunk_at_address((state), (address), size_of(Type)))
+
+// @ref: https://coffi.readthedocs.io/en/latest/pecoff_v11.pdf
+
+struct COFF_File_Header
+{
+    u16 machine_type;
+    u16 number_of_sections;
+    u32 created_timestamp;
+    u32 offset_of_symbol_table;
+    u32 number_of_symbols;
+    u16 size_of_optional_header_in_bytes;
+    u16 characteristics;
+};
+typedef struct COFF_File_Header COFF_File_Header;
+
+enum Image_File_Machine_Type
+{
+    IMAGE_FILE_MACHINE_UNKNOWN   = 0x0,
+    IMAGE_FILE_MACHINE_AM33      = 0x1d3,
+    IMAGE_FILE_MACHINE_AMD64     = 0x8664,
+    IMAGE_FILE_MACHINE_ARM       = 0x1c0,
+    IMAGE_FILE_MACHINE_ARM64     = 0xaa64,
+    IMAGE_FILE_MACHINE_ARMNT     = 0x1c4,
+    IMAGE_FILE_MACHINE_EBC       = 0xebc,
+    IMAGE_FILE_MACHINE_I386      = 0x14c,
+    IMAGE_FILE_MACHINE_IA64      = 0x200,
+    IMAGE_FILE_MACHINE_M32R      = 0x9041,
+    IMAGE_FILE_MACHINE_MIPS16    = 0x266,
+    IMAGE_FILE_MACHINE_MIPSFPU   = 0x366,
+    IMAGE_FILE_MACHINE_MIPSFPU16 = 0x466,
+    IMAGE_FILE_MACHINE_POWERPC   = 0x1f0,
+    IMAGE_FILE_MACHINE_POWERPCFP = 0x1f1,
+    IMAGE_FILE_MACHINE_R4000     = 0x166,
+    IMAGE_FILE_MACHINE_RISCV32   = 0x5032,
+    IMAGE_FILE_MACHINE_RISCV64   = 0x5064,
+    IMAGE_FILE_MACHINE_RISCV128  = 0x5128,
+    IMAGE_FILE_MACHINE_SH3       = 0x1a2,
+    IMAGE_FILE_MACHINE_SH3DSP    = 0x1a3,
+    IMAGE_FILE_MACHINE_SH4       = 0x1a6,
+    IMAGE_FILE_MACHINE_SH5       = 0x1a8,
+    IMAGE_FILE_MACHINE_THUMB     = 0x1c2,
+    IMAGE_FILE_MACHINE_WCEMIPSV2 = 0x169,
+};
+typedef enum Image_File_Machine_Type Image_File_Machine_Type;
+
+enum Image_File_Characteristics
+{
+    IMAGE_FILE_RELOCS_STRIPPED         = 0x0001,
+    IMAGE_FILE_EXECUTABLE_IMAGE        = 0x0002,
+    IMAGE_FILE_LINE_NUMS_STRIPPED      = 0x0004,
+    IMAGE_FILE_LOCAL_SYMS_STRIPPED     = 0x0008,
+    IMAGE_FILE_AGGRESSIVE_WS_TRIM      = 0x0010,
+    IMAGE_FILE_LARGE_ADDRESS_AWARE     = 0x0020,
+    // NOTE(vlad):                       0x0040 is reserved for future use.
+    IMAGE_FILE_BYTES_REVERSED_LO       = 0x0080,
+    IMAGE_FILE_32BIT_MACHINE           = 0x0100,
+    IMAGE_FILE_DEBUG_STRIPPED          = 0x0200,
+    IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP = 0x0400,
+    IMAGE_FILE_NET_RUN_FROM_SWAP       = 0x0800,
+    IMAGE_FILE_SYSTEM                  = 0x1000,
+    IMAGE_FILE_DLL                     = 0x2000,
+    IMAGE_FILE_UP_SYSTEM_ONLY          = 0x4000,
+    IMAGE_FILE_BYTES_REVERSED_HI       = 0x8000,
+};
+typedef enum Image_File_Characteristics Image_File_Characteristics;
+
+struct Image_File_PE32_Header
+{
+    u16 magic_number;
+    u8 major_linker_version;
+    u8 minor_linker_version;
+    u32 size_of_code_sections_in_bytes;
+    u32 size_of_initialised_data_in_bytes;
+    u32 size_of_uninitialised_data_in_bytes;
+    u32 relative_address_of_entry_point_in_memory;
+    u32 relative_address_of_code_section_in_memory;
+    u32 relative_address_of_data_section_in_memory;
+
+    // FIXME(vlad): Add Windows-specific fields here.
+};
+typedef struct Image_File_PE32_Header Image_File_PE32_Header;
+
+struct Image_File_PE32Plus_Header
+{
+    // NOTE(vlad): Standard fields.
+    u16 magic_number;
+    u8 major_linker_version;
+    u8 minor_linker_version;
+    u32 size_of_code_sections_in_bytes;
+    u32 size_of_initialised_data_in_bytes;
+    u32 size_of_uninitialised_data_in_bytes;
+    u32 relative_address_of_entry_point_in_memory;
+    u32 relative_address_of_code_section_in_memory;
+
+    // NOTE(vlad): Windows-specific fields.
+    u64 preferred_image_base_address_in_memory;
+    u32 memory_section_alignment_in_bytes;
+    u32 file_section_alignment_in_bytes;
+    u16 required_major_os_version;
+    u16 required_minor_os_version;
+    u16 major_image_version;
+    u16 minor_image_version;
+    u16 major_subsystem_version;
+    u16 minor_subsystem_version;
+    u32 win32_version_value; // NOTE(vlad): Reserved, must be zero.
+    u32 memory_size_of_image_in_bytes;
+    u32 total_size_of_headers;
+    u32 image_file_checksum;
+    u16 required_windows_subsystem;
+    u16 dll_characteristics;
+    u64 size_of_stack_to_reserve_in_bytes;
+    u64 size_of_stack_to_commit_in_bytes;
+    u64 size_of_heap_to_reserve_in_bytes;
+    u64 size_of_heap_to_commit_in_bytes;
+    u32 loader_flags; // NOTE(vlad): Reserved, must be zero.
+    u32 number_of_data_directory_entries;
+};
+typedef struct Image_File_PE32Plus_Header Image_File_PE32Plus_Header;
+
+enum Image_File_Subsystem
+{
+    IMAGE_SUBSYSTEM_UNKNOWN                  = 0,
+    IMAGE_SUBSYSTEM_NATIVE                   = 1,
+    IMAGE_SUBSYSTEM_WINDOWS_GUI              = 2,
+    IMAGE_SUBSYSTEM_WINDOWS_CUI              = 3,
+    IMAGE_SUBSYSTEM_OS2_CUI                  = 5,
+    IMAGE_SUBSYSTEM_POSIX_CUI                = 7,
+    IMAGE_SUBSYSTEM_NATIVE_WINDOWS           = 8,
+    IMAGE_SUBSYSTEM_WINDOWS_CE_GUI           = 9,
+    IMAGE_SUBSYSTEM_EFI_APPLICATION          = 10,
+    IMAGE_SUBSYSTEM_EFI_BOOT_SERVICE_DRIVER  = 11,
+    IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER       = 12,
+    IMAGE_SUBSYSTEM_EFI_ROM                  = 13,
+    IMAGE_SUBSYSTEM_XBOX                     = 14,
+    IMAGE_SUBSYSTEM_WINDOWS_BOOT_APPLICATION = 16,
+};
+typedef enum Image_File_Subsystem Image_File_Subsystem;
+
+enum Image_File_DLL_Characteristics
+{
+    IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA = 0x00200,
+    IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE = 0x0040,
+    IMAGE_DLLCHARACTERISTICS_FORCE_INTEGRITY = 0x0080,
+    IMAGE_DLLCHARACTERISTICS_NX_COMPAT = 0x0100,
+    IMAGE_DLLCHARACTERISTICS_NO_ISOLATION = 0x0200,
+    IMAGE_DLLCHARACTERISTICS_NO_SEH = 0x0400,
+    IMAGE_DLLCHARACTERISTICS_NO_BIND = 0x0800,
+    IMAGE_DLLCHARACTERISTICS_APPCONTAINER = 0x1000,
+    IMAGE_DLLCHARACTERISTICS_WDM_DRIVER = 0x2000,
+    IMAGE_DLLCHARACTERISTICS_GUARD_CF = 0x4000,
+    IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE = 0x8000,
+};
+typedef enum Image_File_DLL_Characteristics Image_File_DLL_Characteristics;
+
+internal String_View convert_machine_type_to_string(const Image_File_Machine_Type machine_type);
+internal String_View convert_subsystem_to_string(const Image_File_Subsystem subsystem);
+
+// FIXME(vlad): Inline this function.
+internal String_View convert_characteristics_to_string(Arena* arena,
+                                                       const String_View prefix,
+                                                       const u16 characteristics);
+
+int
+main(int argc, const char* argv[])
+{
+    init_io_state(GiB(1));
+
+    if (argc != 2)
+    {
+        println("Usage: pe-viewer <path-to-executable>");
+        return EXIT_FAILURE;
+    }
+
+    Arena* scratch_arena = create_arena("scratch", GiB(1), MiB(1));
+    Arena* executable_arena = create_arena("executable", GiB(1), MiB(1));
+
+    const String_View executable_filename = string_view(argv[1]);
+    const Read_Binary_File_Result result = platform_read_entire_binary_file(executable_arena, executable_filename);
+    if (result.status == READ_FILE_FAILURE)
+    {
+        println("Failed to read file '{}'", executable_filename);
+        return EXIT_FAILURE;
+    }
+
+    PE_File_State state = {0};
+    state.content = result.content;
+
+    const u16 magic_number = *read_data(&state, u16);
+    println("Magic number: 0x{base: 16}", magic_number);
+
+    if (magic_number != 0x5a4d)
+    {
+        println("Error: magic number of the PE file expected to be '0x5a4d', but we got '0x{base: 16}'", magic_number);
+        return EXIT_FAILURE;
+    }
+
+    // TODO(vlad): Change to u32?
+    const Index pe_signature_offset = *read_data_at_address(&state, u16, 0x3c);
+    set_offset(&state, pe_signature_offset);
+    const u32 pe_signature = *read_data(&state, u32);
+    println("PE signature: 0x{base: 16}", pe_signature);
+
+    if (pe_signature != 0x4550)
+    {
+        println("Error: PE signature expected to be '0x4550', but we got '0x{base: 16}'", pe_signature);
+    }
+
+    println("");
+
+    const COFF_File_Header* header = read_data(&state, COFF_File_Header);
+    println("COFF header:\n"
+            "  machine type: {}\n"
+            "  number of sections: {}\n"
+            "  created at: {}\n"
+            "  offset of a symbol table: {base: 16}\n"
+            "  number of symbols: {}\n"
+            "  size of optional header: {}\n"
+            "  characteristics:\n{}",
+            convert_machine_type_to_string(header->machine_type),
+            header->number_of_sections,
+            header->created_timestamp,
+            header->offset_of_symbol_table,
+            header->number_of_symbols,
+            header->size_of_optional_header_in_bytes,
+            // FIXME(vlad): Inline this function.
+            convert_characteristics_to_string(scratch_arena, string_view("    "), header->characteristics));
+
+    const Byte* raw_optional_header = read_next_chunk(&state, header->size_of_optional_header_in_bytes);
+    const u16 optional_header_magic_number = *(const u16*)(raw_optional_header);
+
+    if (optional_header_magic_number == 0x10b)
+    {
+        println("PE format: PE32");
+        FAIL("PE32 header information is not implemented yet.");
+    }
+    else if (optional_header_magic_number == 0x20b)
+    {
+        println("PE format: PE32+");
+
+        const Image_File_PE32Plus_Header* optional_header = (const Image_File_PE32Plus_Header*)(raw_optional_header);
+
+        println("Optional header:\n"
+                "  Standard fields:\n"
+                "    linker version: {}.{}\n"
+                "    size of code sections: {} bytes\n"
+                "    size of initialised data: {} bytes\n"
+                "    size of uninitialised data: {} bytes\n"
+                "    relative address of entry point in memory: 0x{base: 16}\n"
+                "    relative address of code section in memory: 0x{base: 16}\n"
+                "\n"
+                "  Windows-specific fields:\n"
+                "    preferred image base address in memory: 0x{base: 16}\n"
+                "    section alignment in memory: 0x{base: 16}\n"
+                "    section alignment in file: 0x{base: 16}\n"
+                "    required OS version: {}.{}\n"
+                "    image version: {}.{}\n"
+                "    subsystem version: {}.{}\n"
+                "    size of image in memory: {} bytes\n"
+                "    total size of headers: {} bytes\n"
+                "    image file checksum: {base: 16}\n"
+                "    required Windows subsystem: {}\n"
+                "    size of stack to reserve/commit: {}/{} bytes\n"
+                "    size of heap to reserve/commit: {}/{} bytes\n"
+                "    number of data directory entries: {}\n",
+
+                // NOTE(vlad): Standard fields.
+                optional_header->major_linker_version,
+                optional_header->minor_linker_version,
+                optional_header->size_of_code_sections_in_bytes,
+                optional_header->size_of_initialised_data_in_bytes,
+                optional_header->size_of_uninitialised_data_in_bytes,
+                optional_header->relative_address_of_entry_point_in_memory,
+                optional_header->relative_address_of_code_section_in_memory,
+
+                // NOTE(vlad): Windows-specific fields.
+                optional_header->preferred_image_base_address_in_memory,
+                optional_header->memory_section_alignment_in_bytes,
+                optional_header->file_section_alignment_in_bytes,
+
+                // TODO(vlad): Convert this to a human-readable Windows version,
+                //             e.g. NT 6.0 should be printed as 'Windows Vista'.
+                optional_header->required_major_os_version,
+                optional_header->required_minor_os_version,
+                optional_header->major_image_version,
+                optional_header->minor_image_version,
+                optional_header->major_subsystem_version,
+                optional_header->minor_subsystem_version,
+                optional_header->memory_size_of_image_in_bytes,
+                optional_header->total_size_of_headers,
+                optional_header->image_file_checksum,
+                convert_subsystem_to_string(optional_header->required_windows_subsystem),
+                optional_header->size_of_stack_to_reserve_in_bytes,
+                optional_header->size_of_stack_to_commit_in_bytes,
+                optional_header->size_of_heap_to_reserve_in_bytes,
+                optional_header->size_of_heap_to_commit_in_bytes,
+                optional_header->number_of_data_directory_entries);
+
+        {
+            println("    DLL characteristics:");
+
+            if (optional_header->dll_characteristics & IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA)
+            {
+                println("      Image can handle a high entropy 64-bit virtual address space");
+            }
+
+            if (optional_header->dll_characteristics & IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE)
+            {
+                println("      DLL can be relocated at load time");
+            }
+
+            if (optional_header->dll_characteristics & IMAGE_DLLCHARACTERISTICS_FORCE_INTEGRITY)
+            {
+                println("      Code Integrity checks are enforced");
+            }
+
+            if (optional_header->dll_characteristics & IMAGE_DLLCHARACTERISTICS_NX_COMPAT)
+            {
+                println("      Image is NX compatible");
+            }
+
+            if (optional_header->dll_characteristics & IMAGE_DLLCHARACTERISTICS_NO_ISOLATION)
+            {
+                println("      Isolation aware, but do not isolate the image");
+            }
+
+            if (optional_header->dll_characteristics & IMAGE_DLLCHARACTERISTICS_NO_SEH)
+            {
+                println("      Does not use structured exception (SE) handling");
+            }
+
+            if (optional_header->dll_characteristics & IMAGE_DLLCHARACTERISTICS_NO_BIND)
+            {
+                println("      Do not bind the image");
+            }
+
+            if (optional_header->dll_characteristics & IMAGE_DLLCHARACTERISTICS_APPCONTAINER)
+            {
+                println("      Image must execute in an AppContainer");
+            }
+
+            if (optional_header->dll_characteristics & IMAGE_DLLCHARACTERISTICS_WDM_DRIVER)
+            {
+                println("      WDM driver");
+            }
+
+            if (optional_header->dll_characteristics & IMAGE_DLLCHARACTERISTICS_GUARD_CF)
+            {
+                println("      Image supports Control Flow Guard");
+            }
+
+            if (optional_header->dll_characteristics & IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE)
+            {
+                println("      Image is Terminal Server aware");
+            }
+        }
+    }
+    else if (optional_header_magic_number == 0x107)
+    {
+        println("PE format: ROM image");
+    }
+    else
+    {
+        println("Error: unknown PE format: '0x{base: 16}'", optional_header_magic_number);
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}
+
+internal String_View
+convert_machine_type_to_string(const Image_File_Machine_Type machine_type)
+{
+    switch (machine_type)
+    {
+        case IMAGE_FILE_MACHINE_UNKNOWN:
+        {
+            return string_view("Any machine");
+        } break;
+
+        case IMAGE_FILE_MACHINE_AM33:
+        {
+            return string_view("Matsushita AM33");
+        } break;
+
+        case IMAGE_FILE_MACHINE_AMD64:
+        {
+            return string_view("x64");
+        } break;
+
+        case IMAGE_FILE_MACHINE_ARM:
+        {
+            return string_view("ARM little endian");
+        } break;
+
+        case IMAGE_FILE_MACHINE_ARM64:
+        {
+            return string_view("ARM64 little endian");
+        } break;
+
+        case IMAGE_FILE_MACHINE_ARMNT:
+        {
+            return string_view("ARM Thumb-2 little endian");
+        } break;
+
+        case IMAGE_FILE_MACHINE_EBC:
+        {
+            return string_view("EFI byte code");
+        } break;
+
+        case IMAGE_FILE_MACHINE_I386:
+        {
+            return string_view("Intel 386 or later processors and compatible processors");
+        } break;
+
+        case IMAGE_FILE_MACHINE_IA64:
+        {
+            return string_view("Intel Itanium processor family");
+        } break;
+
+        case IMAGE_FILE_MACHINE_M32R:
+        {
+            return string_view("Mitsubishi M32R little endian");
+        } break;
+
+        case IMAGE_FILE_MACHINE_MIPS16:
+        {
+            return string_view("MIPS16");
+        } break;
+
+        case IMAGE_FILE_MACHINE_MIPSFPU:
+        {
+            return string_view("MIPS with FPU");
+        } break;
+
+        case IMAGE_FILE_MACHINE_MIPSFPU16:
+        {
+            return string_view("MIPS16 with FPU");
+        } break;
+
+        case IMAGE_FILE_MACHINE_POWERPC:
+        {
+            return string_view("Power PC little endian");
+        } break;
+
+        case IMAGE_FILE_MACHINE_POWERPCFP:
+        {
+            return string_view("Power PC with floating point support");
+        } break;
+
+        case IMAGE_FILE_MACHINE_R4000:
+        {
+            return string_view("MIPS little endian");
+        } break;
+
+        case IMAGE_FILE_MACHINE_RISCV32:
+        {
+            return string_view("RISC-V 32-bit address space");
+        } break;
+
+        case IMAGE_FILE_MACHINE_RISCV64:
+        {
+            return string_view("RISC-V 64-bit address space");
+        } break;
+
+        case IMAGE_FILE_MACHINE_RISCV128:
+        {
+            return string_view("RISC-V 128-bit address space");
+        } break;
+
+        case IMAGE_FILE_MACHINE_SH3:
+        {
+            return string_view("Hitachi SH3");
+        } break;
+
+        case IMAGE_FILE_MACHINE_SH3DSP:
+        {
+            return string_view("Hitachi SH3 DSP");
+        } break;
+
+        case IMAGE_FILE_MACHINE_SH4:
+        {
+            return string_view("Hitachi SH4");
+        } break;
+
+        case IMAGE_FILE_MACHINE_SH5:
+        {
+            return string_view("Hitachi SH5");
+        } break;
+
+        case IMAGE_FILE_MACHINE_THUMB:
+        {
+            return string_view("Thumb");
+        } break;
+
+        case IMAGE_FILE_MACHINE_WCEMIPSV2:
+        {
+            return string_view("MIPS little-endian WCE v2");
+        } break;
+
+        default:
+        {
+            FAIL("Unknown machine type encountered");
+        } break;
+    }
+}
+
+internal String_View
+convert_subsystem_to_string(const Image_File_Subsystem subsystem)
+{
+    switch (subsystem)
+    {
+        case IMAGE_SUBSYSTEM_UNKNOWN:
+        {
+            return string_view("None");
+        } break;
+
+        case IMAGE_SUBSYSTEM_NATIVE:
+        {
+            return string_view("Device drivers and native Windows processes");
+        } break;
+
+        case IMAGE_SUBSYSTEM_WINDOWS_GUI:
+        {
+            return string_view("Windows GUI");
+        } break;
+
+        case IMAGE_SUBSYSTEM_WINDOWS_CUI:
+        {
+            return string_view("Windows character subsystem");
+        } break;
+
+        case IMAGE_SUBSYSTEM_OS2_CUI:
+        {
+            return string_view("OS/2 character subsystem");
+        } break;
+
+        case IMAGE_SUBSYSTEM_POSIX_CUI:
+        {
+            return string_view("POSIX character subsystem");
+        } break;
+
+        case IMAGE_SUBSYSTEM_NATIVE_WINDOWS:
+        {
+            return string_view("Native Win9x driver");
+        } break;
+
+        case IMAGE_SUBSYSTEM_WINDOWS_CE_GUI:
+        {
+            return string_view("Windows CE GUI");
+        } break;
+
+        case IMAGE_SUBSYSTEM_EFI_APPLICATION:
+        {
+            return string_view("EFI application");
+        } break;
+
+        case IMAGE_SUBSYSTEM_EFI_BOOT_SERVICE_DRIVER:
+        {
+            return string_view("EFI driver with boot services");
+        } break;
+
+        case IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER:
+        {
+            return string_view("EFI driver with run-time services");
+        } break;
+
+        case IMAGE_SUBSYSTEM_EFI_ROM:
+        {
+            return string_view("EFI ROM image");
+        } break;
+
+        case IMAGE_SUBSYSTEM_XBOX:
+        {
+            return string_view("XBOX");
+        } break;
+
+        case IMAGE_SUBSYSTEM_WINDOWS_BOOT_APPLICATION:
+        {
+            return string_view("Windows boot application");
+        } break;
+
+        default:
+        {
+            FAIL("Unknown Windows subsystem encountered");
+        } break;
+    }
+}
+
+// FIXME(vlad): Inline this function.
+internal String_View
+convert_characteristics_to_string(Arena* arena,
+                                  const String_View prefix,
+                                  const u16 characteristics)
+{
+    String_Builder builder = {0};
+    builder.data_arena = arena;
+
+    if (characteristics & IMAGE_FILE_RELOCS_STRIPPED)
+    {
+        append_string(&builder, prefix);
+        append_string(&builder, "File relocations stripped");
+        append_string(&builder, "\n");
+    }
+
+    if (characteristics & IMAGE_FILE_EXECUTABLE_IMAGE)
+    {
+        append_string(&builder, prefix);
+        append_string(&builder, "Image file is valid and can be run");
+        append_string(&builder, "\n");
+    }
+    else
+    {
+        append_string(&builder, prefix);
+        append_string(&builder, "Image file is not valid; linker error occured");
+        append_string(&builder, "\n");
+    }
+
+    if (characteristics & IMAGE_FILE_LINE_NUMS_STRIPPED)
+    {
+        append_string(&builder, prefix);
+        append_string(&builder, "(DEPRECATED) COFF line numbers have been removed");
+        append_string(&builder, "\n");
+    }
+
+    if (characteristics & IMAGE_FILE_LOCAL_SYMS_STRIPPED)
+    {
+        append_string(&builder, prefix);
+        append_string(&builder, "(DEPRECATED) COFF symbol table entries for local symbols have been removed");
+        append_string(&builder, "\n");
+    }
+
+    if (characteristics & IMAGE_FILE_AGGRESSIVE_WS_TRIM)
+    {
+        append_string(&builder, prefix);
+        append_string(&builder, "(OBSOLETE) Aggressively trim working set");
+        append_string(&builder, "\n");
+    }
+
+    if (characteristics & IMAGE_FILE_LARGE_ADDRESS_AWARE)
+    {
+        append_string(&builder, prefix);
+        append_string(&builder, "Application can handle large (2+ GB) addresses");
+        append_string(&builder, "\n");
+    }
+
+    if (characteristics & IMAGE_FILE_BYTES_REVERSED_LO)
+    {
+        append_string(&builder, prefix);
+        append_string(&builder, "(DEPRECATED) Little endian");
+        append_string(&builder, "\n");
+    }
+
+    if (characteristics & IMAGE_FILE_32BIT_MACHINE)
+    {
+        append_string(&builder, prefix);
+        append_string(&builder, "32-bit machine");
+        append_string(&builder, "\n");
+    }
+
+    if (characteristics & IMAGE_FILE_DEBUG_STRIPPED)
+    {
+        append_string(&builder, prefix);
+        append_string(&builder, "Debugging information is removed from the image file");
+        append_string(&builder, "\n");
+    }
+
+    if (characteristics & IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP)
+    {
+        append_string(&builder, prefix);
+        append_string(&builder, "If the image is on removable media, fully load it and copy it to the swap file");
+        append_string(&builder, "\n");
+    }
+
+    if (characteristics & IMAGE_FILE_NET_RUN_FROM_SWAP)
+    {
+        append_string(&builder, prefix);
+        append_string(&builder, "If the image is on network media, fully load it and copy it to the swap file");
+        append_string(&builder, "\n");
+    }
+
+    if (characteristics & IMAGE_FILE_SYSTEM)
+    {
+        append_string(&builder, prefix);
+        append_string(&builder, "The image is a system file, not a user program");
+        append_string(&builder, "\n");
+    }
+
+    if (characteristics & IMAGE_FILE_DLL)
+    {
+        append_string(&builder, prefix);
+        append_string(&builder, "The image is a DLL");
+        append_string(&builder, "\n");
+    }
+
+    if (characteristics & IMAGE_FILE_UP_SYSTEM_ONLY)
+    {
+        append_string(&builder, prefix);
+        append_string(&builder, "The file should be run only on a uniprocessor machine");
+        append_string(&builder, "\n");
+    }
+
+    if (characteristics & IMAGE_FILE_BYTES_REVERSED_HI)
+    {
+        append_string(&builder, prefix);
+        append_string(&builder, "(DEPRECATED) Big endian");
+        append_string(&builder, "\n");
+    }
+
+    return string_view(string_builder_to_string(&builder));
+}
+
+#include <eon/memory.c>
+#include <eon/string.c>
+#include <eon/io.c>

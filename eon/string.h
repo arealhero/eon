@@ -2,6 +2,7 @@
 
 #include <eon/build_info.h>
 #include <eon/common.h>
+#include <eon/containers.h>
 
 internal inline Bool
 is_ascii_letter(const char c)
@@ -62,10 +63,7 @@ internal void reverse_string(String string);
 struct String_Builder
 {
     struct Arena* data_arena;
-
-    char* data;
-    Size data_count;
-    Size data_capacity;
+    array(char, data);
 };
 typedef struct String_Builder String_Builder;
 
