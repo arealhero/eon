@@ -196,6 +196,7 @@ enum Image_DLL_Characteristics
 };
 typedef enum Image_DLL_Characteristics Image_DLL_Characteristics;
 
+// FIXME(vlad): Rename to Directory_Entry or something.
 struct Image_Data_Directory
 {
     u32 table_relative_virtual_address; // IMPORTANT(vlad): Do not assume that this address
@@ -203,6 +204,19 @@ struct Image_Data_Directory
     u32 size_in_bytes;
 };
 typedef struct Image_Data_Directory Image_Data_Directory;
+
+struct Debug_Directory_Entry
+{
+    u32 characteristics; // NOTE(vlad): Reserved, must be zero.
+    u32 create_timestamp;
+    u16 major_format_version;
+    u16 minor_format_version;
+    u32 debug_type;
+    u32 size_of_debug_data_in_bytes;
+    u32 relative_address_of_debug_data;
+    u32 file_pointer_to_debug_data;
+};
+typedef struct Debug_Directory_Entry Debug_Directory_Entry;
 
 struct Section_Header
 {
@@ -219,6 +233,37 @@ struct Section_Header
     u32 characteristics;
 };
 typedef struct Section_Header Section_Header;
+
+#define SECTION_SHOULD_NOT_BE_PADDED                            0x00000008
+#define SECTION_CONTAINS_CODE                                   0x00000020
+#define SECTION_CONTAINS_INITIALISED_DATA                       0x00000040
+#define SECTION_CONTAINS_UNINITIALISED_DATA                     0x00000080
+#define SECTION_CONTAINS_INFO                                   0x00000200 // NOTE(vlad): Valid for object files only.
+#define SECTION_SHOULD_BE_REMOVED                               0x00000800 // NOTE(vlad): Valid for object files only.
+#define SECTION_CONTAINS_COMDAT_DATA                            0x00001000
+#define SECTION_CONTAINS_DATA_REFERENCED_THROUGH_GLOBAL_POINTER 0x00008000
+#define SECTION_ALIGN_1_BYTES                                   0x00100000
+#define SECTION_ALIGN_2_BYTES                                   0x00200000
+#define SECTION_ALIGN_4_BYTES                                   0x00300000
+#define SECTION_ALIGN_8_BYTES                                   0x00400000
+#define SECTION_ALIGN_16_BYTES                                  0x00500000
+#define SECTION_ALIGN_32_BYTES                                  0x00600000
+#define SECTION_ALIGN_64_BYTES                                  0x00700000
+#define SECTION_ALIGN_128_BYTES                                 0x00800000
+#define SECTION_ALIGN_256_BYTES                                 0x00900000
+#define SECTION_ALIGN_512_BYTES                                 0x00A00000
+#define SECTION_ALIGN_1024_BYTES                                0x00B00000
+#define SECTION_ALIGN_2048_BYTES                                0x00C00000
+#define SECTION_ALIGN_4096_BYTES                                0x00D00000
+#define SECTION_ALIGN_8192_BYTES                                0x00E00000
+#define SECTION_CONTAINS_EXTENDED_RELOCATIONS                   0x01000000
+#define SECTION_CAN_BE_DISCARDED                                0x02000000
+#define SECTION_CANNOT_BE_CACHED                                0x04000000
+#define SECTION_CANNOT_BE_PAGED                                 0x08000000
+#define SECTION_CAN_BE_SHARED_IN_MEMORY                         0x10000000
+#define SECTION_CAN_BE_EXECUTED                                 0x20000000
+#define SECTION_CAN_BE_READ                                     0x40000000
+#define SECTION_CAN_BE_WRITTEN_TO                               0x80000000
 
 internal String_View convert_machine_type_to_string(const Image_Machine_Type machine_type);
 internal String_View convert_windows_subsystem_to_string(const Image_Windows_Subsystem windows_subsystem);
@@ -246,6 +291,13 @@ global_variable const char* global_data_directories_info[] = {
     "CLR runtime header",
     "Reserved",
 };
+
+struct PE_Info
+{
+    COFF_Header coff_header;
+    Image_PE32Plus_Header pe32_plus_header;
+};
+typedef struct PE_Info PE_Info;
 
 int
 main(int argc, const char* argv[])
@@ -301,7 +353,7 @@ main(int argc, const char* argv[])
             "  machine type: {}\n"
             "  number of sections: {}\n"
             "  created at: {}\n"
-            "  offset of a symbol table: {base: 16}\n"
+            "  offset of the symbol table: {base: 16}\n"
             "  number of symbols: {}\n"
             "  size of optional header: {}\n"
             "  characteristics:\n{}",
@@ -465,13 +517,13 @@ main(int argc, const char* argv[])
          entry_index < number_of_data_directory_entries;
          ++entry_index)
     {
-        const Image_Data_Directory* directory = read_data(&state, Image_Data_Directory);
+        const Image_Data_Directory* entry = read_data(&state, Image_Data_Directory);
         println("  {}:\n"
                 "    RVA  = 0x{base: 16}\n"
                 "    size = {} bytes",
                 global_data_directories_info[entry_index],
-                directory->table_relative_virtual_address,
-                directory->size_in_bytes);
+                entry->table_relative_virtual_address,
+                entry->size_in_bytes);
     }
 
     ASSERT(as_bytes(state.content.data) + state.current_offset - as_bytes(raw_optional_header)
@@ -509,8 +561,7 @@ main(int argc, const char* argv[])
                 "    file pointer to relocations: 0x{base: 16}\n"
                 "    file pointer to line number entries: 0x{base: 16}\n"
                 "    number of relocations: {}\n"
-                "    number of line numbers: {}\n"
-                "    characteristics: 0b{base: 2}\n",
+                "    number of line numbers: {}\n",
                 name,
                 section_header->memory_size_of_section_in_bytes,
                 section_header->relative_virtual_address_of_section,
@@ -519,8 +570,163 @@ main(int argc, const char* argv[])
                 section_header->file_pointer_to_relocations,
                 section_header->file_pointer_to_line_number_entries,
                 section_header->number_of_relocations,
-                section_header->number_of_line_numbers,
-                section_header->characteristics);
+                section_header->number_of_line_numbers);
+
+        println("    characteristics:");
+
+        {
+            if (section_header->characteristics & SECTION_SHOULD_NOT_BE_PADDED)
+            {
+                println("      should not be padded");
+            }
+
+            if (section_header->characteristics & SECTION_CONTAINS_CODE)
+            {
+                println("      contains code");
+            }
+
+            if (section_header->characteristics & SECTION_CONTAINS_INITIALISED_DATA)
+            {
+                println("      contains initialised data");
+            }
+
+            if (section_header->characteristics & SECTION_CONTAINS_UNINITIALISED_DATA)
+            {
+                println("      contains uninitialised data");
+            }
+
+            if (section_header->characteristics & SECTION_CONTAINS_INFO)
+            {
+                println("      contains comments or other information");
+            }
+
+            if (section_header->characteristics & SECTION_SHOULD_BE_REMOVED)
+            {
+                println("      will not become part of an image");
+            }
+
+            if (section_header->characteristics & SECTION_CONTAINS_COMDAT_DATA)
+            {
+                println("      contains COMDAT data");
+            }
+
+            if (section_header->characteristics & SECTION_CONTAINS_DATA_REFERENCED_THROUGH_GLOBAL_POINTER)
+            {
+                println("      contains data referenced through the global pointer");
+            }
+
+            if (section_header->characteristics & SECTION_ALIGN_1_BYTES)
+            {
+                println("      align data on 1-byte boundary");
+            }
+
+            if (section_header->characteristics & SECTION_ALIGN_2_BYTES)
+            {
+                println("      align data on 2-bytes boundary");
+            }
+
+            if (section_header->characteristics & SECTION_ALIGN_4_BYTES)
+            {
+                println("      align data on 4-bytes boundary");
+            }
+
+            if (section_header->characteristics & SECTION_ALIGN_8_BYTES)
+            {
+                println("      align data on 8-bytes boundary");
+            }
+
+            if (section_header->characteristics & SECTION_ALIGN_16_BYTES)
+            {
+                println("      align data on 16-bytes boundary");
+            }
+
+            if (section_header->characteristics & SECTION_ALIGN_32_BYTES)
+            {
+                println("      align data on 32-bytes boundary");
+            }
+
+            if (section_header->characteristics & SECTION_ALIGN_64_BYTES)
+            {
+                println("      align data on 64-bytes boundary");
+            }
+
+            if (section_header->characteristics & SECTION_ALIGN_128_BYTES)
+            {
+                println("      align data on 128-bytes boundary");
+            }
+
+            if (section_header->characteristics & SECTION_ALIGN_256_BYTES)
+            {
+                println("      align data on 256-bytes boundary");
+            }
+
+            if (section_header->characteristics & SECTION_ALIGN_512_BYTES)
+            {
+                println("      align data on 512-bytes boundary");
+            }
+
+            if (section_header->characteristics & SECTION_ALIGN_1024_BYTES)
+            {
+                println("      align data on 1024-bytes boundary");
+            }
+
+            if (section_header->characteristics & SECTION_ALIGN_2048_BYTES)
+            {
+                println("      align data on 2048-bytes boundary");
+            }
+
+            if (section_header->characteristics & SECTION_ALIGN_4096_BYTES)
+            {
+                println("      align data on 4096-bytes boundary");
+            }
+
+            if (section_header->characteristics & SECTION_ALIGN_8192_BYTES)
+            {
+                println("      align data on 8192-bytes boundary");
+            }
+
+            if (section_header->characteristics & SECTION_CONTAINS_EXTENDED_RELOCATIONS)
+            {
+                println("      contains extended relocations (their number exceeds 16 bits)");
+            }
+
+            if (section_header->characteristics & SECTION_CAN_BE_DISCARDED)
+            {
+                println("      can be discarded as needed");
+            }
+
+            if (section_header->characteristics & SECTION_CANNOT_BE_CACHED)
+            {
+                println("      cannot be cached");
+            }
+
+            if (section_header->characteristics & SECTION_CANNOT_BE_PAGED)
+            {
+                println("      cannot be paged");
+            }
+
+            if (section_header->characteristics & SECTION_CAN_BE_SHARED_IN_MEMORY)
+            {
+                println("      can be shared in memory");
+            }
+
+            if (section_header->characteristics & SECTION_CAN_BE_EXECUTED)
+            {
+                println("      can be executed");
+            }
+
+            if (section_header->characteristics & SECTION_CAN_BE_READ)
+            {
+                println("      can be read");
+            }
+
+            if (section_header->characteristics & (u32)(SECTION_CAN_BE_WRITTEN_TO))
+            {
+                println("      can be written to");
+            }
+        }
+
+        println("");
     }
 
     return EXIT_SUCCESS;
