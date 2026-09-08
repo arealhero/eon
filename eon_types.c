@@ -1028,7 +1028,7 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
         case AST_EXPRESSION_DEREFERENCE:
         {
             Ast_Unary_Expression* dereference = &expression->unary_expression;
-            ASSERT(strings_are_equal(dereference->operator.lexeme, string_view("*")));
+            ASSERT(strings_are_equal(dereference->operator.lexeme, "*"));
 
             const Expression_Result expression_result = resolve_types_in_expression(context, dereference->operand);
             ASSERT(type_id_is_defined(expression_result.type_id));

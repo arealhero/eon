@@ -70,7 +70,7 @@ main(const int argc, const char* argv[])
     {
         test_directory = string_view(argv[1]);
 
-        if (strings_are_equal(string_view(argv[2]), string_view("canonize")))
+        if (strings_are_equal(argv[2], "canonize"))
         {
             canonize_output = true;
         }

@@ -65,7 +65,7 @@ main(const int argc, const char* argv[])
     init_io_state(GiB(1));
 
     Bool show_stats_at_the_end = true;
-    if (argc >= 2 && strings_are_equal(string_view(argv[1]), string_view("--hide-stats")))
+    if (argc >= 2 && strings_are_equal(argv[1], "--hide-stats"))
     {
         show_stats_at_the_end = false;
     }
@@ -264,13 +264,12 @@ registry_register_test(Arena* arena,
 #define ASSERT_TRUE(expression) ASSERT_BOOLS_ARE_EQUAL(expression, true)
 #define ASSERT_FALSE(expression) ASSERT_BOOLS_ARE_EQUAL(expression, false)
 
-#define ASSERT_STRINGS_ARE_EQUAL(actual, expected)                      \
-    ASSERT_EQUAL_IMPL(strings_are_equal(string_view(actual),            \
-                                        string_view(expected)),         \
-                      actual,                                           \
-                      expected,                                         \
-                      DEFAULT_COMMENT,                                  \
-                      __FILE__,                                         \
+#define ASSERT_STRINGS_ARE_EQUAL(actual, expected)              \
+    ASSERT_EQUAL_IMPL(strings_are_equal((actual), (expected)),  \
+                      actual,                                   \
+                      expected,                                 \
+                      DEFAULT_COMMENT,                          \
+                      __FILE__,                                 \
                       __LINE__)
 
 #define ASSERT_FLOATS_ARE_EQUAL_WITH_EPS(actual, expected, eps) \

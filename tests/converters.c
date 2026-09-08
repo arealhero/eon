@@ -127,7 +127,8 @@ convert_tac_operand_to_string(Compilation_Context* context,
                 } break;
             }
 
-            ASSERT(!strings_are_equal(constant_string, string_view("")));
+            // TODO(vlad): Change this to 'ASSERT(constant_string.length != 0)'?
+            ASSERT(!strings_are_equal(constant_string, ""));
 
             append_string(builder, constant_string);
         } break;

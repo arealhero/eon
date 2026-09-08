@@ -513,11 +513,11 @@ lower_expression_to_tac(Compilation_Context* context,
                 Tac_Constant* constant = get_tac_constant_by_id(&context->tac, constant_id);
                 constant->kind = TAC_CONSTANT_BOOLEAN;
 
-                if (strings_are_equal(identifier_symbol->name, string_view("true")))
+                if (strings_are_equal(identifier_symbol->name, "true"))
                 {
                     constant->boolean_value = true;
                 }
-                else if (strings_are_equal(identifier_symbol->name, string_view("false")))
+                else if (strings_are_equal(identifier_symbol->name, "false"))
                 {
                     constant->boolean_value = false;
                 }

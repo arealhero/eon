@@ -459,7 +459,7 @@ check_grammar_soundness(const String_View grammar_filename, const String_View gr
 
             if (!non_terminal_was_used[definition_index]
               // FIXME(vlad): Make 'START' a special non-terminal and change its type to 'TOKEN_START' or something.
-                && !strings_are_equal(token->lexeme, string_view("START")))
+                && !strings_are_equal(token->lexeme, "START"))
             {
                 println("{}:{}:{}: Error: non-terminal '{}' is unused",
                         grammar_filename, token->line+1, token->column+1,

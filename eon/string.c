@@ -90,7 +90,7 @@ compare_strings(const String_View lhs, const String_View rhs)
 }
 
 maybe_unused internal Bool
-strings_are_equal(const String_View lhs, const String_View rhs)
+strings_are_equal_impl(const String_View lhs, const String_View rhs)
 {
     if (lhs.length != rhs.length) return false;
 

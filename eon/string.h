@@ -51,7 +51,8 @@ internal inline String_View INTERNAL_string_view_from_string(const String string
     )((arg))
 
 internal s32 compare_strings(const String_View lhs, const String_View rhs);
-internal Bool strings_are_equal(const String_View lhs, const String_View rhs);
+internal Bool strings_are_equal_impl(const String_View lhs, const String_View rhs);
+#define strings_are_equal(lhs, rhs) strings_are_equal_impl(string_view(lhs), string_view(rhs))
 
 internal String copy_string(struct Arena* const arena, const String_View string_to_copy);
 
