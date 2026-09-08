@@ -39,6 +39,10 @@ create_compilation_context(Compilation_Context* context,
     context->mir_edges_arena = acquire_arena_from_provider(arena_provider, string_view("mir-edges"), GiB(1), MiB(1));
     context->mir_instructions_arena = acquire_arena_from_provider(arena_provider, string_view("mir-instructions"), GiB(1), MiB(1));
     context->mir_operands_arena = acquire_arena_from_provider(arena_provider, string_view("mir-operands"), GiB(1), MiB(1));
+    context->mir_coalescing_hints_arena = acquire_arena_from_provider(arena_provider, string_view("mir-coalescing-hints"), GiB(1), MiB(1));
+
+    context->target_architecture = DEFAULT_TARGET_ARCHITECTURE;
+    context->calling_convention = DEFAULT_CALLING_CONVENTION;
 
     context->source_file = *source_file;
 }
@@ -98,6 +102,7 @@ destroy_compilation_context(Compilation_Context* context)
     release_arena_to_provider(context->arena_provider, context->mir_edges_arena);
     release_arena_to_provider(context->arena_provider, context->mir_instructions_arena);
     release_arena_to_provider(context->arena_provider, context->mir_operands_arena);
+    release_arena_to_provider(context->arena_provider, context->mir_coalescing_hints_arena);
 }
 
 internal Bool

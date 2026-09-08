@@ -8,7 +8,7 @@ simple_reassignment:
 parameter_reassignment:
        |
        | LABEL_2:
-     1 |           GET_PARAMETER       VREG 5, IMM 0
+     1 |           MOVE                VREG 5, RCX
      2 |           MOVE                VREG 6, IMM 20
      3 |           RETURN
 
@@ -16,7 +16,8 @@ returning_value_from_a_function:
        |
        | LABEL_3:
      1 |           MOVE                VREG 8, IMM 10
-     2 |           RETURN              VREG 8
+     2 |           MOVE                RAX, VREG 8
+     3 |           RETURN
 
 returning_mutable_value_from_a_function:
        |
@@ -24,7 +25,8 @@ returning_mutable_value_from_a_function:
      1 |           MOVE                VREG 10, IMM 10
      2 |           MOVE                VREG 11, IMM 20
      3 |           MOVE                VREG 12, IMM 30
-     4 |           RETURN              VREG 12
+     4 |           MOVE                RAX, VREG 12
+     5 |           RETURN
 
 simple_conditional_assignment:
        |
@@ -36,7 +38,8 @@ simple_conditional_assignment:
        |
        | LABEL_7:
      3 |           PHI                 VREG 16, VREG 14
-     4 |           RETURN              VREG 16
+     4 |           MOVE                RAX, VREG 16
+     5 |           RETURN
 
 conditional_assignment_of_multiple_variables:
        |
@@ -52,14 +55,27 @@ conditional_assignment_of_multiple_variables:
      5 |           PHI                 VREG 23, VREG 22
      6 |           PHI                 VREG 27, VREG 25
      7 |           ADD                 VREG 31, VREG 23, VREG 27
-     8 |           RETURN              VREG 31
+     8 |           MOVE                RAX, VREG 31
+     9 |           RETURN
 
 function_calls:
        |
        | LABEL_11:
-     1 |           CALL                simple_reassignment
-     2 |           CALL                VREG 33, returning_value_from_a_function
-     3 |           MOVE                VREG 35, VREG 33
-     4 |           CALL                parameter_reassignment, VREG 35
-     5 |           CALL                VREG 37, returning_value_from_a_function
-     6 |           RETURN              VREG 37
+     1 |           GROW_STACK          IMM 32
+     2 |           CALL                simple_reassignment
+     3 |           SHRINK_STACK        IMM 32
+     4 |           GROW_STACK          IMM 32
+     5 |           CALL                returning_value_from_a_function
+     6 |           MOVE                VREG 33, RAX
+     7 |           SHRINK_STACK        IMM 32
+     8 |           MOVE                VREG 35, VREG 33
+     9 |           MOVE                RCX, VREG 35
+    10 |           GROW_STACK          IMM 32
+    11 |           CALL                parameter_reassignment
+    12 |           SHRINK_STACK        IMM 32
+    13 |           GROW_STACK          IMM 32
+    14 |           CALL                returning_value_from_a_function
+    15 |           MOVE                VREG 37, RAX
+    16 |           SHRINK_STACK        IMM 32
+    17 |           MOVE                RAX, VREG 37
+    18 |           RETURN

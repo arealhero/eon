@@ -1,5 +1,6 @@
 #pragma once
 
+#include <eon/build_info.h>
 #include <eon/types.h>
 
 struct Compilation_Context;
@@ -54,3 +55,31 @@ struct Cfg_Block_Id
 typedef struct Cfg_Block_Id Cfg_Block_Id;
 
 struct Cfg_Block;
+
+enum Target_Architecture
+{
+    TARGET_ARCH_X86_64,
+    TARGET_ARCH_AARCH64,
+};
+typedef enum Target_Architecture Target_Architecture;
+
+enum Calling_Convention
+{
+    CALLING_CONVENTION_SYSTEM_V = 0,
+    CALLING_CONVENTION_MICROSOFT_X64,
+};
+typedef enum Calling_Convention Calling_Convention;
+
+#if ARCH_X86_64
+global_variable const Target_Architecture DEFAULT_TARGET_ARCHITECTURE = TARGET_ARCH_X86_64;
+#elif ARCH_ARM64
+global_variable const Target_Architecture DEFAULT_TARGET_ARCHITECTURE = TARGET_ARCH_AARCH64;
+#else
+#    error This architecture is not supported yet.
+#endif
+
+#if ARCH_X86_64 && OS_WINDOWS
+global_variable const Calling_Convention DEFAULT_CALLING_CONVENTION = CALLING_CONVENTION_MICROSOFT_X64;
+#else
+#    error This architecture and OS pair is not supported yet.
+#endif

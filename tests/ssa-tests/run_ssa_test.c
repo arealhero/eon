@@ -1,3 +1,5 @@
+// FIXME(vlad): Rename this file to something like 'run_pipeline_test' or 'run_ir_pipeline_test'.
+
 #include <eon/common.h>
 #include <eon/diff.h>
 #include <eon/memory.h>
@@ -18,7 +20,7 @@
 #include <eon_tac.h>
 #include <eon_types.h>
 
-#define ENABLE_TIMER 0
+#define ENABLE_TIMER 1
 
 #if ENABLE_TIMER
 #    define START_TIMER(name)                                           \
@@ -118,6 +120,10 @@ main(const int argc, const char* argv[])
         create_compilation_context(&context, &arena_provider, &source_file);
         END_TIMER(context_created, "Compilation context created");
     }
+
+    // FIXME(vlad): We should test all available calling conventions and architectures here.
+    context.calling_convention = CALLING_CONVENTION_MICROSOFT_X64;
+    context.target_architecture = TARGET_ARCH_X86_64;
 
     Bool test_failed = false;
 
@@ -259,6 +265,25 @@ main(const int argc, const char* argv[])
         test_failed = !success;
 
         END_TIMER(comparing_mir, "MIR processed");
+    }
+
+    START_TIMER(isa_constraints_gathering);
+    add_isa_constraints_to_mir(&context);
+    END_TIMER(isa_constraints_gathering, "ISA constraints added to MIR");
+
+    {
+        START_TIMER(comparing_mir_after_isa_constraints);
+        const String_View mir_string = convert_mir_to_string(ssa_string_arena, &context);
+        const String_View mir_filename = string_view(format_string(source_code_arena, "{}/after-isa-constraints.mir", test_directory));
+
+        const Bool success = compare_outputs_and_optionally_canonize(context.scratch_arena,
+                                                                     string_view("MIR"),
+                                                                     mir_filename,
+                                                                     mir_string,
+                                                                     canonize_output);
+        test_failed = !success;
+
+        END_TIMER(comparing_mir_after_isa_constraints, "Processed MIR after ISA constraints gathering");
     }
 
 cleanup:

@@ -21,14 +21,11 @@ enum Register_Kind
     REGISTER_GPR64,
     REGISTER_FP32,
     REGISTER_FP64,
-    REGISTER_FLAGS,
 };
 typedef enum Register_Kind Register_Kind;
 
 struct Virtual_Register
 {
-    Index sequence_number;
-
     Register_Kind kind;
     Index fixed_physical_register;
 };
@@ -51,7 +48,7 @@ struct MIR_Operand
 
     union
     {
-        Virtual_Register* virtual_register;
+        Index virtual_register_index;
         u64 immediate_value;
 
         struct MIR_Block* block;
@@ -61,8 +58,11 @@ typedef struct MIR_Operand MIR_Operand;
 
 enum MIR_Opcode
 {
-    MIR_NOP = 0,
+    MIR_UNDEFINED = 0,
 
+    MIR_NOP,
+
+    // TODO(vlad): Should we use ADD32/ADD64 instead?
     MIR_ADD,
     MIR_SUBTRACT,
     MIR_MULTIPLY,
@@ -84,6 +84,11 @@ enum MIR_Opcode
 
     MIR_GET_ADDRESS,
 
+    MIR_GROW_STACK,
+    MIR_SHRINK_STACK,
+
+    MIR_GET_PARAMETER,
+
     MIR_MOVE,
 
     MIR_JUMP,
@@ -98,7 +103,7 @@ typedef enum MIR_Opcode MIR_Opcode;
 
 struct MIR_PHI_Argument
 {
-    Virtual_Register* virtual_register;
+    Index virtual_register_index;
     struct MIR_Block* source_block;
 };
 typedef struct MIR_PHI_Argument MIR_PHI_Argument;
@@ -106,8 +111,18 @@ typedef struct MIR_PHI_Argument MIR_PHI_Argument;
 enum
 {
     MAX_DEFINITIONS_IN_MIR_INSTRUCTION = 3,
-    MAX_USES_IN_MIR_INSTRUCTION = 3, // NOTE(vlad): This does not include PHI nodes.
+    MAX_USES_IN_MIR_INSTRUCTION = 3,
+
+    MAX_IMPLICIT_DEFINITIONS_IN_MIR_INSTRUCTION = 7,
+    MAX_IMPLICIT_USES_IN_MIR_INSTRUCTION = 3,
 };
+
+struct Coalescing_Hint
+{
+    Index first_virtual_register_index;
+    Index second_virtual_register_index;
+};
+typedef struct Coalescing_Hint Coalescing_Hint;
 
 struct MIR_Instruction
 {
@@ -115,6 +130,14 @@ struct MIR_Instruction
     struct MIR_Instruction* next_instruction;
 
     MIR_Opcode opcode;
+
+    array(Coalescing_Hint, coalescing_hints);
+
+    MIR_Operand implicit_definitions[MAX_IMPLICIT_DEFINITIONS_IN_MIR_INSTRUCTION];
+    Size implicit_definitions_count;
+
+    MIR_Operand implicit_uses[MAX_IMPLICIT_USES_IN_MIR_INSTRUCTION];
+    Size implicit_uses_count;
 
     union
     {
@@ -185,3 +208,7 @@ struct MIR
 typedef struct MIR MIR;
 
 maybe_unused internal void lower_ssa_to_mir(struct Compilation_Context* context);
+maybe_unused internal void add_isa_constraints_to_mir(struct Compilation_Context* context);
+
+maybe_unused internal String_View physical_register_to_string(struct Compilation_Context* context,
+                                                              const Index physical_register);

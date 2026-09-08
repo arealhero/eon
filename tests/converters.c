@@ -572,11 +572,20 @@ convert_mir_operand_to_string(Compilation_Context* context,
         case MIR_OPERAND_VIRTUAL_REGISTER:
         {
             // TODO(vlad): Print register kind here.
-            const Virtual_Register* virtual_register = operand->virtual_register;
-            ASSERT(virtual_register->sequence_number != 0);
-            append_string(builder, format_string(context->scratch_arena,
-                                                 " VREG {}",
-                                                 virtual_register->sequence_number));
+
+            Virtual_Register* virtual_register = &context->mir.virtual_registers[operand->virtual_register_index];
+
+            if (virtual_register->fixed_physical_register == NO_REGISTER)
+            {
+                append_string(builder, format_string(context->scratch_arena,
+                                                     " VREG {}",
+                                                     operand->virtual_register_index + 1));
+            }
+            else
+            {
+                append_string(builder, " ");
+                append_string(builder, physical_register_to_string(context, virtual_register->fixed_physical_register));
+            }
         } break;
 
         case MIR_OPERAND_IMMEDIATE_VALUE:
@@ -654,6 +663,11 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
 
                 switch (instruction->opcode)
                 {
+                    case MIR_UNDEFINED:
+                    {
+                        UNREACHABLE();
+                    } break;
+
                     case MIR_NOP:
                     {
                         UNREACHABLE();
@@ -824,6 +838,38 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
                         FAIL("[MIR] GET_ADDRESS is not supported yet.");
                     } break;
 
+                    case MIR_GROW_STACK:
+                    {
+                        append_string(&builder, "          GROW_STACK         ");
+
+                        ASSERT(instruction->definitions_count == 0);
+                        ASSERT(instruction->uses_count == 1);
+
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                    } break;
+
+                    case MIR_SHRINK_STACK:
+                    {
+                        append_string(&builder, "          SHRINK_STACK       ");
+
+                        ASSERT(instruction->definitions_count == 0);
+                        ASSERT(instruction->uses_count == 1);
+
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                    } break;
+
+                    case MIR_GET_PARAMETER:
+                    {
+                        append_string(&builder, "          GET_PARAMETER      ");
+
+                        ASSERT(instruction->definitions_count == 1);
+                        ASSERT(instruction->uses_count == 1);
+
+                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        append_string(&builder, ",");
+                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                    } break;
+
                     case MIR_MOVE:
                     {
                         append_string(&builder, "          MOVE               ");
@@ -902,7 +948,7 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
 
                             MIR_Operand argument_operand = {0};
                             argument_operand.kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                            argument_operand.virtual_register = argument->virtual_register;
+                            argument_operand.virtual_register_index = argument->virtual_register_index;
 
                             convert_mir_operand_to_string(context, &builder, &argument_operand);
                         }
@@ -938,12 +984,13 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
 
                     case MIR_RETURN:
                     {
-                        append_string(&builder, "          RETURN             ");
+                        append_string(&builder, "          RETURN");
 
                         ASSERT(instruction->definitions_count == 0);
 
                         if (instruction->uses_count == 1)
                         {
+                            append_string(&builder, "             ");
                             convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
                         }
                         else
