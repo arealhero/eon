@@ -20,7 +20,7 @@
 #include <eon_tac.h>
 #include <eon_types.h>
 
-#define ENABLE_TIMER 1
+#define ENABLE_TIMER 0
 
 #if ENABLE_TIMER
 #    define START_TIMER(name)                                           \
