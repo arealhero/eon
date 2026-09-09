@@ -83,3 +83,61 @@
         CONCATENATE(stack, _count) -= 1;        \
     }                                           \
     while (0)
+
+// TODO(vlad): Speed up this implementation.
+#define set(Type, name) array(Type, name)
+#define local_set(Type, name) local_array(Type, name)
+
+#define set_insert(arena, set, Type, element)           \
+    do                                                  \
+    {                                                   \
+        Bool element_was_found = false;                 \
+        for (Index i = 0;                               \
+             i < CONCATENATE(set, _count);              \
+             ++i)                                       \
+        {                                               \
+            if ((set)[i] == (element))                  \
+            {                                           \
+                element_was_found = true;               \
+                break;                                  \
+            }                                           \
+        }                                               \
+                                                        \
+        if (!element_was_found)                         \
+        {                                               \
+            append_array(arena, set, Type, element);    \
+        }                                               \
+    }                                                   \
+    while (0)
+
+#define set_remove(set, Type, element)                          \
+    do                                                          \
+    {                                                           \
+        for (Index i = 0;                                       \
+             i < CONCATENATE(set, _count);                      \
+             ++i)                                               \
+        {                                                       \
+            if ((set)[i] == (element))                          \
+            {                                                   \
+                (set)[i] = (set)[CONCATENATE(set, _count) - 1]; \
+                remove_last_array_element(set, Type);           \
+            }                                                   \
+        }                                                       \
+    }                                                           \
+    while (0)
+
+#define set_copy(arena, destination, source, Type)                      \
+    do                                                                  \
+    {                                                                   \
+        ensure_array_has_enough_capacity(arena,                         \
+                                         destination,                   \
+                                         Type,                          \
+                                         CONCATENATE(source, _count));  \
+        for (Index i = 0;                                               \
+             i < CONCATENATE(source, _count);                           \
+             ++i)                                                       \
+        {                                                               \
+            append_array(arena, destination, Type, (source)[i]);        \
+        }                                                               \
+    }                                                                   \
+    while (0)
