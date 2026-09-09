@@ -71,6 +71,23 @@
     }                                                                   \
     while (0)
 
+#define reverse_array(array, Type)                      \
+    do                                                  \
+    {                                                   \
+        const Size count = CONCATENATE(array, _count);  \
+        for (Index i = 0;                               \
+             i < count / 2;                             \
+             ++i)                                       \
+        {                                               \
+            Type* lhs = &(array)[i];                    \
+            Type* rhs = &(array)[count - 1 - i];        \
+            Type temp = *lhs;                           \
+            *lhs = *rhs;                                \
+            *rhs = temp;                                \
+        }                                               \
+    }                                                   \
+    while (0)
+
 #define stack(Type, name) array(Type, name)
 #define local_stack(Type, name) local_array(Type, name)
 
