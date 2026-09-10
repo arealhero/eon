@@ -28,6 +28,103 @@ enum
     // TODO(vlad): Add aarch64.
 };
 
+internal String_View physical_register_to_string(Compilation_Context* context,
+                                                 const Index physical_register)
+{
+    switch (context->target_architecture)
+    {
+        case TARGET_ARCH_X86_64:
+        {
+            switch (physical_register)
+            {
+                case NO_REGISTER:
+                {
+                    FAIL("[MIR] Physical register was not defined");
+                } break;
+
+                case X86_64_RAX:
+                {
+                    return string_view("RAX");
+                } break;
+
+                case X86_64_RBX:
+                {
+                    return string_view("RBX");
+                } break;
+
+                case X86_64_RCX:
+                {
+                    return string_view("RCX");
+                } break;
+
+                case X86_64_RDX:
+                {
+                    return string_view("RDX");
+                } break;
+
+                case X86_64_RSI:
+                {
+                    return string_view("RSI");
+                } break;
+
+                case X86_64_RDI:
+                {
+                    return string_view("RDI");
+                } break;
+
+                case X86_64_R8:
+                {
+                    return string_view("R8");
+                } break;
+
+                case X86_64_R9:
+                {
+                    return string_view("R9");
+                } break;
+
+                case X86_64_R10:
+                {
+                    return string_view("R10");
+                } break;
+
+                case X86_64_R11:
+                {
+                    return string_view("R11");
+                } break;
+
+                case X86_64_R12:
+                {
+                    return string_view("R12");
+                } break;
+
+                case X86_64_R13:
+                {
+                    return string_view("R13");
+                } break;
+
+                case X86_64_R14:
+                {
+                    return string_view("R14");
+                } break;
+
+                case X86_64_R15:
+                {
+                    return string_view("R15");
+                } break;
+
+                default:
+                {
+                    FAIL("[MIR] Unknown physical register provided.");
+                } break;
+            }
+        } break;
+
+        case TARGET_ARCH_AARCH64:
+        {
+            FAIL("[MIR] This target architecture is not supported yet.");
+        } break;
+    }
+}
 internal inline MIR_Block*
 create_new_mir_block(Compilation_Context* context)
 {
@@ -37,23 +134,21 @@ create_new_mir_block(Compilation_Context* context)
 }
 
 internal inline Index
-create_virtual_register(Compilation_Context* context)
+create_virtual_register(MIR_Function* function)
 {
-    MIR* mir = &context->mir;
-    append_array(context->mir_virtual_registers_arena,
-                 mir->virtual_registers,
+    append_array(function->virtual_registers_arena,
+                 function->virtual_registers,
                  Virtual_Register,
                  (Virtual_Register){0});
-    return mir->virtual_registers_count - 1;
+    return function->virtual_registers_count - 1;
 }
 
 internal inline Index
 get_virtual_register_index_for_ssa_variable(Compilation_Context* context, const Tac_Variable_Id id)
 {
     Tac* tac = &context->tac;
-    MIR* mir = &context->mir;
 
-    ASSERT(INVALID_TAC_INDEX < id.index && id.index < mir->virtual_registers_count);
+    ASSERT(INVALID_TAC_INDEX < id.index && id.index < tac->variables_count);
 
     Tac_Variable* ssa_variable = get_tac_variable_by_id(tac, id);
 
@@ -61,7 +156,7 @@ get_virtual_register_index_for_ssa_variable(Compilation_Context* context, const 
     ASSERT(id.ssa_version != SSA_VERSION_UNSET);
     ASSERT(id.ssa_version <= ssa_variable->max_ssa_version);
 
-    return ssa_variable->mir_virtual_register_offset + id.ssa_version;
+    return ssa_variable->mir_virtual_register_offset + id.ssa_version - 1;
 }
 
 // FIXME(vlad): Accept MIR_Operand* instead of returning one and rename this function.
@@ -727,22 +822,38 @@ lower_ssa_to_mir(Compilation_Context* context)
     mir->functions = allocate_array(context->mir_functions_arena, tac->functions_count, MIR_Function);
     mir->functions_count = tac->functions_count;
 
-    // TODO(vlad): Reserve space for virtual registers.
-
-    for (Index variable_index = INVALID_TAC_INDEX + 1;
-         variable_index < tac->variables_count;
-         ++variable_index)
+    for (Index function_index = 0;
+         function_index < mir->functions_count;
+         ++function_index)
     {
-        Tac_Variable* ssa_variable = &tac->variables[variable_index];
-        ssa_variable->mir_virtual_register_offset = mir->virtual_registers_count;
+        Tac_Function* tac_function = &tac->functions[function_index];
+        MIR_Function* mir_function = &mir->functions[function_index];
 
-        ASSERT(ssa_variable->max_ssa_version != 0);
+        mir_function->ast_function_definition = tac_function->ast_function_definition;
+        mir_function->tac_function = tac_function;
 
-        for (Index version = 0;
-             version <= ssa_variable->max_ssa_version;
-             ++version)
+        mir_function->virtual_registers_arena = acquire_arena_from_provider(context->arena_provider,
+                                                                            string_view("mir-function-virtual-registers"),
+                                                                            GiB(1),
+                                                                            MiB(1));
+
+        // TODO(vlad): Reserve space for virtual registers.
+
+        for (Index variable_index = tac_function->first_tac_variable_index;
+             variable_index < tac_function->last_tac_variable_index;
+             ++variable_index)
         {
-            create_virtual_register(context);
+            Tac_Variable* ssa_variable = &tac->variables[variable_index];
+            ssa_variable->mir_virtual_register_offset = mir_function->virtual_registers_count;
+
+            ASSERT(ssa_variable->max_ssa_version != 0);
+
+            for (Index version = 1;
+                 version <= ssa_variable->max_ssa_version;
+                 ++version)
+            {
+                create_virtual_register(mir_function);
+            }
         }
     }
 
@@ -752,8 +863,6 @@ lower_ssa_to_mir(Compilation_Context* context)
     {
         Tac_Function* tac_function = &tac->functions[function_index];
         MIR_Function* mir_function = &mir->functions[function_index];
-
-        mir_function->ast_function_definition = tac_function->ast_function_definition;
 
         const Cfg_Block_Id entry_block_id = {0};
         MIR_Block** mir_blocks_map = allocate_array(context->scratch_arena, tac_function->cfg_blocks_count, MIR_Block*);
@@ -820,7 +929,7 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
                             MIR_Instruction* second_move_instruction = prepend_instruction(context, block, instruction);
                             second_move_instruction->opcode = MIR_MOVE;
 
-                            const Index temp_register_index = create_virtual_register(context);
+                            const Index temp_register_index = create_virtual_register(function);
 
                             MIR_Operand* temp_operand = add_new_def_operand(second_move_instruction);
                             temp_operand->kind = MIR_OPERAND_VIRTUAL_REGISTER;
@@ -872,9 +981,9 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
                     MIR_Operand rdx_operand = {0};
 
                     {
-                        const Index rax_register_index = create_virtual_register(context);
+                        const Index rax_register_index = create_virtual_register(function);
 
-                        Virtual_Register* rax_register = &context->mir.virtual_registers[rax_register_index];
+                        Virtual_Register* rax_register = &function->virtual_registers[rax_register_index];
                         rax_register->kind = REGISTER_GPR64;
                         rax_register->fixed_physical_register = X86_64_RAX;
 
@@ -883,9 +992,9 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
                     }
 
                     {
-                        const Index rdx_register_index = create_virtual_register(context);
+                        const Index rdx_register_index = create_virtual_register(function);
 
-                        Virtual_Register* rdx_register = &context->mir.virtual_registers[rdx_register_index];
+                        Virtual_Register* rdx_register = &function->virtual_registers[rdx_register_index];
                         rdx_register->kind = REGISTER_GPR64;
                         rdx_register->fixed_physical_register = X86_64_RDX;
 
@@ -1018,9 +1127,9 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
 
                             MIR_Operand abi_parameter = {0};
                             {
-                                const Index parameter_register_index = create_virtual_register(context);
+                                const Index parameter_register_index = create_virtual_register(function);
 
-                                Virtual_Register* parameter_register = &context->mir.virtual_registers[parameter_register_index];
+                                Virtual_Register* parameter_register = &function->virtual_registers[parameter_register_index];
                                 parameter_register->kind = REGISTER_GPR64;
                                 parameter_register->fixed_physical_register = argument_registers[parameter_index];
 
@@ -1102,9 +1211,9 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
 
                                 MIR_Operand abi_argument = {0};
                                 {
-                                    const Index argument_register_index = create_virtual_register(context);
+                                    const Index argument_register_index = create_virtual_register(function);
 
-                                    Virtual_Register* argument_register = &context->mir.virtual_registers[argument_register_index];
+                                    Virtual_Register* argument_register = &function->virtual_registers[argument_register_index];
                                     argument_register->kind = REGISTER_GPR64;
                                     argument_register->fixed_physical_register = argument_registers[argument_index];
 
@@ -1155,9 +1264,9 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
                             {
                                 MIR_Operand* operand = add_new_implicit_def_operand(instruction);
 
-                                const Index virtual_register_index = create_virtual_register(context);
+                                const Index virtual_register_index = create_virtual_register(function);
 
-                                Virtual_Register* virtual_register = &context->mir.virtual_registers[virtual_register_index];
+                                Virtual_Register* virtual_register = &function->virtual_registers[virtual_register_index];
                                 virtual_register->kind = REGISTER_GPR64;
                                 virtual_register->fixed_physical_register = caller_saved_registers[register_index];
 
@@ -1176,9 +1285,9 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
 
                                 MIR_Operand rax_operand = {0};
                                 {
-                                    const Index rax_register_index = create_virtual_register(context);
+                                    const Index rax_register_index = create_virtual_register(function);
 
-                                    Virtual_Register* rax_register = &context->mir.virtual_registers[rax_register_index];
+                                    Virtual_Register* rax_register = &function->virtual_registers[rax_register_index];
                                     rax_register->kind = REGISTER_GPR64;
                                     rax_register->fixed_physical_register = X86_64_RAX;
 
@@ -1248,9 +1357,9 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
 
                                 MIR_Operand rax_operand = {0};
                                 {
-                                    const Index rax_register_index = create_virtual_register(context);
+                                    const Index rax_register_index = create_virtual_register(function);
 
-                                    Virtual_Register* rax_register = &context->mir.virtual_registers[rax_register_index];
+                                    Virtual_Register* rax_register = &function->virtual_registers[rax_register_index];
                                     rax_register->kind = REGISTER_GPR64;
                                     rax_register->fixed_physical_register = X86_64_RAX;
 
@@ -1352,100 +1461,382 @@ add_isa_constraints_to_mir(Compilation_Context* context)
     }
 }
 
-internal String_View physical_register_to_string(Compilation_Context* context,
-                                                 const Index physical_register)
+struct MIR_Reverse_Post_Order
 {
-    switch (context->target_architecture)
+    array(MIR_Block*, blocks);
+    array(MIR_Block*, visited_blocks); // TODO(vlad): Move this out.
+};
+typedef struct MIR_Reverse_Post_Order MIR_Reverse_Post_Order;
+
+internal void
+visit_mir_blocks_in_post_order(Compilation_Context* context,
+                               MIR_Block* block,
+                               MIR_Reverse_Post_Order* rpo)
+{
+    for (Index block_index = 0;
+         block_index < rpo->visited_blocks_count;
+         ++block_index)
     {
-        case TARGET_ARCH_X86_64:
+        const MIR_Block* visited_block = rpo->visited_blocks[block_index];
+        if (visited_block == block)
         {
-            switch (physical_register)
-            {
-                case NO_REGISTER:
-                {
-                    FAIL("[MIR] Physical register was not defined");
-                } break;
+            return;
+        }
+    }
 
-                case X86_64_RAX:
-                {
-                    return string_view("RAX");
-                } break;
+    append_array(context->scratch_arena, rpo->visited_blocks, MIR_Block*, block);
 
-                case X86_64_RBX:
-                {
-                    return string_view("RBX");
-                } break;
+    for (Index successor_index = 0;
+         successor_index < block->successors_count;
+         ++successor_index)
+    {
+        MIR_Block* successor = block->successors[successor_index];
+        visit_mir_blocks_in_post_order(context, successor, rpo);
+    }
 
-                case X86_64_RCX:
-                {
-                    return string_view("RCX");
-                } break;
+    append_array(context->scratch_arena, rpo->blocks, MIR_Block*, block);
+}
 
-                case X86_64_RDX:
-                {
-                    return string_view("RDX");
-                } break;
+internal MIR_Reverse_Post_Order
+calculate_reverse_post_order_of_mir_blocks(Compilation_Context* context,
+                                           MIR_Function* function)
+{
+    MIR_Reverse_Post_Order reverse_post_order = {0};
+    visit_mir_blocks_in_post_order(context, function->entry_block, &reverse_post_order);
+    reverse_array(reverse_post_order.blocks, MIR_Block*);
+    return reverse_post_order;
+}
 
-                case X86_64_RSI:
-                {
-                    return string_view("RSI");
-                } break;
+internal MIR_Register_Bitset
+create_register_bitset(Compilation_Context* context,
+                       const Size number_of_virtual_registers)
+{
+    MIR_Register_Bitset bitset = {0};
+    const Size word_size_in_bits = size_of(bitset.words[0]) * 8;
+    const Size number_of_words_to_allocate = (number_of_virtual_registers + word_size_in_bits - 1) / word_size_in_bits;
+    bitset.words = allocate_array(context->scratch_arena, number_of_words_to_allocate, u64);
+    bitset.words_count = number_of_words_to_allocate;
+    return bitset;
+}
 
-                case X86_64_RDI:
-                {
-                    return string_view("RDI");
-                } break;
+internal inline void
+clear_register_bitset(MIR_Register_Bitset* bitset)
+{
+    fill_with_zeros(bitset->words, bitset->words_count, u64);
+}
 
-                case X86_64_R8:
-                {
-                    return string_view("R8");
-                } break;
+internal inline void
+set_register_bit(MIR_Register_Bitset* bitset, const Index virtual_register_index)
+{
+    const Size word_size_in_bits = size_of(bitset->words[0]) * 8;
 
-                case X86_64_R9:
-                {
-                    return string_view("R9");
-                } break;
+    const Index word_index = virtual_register_index / word_size_in_bits;
+    const Index bit_index = virtual_register_index % word_size_in_bits;
+    const u64 word_mask = (1ull << bit_index);
 
-                case X86_64_R10:
-                {
-                    return string_view("R10");
-                } break;
+    ASSERT(word_index < bitset->words_count);
 
-                case X86_64_R11:
-                {
-                    return string_view("R11");
-                } break;
+    bitset->words[word_index] |= word_mask;
+}
 
-                case X86_64_R12:
-                {
-                    return string_view("R12");
-                } break;
+internal inline void
+clear_register_bit(MIR_Register_Bitset* bitset, const Index virtual_register_index)
+{
+    const Size word_size_in_bits = size_of(bitset->words[0]) * 8;
 
-                case X86_64_R13:
-                {
-                    return string_view("R13");
-                } break;
+    const Index word_index = virtual_register_index / word_size_in_bits;
+    const Index bit_index = virtual_register_index % word_size_in_bits;
+    const u64 word_mask = (1ull << bit_index);
 
-                case X86_64_R14:
-                {
-                    return string_view("R14");
-                } break;
+    ASSERT(word_index < bitset->words_count);
 
-                case X86_64_R15:
-                {
-                    return string_view("R15");
-                } break;
+    bitset->words[word_index] &= ~word_mask;
+}
 
-                default:
-                {
-                    FAIL("[MIR] Unknown physical register provided.");
-                } break;
-            }
-        } break;
+internal inline Bool
+register_bit_is_set(MIR_Register_Bitset* bitset, const Index virtual_register_index)
+{
+    const Size word_size_in_bits = size_of(bitset->words[0]) * 8;
 
-        case TARGET_ARCH_AARCH64:
-        {
-            FAIL("[MIR] This target architecture is not supported yet.");
-        } break;
+    const Index word_index = virtual_register_index / word_size_in_bits;
+    const Index bit_index = virtual_register_index % word_size_in_bits;
+    const u64 word_mask = (1ull << bit_index);
+
+    ASSERT(word_index < bitset->words_count);
+
+    return (bitset->words[word_index] & word_mask) != 0;
+}
+
+internal inline void
+add_register_bitset(MIR_Register_Bitset* destination, const MIR_Register_Bitset* source)
+{
+    ASSERT(destination->words_count == source->words_count);
+
+    for (Index word_index = 0;
+         word_index < destination->words_count;
+         ++word_index)
+    {
+        destination->words[word_index] |= source->words[word_index];
     }
 }
+
+internal inline Bool
+register_bitsets_are_equal(const MIR_Register_Bitset* lhs, const MIR_Register_Bitset* rhs)
+{
+    ASSERT(lhs->words_count == rhs->words_count);
+    return memory_chunks_are_equal(as_bytes(lhs->words), as_bytes(rhs->words), lhs->words_count * size_of(lhs->words[0]));
+}
+
+internal inline MIR_Register_Bitset
+copy_register_bitset(Compilation_Context* context,
+                     const MIR_Register_Bitset* source)
+{
+    MIR_Register_Bitset copy = {0};
+    copy.words = allocate_array(context->scratch_arena, source->words_count, u64);
+    copy.words_count = source->words_count;
+    copy_memory(as_bytes(copy.words), as_bytes(source->words), source->words_count * size_of(copy.words[0]));
+    return copy;
+}
+
+struct Interference_Graph
+{
+    MIR_Register_Bitset* adjacent_registers_set;
+    Size number_of_virtual_registers;
+};
+typedef struct Interference_Graph Interference_Graph;
+
+internal void
+add_interference(Interference_Graph* graph,
+                 const Index lhs_virtual_register_index,
+                 const Index rhs_virtual_register_index)
+{
+    if (lhs_virtual_register_index == rhs_virtual_register_index)
+    {
+        // NOTE(vlad): Virtual register does not interfere with itself.
+        return;
+    }
+
+    set_register_bit(&graph->adjacent_registers_set[lhs_virtual_register_index], rhs_virtual_register_index);
+    set_register_bit(&graph->adjacent_registers_set[rhs_virtual_register_index], lhs_virtual_register_index);
+}
+
+internal void
+add_interference_with_live_registers(Interference_Graph* graph,
+                                     const Index virtual_register_index,
+                                     MIR_Register_Bitset* live_registers)
+{
+    const Size word_size_in_bits = size_of(live_registers->words[0]) * 8;
+
+    for (Index word_index = 0;
+         word_index < live_registers->words_count;
+         ++word_index)
+    {
+        u64 word = live_registers->words[word_index];
+
+        while (word != 0)
+        {
+            const Index first_set_bit_index = count_trailing_zero_bits(word);
+            const Index other_live_register_index = word_index * word_size_in_bits + first_set_bit_index;
+
+            add_interference(graph, virtual_register_index, other_live_register_index);
+
+            // NOTE(vlad): Clearing the first set bit.
+            word &= word - 1;
+        }
+    }
+}
+
+internal void
+allocate_registers(Compilation_Context* context)
+{
+    MIR* mir = &context->mir;
+
+    for (Index function_index = 0;
+         function_index < mir->functions_count;
+         ++function_index)
+    {
+        MIR_Function* function = &mir->functions[function_index];
+
+        MIR_Reverse_Post_Order reverse_post_order = calculate_reverse_post_order_of_mir_blocks(context, function);
+
+        for (Index block_index = 0;
+             block_index < reverse_post_order.blocks_count;
+             ++block_index)
+        {
+            MIR_Block* block = reverse_post_order.blocks[block_index];
+
+            block->live_in_registers = create_register_bitset(context, function->virtual_registers_count);
+            block->live_out_registers = create_register_bitset(context, function->virtual_registers_count);
+        }
+
+        // NOTE(vlad): Performing liveness analysis.
+        {
+            Bool some_set_was_changed = true;
+            while (some_set_was_changed)
+            {
+                some_set_was_changed = false;
+
+                for (Index block_index = reverse_post_order.blocks_count - 1;
+                     block_index >= 0;
+                     --block_index)
+                {
+                    MIR_Block* this_block = reverse_post_order.blocks[block_index];
+
+                    MIR_Register_Bitset current_live_out_registers = create_register_bitset(context,
+                                                                                            function->virtual_registers_count);
+
+                    // NOTE(vlad): Calculating live out registers.
+                    {
+                        for (Index successor_index = 0;
+                             successor_index < this_block->successors_count;
+                             ++successor_index)
+                        {
+                            MIR_Block* successor = this_block->successors[successor_index];
+                            add_register_bitset(&current_live_out_registers, &successor->live_in_registers);
+
+                            // NOTE(vlad): If the successor has PHI nodes corresponding to this block
+                            //             must be alive at the end of this block.
+                            for (MIR_Instruction* instruction = successor->first_instruction;
+                                 instruction != NULL && instruction->opcode == MIR_PHI;
+                                 instruction = instruction->next_instruction)
+                            {
+                                for (Index phi_argument_index = 0;
+                                     phi_argument_index < instruction->phi_arguments_count;
+                                     ++phi_argument_index)
+                                {
+                                    const MIR_PHI_Argument* argument = &instruction->phi_arguments[phi_argument_index];
+                                    if (argument->source_block == this_block)
+                                    {
+                                        set_register_bit(&current_live_out_registers, argument->virtual_register_index);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    MIR_Register_Bitset current_live_in_registers = copy_register_bitset(context,
+                                                                                         &current_live_out_registers);
+
+                    for (MIR_Instruction* instruction = this_block->last_instruction;
+                         instruction != NULL;
+                         instruction = instruction->previous_instruction)
+                    {
+                        // FIXME(vlad): Refactor this code.
+
+                        Bool should_process_implicit_definitions = true;
+                        Bool should_process_implicit_uses = true;
+
+                        switch (instruction->opcode)
+                        {
+                            case MIR_UNDEFINED:
+                            {
+                                UNREACHABLE();
+                            } break;
+
+                            case MIR_CALL:
+                            {
+                                // NOTE(vlad): Calls do not have explicit use/def lists.
+                            } break;
+
+                            case MIR_PHI:
+                            {
+                                should_process_implicit_uses = false;
+
+                                MIR_Operand* definition = &instruction->phi_definition;
+                                ASSERT(definition->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+
+                                clear_register_bit(&current_live_in_registers, definition->virtual_register_index);
+                            } break;
+
+                            default:
+                            {
+                                // NOTE(vlad): If virtual register was defined in the instruction then it was born here
+                                //             thus was not alive at the start of the current block.
+                                for (Index definition_index = 0;
+                                     definition_index < instruction->definitions_count;
+                                     ++definition_index)
+                                {
+                                    MIR_Operand* definition = &instruction->definitions[definition_index];
+                                    ASSERT(definition->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+
+                                    clear_register_bit(&current_live_in_registers, definition->virtual_register_index);
+                                }
+
+                                // NOTE(vlad): If virtual register was used here then it must be born before this instruction.
+                                for (Index use_index = 0;
+                                     use_index < instruction->uses_count;
+                                     ++use_index)
+                                {
+                                    MIR_Operand* use = &instruction->uses[use_index];
+                                    if (use->kind == MIR_OPERAND_VIRTUAL_REGISTER)
+                                    {
+                                        set_register_bit(&current_live_in_registers, use->virtual_register_index);
+                                    }
+                                }
+                            } break;
+                        }
+
+                        if (should_process_implicit_definitions)
+                        {
+                            for (Index definition_index = 0;
+                                 definition_index < instruction->implicit_definitions_count;
+                                 ++definition_index)
+                            {
+                                MIR_Operand* definition = &instruction->implicit_definitions[definition_index];
+                                ASSERT(definition->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+
+                                clear_register_bit(&current_live_in_registers, definition->virtual_register_index);
+                            }
+                        }
+
+                        if (should_process_implicit_uses)
+                        {
+                            for (Index use_index = 0;
+                                 use_index < instruction->implicit_uses_count;
+                                 ++use_index)
+                            {
+                                MIR_Operand* use = &instruction->implicit_uses[use_index];
+                                if (use->kind == MIR_OPERAND_VIRTUAL_REGISTER)
+                                {
+                                    set_register_bit(&current_live_in_registers, use->virtual_register_index);
+                                }
+                            }
+                        }
+                    }
+
+                    const Bool live_in_changed = !register_bitsets_are_equal(&current_live_in_registers,
+                                                                             &this_block->live_in_registers);
+                    const Bool live_out_changed = !register_bitsets_are_equal(&current_live_out_registers,
+                                                                             &this_block->live_out_registers);
+
+                    if (live_in_changed || live_out_changed)
+                    {
+                        some_set_was_changed = true;
+                        this_block->live_in_registers = current_live_in_registers;
+                        this_block->live_out_registers = current_live_out_registers;
+                    }
+                }
+            }
+        }
+
+        // NOTE(vlad): Building the interference graph.
+        {
+            Interference_Graph graph = {0};
+            graph.number_of_virtual_registers = function->virtual_registers_count;
+            graph.adjacent_registers_set = allocate_array(context->scratch_arena,
+                                                          graph.number_of_virtual_registers,
+                                                          MIR_Register_Bitset);
+
+            for (Index set_index = 0;
+                 set_index < graph.number_of_virtual_registers;
+                 ++set_index)
+            {
+                graph.adjacent_registers_set[set_index] = create_register_bitset(context,
+                                                                                 graph.number_of_virtual_registers);
+            }
+
+            // FIXME(vlad): Finish this.
+        }
+    }
+}
+

@@ -1,5 +1,6 @@
 #include "memory.h"
 
+#include <eon/build_info.h>
 #include <eon/io.h>
 #include <eon/platform/memory.h>
 #include <eon/sanitizers/asan.h>
@@ -51,6 +52,36 @@ fill_memory_with_zeros(Byte* memory, const Size number_of_bytes)
     {
         memory[i] = (Byte)0;
     }
+}
+
+internal inline Bool
+memory_chunks_are_equal(const Byte* lhs, const Byte* rhs, const Size number_of_bytes)
+{
+    for (Size byte_index = 0;
+         byte_index < number_of_bytes;
+         ++byte_index)
+    {
+        if (lhs[byte_index] != rhs[byte_index])
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// FIXME(vlad): Move this to 'compiler_builtins.h' or something.
+internal inline Size
+count_trailing_zero_bits(const u64 number)
+{
+#if COMPILER_GCC || COMPILER_CLANG
+    return __builtin_ctzll(number);
+#elif COMPILER_MSVC
+    // TODO(vlad): Use '_BitScanForward64' here.
+#    error This compiler is not supported yet.
+#else
+#    error This compiler is not supported yet.
+#endif
 }
 
 internal inline void

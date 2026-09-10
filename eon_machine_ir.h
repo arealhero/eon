@@ -175,6 +175,13 @@ struct MIR_Instruction
 };
 typedef struct MIR_Instruction MIR_Instruction;
 
+struct MIR_Register_Bitset
+{
+    u64* words;
+    Size words_count;
+};
+typedef struct MIR_Register_Bitset MIR_Register_Bitset;
+
 struct MIR_Block
 {
     Index sequence_number;
@@ -187,14 +194,22 @@ struct MIR_Block
 
     struct MIR_Block** successors;
     Size successors_count;
+
+    MIR_Register_Bitset live_in_registers;
+    MIR_Register_Bitset live_out_registers;
 };
 typedef struct MIR_Block MIR_Block;
 
 struct MIR_Function
 {
+    Arena* virtual_registers_arena;
+
     const Ast_Function_Definition* ast_function_definition;
+    const struct Tac_Function* tac_function;
 
     MIR_Block* entry_block;
+
+    array(Virtual_Register, virtual_registers);
 };
 typedef struct MIR_Function MIR_Function;
 
@@ -202,13 +217,12 @@ struct MIR
 {
     MIR_Function* functions;
     Size functions_count;
-
-    array(Virtual_Register, virtual_registers);
 };
 typedef struct MIR MIR;
 
-maybe_unused internal void lower_ssa_to_mir(struct Compilation_Context* context);
-maybe_unused internal void add_isa_constraints_to_mir(struct Compilation_Context* context);
-
 maybe_unused internal String_View physical_register_to_string(struct Compilation_Context* context,
                                                               const Index physical_register);
+
+maybe_unused internal void lower_ssa_to_mir(struct Compilation_Context* context);
+maybe_unused internal void add_isa_constraints_to_mir(struct Compilation_Context* context);
+maybe_unused internal void allocate_registers(struct Compilation_Context* context);

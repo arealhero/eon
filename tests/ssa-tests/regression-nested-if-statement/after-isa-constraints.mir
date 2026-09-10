@@ -1,13 +1,13 @@
 regression_nested_if_statement:
        |
        | LABEL_1:
-     1 |           MOVE                VREG 2, IMM 10
+     1 |           MOVE                VREG 1, IMM 10
      2 |           JUMP                LABEL_2
        |
        | LABEL_2:
      3 |           JUMP                LABEL_3
        |
        | LABEL_3:
-     4 |           MOVE                VREG 3, IMM 21
-     5 |           MOVE                RAX, VREG 3
+     4 |           MOVE                VREG 2, IMM 21
+     5 |           MOVE                RAX, VREG 2
      6 |           RETURN

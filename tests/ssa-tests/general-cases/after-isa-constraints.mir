@@ -1,61 +1,61 @@
 simple_reassignment:
        |
        | LABEL_1:
-     1 |           MOVE                VREG 2, IMM 10
-     2 |           MOVE                VREG 3, IMM 20
+     1 |           MOVE                VREG 1, IMM 10
+     2 |           MOVE                VREG 2, IMM 20
      3 |           RETURN
 
 parameter_reassignment:
        |
        | LABEL_2:
-     1 |           MOVE                VREG 5, RCX
-     2 |           MOVE                VREG 6, IMM 20
+     1 |           MOVE                VREG 1, RCX
+     2 |           MOVE                VREG 2, IMM 20
      3 |           RETURN
 
 returning_value_from_a_function:
        |
        | LABEL_3:
-     1 |           MOVE                VREG 8, IMM 10
-     2 |           MOVE                RAX, VREG 8
+     1 |           MOVE                VREG 1, IMM 10
+     2 |           MOVE                RAX, VREG 1
      3 |           RETURN
 
 returning_mutable_value_from_a_function:
        |
        | LABEL_4:
-     1 |           MOVE                VREG 10, IMM 10
-     2 |           MOVE                VREG 11, IMM 20
-     3 |           MOVE                VREG 12, IMM 30
-     4 |           MOVE                RAX, VREG 12
+     1 |           MOVE                VREG 1, IMM 10
+     2 |           MOVE                VREG 2, IMM 20
+     3 |           MOVE                VREG 3, IMM 30
+     4 |           MOVE                RAX, VREG 3
      5 |           RETURN
 
 simple_conditional_assignment:
        |
        | LABEL_5:
-     1 |           MOVE                VREG 14, IMM 10
+     1 |           MOVE                VREG 1, IMM 10
        |
        | LABEL_6:
      2 |           JUMP                LABEL_7
        |
        | LABEL_7:
-     3 |           PHI                 VREG 16, VREG 14
-     4 |           MOVE                RAX, VREG 16
+     3 |           PHI                 VREG 3, VREG 1
+     4 |           MOVE                RAX, VREG 3
      5 |           RETURN
 
 conditional_assignment_of_multiple_variables:
        |
        | LABEL_8:
-     1 |           MOVE                VREG 20, IMM 10
-     2 |           MOVE                VREG 25, IMM 11
+     1 |           MOVE                VREG 1, IMM 10
+     2 |           MOVE                VREG 5, IMM 11
        |
        | LABEL_9:
-     3 |           MOVE                VREG 22, IMM 30
+     3 |           MOVE                VREG 3, IMM 30
      4 |           JUMP                LABEL_10
        |
        | LABEL_10:
-     5 |           PHI                 VREG 23, VREG 22
-     6 |           PHI                 VREG 27, VREG 25
-     7 |           ADD                 VREG 31, VREG 23, VREG 27
-     8 |           MOVE                RAX, VREG 31
+     5 |           PHI                 VREG 4, VREG 3
+     6 |           PHI                 VREG 7, VREG 5
+     7 |           ADD                 VREG 9, VREG 4, VREG 7
+     8 |           MOVE                RAX, VREG 9
      9 |           RETURN
 
 function_calls:
@@ -66,16 +66,16 @@ function_calls:
      3 |           SHRINK_STACK        IMM 32
      4 |           GROW_STACK          IMM 32
      5 |           CALL                returning_value_from_a_function
-     6 |           MOVE                VREG 33, RAX
+     6 |           MOVE                VREG 1, RAX
      7 |           SHRINK_STACK        IMM 32
-     8 |           MOVE                VREG 35, VREG 33
-     9 |           MOVE                RCX, VREG 35
+     8 |           MOVE                VREG 2, VREG 1
+     9 |           MOVE                RCX, VREG 2
     10 |           GROW_STACK          IMM 32
     11 |           CALL                parameter_reassignment
     12 |           SHRINK_STACK        IMM 32
     13 |           GROW_STACK          IMM 32
     14 |           CALL                returning_value_from_a_function
-    15 |           MOVE                VREG 37, RAX
+    15 |           MOVE                VREG 3, RAX
     16 |           SHRINK_STACK        IMM 32
-    17 |           MOVE                RAX, VREG 37
+    17 |           MOVE                RAX, VREG 3
     18 |           RETURN

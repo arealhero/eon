@@ -105,6 +105,8 @@
 #define set(Type, name) array(Type, name)
 #define local_set(Type, name) local_array(Type, name)
 
+#define set_clear(set) CONCATENATE(set, _count) = 0
+
 #define set_insert(arena, set, Type, element)           \
     do                                                  \
     {                                                   \
@@ -143,9 +145,20 @@
     }                                                           \
     while (0)
 
+#define set_move(destination, source)                                   \
+    do                                                                  \
+    {                                                                   \
+        (destination) = (source);                                       \
+        CONCATENATE(destination, _count) = CONCATENATE(source, _count); \
+        CONCATENATE(destination, _capacity) = CONCATENATE(source, _capacity); \
+        set_clear(source);                                              \
+    }                                                                   \
+    while (0)
+
 #define set_copy(arena, destination, source, Type)                      \
     do                                                                  \
     {                                                                   \
+        set_clear(destination);                                         \
         ensure_array_has_enough_capacity(arena,                         \
                                          destination,                   \
                                          Type,                          \
@@ -157,4 +170,44 @@
             append_array(arena, destination, Type, (source)[i]);        \
         }                                                               \
     }                                                                   \
+    while (0)
+
+// FIXME(vlad): Speed up this mess of a code.
+#define sets_are_equal(lhs, rhs, Type, result)                  \
+    do                                                          \
+    {                                                           \
+        const Size lhs_count = CONCATENATE(lhs, _count);        \
+        const Size rhs_count = CONCATENATE(rhs, _count);        \
+        if (lhs_count != rhs_count)                             \
+        {                                                       \
+            *result = false;                                    \
+            break;                                              \
+        }                                                       \
+                                                                \
+        *result = true;                                         \
+        for (Index lhs_index = 0;                               \
+             lhs_index < lhs_count;                             \
+             ++lhs_index)                                       \
+        {                                                       \
+            const Type* lhs_element = &(lhs)[lhs_index];        \
+            Bool element_was_found = false;                     \
+            for (Index rhs_index = 0;                           \
+                 rhs_index < rhs_count;                         \
+                 ++rhs_index)                                   \
+            {                                                   \
+                const Type* rhs_element = &(rhs)[rhs_index];    \
+                if (*lhs_element == *rhs_element)               \
+                {                                               \
+                    element_was_found = true;                   \
+                    break;                                      \
+                }                                               \
+            }                                                   \
+                                                                \
+            if (!element_was_found)                             \
+            {                                                   \
+                *result = false;                                \
+                break;                                          \
+            }                                                   \
+        }                                                       \
+    }                                                           \
     while (0)

@@ -191,6 +191,7 @@ struct Tac_Function
     const Ast_Function_Definition* ast_function_definition;
     Tac_Function_Label_Id label_id;
 
+    // FIXME(vlad): Store Tac_Variables per-function?
     Index first_tac_variable_index;
     Index last_tac_variable_index; // NOTE(vlad): This index is not included.
 

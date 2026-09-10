@@ -561,6 +561,7 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
 internal void
 convert_mir_operand_to_string(Compilation_Context* context,
                               String_Builder* builder,
+                              const MIR_Function* mir_function,
                               const MIR_Operand* operand)
 {
     switch (operand->kind)
@@ -573,7 +574,7 @@ convert_mir_operand_to_string(Compilation_Context* context,
         {
             // TODO(vlad): Print register kind here.
 
-            Virtual_Register* virtual_register = &context->mir.virtual_registers[operand->virtual_register_index];
+            const Virtual_Register* virtual_register = &mir_function->virtual_registers[operand->virtual_register_index];
 
             if (virtual_register->fixed_physical_register == NO_REGISTER)
             {
@@ -680,11 +681,11 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->definitions_count == 1);
                         ASSERT(instruction->uses_count == 2);
 
-                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
                         append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
                         append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[1]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[1]);
                     } break;
 
                     case MIR_SUBTRACT:
@@ -694,11 +695,11 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->definitions_count == 1);
                         ASSERT(instruction->uses_count == 2);
 
-                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
                         append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
                         append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[1]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[1]);
                     } break;
 
                     case MIR_MULTIPLY:
@@ -708,11 +709,11 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->definitions_count == 1);
                         ASSERT(instruction->uses_count == 2);
 
-                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
                         append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
                         append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[1]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[1]);
                     } break;
 
                     case MIR_DIVIDE:
@@ -722,11 +723,11 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->definitions_count == 1);
                         ASSERT(instruction->uses_count == 2);
 
-                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
                         append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
                         append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[1]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[1]);
                     } break;
 
                     case MIR_EQUAL:
@@ -736,11 +737,11 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->definitions_count == 1);
                         ASSERT(instruction->uses_count == 2);
 
-                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
                         append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
                         append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[1]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[1]);
                     } break;
 
                     case MIR_NOT_EQUAL:
@@ -750,11 +751,11 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->definitions_count == 1);
                         ASSERT(instruction->uses_count == 2);
 
-                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
                         append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
                         append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[1]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[1]);
                     } break;
 
                     case MIR_LESS:
@@ -764,11 +765,11 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->definitions_count == 1);
                         ASSERT(instruction->uses_count == 2);
 
-                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
                         append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
                         append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[1]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[1]);
                     } break;
 
                     case MIR_LESS_OR_EQUAL:
@@ -778,11 +779,11 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->definitions_count == 1);
                         ASSERT(instruction->uses_count == 2);
 
-                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
                         append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
                         append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[1]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[1]);
                     } break;
 
                     case MIR_GREATER:
@@ -792,11 +793,11 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->definitions_count == 1);
                         ASSERT(instruction->uses_count == 2);
 
-                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
                         append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
                         append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[1]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[1]);
                     } break;
 
                     case MIR_GREATER_OR_EQUAL:
@@ -806,11 +807,11 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->definitions_count == 1);
                         ASSERT(instruction->uses_count == 2);
 
-                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
                         append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
                         append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[1]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[1]);
                     } break;
 
                     case MIR_LOAD32:
@@ -845,7 +846,7 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->definitions_count == 0);
                         ASSERT(instruction->uses_count == 1);
 
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
                     } break;
 
                     case MIR_SHRINK_STACK:
@@ -855,7 +856,7 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->definitions_count == 0);
                         ASSERT(instruction->uses_count == 1);
 
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
                     } break;
 
                     case MIR_GET_PARAMETER:
@@ -865,9 +866,9 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->definitions_count == 1);
                         ASSERT(instruction->uses_count == 1);
 
-                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
                         append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
                     } break;
 
                     case MIR_MOVE:
@@ -877,9 +878,9 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->definitions_count == 1);
                         ASSERT(instruction->uses_count == 1);
 
-                        convert_mir_operand_to_string(context, &builder, &instruction->definitions[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
                         append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
                     } break;
 
                     case MIR_JUMP:
@@ -892,7 +893,7 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
                         const MIR_Operand* destination = &instruction->uses[0];
                         ASSERT(destination->kind == MIR_OPERAND_BLOCK);
                         append_string(&builder, " ");
-                        convert_mir_operand_to_string(context, &builder, destination);
+                        convert_mir_operand_to_string(context, &builder, mir_function, destination);
                     } break;
 
                     case MIR_JUMP_IF_TRUE:
@@ -903,13 +904,13 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->uses_count == 2);
 
                         const MIR_Operand* condition = &instruction->uses[0];
-                        convert_mir_operand_to_string(context, &builder, condition);
+                        convert_mir_operand_to_string(context, &builder, mir_function, condition);
 
                         append_string(&builder, ", ");
 
                         const MIR_Operand* destination = &instruction->uses[1];
                         ASSERT(destination->kind == MIR_OPERAND_BLOCK);
-                        convert_mir_operand_to_string(context, &builder, destination);
+                        convert_mir_operand_to_string(context, &builder, mir_function, destination);
                     } break;
 
                     case MIR_JUMP_IF_FALSE:
@@ -920,13 +921,13 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->uses_count == 2);
 
                         const MIR_Operand* condition = &instruction->uses[0];
-                        convert_mir_operand_to_string(context, &builder, condition);
+                        convert_mir_operand_to_string(context, &builder, mir_function, condition);
 
                         append_string(&builder, ", ");
 
                         const MIR_Operand* destination = &instruction->uses[1];
                         ASSERT(destination->kind == MIR_OPERAND_BLOCK);
-                        convert_mir_operand_to_string(context, &builder, destination);
+                        convert_mir_operand_to_string(context, &builder, mir_function, destination);
                     } break;
 
                     case MIR_PHI:
@@ -937,7 +938,7 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
 
                         const MIR_Operand* definition = &instruction->phi_definition;
                         ASSERT(definition->kind == MIR_OPERAND_VIRTUAL_REGISTER);
-                        convert_mir_operand_to_string(context, &builder, definition);
+                        convert_mir_operand_to_string(context, &builder, mir_function, definition);
 
                         for (Index argument_index = 0;
                              argument_index < instruction->phi_arguments_count;
@@ -950,7 +951,7 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
                             argument_operand.kind = MIR_OPERAND_VIRTUAL_REGISTER;
                             argument_operand.virtual_register_index = argument->virtual_register_index;
 
-                            convert_mir_operand_to_string(context, &builder, &argument_operand);
+                            convert_mir_operand_to_string(context, &builder, mir_function, &argument_operand);
                         }
                     } break;
 
@@ -960,7 +961,10 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
 
                         if (instruction->has_return_value)
                         {
-                            convert_mir_operand_to_string(context, &builder, &instruction->return_operand);
+                            convert_mir_operand_to_string(context,
+                                                          &builder,
+                                                          mir_function,
+                                                          &instruction->return_operand);
                             append_string(&builder, ", ");
                         }
                         else
@@ -978,7 +982,7 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
                         {
                             MIR_Operand* argument = &instruction->function_arguments[argument_index];
                             append_string(&builder, ",");
-                            convert_mir_operand_to_string(context, &builder, argument);
+                            convert_mir_operand_to_string(context, &builder, mir_function, argument);
                         }
                     } break;
 
@@ -991,7 +995,7 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
                         if (instruction->uses_count == 1)
                         {
                             append_string(&builder, "             ");
-                            convert_mir_operand_to_string(context, &builder, &instruction->uses[0]);
+                            convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
                         }
                         else
                         {

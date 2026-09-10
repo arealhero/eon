@@ -76,6 +76,14 @@ test_set(Test_Context* test_context)
 
     local_set(s32, copy);
     set_copy(test_context->arena, copy, values, s32);
+    ASSERT_EQUAL(copy_count, 2);
+    ASSERT_EQUAL(copy[0], 1);
+    ASSERT_EQUAL(copy[1], 2);
+
+    set_copy(test_context->arena, copy, values, s32);
+    ASSERT_EQUAL(copy_count, 2);
+    ASSERT_EQUAL(copy[0], 1);
+    ASSERT_EQUAL(copy[1], 2);
 
     set_remove(values, s32, 1);
     ASSERT_EQUAL(values_count, 1);
@@ -88,10 +96,18 @@ test_set(Test_Context* test_context)
 
     ASSERT_EQUAL(copy_count, 2);
 
-    set_remove(copy, s32, 1);
-    ASSERT_EQUAL(copy_count, 1);
+    local_set(s32, second_copy);
+    set_move(second_copy, copy);
 
-    set_remove(copy, s32, 2);
+    ASSERT_EQUAL(second_copy_count, 2);
+    ASSERT_EQUAL(copy_count, 0);
+
+    set_move(copy, second_copy);
+
+    ASSERT_EQUAL(second_copy_count, 0);
+    ASSERT_EQUAL(copy_count, 2);
+
+    set_clear(copy);
     ASSERT_EQUAL(copy_count, 0);
 }
 
