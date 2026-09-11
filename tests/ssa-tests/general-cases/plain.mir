@@ -30,29 +30,31 @@ simple_conditional_assignment:
        |
        | LABEL_5:
      1 |           MOVE                VREG 1, IMM 10
+     2 |           JUMP                LABEL_6
        |
        | LABEL_6:
-     2 |           JUMP                LABEL_7
+     3 |           JUMP                LABEL_7
        |
        | LABEL_7:
-     3 |           PHI                 VREG 3, VREG 1
-     4 |           RETURN              VREG 3
+     4 |           PHI                 VREG 3, VREG 1
+     5 |           RETURN              VREG 3
 
 conditional_assignment_of_multiple_variables:
        |
        | LABEL_8:
      1 |           MOVE                VREG 1, IMM 10
      2 |           MOVE                VREG 5, IMM 11
+     3 |           JUMP                LABEL_9
        |
        | LABEL_9:
-     3 |           MOVE                VREG 3, IMM 30
-     4 |           JUMP                LABEL_10
+     4 |           MOVE                VREG 3, IMM 30
+     5 |           JUMP                LABEL_10
        |
        | LABEL_10:
-     5 |           PHI                 VREG 4, VREG 3
-     6 |           PHI                 VREG 7, VREG 5
-     7 |           ADD                 VREG 9, VREG 4, VREG 7
-     8 |           RETURN              VREG 9
+     6 |           PHI                 VREG 4, VREG 3
+     7 |           PHI                 VREG 7, VREG 5
+     8 |           ADD                 VREG 9, VREG 4, VREG 7
+     9 |           RETURN              VREG 9
 
 function_calls:
        |

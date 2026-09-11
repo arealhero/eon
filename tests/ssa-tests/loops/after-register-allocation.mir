@@ -1,0 +1,82 @@
+unreachable_while_loop:
+       |
+       | LABEL_1:
+     1 |           JUMP                LABEL_2
+       |
+       | LABEL_2:
+     2 |           MOVE                RAX, IMM 20
+     3 |           RETURN
+
+redundant_while_loop:
+       |
+       | LABEL_3:
+     1 |           JUMP                LABEL_4
+       |
+       | LABEL_4:
+     2 |           MOVE                RAX, IMM 10
+     3 |           RETURN
+
+redundant_continue:
+       |
+       | LABEL_5:
+     1 |           MOVE                RBX, IMM 10
+     2 |           JUMP                LABEL_6
+       |
+       | LABEL_6:
+     3 |           GREATER             RAX, RBX, IMM 0
+     4 |           JUMP_IF_FALSE       RAX, LABEL_8
+     5 |           JUMP                LABEL_7
+       |
+       | LABEL_7:
+     6 |           SUBTRACT            RAX, RBX, IMM 1
+     7 |           MOVE                RBX, RAX
+     8 |           JUMP                LABEL_6
+       |
+       | LABEL_8:
+     9 |           RETURN
+
+while_loops:
+       |
+       | LABEL_9:
+     1 |           JUMP                LABEL_10
+       |
+       | LABEL_10:
+     2 |           MOVE                RBX, IMM 10
+     3 |           JUMP                LABEL_11
+       |
+       | LABEL_11:
+     4 |           GREATER             RAX, RBX, IMM 0
+     5 |           JUMP_IF_FALSE       RAX, LABEL_13
+     6 |           JUMP                LABEL_13
+       |
+       | LABEL_12:
+     7 |           SUBTRACT            RAX, RBX, IMM 1
+     8 |           MOVE                RBX, RAX
+     9 |           JUMP                LABEL_11
+       |
+       | LABEL_13:
+    10 |           MOVE                RBX, IMM 20
+    11 |           JUMP                LABEL_14
+       |
+       | LABEL_14:
+    12 |           JUMP                LABEL_16
+       |
+       | LABEL_18:
+    13 |           SUBTRACT            RAX, RBX, IMM 1
+    14 |           MOVE                RBX, RAX
+    15 |           LESS                RAX, RBX, IMM 0
+    16 |           JUMP_IF_FALSE       RAX, LABEL_19
+    17 |           JUMP                LABEL_19
+       |
+       | LABEL_16:
+    18 |           MOVE                RAX, RBX
+    19 |           JUMP                LABEL_17
+       |
+       | LABEL_17:
+    20 |           RETURN
+       |
+       | LABEL_19:
+    21 |           JUMP                LABEL_15
+       |
+       | LABEL_15:
+    22 |           JUMP                LABEL_14

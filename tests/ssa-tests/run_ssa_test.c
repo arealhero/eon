@@ -286,6 +286,27 @@ main(const int argc, const char* argv[])
         END_TIMER(comparing_mir_after_isa_constraints, "Processed MIR after ISA constraints gathering");
     }
 
+    START_TIMER(register_allocation);
+    allocate_registers(&context);
+    END_TIMER(register_allocation, "Registers allocated");
+
+    {
+        START_TIMER(comparing_mir_after_register_allocation);
+        const String_View mir_string = convert_mir_to_string(ssa_string_arena, &context);
+        const String_View mir_filename = string_view(format_string(source_code_arena,
+                                                                   "{}/after-register-allocation.mir",
+                                                                   test_directory));
+
+        const Bool success = compare_outputs_and_optionally_canonize(context.scratch_arena,
+                                                                     string_view("MIR"),
+                                                                     mir_filename,
+                                                                     mir_string,
+                                                                     canonize_output);
+        test_failed = !success;
+
+        END_TIMER(comparing_mir_after_register_allocation, "Processed MIR after register allocation");
+    }
+
 cleanup:
     {
         START_TIMER(comparing_diagnostic_messages);

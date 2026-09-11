@@ -21,6 +21,8 @@ enum
     X86_64_R14 = 13,
     X86_64_R15 = 14,
 
+    X86_64_GPR_COUNT,
+
     // TODO(vlad): Add X86_64_RBP for optimized builds because we can omit frame pointers in that case and use RBP as a
     //             15th GPR. We should also consider supporting the '-fno-omit-frame-pointer' compilation option.
 
@@ -28,8 +30,54 @@ enum
     // TODO(vlad): Add aarch64.
 };
 
-internal String_View physical_register_to_string(Compilation_Context* context,
-                                                 const Index physical_register)
+internal Bool
+instruction_is_a_block_terminator(const MIR_Instruction* instruction)
+{
+    switch (instruction->opcode)
+    {
+        case MIR_UNDEFINED:
+        {
+            UNREACHABLE();
+        } break;
+
+        case MIR_JUMP:
+        case MIR_JUMP_IF_FALSE:
+        case MIR_RETURN:
+        {
+            return true;
+        } break;
+
+        case MIR_NOP:
+        case MIR_ADD:
+        case MIR_SUBTRACT:
+        case MIR_MULTIPLY:
+        case MIR_DIVIDE:
+        case MIR_EQUAL:
+        case MIR_NOT_EQUAL:
+        case MIR_LESS:
+        case MIR_LESS_OR_EQUAL:
+        case MIR_GREATER:
+        case MIR_GREATER_OR_EQUAL:
+        case MIR_LOAD32:
+        case MIR_STORE32:
+        case MIR_LOAD64:
+        case MIR_STORE64:
+        case MIR_GET_ADDRESS:
+        case MIR_GROW_STACK:
+        case MIR_SHRINK_STACK:
+        case MIR_GET_PARAMETER:
+        case MIR_MOVE:
+        case MIR_PHI:
+        case MIR_CALL:
+        {
+            return false;
+        } break;
+    }
+}
+
+internal String_View
+physical_register_to_string(Compilation_Context* context,
+                            const Index physical_register)
 {
     switch (context->target_architecture)
     {
@@ -144,6 +192,22 @@ create_virtual_register(MIR_Function* function)
 }
 
 internal inline Index
+create_stack_slot(MIR_Function* function, const Size size_in_bytes)
+{
+    MIR_Stack_Slot stack_slot = {0};
+    stack_slot.offset_in_bytes = function->current_stack_offset_in_bytes;
+    stack_slot.size_in_bytes = size_in_bytes;
+
+    function->current_stack_offset_in_bytes += size_in_bytes;
+
+    append_array(function->stack_slots_arena,
+                 function->stack_slots,
+                 MIR_Stack_Slot,
+                 stack_slot);
+    return function->stack_slots_count - 1;
+}
+
+internal inline Index
 get_virtual_register_index_for_ssa_variable(Compilation_Context* context, const Tac_Variable_Id id)
 {
     Tac* tac = &context->tac;
@@ -193,10 +257,10 @@ add_new_implicit_use_operand(MIR_Instruction* instruction)
 }
 
 internal inline void
-add_coalescing_hint(Compilation_Context* context,
-                    MIR_Instruction* instruction,
-                    const Index first_virtual_register_index,
-                    const Index second_virtual_register_index)
+add_coalescing_hint_to_instruction(Compilation_Context* context,
+                                   MIR_Instruction* instruction,
+                                   const Index first_virtual_register_index,
+                                   const Index second_virtual_register_index)
 {
     Coalescing_Hint hint = {0};
     hint.first_virtual_register_index = first_virtual_register_index;
@@ -360,21 +424,26 @@ lower_ssa_block_to_mir(Compilation_Context* context,
         instruction->phi_definition.kind = MIR_OPERAND_VIRTUAL_REGISTER;
         instruction->phi_definition.virtual_register_index
             = get_virtual_register_index_for_ssa_variable(context, phi_node->destination);
-        instruction->phi_arguments_count = phi_node->previous_variables_count;
-        instruction->phi_arguments = allocate_array(context->mir_operands_arena,
-                                                    instruction->phi_arguments_count,
-                                                    MIR_PHI_Argument);
 
         for (Index phi_argument_index = 0;
-             phi_argument_index < instruction->phi_arguments_count;
+             phi_argument_index < phi_node->previous_variables_count;
              ++phi_argument_index)
         {
-            MIR_PHI_Argument* argument = &instruction->phi_arguments[phi_argument_index];
-            argument->virtual_register_index
-                = get_virtual_register_index_for_ssa_variable(context, phi_node->previous_variables[phi_argument_index]);
+            const Tac_Variable_Id* previous_variable = &phi_node->previous_variables[phi_argument_index];
+
+            if (previous_variable->ssa_version == SSA_VERSION_UNSET)
+            {
+                continue;
+            }
+
+            MIR_PHI_Argument argument = {0};
+            argument.virtual_register_index = get_virtual_register_index_for_ssa_variable(context,
+                                                                                          phi_node->previous_variables[phi_argument_index]);
 
             const Cfg_Block_Id predecessor_block_id = this_ssa_block->predecessors[phi_argument_index];
-            argument->source_block = lower_ssa_block_to_mir(context, ssa_function, predecessor_block_id, mir_blocks_map);
+            argument.source_block = lower_ssa_block_to_mir(context, ssa_function, predecessor_block_id, mir_blocks_map);
+
+            append_array(context->mir_operands_arena, instruction->phi_arguments, MIR_PHI_Argument, argument);
         }
     }
 
@@ -609,7 +678,6 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                 use->block = lower_ssa_block_to_mir(context, ssa_function, destination_block_id, mir_blocks_map);
             } break;
 
-            case TAC_JUMP_IF_TRUE:
             case TAC_JUMP_IF_FALSE:
             {
                 ASSERT(ssa_destination->kind == TAC_OPERAND_LABEL);
@@ -620,18 +688,7 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                 const Cfg_Block_Id destination_block_id = context->tac.label_index_to_cfg_block_id_map[label_id.index];
 
                 MIR_Instruction* instruction = add_new_instruction_to_mir_block(context, this_block);
-                if (ssa_instruction->operation == TAC_JUMP_IF_TRUE)
-                {
-                    instruction->opcode = MIR_JUMP_IF_TRUE;
-                }
-                else if (ssa_instruction->operation == TAC_JUMP_IF_FALSE)
-                {
-                    instruction->opcode = MIR_JUMP_IF_FALSE;
-                }
-                else
-                {
-                    UNREACHABLE();
-                }
+                instruction->opcode = MIR_JUMP_IF_FALSE;
 
                 MIR_Operand* condition_operand = add_new_use_operand(instruction);
                 condition_operand->kind = MIR_OPERAND_VIRTUAL_REGISTER;
@@ -836,6 +893,10 @@ lower_ssa_to_mir(Compilation_Context* context)
                                                                             string_view("mir-function-virtual-registers"),
                                                                             GiB(1),
                                                                             MiB(1));
+        mir_function->stack_slots_arena = acquire_arena_from_provider(context->arena_provider,
+                                                                      string_view("mir-function-stack-slots"),
+                                                                      GiB(1),
+                                                                      MiB(1));
 
         // TODO(vlad): Reserve space for virtual registers.
 
@@ -955,10 +1016,10 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
                         ASSERT(destination->kind == MIR_OPERAND_VIRTUAL_REGISTER);
                         ASSERT(first_argument->kind == MIR_OPERAND_VIRTUAL_REGISTER);
 
-                        add_coalescing_hint(context,
-                                            instruction,
-                                            destination->virtual_register_index,
-                                            first_argument->virtual_register_index);
+                        add_coalescing_hint_to_instruction(context,
+                                                           instruction,
+                                                           destination->virtual_register_index,
+                                                           first_argument->virtual_register_index);
                     }
                 } break;
 
@@ -1148,6 +1209,29 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
                 case MIR_MOVE:
                 {
                     // NOTE(vlad): 'mov' instruction has no constraints.
+
+                    // NOTE(vlad): Adding coalescing hint so we could eliminate this move if possible.
+                    {
+                        ASSERT(instruction->definitions_count == 1);
+                        ASSERT(instruction->uses_count == 1);
+
+                        // NOTE(vlad): Sanity check.
+                        ASSERT(instruction->implicit_definitions_count == 0);
+                        ASSERT(instruction->implicit_uses_count == 0);
+
+                        MIR_Operand* destination = &instruction->definitions[0];
+                        MIR_Operand* first_argument = &instruction->uses[0];
+
+                        ASSERT(destination->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+
+                        if (first_argument->kind == MIR_OPERAND_VIRTUAL_REGISTER)
+                        {
+                            add_coalescing_hint_to_instruction(context,
+                                                               instruction,
+                                                               destination->virtual_register_index,
+                                                               first_argument->virtual_register_index);
+                        }
+                    }
                 } break;
 
                 case MIR_JUMP:
@@ -1155,7 +1239,6 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
                     // NOTE(vlad): 'jmp' instruction has no constraints.
                 } break;
 
-                case MIR_JUMP_IF_TRUE:
                 case MIR_JUMP_IF_FALSE:
                 {
                     // NOTE(vlad): We don't keep track of the EFLAGS, thus conditional jumps have no ISA-specific
@@ -1165,6 +1248,30 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
                 case MIR_PHI:
                 {
                     // NOTE(vlad): PHI instruction is not implemented in CPUs, thus it has no ISA-specific constraints.
+
+                    // NOTE(vlad): Adding coalescing hints so we can later remove redundant moves.
+                    {
+                        const MIR_Operand* definition = &instruction->phi_definition;
+                        ASSERT(definition->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+
+                        // NOTE(vlad): Sanity check.
+                        ASSERT(instruction->definitions_count == 0);
+                        ASSERT(instruction->uses_count == 0);
+
+                        ASSERT(instruction->implicit_definitions_count == 0);
+                        ASSERT(instruction->implicit_uses_count == 0);
+
+                        for (Index phi_argument_index = 0;
+                             phi_argument_index < instruction->phi_arguments_count;
+                             ++phi_argument_index)
+                        {
+                            const MIR_PHI_Argument* argument = &instruction->phi_arguments[phi_argument_index];
+                            add_coalescing_hint_to_instruction(context,
+                                                               instruction,
+                                                               definition->virtual_register_index,
+                                                               argument->virtual_register_index);
+                        }
+                    }
                 } break;
 
                 case MIR_CALL:
@@ -1181,14 +1288,14 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
 
                         case CALLING_CONVENTION_MICROSOFT_X64:
                         {
-                            local_persist Index argument_registers[] = {
+                            local_persist const Index argument_registers[] = {
                                 X86_64_RCX,
                                 X86_64_RDX,
                                 X86_64_R8,
                                 X86_64_R9,
                             };
 
-                            local_persist Index caller_saved_registers[] = {
+                            local_persist const Index caller_saved_registers[] = {
                                 X86_64_RAX,
                                 X86_64_RCX,
                                 X86_64_RDX,
@@ -1197,6 +1304,8 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
                                 X86_64_R10,
                                 X86_64_R11,
                             };
+
+                            local_persist const Index return_value_register = X86_64_RAX;
 
                             if (instruction->function_arguments_count > NUMBER_OF_STATIC_ARRAY_ELEMENTS(argument_registers))
                             {
@@ -1244,6 +1353,10 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
                             //             We will need a new MIR_OPERAND_STACK_SLOT kind of operand here.
 
                             // TODO(vlad): Align stack to 16 bytes.
+                            // TODO(vlad): We would want to use function->current_stack_offset for that but it is not
+                            //             possible until the registers are allocated because we have no idea when and
+                            //             what will be spilled on the stack. That said, we need to emit a GROW_STACK
+                            //             instruction here and patch it after register allocation is complete.
 
                             // NOTE(vlad): Allocating shadow space.
                             {
@@ -1257,6 +1370,8 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
                                 add_isa_constraints_to_mir_instruction(context, function, block, grow_instruction);
                             }
 
+                            MIR_Operand* return_value_operand = NULL;
+
                             // NOTE(vlad): Treat caller-saved registers as clobbered.
                             for (Index register_index = 0;
                                  register_index < NUMBER_OF_STATIC_ARRAY_ELEMENTS(caller_saved_registers);
@@ -1265,13 +1380,19 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
                                 MIR_Operand* operand = add_new_implicit_def_operand(instruction);
 
                                 const Index virtual_register_index = create_virtual_register(function);
+                                const Index physical_register = caller_saved_registers[register_index];
 
                                 Virtual_Register* virtual_register = &function->virtual_registers[virtual_register_index];
                                 virtual_register->kind = REGISTER_GPR64;
-                                virtual_register->fixed_physical_register = caller_saved_registers[register_index];
+                                virtual_register->fixed_physical_register = physical_register;
 
                                 operand->kind = MIR_OPERAND_VIRTUAL_REGISTER;
                                 operand->virtual_register_index = virtual_register_index;
+
+                                if (physical_register == return_value_register)
+                                {
+                                    return_value_operand = operand;
+                                }
                             }
 
                             MIR_Instruction* last_instruction = instruction;
@@ -1283,25 +1404,13 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
 
                                 const MIR_Operand* return_operand = &instruction->return_operand;
 
-                                MIR_Operand rax_operand = {0};
-                                {
-                                    const Index rax_register_index = create_virtual_register(function);
-
-                                    Virtual_Register* rax_register = &function->virtual_registers[rax_register_index];
-                                    rax_register->kind = REGISTER_GPR64;
-                                    rax_register->fixed_physical_register = X86_64_RAX;
-
-                                    rax_operand.kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                                    rax_operand.virtual_register_index = rax_register_index;
-                                }
-
                                 move_instruction->opcode = MIR_MOVE;
 
                                 MIR_Operand* move_destination = add_new_def_operand(move_instruction);
                                 *move_destination = *return_operand;
 
                                 MIR_Operand* move_argument = add_new_use_operand(move_instruction);
-                                *move_argument = rax_operand;
+                                *move_argument = *return_value_operand;
 
                                 add_isa_constraints_to_mir_instruction(context, function, block, move_instruction);
 
@@ -1598,6 +1707,17 @@ copy_register_bitset(Compilation_Context* context,
     return copy;
 }
 
+#define FOR_EACH_REGISTER_IN_SET(bitset, register_index)                \
+    for (Index word_index = 0;                                          \
+         word_index < (bitset)->words_count;                            \
+         ++word_index)                                                  \
+        for (u64 word = (bitset)->words[word_index];                    \
+             word != 0;                                                 \
+             word &= word - 1)                                          \
+            if (((register_index) = (word_index * (size_of((bitset)->words[0]) * 8) \
+                                      + count_trailing_zero_bits(word))), \
+                true)
+
 struct Interference_Graph
 {
     MIR_Register_Bitset* adjacent_registers_set;
@@ -1625,31 +1745,39 @@ add_interference_with_live_registers(Interference_Graph* graph,
                                      const Index virtual_register_index,
                                      MIR_Register_Bitset* live_registers)
 {
-    const Size word_size_in_bits = size_of(live_registers->words[0]) * 8;
-
-    for (Index word_index = 0;
-         word_index < live_registers->words_count;
-         ++word_index)
+    Index other_live_register_index = 0;
+    FOR_EACH_REGISTER_IN_SET(live_registers, other_live_register_index)
     {
-        u64 word = live_registers->words[word_index];
-
-        while (word != 0)
-        {
-            const Index first_set_bit_index = count_trailing_zero_bits(word);
-            const Index other_live_register_index = word_index * word_size_in_bits + first_set_bit_index;
-
-            add_interference(graph, virtual_register_index, other_live_register_index);
-
-            // NOTE(vlad): Clearing the first set bit.
-            word &= word - 1;
-        }
+        add_interference(graph, virtual_register_index, other_live_register_index);
     }
 }
+
+struct MIR_Perfect_Elimination_Order
+{
+    Index* virtual_register_indices;
+    Size virtual_register_indices_count;
+};
+typedef struct MIR_Perfect_Elimination_Order MIR_Perfect_Elimination_Order;
 
 internal void
 allocate_registers(Compilation_Context* context)
 {
     MIR* mir = &context->mir;
+
+    // TODO(vlad): Should we accept this as an argument?
+    Size available_registers_count = 0;
+    switch (context->target_architecture)
+    {
+        case TARGET_ARCH_X86_64:
+        {
+            available_registers_count = X86_64_GPR_COUNT;
+        } break;
+
+        case TARGET_ARCH_AARCH64:
+        {
+            FAIL("[MIR] This architecture is not supported yet.");
+        } break;
+    }
 
     for (Index function_index = 0;
          function_index < mir->functions_count;
@@ -1659,18 +1787,18 @@ allocate_registers(Compilation_Context* context)
 
         MIR_Reverse_Post_Order reverse_post_order = calculate_reverse_post_order_of_mir_blocks(context, function);
 
-        for (Index block_index = 0;
-             block_index < reverse_post_order.blocks_count;
-             ++block_index)
-        {
-            MIR_Block* block = reverse_post_order.blocks[block_index];
-
-            block->live_in_registers = create_register_bitset(context, function->virtual_registers_count);
-            block->live_out_registers = create_register_bitset(context, function->virtual_registers_count);
-        }
-
         // NOTE(vlad): Performing liveness analysis.
         {
+            for (Index block_index = 0;
+                 block_index < reverse_post_order.blocks_count;
+                 ++block_index)
+            {
+                MIR_Block* block = reverse_post_order.blocks[block_index];
+
+                block->live_in_registers = create_register_bitset(context, function->virtual_registers_count);
+                block->live_out_registers = create_register_bitset(context, function->virtual_registers_count);
+            }
+
             Bool some_set_was_changed = true;
             while (some_set_was_changed)
             {
@@ -1741,6 +1869,10 @@ allocate_registers(Compilation_Context* context)
                             case MIR_PHI:
                             {
                                 should_process_implicit_uses = false;
+
+                                // TODO(vlad): We probably do not need should_process_implicit_uses/defs.
+                                ASSERT(instruction->implicit_uses_count == 0);
+                                ASSERT(instruction->implicit_definitions_count == 0);
 
                                 MIR_Operand* definition = &instruction->phi_definition;
                                 ASSERT(definition->kind == MIR_OPERAND_VIRTUAL_REGISTER);
@@ -1819,9 +1951,10 @@ allocate_registers(Compilation_Context* context)
             }
         }
 
+        Interference_Graph graph = {0};
+
         // NOTE(vlad): Building the interference graph.
         {
-            Interference_Graph graph = {0};
             graph.number_of_virtual_registers = function->virtual_registers_count;
             graph.adjacent_registers_set = allocate_array(context->scratch_arena,
                                                           graph.number_of_virtual_registers,
@@ -1835,7 +1968,834 @@ allocate_registers(Compilation_Context* context)
                                                                                  graph.number_of_virtual_registers);
             }
 
-            // FIXME(vlad): Finish this.
+            for (Index block_index = 0;
+                 block_index < reverse_post_order.blocks_count;
+                 ++block_index)
+            {
+                MIR_Block* block = reverse_post_order.blocks[block_index];
+
+                MIR_Register_Bitset live_registers = copy_register_bitset(context, &block->live_out_registers);
+
+                for (MIR_Instruction* instruction = block->last_instruction;
+                     instruction != NULL;
+                     instruction = instruction->previous_instruction)
+                {
+                    // FIXME(vlad): Refactor this code.
+
+                    ASSERT(instruction->opcode != MIR_UNDEFINED);
+
+                    if (instruction->opcode == MIR_PHI)
+                    {
+                        // TODO(vlad): Merge definitions and phi_definition?
+                        ASSERT(instruction->definitions_count == 0);
+                        ASSERT(instruction->uses_count == 0);
+
+                        ASSERT(instruction->implicit_definitions_count == 0);
+                        ASSERT(instruction->implicit_uses_count == 0);
+
+                        const MIR_Operand* definition = &instruction->phi_definition;
+                        ASSERT(definition->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+
+                        const Index virtual_register_index = definition->virtual_register_index;
+                        add_interference_with_live_registers(&graph, virtual_register_index, &live_registers);
+                        clear_register_bit(&live_registers, virtual_register_index);
+                    }
+
+                    // NOTE(vlad): Adding these definitions to the interference graph.
+                    {
+                        for (Index definition_index = 0;
+                             definition_index < instruction->definitions_count;
+                             ++definition_index)
+                        {
+                            const MIR_Operand* definition = &instruction->definitions[definition_index];
+                            ASSERT(definition->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+                            add_interference_with_live_registers(&graph,
+                                                                 definition->virtual_register_index,
+                                                                 &live_registers);
+                        }
+
+                        for (Index definition_index = 0;
+                             definition_index < instruction->implicit_definitions_count;
+                             ++definition_index)
+                        {
+                            const MIR_Operand* definition = &instruction->implicit_definitions[definition_index];
+                            ASSERT(definition->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+                            add_interference_with_live_registers(&graph,
+                                                                 definition->virtual_register_index,
+                                                                 &live_registers);
+                        }
+                    }
+
+                    // NOTE(vlad): Removing definitions from live registers set.
+                    {
+                        for (Index definition_index = 0;
+                             definition_index < instruction->definitions_count;
+                             ++definition_index)
+                        {
+                            const MIR_Operand* definition = &instruction->definitions[definition_index];
+                            ASSERT(definition->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+                            clear_register_bit(&live_registers, definition->virtual_register_index);
+                        }
+
+                        for (Index definition_index = 0;
+                             definition_index < instruction->implicit_definitions_count;
+                             ++definition_index)
+                        {
+                            const MIR_Operand* definition = &instruction->implicit_definitions[definition_index];
+                            ASSERT(definition->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+                            clear_register_bit(&live_registers, definition->virtual_register_index);
+                        }
+                    }
+
+                    // NOTE(vlad): Adding uses to live registers set.
+                    {
+                        for (Index use_index = 0;
+                             use_index < instruction->uses_count;
+                             ++use_index)
+                        {
+                            const MIR_Operand* use = &instruction->uses[use_index];
+                            if (use->kind == MIR_OPERAND_VIRTUAL_REGISTER)
+                            {
+                                set_register_bit(&live_registers, use->virtual_register_index);
+                            }
+                        }
+
+                        for (Index use_index = 0;
+                             use_index < instruction->implicit_uses_count;
+                             ++use_index)
+                        {
+                            const MIR_Operand* use = &instruction->implicit_uses[use_index];
+                            if (use->kind == MIR_OPERAND_VIRTUAL_REGISTER)
+                            {
+                                set_register_bit(&live_registers, use->virtual_register_index);
+                            }
+                        }
+                    }
+                }
+
+                // TODO(vlad): Add a sanity check that live_registers set exactly equals to the live_in_registers of
+                //             this block.
+
+                // TODO(vlad): Can we move this out of the for-loop?
+                if (block == function->entry_block)
+                {
+                    // NOTE(vlad): Function arguments have no definitions, but must interfere with each other.
+                    Index argument_virtual_register_index = 0;
+                    FOR_EACH_REGISTER_IN_SET(&live_registers, argument_virtual_register_index)
+                    {
+                        add_interference_with_live_registers(&graph, argument_virtual_register_index, &live_registers);
+                    }
+                }
+            }
+        }
+
+        MIR_Perfect_Elimination_Order perfect_elimination_order = {0};
+
+        // NOTE(vlad): Computing PEO.
+        {
+            perfect_elimination_order.virtual_register_indices = allocate_array(context->scratch_arena,
+                                                                                function->virtual_registers_count,
+                                                                                Index);
+            perfect_elimination_order.virtual_register_indices_count = function->virtual_registers_count;
+
+            // NOTE(vlad): We are using Maximum Cardinality Search (MCS) to calculate the PEO.
+
+            Index* weights = allocate_array(context->scratch_arena, function->virtual_registers_count, Index);
+            Bool* register_was_selected = allocate_array(context->scratch_arena, function->virtual_registers_count, Bool);
+
+            for (Index order_index = 0;
+                 order_index < function->virtual_registers_count;
+                 ++order_index)
+            {
+                Index best_weight = -1;
+                Index best_register_index = -1;
+
+                for (Index register_index = 0;
+                     register_index < function->virtual_registers_count;
+                     ++register_index)
+                {
+                    if (!register_was_selected[register_index]
+                        && (weights[register_index] > best_weight))
+                    {
+                        best_weight = weights[register_index];
+                        best_register_index = register_index;
+                    }
+                }
+
+                ASSERT(best_weight != -1);
+                ASSERT(best_register_index != -1);
+
+                register_was_selected[best_register_index] = true;
+                perfect_elimination_order.virtual_register_indices[order_index] = best_register_index;
+
+                // NOTE(vlad): Incrementing weights of the best register's unselected neighbours.
+                {
+                    Index neighbour_index = 0;
+                    FOR_EACH_REGISTER_IN_SET(&graph.adjacent_registers_set[best_register_index], neighbour_index)
+                    {
+                        if (!register_was_selected[neighbour_index])
+                        {
+                            weights[neighbour_index] += 1;
+                        }
+                    }
+                }
+            }
+        }
+
+        Bool registers_were_spilled = false;
+
+        // NOTE(vlad): Coloring the interference graph.
+        {
+            local_array(Coalescing_Hint, coalescing_hints);
+            {
+                // NOTE(vlad): The order in which we traverse function blocks does not matter
+                //             so we can use the RPO since we've already built it.
+                for (Index block_index = 0;
+                     block_index < reverse_post_order.blocks_count;
+                     ++block_index)
+                {
+                    const MIR_Block* block = reverse_post_order.blocks[block_index];
+
+                    for (MIR_Instruction* instruction = block->first_instruction;
+                         instruction != NULL;
+                         instruction = instruction->next_instruction)
+                    {
+                        for (Index hint_index = 0;
+                             hint_index < instruction->coalescing_hints_count;
+                             ++hint_index)
+                        {
+                            append_array(context->scratch_arena,
+                                         coalescing_hints,
+                                         Coalescing_Hint,
+                                         instruction->coalescing_hints[hint_index]);
+                        }
+                    }
+                }
+            }
+
+            Bool* color_was_used = allocate_array(context->scratch_arena, available_registers_count, Bool);
+
+            for (Index order_index = perfect_elimination_order.virtual_register_indices_count - 1;
+                 order_index >= 0;
+                 --order_index)
+            {
+                const Index this_register_index = perfect_elimination_order.virtual_register_indices[order_index];
+
+                // NOTE(vlad): Computing what colors are used by interfering neighbours.
+                {
+                    // NOTE(vlad): Physical register indices start from 1.
+                    color_was_used[NO_REGISTER] = true;
+
+                    Index neighbour_index = 0;
+                    FOR_EACH_REGISTER_IN_SET(&graph.adjacent_registers_set[this_register_index], neighbour_index)
+                    {
+                        Virtual_Register* neighbour = &function->virtual_registers[neighbour_index];
+                        if (neighbour->assigned_physical_register != NO_REGISTER)
+                        {
+                            color_was_used[neighbour->assigned_physical_register] = true;
+                        }
+                    }
+                }
+
+                Virtual_Register* this_register = &function->virtual_registers[this_register_index];
+                if (this_register->fixed_physical_register != NO_REGISTER)
+                {
+                    // NOTE(vlad): ISA forces us to use the specified register here.
+
+                    const Index forced_color = this_register->fixed_physical_register;
+
+                    if (!color_was_used[forced_color])
+                    {
+                        this_register->assigned_physical_register = forced_color;
+                        goto color_next_virtual_register;
+                    }
+
+                    // NOTE(vlad): The specified register is not available so we need to find the
+                    //             neighbour that aquired it and try to recolor him.
+
+                    Index neighbour_index = 0;
+                    FOR_EACH_REGISTER_IN_SET(&graph.adjacent_registers_set[this_register_index], neighbour_index)
+                    {
+                        Virtual_Register* neighbour = &function->virtual_registers[neighbour_index];
+                        if (neighbour->assigned_physical_register == forced_color)
+                        {
+                            // NOTE(vlad): We have a conflict here, trying to recolor the neighbour.
+
+                            if (neighbour->assigned_physical_register == neighbour->fixed_physical_register)
+                            {
+                                // NOTE(vlad): Uh-oh, we cannot recolor the neighbour because the ISA forced us
+                                //             to pick this color. That means that the spilling is unavoidable, so
+                                //             we leave the neighbour alone.
+                                this_register->fixed_physical_register = SPILLED_TO_STACK;
+                                registers_were_spilled = true;
+                                goto color_next_virtual_register;
+                            }
+
+                            // NOTE(vlad): Sanity check: if the ISA forces us to choose the physical register
+                            //             then we MUST choose it.
+                            ASSERT(neighbour->fixed_physical_register == NO_REGISTER);
+
+                            Index new_color_of_neighbour = NO_REGISTER;
+                            for (Index color_index = 0;
+                                 color_index < available_registers_count;
+                                 ++color_index)
+                            {
+                                if (!color_was_used[color_index])
+                                {
+                                    // TODO(vlad): Check that this color can be chosen: for example, we cannot just use the GPR64 if we MUST use FP64.
+
+                                    new_color_of_neighbour = color_index;
+                                    break;
+                                }
+                            }
+
+                            if (new_color_of_neighbour == NO_REGISTER)
+                            {
+                                // NOTE(vlad): We have to spill here because there are no available physical registers
+                                //             left for the neighbour.
+                                neighbour->assigned_physical_register = SPILLED_TO_STACK;
+                                registers_were_spilled = true;
+                            }
+                            else
+                            {
+                                neighbour->assigned_physical_register = new_color_of_neighbour;
+                            }
+                        }
+                    }
+
+                    // NOTE(vlad): We can safely assign the forced color because all conflicting neighbours were
+                    //             recolored.
+                    this_register->assigned_physical_register = forced_color;
+                    goto color_next_virtual_register;
+                }
+
+                Index preferred_color = NO_REGISTER;
+                // NOTE(vlad): Looking at coalescing hints first so we could reuse the physical register.
+                {
+                    for (Index hint_index = 0;
+                         hint_index < coalescing_hints_count;
+                         ++hint_index)
+                    {
+                        const Coalescing_Hint* hint = &coalescing_hints[hint_index];
+
+                        Index other_register_index = -1;
+                        if (hint->first_virtual_register_index == this_register_index)
+                        {
+                            other_register_index = hint->second_virtual_register_index;
+                        }
+                        else if (hint->second_virtual_register_index == this_register_index)
+                        {
+                            other_register_index = hint->first_virtual_register_index;
+                        }
+
+                        if (other_register_index == -1)
+                        {
+                            continue;
+                        }
+
+                        Virtual_Register* other_register = &function->virtual_registers[other_register_index];
+                        const Index other_register_color = other_register->assigned_physical_register;
+
+                        if (other_register_color != NO_REGISTER && !color_was_used[other_register_color])
+                        {
+                            preferred_color = other_register_color;
+                            break;
+                        }
+                    }
+                }
+
+                Index chosen_color = preferred_color;
+                if (chosen_color == NO_REGISTER)
+                {
+                    for (Index color_index = 0;
+                         color_index < available_registers_count;
+                         ++color_index)
+                    {
+                        if (!color_was_used[color_index])
+                        {
+                            // TODO(vlad): Check that this color can be chosen: for example, we cannot just use the GPR64 if we MUST use FP64.
+
+                            chosen_color = color_index;
+                            break;
+                        }
+                    }
+                }
+
+                if (chosen_color != NO_REGISTER)
+                {
+                    this_register->assigned_physical_register = chosen_color;
+                }
+                else
+                {
+                    this_register->assigned_physical_register = SPILLED_TO_STACK;
+                    registers_were_spilled = true;
+                }
+
+        color_next_virtual_register:
+                fill_memory_with_zeros(as_bytes(color_was_used), size_of(color_was_used[0]) * available_registers_count);
+            }
+        }
+
+        if (registers_were_spilled)
+        {
+            FAIL("[MIR] Spilled virtual registers are not supported yet.");
+#if 0
+            // NOTE(vlad): We need to allocate stack slots for these registers.
+
+            // TODO(vlad): Experiment with multiple iterations:
+            //             1. Do the whole allocation pipeline
+            //             2. Try to color the interference graph
+            //             3. If some registers were spilled, insert STORE/LOAD instructions creating
+            //                a brand new virtual register after LOAD.
+            //             4. Loop until the number of spills reaches 0.
+            //
+            //             In our current implementation we just spill the virtual register onto stack for its entire
+            //             lifetime. The resulting code is slower than it can be but the register allocation
+            //             algorithm is simpler.
+
+            // NOTE(vlad): The order in which we iterate over registers does not matter
+            //             so we just reuse the PEO.
+            for (Index order_index = 0;
+                 order_index < perfect_elimination_order.virtual_register_indices_count;
+                 ++order_index)
+            {
+                const Index this_register_index = perfect_elimination_order.virtual_register_indices[order_index];
+
+                Virtual_Register* this_register = &function->virtual_registers[this_register_index];
+
+                if (this_register->fixed_physical_register == SPILLED_TO_STACK)
+                {
+                    const Index stack_slot = create_stack_slot(function, /* size_in_bytes */ 8);
+                    this_register->stack_slot_index = stack_slot;
+                }
+            }
+#endif
+        }
+
+        // NOTE(vlad): Eliminating PHI nodes.
+        {
+            Bool some_edge_was_splitted = false;
+
+            // NOTE(vlad): Splitting critical edges.
+            {
+                for (Index block_index = 0;
+                     block_index < reverse_post_order.blocks_count;
+                     ++block_index)
+                {
+                    MIR_Block* block = reverse_post_order.blocks[block_index];
+
+                    if (block->successors_count < 2)
+                    {
+                        continue;
+                    }
+
+                    for (Index successor_index = 0;
+                         successor_index < block->successors_count;
+                         ++successor_index)
+                    {
+                        MIR_Block* successor = block->successors[successor_index];
+
+                        if (successor->predecessors_count < 2)
+                        {
+                            continue;
+                        }
+
+                        // NOTE(vlad): 'block -> successor' edge is critical.
+
+                        some_edge_was_splitted = true;
+
+                        MIR_Block* split_block = create_new_mir_block(context);
+                        MIR_Instruction* jump_instruction = add_new_instruction_to_mir_block(context, split_block);
+                        {
+                            MIR_Operand* destination = add_new_use_operand(jump_instruction);
+                            destination->kind = MIR_OPERAND_BLOCK;
+                            destination->block = successor;
+                        }
+                        // TODO(vlad): Should we add ISA constraints here?
+
+                        split_block->successors = allocate_array(context->mir_edges_arena, 1, MIR_Block*);
+                        split_block->successors_count = 1;
+                        split_block->successors[0] = successor;
+
+                        split_block->predecessors = allocate_array(context->mir_edges_arena, 1, MIR_Block*);
+                        split_block->predecessors_count = 1;
+                        split_block->predecessors[0] = block;
+
+                        block->successors[successor_index] = split_block;
+
+                        for (Index predecessor_index = 0;
+                             predecessor_index < successor->predecessors_count;
+                             ++predecessor_index)
+                        {
+                            MIR_Block** predecessor = &successor->predecessors[predecessor_index];
+
+                            if (*predecessor == block)
+                            {
+                                *predecessor = split_block;
+                                break;
+                            }
+                        }
+
+                        for (MIR_Instruction* instruction = successor->first_instruction;
+                             instruction != NULL && instruction->opcode == MIR_PHI;
+                             instruction = instruction->next_instruction)
+                        {
+                            for (Index phi_argument_index = 0;
+                                 phi_argument_index < instruction->phi_arguments_count;
+                                 ++phi_argument_index)
+                            {
+                                MIR_PHI_Argument* argument = &instruction->phi_arguments[phi_argument_index];
+
+                                if (argument->source_block == block)
+                                {
+                                    argument->source_block = split_block;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (some_edge_was_splitted)
+            {
+                // NOTE(vlad): For simplicity's sake we recompute the RPO so we can easily traverse function blocks.
+                reverse_post_order = calculate_reverse_post_order_of_mir_blocks(context, function);
+            }
+
+            // NOTE(vlad): Converting PHI nodes to parallel copies.
+            {
+                for (Index block_index = 0;
+                     block_index < reverse_post_order.blocks_count;
+                     ++block_index)
+                {
+                    MIR_Block* block = reverse_post_order.blocks[block_index];
+
+                    MIR_Instruction* instruction = block->first_instruction;
+                    while (instruction != NULL && instruction->opcode == MIR_PHI)
+                    {
+                        MIR_Instruction* next_instruction = instruction->next_instruction;
+
+                        MIR_Operand* destination_operand = &instruction->phi_definition;
+                        ASSERT(destination_operand->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+
+                        for (Index phi_argument_index = 0;
+                             phi_argument_index < instruction->phi_arguments_count;
+                             ++phi_argument_index)
+                        {
+                            MIR_PHI_Argument* argument = &instruction->phi_arguments[phi_argument_index];
+
+                            const Index source_register_index = argument->virtual_register_index;
+                            MIR_Block* source_block = argument->source_block;
+
+                            const Virtual_Register* source_register = &function->virtual_registers[source_register_index];
+                            const Virtual_Register* destination_register
+                                = &function->virtual_registers[destination_operand->virtual_register_index];
+
+                            ASSERT(source_register->assigned_physical_register != NO_REGISTER);
+                            ASSERT(source_register->assigned_physical_register != SPILLED_TO_STACK);
+
+                            ASSERT(destination_register->assigned_physical_register != NO_REGISTER);
+                            ASSERT(destination_register->assigned_physical_register != SPILLED_TO_STACK);
+
+                            if (source_register->assigned_physical_register == destination_register->assigned_physical_register)
+                            {
+                                // NOTE(vlad): This copy will be removed as redundant anyway.
+                                continue;
+                            }
+
+                            MIR_Parallel_Copy copy = {0};
+                            copy.destination_virtual_register_index = destination_operand->virtual_register_index;
+                            copy.destination_physical_register = destination_register->assigned_physical_register;
+                            copy.source_virtual_register_index = source_register_index;
+                            copy.source_physical_register = source_register->assigned_physical_register;
+
+                            append_array(context->scratch_arena, source_block->parallel_copies, MIR_Parallel_Copy, copy);
+                        }
+
+                        // NOTE(vlad): Removing PHI node.
+                        {
+                            MIR_Instruction* previous_instruction = instruction->previous_instruction;
+
+                            // NOTE(vlad): MIR_PHI cannot be the last instruction of the block.
+                            ASSERT(next_instruction != NULL);
+                            ASSERT(previous_instruction == NULL);
+
+                            next_instruction->previous_instruction = NULL;
+                            block->first_instruction = next_instruction;
+                        }
+
+                        instruction = next_instruction;
+                    }
+                }
+            }
+
+            // NOTE(vlad): Resolving parallel copies.
+            {
+                for (Index block_index = 0;
+                     block_index < reverse_post_order.blocks_count;
+                     ++block_index)
+                {
+                    MIR_Block* block = reverse_post_order.blocks[block_index];
+
+                    MIR_Instruction* last_instruction = block->last_instruction;
+                    ASSERT(last_instruction != NULL);
+                    ASSERT(instruction_is_a_block_terminator(last_instruction));
+
+                    Size emitted_moves_count = 0;
+                    while (emitted_moves_count < block->parallel_copies_count)
+                    {
+                        Bool move_was_emitted = false;
+
+                        // NOTE(vlad): Finding safe copy to emit.
+                        for (Index copy_index = 0;
+                             copy_index < block->parallel_copies_count;
+                             ++copy_index)
+                        {
+                            MIR_Parallel_Copy* copy = &block->parallel_copies[copy_index];
+
+                            if (copy->move_instruction_was_emitted)
+                            {
+                                continue;
+                            }
+
+                            Bool is_safe_to_emit = true;
+                            for (Index other_copy_index = 0;
+                                 other_copy_index < block->parallel_copies_count;
+                                 ++other_copy_index)
+                            {
+                                MIR_Parallel_Copy* other_copy = &block->parallel_copies[other_copy_index];
+
+                                if (other_copy->move_instruction_was_emitted)
+                                {
+                                    continue;
+                                }
+
+                                if (other_copy->source_physical_register == copy->destination_physical_register)
+                                {
+                                    is_safe_to_emit = false;
+                                    break;
+                                }
+                            }
+
+                            if (is_safe_to_emit)
+                            {
+                                MIR_Instruction* move_instruction = prepend_instruction(context,
+                                                                                        block,
+                                                                                        last_instruction);
+                                move_instruction->opcode = MIR_MOVE;
+
+                                MIR_Operand* move_destination = add_new_def_operand(move_instruction);
+                                move_destination->kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                                move_destination->virtual_register_index = copy->destination_virtual_register_index;
+
+                                MIR_Operand* move_source = add_new_use_operand(move_instruction);
+                                move_source->kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                                move_source->virtual_register_index = copy->source_virtual_register_index;
+
+                                // TODO(vlad): Should we add ISA constraints here?
+
+                                copy->move_instruction_was_emitted = true;
+                                emitted_moves_count += 1;
+                                move_was_emitted = true;
+                            }
+                        }
+
+                        if (!move_was_emitted)
+                        {
+#if EON_DEBUG_BUILD
+                            println("[MIR] Found cycle during parallel copies resolution!");
+#endif
+                            // NOTE(vlad): We stuck in a cycle, breaking it.
+
+                            Index next_pending_copy_index = -1;
+                            for (Index copy_index = 0;
+                                 copy_index < block->parallel_copies_count;
+                                 ++copy_index)
+                            {
+                                MIR_Parallel_Copy* copy = &block->parallel_copies[copy_index];
+
+                                if (!copy->move_instruction_was_emitted)
+                                {
+                                    next_pending_copy_index = copy_index;
+                                    break;
+                                }
+                            }
+
+                            ASSERT(next_pending_copy_index != -1);
+                            MIR_Parallel_Copy* copy = &block->parallel_copies[next_pending_copy_index];
+
+                            if (copy->move_instruction_was_emitted)
+                            {
+                                continue;
+                            }
+
+                            const Index destination_virtual_register = copy->destination_virtual_register_index;
+                            const Index destination_physical_register = copy->destination_physical_register;
+
+                            // NOTE(vlad): Finding a safe scratch register.
+                            Bool* register_was_used = allocate_array(context->scratch_arena,
+                                                                     available_registers_count,
+                                                                     Bool);
+                            {
+                                register_was_used[NO_REGISTER] = true;
+
+                                Index alive_virtual_register_index = 0;
+                                FOR_EACH_REGISTER_IN_SET(&block->live_out_registers, alive_virtual_register_index)
+                                {
+                                    const Virtual_Register* virtual_register
+                                        = &function->virtual_registers[alive_virtual_register_index];
+
+                                    ASSERT(virtual_register->assigned_physical_register != NO_REGISTER);
+                                    ASSERT(virtual_register->assigned_physical_register != SPILLED_TO_STACK);
+
+                                    register_was_used[virtual_register->assigned_physical_register] = true;
+                                }
+                            }
+
+                            Index scratch_physical_register = NO_REGISTER;
+                            for (Index candidate_register = 0;
+                                 candidate_register < available_registers_count;
+                                 ++candidate_register)
+                            {
+                                if (!register_was_used[candidate_register])
+                                {
+                                    scratch_physical_register = candidate_register;
+                                    break;
+                                }
+                            }
+
+                            ASSERT(scratch_physical_register != NO_REGISTER);
+
+                            const Index scratch_virtual_register = create_virtual_register(function);
+                            {
+                                Virtual_Register* virtual_register
+                                    = &function->virtual_registers[scratch_virtual_register];
+                                virtual_register->fixed_physical_register = scratch_physical_register;
+                                virtual_register->assigned_physical_register = scratch_physical_register;
+                            }
+
+                            {
+                                MIR_Instruction* move_instruction = prepend_instruction(context,
+                                                                                        block,
+                                                                                        last_instruction);
+                                move_instruction->opcode = MIR_MOVE;
+
+                                MIR_Operand* move_destination = add_new_def_operand(move_instruction);
+                                move_destination->kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                                move_destination->virtual_register_index = scratch_virtual_register;
+
+                                MIR_Operand* move_source = add_new_use_operand(move_instruction);
+                                move_source->kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                                move_source->virtual_register_index = destination_virtual_register;
+
+                                // TODO(vlad): Should we add ISA constraints here?
+                            }
+
+                            // NOTE(vlad): Finding the other parallel copy that uses the destination virtual
+                            //             register and patch it to use the scratch register instead, thus breaking
+                            //             the cycle.
+                            Bool cycle_was_broken = false;
+                            for (Index other_copy_index = 0;
+                                 other_copy_index < block->parallel_copies_count;
+                                 ++other_copy_index)
+                            {
+                                MIR_Parallel_Copy* other_copy = &block->parallel_copies[other_copy_index];
+
+                                if (other_copy->move_instruction_was_emitted)
+                                {
+                                    continue;
+                                }
+
+                                if (other_copy->source_physical_register == destination_physical_register)
+                                {
+                                    if (cycle_was_broken)
+                                    {
+                                        FAIL("[MIR] The register was used in more than one parallel copy -- is it possible?");
+                                    }
+
+                                    other_copy->source_virtual_register_index = scratch_virtual_register;
+                                    other_copy->source_physical_register = scratch_physical_register;
+
+                                    cycle_was_broken = true;
+                                }
+                            }
+                        }
+                    }
+
+                    block->parallel_copies_count = 0;
+                }
+            }
+        }
+
+        // NOTE(vlad): Redundant move elimination pass.
+        {
+            // NOTE(vlad): The order in which we traverse function blocks does not matter
+            //             so we can use the RPO since we've already built it.
+            for (Index block_index = 0;
+                 block_index < reverse_post_order.blocks_count;
+                 ++block_index)
+            {
+                MIR_Block* block = reverse_post_order.blocks[block_index];
+
+                MIR_Instruction* instruction = block->first_instruction;
+                while (instruction != NULL)
+                {
+                    MIR_Instruction* next_instruction = instruction->next_instruction;
+
+                    // NOTE(vlad): Sanity check: there should be no PHI nodes left.
+                    ASSERT(instruction->opcode != MIR_PHI);
+
+                    if (instruction->opcode == MIR_MOVE)
+                    {
+                        ASSERT(instruction->definitions_count == 1);
+                        ASSERT(instruction->uses_count == 1);
+
+                        ASSERT(instruction->implicit_definitions_count == 0);
+                        ASSERT(instruction->implicit_uses_count == 0);
+
+                        const MIR_Operand* destination = &instruction->definitions[0];
+                        const MIR_Operand* source = &instruction->uses[0];
+
+                        ASSERT(destination->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+                        if (source->kind == MIR_OPERAND_VIRTUAL_REGISTER)
+                        {
+                            const Virtual_Register* destination_virtual_register
+                                = &function->virtual_registers[destination->virtual_register_index];
+                            const Virtual_Register* source_virtual_register
+                                = &function->virtual_registers[source->virtual_register_index];
+
+                            ASSERT(destination_virtual_register->assigned_physical_register != NO_REGISTER);
+                            ASSERT(source_virtual_register->assigned_physical_register != NO_REGISTER);
+
+                            // TODO(vlad): Remove these after stack slots support is added.
+                            ASSERT(destination_virtual_register->assigned_physical_register != SPILLED_TO_STACK);
+                            ASSERT(source_virtual_register->assigned_physical_register != SPILLED_TO_STACK);
+
+                            if (destination_virtual_register->assigned_physical_register == source_virtual_register->assigned_physical_register)
+                            {
+                                MIR_Instruction* previous_instruction = instruction->previous_instruction;
+
+                                // NOTE(vlad): MIR_MOVE cannot be the last instruction of the block.
+                                ASSERT(next_instruction != NULL);
+
+                                next_instruction->previous_instruction = previous_instruction;
+
+                                if (previous_instruction == NULL)
+                                {
+                                    block->first_instruction = next_instruction;
+                                }
+                                else
+                                {
+                                    previous_instruction->next_instruction = next_instruction;
+                                }
+                            }
+                        }
+                    }
+
+                    instruction = next_instruction;
+                }
+            }
         }
     }
 }

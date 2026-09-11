@@ -1,0 +1,23 @@
+parallel_copy:
+       |
+       | LABEL_1:
+     1 |           MOVE                VREG 1, IMM 1
+     2 |           MOVE                VREG 4, IMM 2
+     3 |           JUMP                LABEL_2
+       |
+       | LABEL_2:
+     4 |           PHI                 VREG 2, VREG 1, VREG 3
+     5 |           PHI                 VREG 5, VREG 4, VREG 6
+     6 |           PHI                 VREG 8, VREG 9
+     7 |           LESS                VREG 7, VREG 2, IMM 10
+     8 |           JUMP_IF_FALSE       VREG 7, LABEL_4
+     9 |           JUMP                LABEL_3
+       |
+       | LABEL_3:
+    10 |           MOVE                VREG 9, VREG 2
+    11 |           MOVE                VREG 3, VREG 5
+    12 |           MOVE                VREG 6, VREG 9
+    13 |           JUMP                LABEL_2
+       |
+       | LABEL_4:
+    14 |           RETURN

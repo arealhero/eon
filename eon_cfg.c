@@ -282,7 +282,6 @@ tac_operation_is_a_cfg_block_terminator(const Tac_Operation operation)
     switch (operation)
     {
         case TAC_JUMP:
-        case TAC_JUMP_IF_TRUE:
         case TAC_JUMP_IF_FALSE:
         case TAC_RETURN:
         {
@@ -440,7 +439,6 @@ construct_cfg_from_tac(Compilation_Context* context)
                     add_cfg_edge(tac_function, source_block_id, destination_block_id);
                 } break;
 
-                case TAC_JUMP_IF_TRUE:
                 case TAC_JUMP_IF_FALSE:
                 {
                     const Tac_Label_Id destination_label_id = last_instruction->destination.label_id;

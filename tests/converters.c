@@ -463,19 +463,6 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
                     } break;
 
-                    case TAC_JUMP_IF_TRUE:
-                    {
-                        append_string(&builder, "          JUMP_IF_TRUE    ");
-
-                        ASSERT(instruction->destination.kind == TAC_OPERAND_LABEL);
-                        ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
-                        ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
-
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, ",");
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
-                    } break;
-
                     case TAC_JUMP_IF_FALSE:
                     {
                         append_string(&builder, "          JUMP_IF_FALSE   ");
@@ -576,16 +563,23 @@ convert_mir_operand_to_string(Compilation_Context* context,
 
             const Virtual_Register* virtual_register = &mir_function->virtual_registers[operand->virtual_register_index];
 
-            if (virtual_register->fixed_physical_register == NO_REGISTER)
+            if (virtual_register->assigned_physical_register != NO_REGISTER)
+            {
+                ASSERT(virtual_register->assigned_physical_register != SPILLED_TO_STACK);
+
+                append_string(builder, " ");
+                append_string(builder, physical_register_to_string(context, virtual_register->assigned_physical_register));
+            }
+            else if (virtual_register->fixed_physical_register != NO_REGISTER)
+            {
+                append_string(builder, " ");
+                append_string(builder, physical_register_to_string(context, virtual_register->fixed_physical_register));
+            }
+            else
             {
                 append_string(builder, format_string(context->scratch_arena,
                                                      " VREG {}",
                                                      operand->virtual_register_index + 1));
-            }
-            else
-            {
-                append_string(builder, " ");
-                append_string(builder, physical_register_to_string(context, virtual_register->fixed_physical_register));
             }
         } break;
 
@@ -603,6 +597,11 @@ convert_mir_operand_to_string(Compilation_Context* context,
             append_string(builder, format_string(context->scratch_arena,
                                                  "LABEL_{}",
                                                  block->sequence_number));
+        } break;
+
+        case MIR_OPERAND_STACK_SLOT:
+        {
+            FAIL("Stack slots are not supported yet.");
         } break;
     }
 }
@@ -655,6 +654,30 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
                     ASSERT(instruction->uses_count == 0);
 
                     continue;
+                }
+
+                if (instruction == block->last_instruction)
+                {
+                    for (Index parallel_copy_index = 0;
+                         parallel_copy_index < block->parallel_copies_count;
+                         ++parallel_copy_index)
+                    {
+                        MIR_Parallel_Copy* copy = &block->parallel_copies[parallel_copy_index];
+
+                        MIR_Operand destination = {0};
+                        destination.kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                        destination.virtual_register_index = copy->destination_virtual_register_index;
+
+                        MIR_Operand source = {0};
+                        source.kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                        source.virtual_register_index = copy->source_virtual_register_index;
+
+                        append_string(&builder, "       |           PARALLEL_COPY      ");
+                        convert_mir_operand_to_string(context, &builder, mir_function, &destination);
+                        append_string(&builder, ",");
+                        convert_mir_operand_to_string(context, &builder, mir_function, &source);
+                        append_string(&builder, "\n");
+                    }
                 }
 
                 append_string(&builder, format_string(context->scratch_arena,
@@ -893,23 +916,6 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
                         const MIR_Operand* destination = &instruction->uses[0];
                         ASSERT(destination->kind == MIR_OPERAND_BLOCK);
                         append_string(&builder, " ");
-                        convert_mir_operand_to_string(context, &builder, mir_function, destination);
-                    } break;
-
-                    case MIR_JUMP_IF_TRUE:
-                    {
-                        append_string(&builder, "          JUMP_IF_TRUE       ");
-
-                        ASSERT(instruction->definitions_count == 0);
-                        ASSERT(instruction->uses_count == 2);
-
-                        const MIR_Operand* condition = &instruction->uses[0];
-                        convert_mir_operand_to_string(context, &builder, mir_function, condition);
-
-                        append_string(&builder, ", ");
-
-                        const MIR_Operand* destination = &instruction->uses[1];
-                        ASSERT(destination->kind == MIR_OPERAND_BLOCK);
                         convert_mir_operand_to_string(context, &builder, mir_function, destination);
                     } break;
 

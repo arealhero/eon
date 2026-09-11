@@ -7,8 +7,9 @@ non_trivial_conditional:
      1 |           RETURN           CONSTANT bool TRUE
 
 then_branch_elimination:
-     1 | LABEL_1:
-     2 |           RETURN           CONSTANT s32 20
+     1 |           JUMP             LABEL_1
+     2 | LABEL_1:
+     3 |           RETURN           CONSTANT s32 20
 
 else_branch_elimination:
      1 |           JUMP             LABEL_6

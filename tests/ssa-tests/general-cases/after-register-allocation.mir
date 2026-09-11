@@ -1,0 +1,71 @@
+simple_reassignment:
+       |
+       | LABEL_1:
+     1 |           MOVE                RAX, IMM 10
+     2 |           MOVE                RAX, IMM 20
+     3 |           RETURN
+
+parameter_reassignment:
+       |
+       | LABEL_2:
+     1 |           MOVE                RAX, IMM 20
+     2 |           RETURN
+
+returning_value_from_a_function:
+       |
+       | LABEL_3:
+     1 |           MOVE                RAX, IMM 10
+     2 |           RETURN
+
+returning_mutable_value_from_a_function:
+       |
+       | LABEL_4:
+     1 |           MOVE                RAX, IMM 10
+     2 |           MOVE                RAX, IMM 20
+     3 |           MOVE                RAX, IMM 30
+     4 |           RETURN
+
+simple_conditional_assignment:
+       |
+       | LABEL_5:
+     1 |           MOVE                RAX, IMM 10
+     2 |           JUMP                LABEL_6
+       |
+       | LABEL_6:
+     3 |           JUMP                LABEL_7
+       |
+       | LABEL_7:
+     4 |           RETURN
+
+conditional_assignment_of_multiple_variables:
+       |
+       | LABEL_8:
+     1 |           MOVE                RAX, IMM 10
+     2 |           MOVE                RAX, IMM 11
+     3 |           JUMP                LABEL_9
+       |
+       | LABEL_9:
+     4 |           MOVE                RBX, IMM 30
+     5 |           JUMP                LABEL_10
+       |
+       | LABEL_10:
+     6 |           ADD                 RAX, RBX, RAX
+     7 |           RETURN
+
+function_calls:
+       |
+       | LABEL_11:
+     1 |           GROW_STACK          IMM 32
+     2 |           CALL                simple_reassignment
+     3 |           SHRINK_STACK        IMM 32
+     4 |           GROW_STACK          IMM 32
+     5 |           CALL                returning_value_from_a_function
+     6 |           SHRINK_STACK        IMM 32
+     7 |           MOVE                RCX, RAX
+     8 |           GROW_STACK          IMM 32
+     9 |           CALL                parameter_reassignment
+    10 |           SHRINK_STACK        IMM 32
+    11 |           GROW_STACK          IMM 32
+    12 |           CALL                returning_value_from_a_function
+    13 |           SHRINK_STACK        IMM 32
+    14 |           RETURN

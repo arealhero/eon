@@ -659,6 +659,12 @@ emit_diagnostic_message_about_unused_ssa_version(Compilation_Context* context,
              ++argument_index)
         {
             const Tac_Variable_Id argument_id = phi_node->previous_variables[argument_index];
+
+            if (argument_id.ssa_version == SSA_VERSION_UNSET)
+            {
+                continue;
+            }
+
             ASSERT(argument_id.index != INVALID_TAC_INDEX);
             ASSERT(argument_id.ssa_version != SSA_VERSION_UNDEFINED);
 
@@ -1127,7 +1133,7 @@ remove_unreachable_jumps(Compilation_Context* context)
                  instruction != NULL;
                  instruction = instruction->next_instruction)
             {
-                if (instruction->operation != TAC_JUMP_IF_TRUE && instruction->operation != TAC_JUMP_IF_FALSE)
+                if (instruction->operation != TAC_JUMP_IF_FALSE)
                 {
                     continue;
                 }
@@ -1145,56 +1151,32 @@ remove_unreachable_jumps(Compilation_Context* context)
 
                 switch (instruction->operation)
                 {
-                    case TAC_JUMP_IF_TRUE:
-                    {
-                        if (constant->boolean_value)
-                        {
-                            // NOTE(vlad): Removing fall through edge.
-
-                            Tac_Instruction* last_instruction = this_block->last_tac_instruction;
-                            ASSERT(last_instruction != NULL);
-                            ASSERT(last_instruction->operation = TAC_JUMP);
-
-                            ASSERT(last_instruction->previous_instruction != NULL);
-                            last_instruction->previous_instruction->next_instruction = NULL;
-
-                            const Tac_Instruction* next_instruction = this_block->next_after_last_tac_instruction;
-                            ASSERT(next_instruction != NULL);
-
-                            for (Index successor_index = 0;
-                                 successor_index < this_block->edges_count;
-                                 ++successor_index)
-                            {
-                                const Cfg_Block_Id successor_id = this_block->edges[successor_index];
-                                Cfg_Block* successor = get_cfg_block_by_id(tac_function, successor_id);
-
-                                if (successor->first_tac_instruction == next_instruction)
-                                {
-                                    remove_edge(this_block, successor_id);
-                                    remove_predecessor(successor, this_block_id);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            const Tac_Label_Id label_id = instruction->destination.label_id;
-                            const Cfg_Block_Id destination_block_id = tac->label_index_to_cfg_block_id_map[label_id.index];
-
-                            Cfg_Block* destination_block = get_cfg_block_by_id(tac_function, destination_block_id);
-
-                            remove_edge(this_block, destination_block_id);
-                            remove_predecessor(destination_block, this_block_id);
-
-                            // TODO(vlad): Actually remove this instruction.
-                            instruction->operation = TAC_NOP;
-                            instruction->destination.kind = TAC_OPERAND_NONE;
-                            instruction->first_argument.kind = TAC_OPERAND_NONE;
-                            instruction->second_argument.kind = TAC_OPERAND_NONE;
-                        }
-                    } break;
-
                     case TAC_JUMP_IF_FALSE:
                     {
+                        // NOTE(vlad): Sanity checks.
+                        {
+                            Tac_Instruction* last_instruction = this_block->last_tac_instruction;
+                            ASSERT(last_instruction != NULL);
+                            ASSERT(last_instruction->operation == TAC_JUMP);
+                            ASSERT(last_instruction->previous_instruction == instruction);
+
+                            const Tac_Label_Id conditional_jump_label_id = instruction->destination.label_id;
+                            const Cfg_Block_Id conditional_jump_destination_block_id
+                                = tac->label_index_to_cfg_block_id_map[conditional_jump_label_id.index];
+
+                            const Cfg_Block* conditional_jump_destination_block
+                                = get_cfg_block_by_id(tac_function, conditional_jump_destination_block_id);
+
+                            const Tac_Label_Id unconditional_jump_label_id = last_instruction->destination.label_id;
+                            const Cfg_Block_Id unconditional_jump_destination_block_id
+                                = tac->label_index_to_cfg_block_id_map[unconditional_jump_label_id.index];
+
+                            const Cfg_Block* unconditional_jump_destination_block
+                                = get_cfg_block_by_id(tac_function, unconditional_jump_destination_block_id);
+
+                            ASSERT(conditional_jump_destination_block != unconditional_jump_destination_block);
+                        }
+
                         if (constant->boolean_value)
                         {
                             const Tac_Label_Id label_id = instruction->destination.label_id;
@@ -1204,40 +1186,49 @@ remove_unreachable_jumps(Compilation_Context* context)
 
                             remove_edge(this_block, destination_block_id);
                             remove_predecessor(destination_block, this_block_id);
+
+                            Tac_Instruction* next_instruction = instruction->next_instruction;
+                            Tac_Instruction* previous_instruction = instruction->previous_instruction;
+
+                            if (next_instruction != NULL)
+                            {
+                                next_instruction->previous_instruction = previous_instruction;
+                            }
+                            else
+                            {
+                                this_block->last_tac_instruction = previous_instruction;
+                            }
+
+                            if (previous_instruction != NULL)
+                            {
+                                previous_instruction->next_instruction = next_instruction;
+                            }
+                            else
+                            {
+                                this_block->first_tac_instruction = next_instruction;
+                            }
                         }
                         else
                         {
-                            // NOTE(vlad): Removing fall through edge.
+                            instruction->next_instruction = NULL;
+                            instruction->operation = TAC_JUMP;
+                            instruction->first_argument = (Tac_Operand){0};
 
                             Tac_Instruction* last_instruction = this_block->last_tac_instruction;
                             ASSERT(last_instruction != NULL);
-                            ASSERT(last_instruction->operation = TAC_JUMP);
+                            ASSERT(last_instruction->operation == TAC_JUMP);
+                            ASSERT(last_instruction->previous_instruction == instruction);
 
-                            ASSERT(last_instruction->previous_instruction != NULL);
-                            last_instruction->previous_instruction->next_instruction = NULL;
+                            const Tac_Label_Id unconditional_jump_label_id = last_instruction->destination.label_id;
+                            const Cfg_Block_Id unconditional_jump_destination_block_id
+                                = tac->label_index_to_cfg_block_id_map[unconditional_jump_label_id.index];
 
-                            const Tac_Instruction* next_instruction = this_block->next_after_last_tac_instruction;
-                            ASSERT(next_instruction != NULL);
+                            Cfg_Block* unconditional_jump_destination_block
+                                = get_cfg_block_by_id(tac_function, unconditional_jump_destination_block_id);
 
-                            for (Index successor_index = 0;
-                                 successor_index < this_block->edges_count;
-                                 ++successor_index)
-                            {
-                                const Cfg_Block_Id successor_id = this_block->edges[successor_index];
-                                Cfg_Block* successor = get_cfg_block_by_id(tac_function, successor_id);
-
-                                if (successor->first_tac_instruction == next_instruction)
-                                {
-                                    remove_edge(this_block, successor_id);
-                                    remove_predecessor(successor, this_block_id);
-                                }
-                            }
+                            remove_edge(this_block, unconditional_jump_destination_block_id);
+                            remove_predecessor(unconditional_jump_destination_block, this_block_id);
                         }
-
-                        instruction->operation = TAC_NOP;
-                        instruction->destination.kind = TAC_OPERAND_NONE;
-                        instruction->first_argument.kind = TAC_OPERAND_NONE;
-                        instruction->second_argument.kind = TAC_OPERAND_NONE;
                     } break;
 
                     default:

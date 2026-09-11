@@ -13,9 +13,10 @@ non_trivial_conditional:
 then_branch_elimination:
        |
        | LABEL_3:
+     1 |           JUMP                LABEL_4
        |
        | LABEL_4:
-     1 |           RETURN              IMM 20
+     2 |           RETURN              IMM 20
 
 else_branch_elimination:
        |

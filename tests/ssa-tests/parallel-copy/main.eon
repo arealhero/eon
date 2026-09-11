@@ -1,0 +1,15 @@
+parallel_copy: () -> void =
+{
+    a: mutable _ = 1;
+    b: mutable _ = 2;
+
+    while a < 10
+    {
+        temp := a;
+        a = b;
+        b = temp;
+
+        // TODO(vlad): This code emits 4 MOVE instructions here, although 3 is enough.
+        //             Take a look at what is going on here (look at PHI elimination pass).
+    }
+}

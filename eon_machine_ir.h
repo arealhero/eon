@@ -12,6 +12,7 @@ struct MIR_Block;
 enum
 {
     NO_REGISTER = 0,
+    SPILLED_TO_STACK = -1,
 };
 
 enum Register_Kind
@@ -28,6 +29,12 @@ struct Virtual_Register
 {
     Register_Kind kind;
     Index fixed_physical_register;
+    Index assigned_physical_register;
+
+    union
+    {
+        Index stack_slot_index; // NOTE(vlad): If 'assigned_physical_register' equals to 'SPILLED_TO_STACK'.
+    };
 };
 typedef struct Virtual_Register Virtual_Register;
 
@@ -37,10 +44,18 @@ enum MIR_Operand_Kind
     MIR_OPERAND_VIRTUAL_REGISTER,
     MIR_OPERAND_IMMEDIATE_VALUE,
     MIR_OPERAND_BLOCK,
+    MIR_OPERAND_STACK_SLOT,
 
-    // TODO(vlad): Add PHYSICAL_REGISTER, STACK_SLOT, MEMORY, GLOBLAL, FLAGS, etc.
+    // TODO(vlad): Add PHYSICAL_REGISTER, MEMORY, GLOBAL, FLAGS, etc.
 };
 typedef enum MIR_Operand_Kind MIR_Operand_Kind;
+
+struct MIR_Stack_Slot
+{
+    Index offset_in_bytes;
+    Size size_in_bytes;
+};
+typedef struct MIR_Stack_Slot MIR_Stack_Slot;
 
 struct MIR_Operand
 {
@@ -52,6 +67,8 @@ struct MIR_Operand
         u64 immediate_value;
 
         struct MIR_Block* block;
+
+        Index stack_slot_index;
     };
 };
 typedef struct MIR_Operand MIR_Operand;
@@ -92,7 +109,6 @@ enum MIR_Opcode
     MIR_MOVE,
 
     MIR_JUMP,
-    MIR_JUMP_IF_TRUE,
     MIR_JUMP_IF_FALSE,
 
     MIR_PHI,
@@ -133,6 +149,12 @@ struct MIR_Instruction
 
     array(Coalescing_Hint, coalescing_hints);
 
+    MIR_Operand definitions[MAX_DEFINITIONS_IN_MIR_INSTRUCTION];
+    Size definitions_count;
+
+    MIR_Operand uses[MAX_USES_IN_MIR_INSTRUCTION];
+    Size uses_count;
+
     MIR_Operand implicit_definitions[MAX_IMPLICIT_DEFINITIONS_IN_MIR_INSTRUCTION];
     Size implicit_definitions_count;
 
@@ -141,22 +163,12 @@ struct MIR_Instruction
 
     union
     {
-        struct
-        {
-            MIR_Operand definitions[MAX_DEFINITIONS_IN_MIR_INSTRUCTION];
-            Size definitions_count;
-
-            MIR_Operand uses[MAX_USES_IN_MIR_INSTRUCTION];
-            Size uses_count;
-        };
-
         // NOTE(vlad): For MIR_PHI.
         struct
         {
             MIR_Operand phi_definition;
 
-            MIR_PHI_Argument* phi_arguments;
-            Size phi_arguments_count;
+            array(MIR_PHI_Argument, phi_arguments);
         };
 
         // NOTE(vlad): For MIR_CALL.
@@ -182,6 +194,18 @@ struct MIR_Register_Bitset
 };
 typedef struct MIR_Register_Bitset MIR_Register_Bitset;
 
+struct MIR_Parallel_Copy
+{
+    Index destination_virtual_register_index;
+    Index destination_physical_register;
+
+    Index source_virtual_register_index;
+    Index source_physical_register;
+
+    Bool move_instruction_was_emitted;
+};
+typedef struct MIR_Parallel_Copy MIR_Parallel_Copy;
+
 struct MIR_Block
 {
     Index sequence_number;
@@ -197,12 +221,15 @@ struct MIR_Block
 
     MIR_Register_Bitset live_in_registers;
     MIR_Register_Bitset live_out_registers;
+
+    array(MIR_Parallel_Copy, parallel_copies);
 };
 typedef struct MIR_Block MIR_Block;
 
 struct MIR_Function
 {
     Arena* virtual_registers_arena;
+    Arena* stack_slots_arena;
 
     const Ast_Function_Definition* ast_function_definition;
     const struct Tac_Function* tac_function;
@@ -210,6 +237,9 @@ struct MIR_Function
     MIR_Block* entry_block;
 
     array(Virtual_Register, virtual_registers);
+
+    array(MIR_Stack_Slot, stack_slots);
+    Index current_stack_offset_in_bytes;
 };
 typedef struct MIR_Function MIR_Function;
 

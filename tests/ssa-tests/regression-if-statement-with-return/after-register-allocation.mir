@@ -1,0 +1,9 @@
+regression_if_statement_with_return:
+       |
+       | LABEL_1:
+     1 |           MOVE                RAX, IMM 10
+     2 |           JUMP                LABEL_2
+       |
+       | LABEL_2:
+     3 |           MOVE                RAX, IMM 21
+     4 |           RETURN

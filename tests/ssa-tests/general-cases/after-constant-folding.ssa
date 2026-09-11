@@ -20,25 +20,27 @@ returning_mutable_value_from_a_function:
 
 simple_conditional_assignment:
      1 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
-     2 | LABEL_1:
-     3 |           JUMP             LABEL_2
+     2 |           JUMP             LABEL_1
+     3 | LABEL_1:
+     4 |           JUMP             LABEL_2
        |
        |           PHI              VARIABLE a@3, VARIABLE a@1
-     4 | LABEL_2:
-     5 |           RETURN           VARIABLE a@3
+     5 | LABEL_2:
+     6 |           RETURN           VARIABLE a@3
 
 conditional_assignment_of_multiple_variables:
      1 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
      2 |           ASSIGN           VARIABLE b@1, CONSTANT s32 11
-     3 | LABEL_3:
-     4 |           ASSIGN           VARIABLE a@3, CONSTANT s32 30
-     5 |           JUMP             LABEL_4
+     3 |           JUMP             LABEL_3
+     4 | LABEL_3:
+     5 |           ASSIGN           VARIABLE a@3, CONSTANT s32 30
+     6 |           JUMP             LABEL_4
        |
        |           PHI              VARIABLE a@4, VARIABLE a@3
        |           PHI              VARIABLE b@3, VARIABLE b@1
-     6 | LABEL_4:
-     7 |           ADD              VARIABLE <temp_1>@1, VARIABLE a@4, VARIABLE b@3
-     8 |           RETURN           VARIABLE <temp_1>@1
+     7 | LABEL_4:
+     8 |           ADD              VARIABLE <temp_1>@1, VARIABLE a@4, VARIABLE b@3
+     9 |           RETURN           VARIABLE <temp_1>@1
 
 function_calls:
      1 |           CALL             simple_reassignment, ARGUMENTS COUNT 0

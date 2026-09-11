@@ -1,7 +1,8 @@
 unreachable_while_loop:
      1 | LABEL_1:
-     2 | LABEL_2:
-     3 |           RETURN           CONSTANT s32 20
+     2 |           JUMP             LABEL_2
+     3 | LABEL_2:
+     4 |           RETURN           CONSTANT s32 20
 
 redundant_while_loop:
      1 | LABEL_3:
@@ -27,39 +28,40 @@ redundant_continue:
 
 while_loops:
      1 | LABEL_7:
-     2 | LABEL_8:
-     3 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
-     4 |           JUMP             LABEL_9
+     2 |           JUMP             LABEL_8
+     3 | LABEL_8:
+     4 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
+     5 |           JUMP             LABEL_9
        |
        |           PHI              VARIABLE a@2, VARIABLE a@1, VARIABLE a@3
-     5 | LABEL_9:
-     6 |           GREATER          VARIABLE <temp_1>@1, VARIABLE a@2, CONSTANT s32 0
-     7 |           JUMP_IF_FALSE    LABEL_10, VARIABLE <temp_1>@1
-     8 |           JUMP             LABEL_19
-     9 | LABEL_19:
-    10 |           SUBTRACT         VARIABLE <temp_2>@1, VARIABLE a@2, CONSTANT s32 1
-    11 |           ASSIGN           VARIABLE a@3, VARIABLE <temp_2>@1
-    12 |           JUMP             LABEL_9
-    13 | LABEL_10:
-    14 |           ASSIGN           VARIABLE b@1, CONSTANT s32 20
-    15 |           JUMP             LABEL_11
+     6 | LABEL_9:
+     7 |           GREATER          VARIABLE <temp_1>@1, VARIABLE a@2, CONSTANT s32 0
+     8 |           JUMP_IF_FALSE    LABEL_10, VARIABLE <temp_1>@1
+     9 |           JUMP             LABEL_19
+    10 | LABEL_19:
+    11 |           SUBTRACT         VARIABLE <temp_2>@1, VARIABLE a@2, CONSTANT s32 1
+    12 |           ASSIGN           VARIABLE a@3, VARIABLE <temp_2>@1
+    13 |           JUMP             LABEL_9
+    14 | LABEL_10:
+    15 |           ASSIGN           VARIABLE b@1, CONSTANT s32 20
+    16 |           JUMP             LABEL_11
        |
        |           PHI              VARIABLE b@2, VARIABLE b@1, VARIABLE b@3
-    16 | LABEL_11:
-    17 |           JUMP             LABEL_20
-    18 | LABEL_20:
-    19 |           SUBTRACT         VARIABLE <temp_4>@1, VARIABLE b@2, CONSTANT s32 1
-    20 |           ASSIGN           VARIABLE b@3, VARIABLE <temp_4>@1
-    21 |           LESS             VARIABLE <temp_5>@1, VARIABLE b@3, CONSTANT s32 0
-    22 |           JUMP_IF_FALSE    LABEL_13, VARIABLE <temp_5>@1
-    23 |           JUMP             LABEL_21
-    24 | LABEL_21:
-    25 |           JUMP             LABEL_12
-    26 | LABEL_13:
-    27 |           JUMP             LABEL_14
-    28 | LABEL_14:
-    29 |           JUMP             LABEL_11
+    17 | LABEL_11:
+    18 |           JUMP             LABEL_20
+    19 | LABEL_20:
+    20 |           SUBTRACT         VARIABLE <temp_4>@1, VARIABLE b@2, CONSTANT s32 1
+    21 |           ASSIGN           VARIABLE b@3, VARIABLE <temp_4>@1
+    22 |           LESS             VARIABLE <temp_5>@1, VARIABLE b@3, CONSTANT s32 0
+    23 |           JUMP_IF_FALSE    LABEL_13, VARIABLE <temp_5>@1
+    24 |           JUMP             LABEL_21
+    25 | LABEL_21:
+    26 |           JUMP             LABEL_12
+    27 | LABEL_13:
+    28 |           JUMP             LABEL_14
+    29 | LABEL_14:
+    30 |           JUMP             LABEL_11
        |
        |           PHI              VARIABLE b@4, VARIABLE b@3
-    30 | LABEL_12:
-    31 |           RETURN
+    31 | LABEL_12:
+    32 |           RETURN

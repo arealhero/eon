@@ -1,0 +1,19 @@
+parallel_copy:
+     1 |           ASSIGN           VARIABLE a@1, CONSTANT s32 1
+     2 |           ASSIGN           VARIABLE b@1, CONSTANT s32 2
+     3 |           JUMP             LABEL_1
+       |
+       |           PHI              VARIABLE a@2, VARIABLE a@1, VARIABLE a@3
+       |           PHI              VARIABLE b@2, VARIABLE b@1, VARIABLE b@3
+       |           PHI              VARIABLE temp@1, VARIABLE temp@2
+     4 | LABEL_1:
+     5 |           LESS             VARIABLE <temp_1>@1, VARIABLE a@2, CONSTANT s32 10
+     6 |           JUMP_IF_FALSE    LABEL_2, VARIABLE <temp_1>@1
+     7 |           JUMP             LABEL_3
+     8 | LABEL_3:
+     9 |           ASSIGN           VARIABLE temp@2, VARIABLE a@2
+    10 |           ASSIGN           VARIABLE a@3, VARIABLE b@2
+    11 |           ASSIGN           VARIABLE b@3, VARIABLE temp@2
+    12 |           JUMP             LABEL_1
+    13 | LABEL_2:
+    14 |           RETURN

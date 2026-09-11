@@ -1,8 +1,8 @@
 arithmetic_operations:
        |
        | LABEL_1:
-     1 |           MOVE                VREG 3, IMM 6
-     2 |           MOVE                VREG 5, IMM 5
+     1 |           MOVE                RAX, IMM 6
+     2 |           MOVE                RAX, IMM 5
      3 |           RETURN
 
 non_trivial_conditional:

@@ -40,7 +40,6 @@ enum Tac_Operation
 
     TAC_LABEL,
     TAC_JUMP,
-    TAC_JUMP_IF_TRUE,
     TAC_JUMP_IF_FALSE,
 
     TAC_SET_PARAMETER,

@@ -79,6 +79,7 @@ destroy_compilation_context(Compilation_Context* context)
     {
         MIR_Function* function = &context->mir.functions[mir_function_index];
         release_arena_to_provider(context->arena_provider, function->virtual_registers_arena);
+        release_arena_to_provider(context->arena_provider, function->stack_slots_arena);
     }
 
     release_arena_to_provider(context->arena_provider, context->scratch_arena);
