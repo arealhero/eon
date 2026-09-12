@@ -307,6 +307,27 @@ main(const int argc, const char* argv[])
         END_TIMER(comparing_mir_after_register_allocation, "Processed MIR after register allocation");
     }
 
+    START_TIMER(mir_blocks_layout);
+    compute_layout_of_mir_blocks(&context);
+    END_TIMER(mir_blocks_layout, "Layout of MIR blocks computed");
+
+    {
+        START_TIMER(comparing_mir_after_layout_is_computed);
+        const String_View mir_string = convert_mir_to_string(ssa_string_arena, &context);
+        const String_View mir_filename = string_view(format_string(source_code_arena,
+                                                                   "{}/after-blocks-layout-is-computed.mir",
+                                                                   test_directory));
+
+        const Bool success = compare_outputs_and_optionally_canonize(context.scratch_arena,
+                                                                     string_view("MIR"),
+                                                                     mir_filename,
+                                                                     mir_string,
+                                                                     canonize_output);
+        test_failed = !success;
+
+        END_TIMER(comparing_mir_after_layout_is_computed, "Processed MIR after blocks layout is computed");
+    }
+
 cleanup:
     {
         START_TIMER(comparing_diagnostic_messages);

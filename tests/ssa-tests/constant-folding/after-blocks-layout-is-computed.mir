@@ -1,0 +1,28 @@
+arithmetic_operations:
+       |
+       | LABEL_1:
+     1 |           MOVE                RAX, IMM 6
+     2 |           MOVE                RAX, IMM 5
+     3 |           RETURN
+
+non_trivial_conditional:
+       |
+       | LABEL_2:
+     1 |           MOVE                RAX, IMM 1
+     2 |           RETURN
+
+then_branch_elimination:
+       |
+       | LABEL_3:
+       |
+       | LABEL_4:
+     1 |           MOVE                RAX, IMM 20
+     2 |           RETURN
+
+else_branch_elimination:
+       |
+       | LABEL_5:
+       |
+       | LABEL_6:
+     1 |           MOVE                RAX, IMM 10
+     2 |           RETURN

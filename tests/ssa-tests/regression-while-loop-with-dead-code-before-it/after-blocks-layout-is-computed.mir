@@ -1,0 +1,35 @@
+good_example:
+       |
+       | LABEL_1:
+     1 |           MOVE                RBX, IMM 10
+       |
+       | LABEL_2:
+     2 |           GREATER             RAX, RBX, IMM 0
+     3 |           JUMP_IF_FALSE       RAX, LABEL_4
+       |
+       | LABEL_3:
+     4 |           SUBTRACT            RAX, RBX, IMM 1
+     5 |           MOVE                RBX, RAX
+     6 |           JUMP                LABEL_2
+       |
+       | LABEL_4:
+     7 |           RETURN
+
+bad_example:
+       |
+       | LABEL_5:
+       |
+       | LABEL_6:
+     1 |           MOVE                RBX, IMM 10
+       |
+       | LABEL_7:
+     2 |           GREATER             RAX, RBX, IMM 0
+     3 |           JUMP_IF_FALSE       RAX, LABEL_9
+       |
+       | LABEL_8:
+     4 |           SUBTRACT            RAX, RBX, IMM 1
+     5 |           MOVE                RBX, RAX
+     6 |           JUMP                LABEL_7
+       |
+       | LABEL_9:
+     7 |           RETURN

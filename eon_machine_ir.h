@@ -226,6 +226,13 @@ struct MIR_Block
 };
 typedef struct MIR_Block MIR_Block;
 
+struct MIR_Blocks_Layout
+{
+    MIR_Block** blocks;
+    Size blocks_count;
+};
+typedef struct MIR_Blocks_Layout MIR_Blocks_Layout;
+
 struct MIR_Function
 {
     Arena* virtual_registers_arena;
@@ -234,7 +241,12 @@ struct MIR_Function
     const Ast_Function_Definition* ast_function_definition;
     const struct Tac_Function* tac_function;
 
-    MIR_Block* entry_block;
+    Bool blocks_layout_computed;
+    union
+    {
+        MIR_Block* entry_block;
+        MIR_Blocks_Layout blocks_layout;
+    };
 
     array(Virtual_Register, virtual_registers);
 
@@ -256,3 +268,4 @@ maybe_unused internal String_View physical_register_to_string(struct Compilation
 maybe_unused internal void lower_ssa_to_mir(struct Compilation_Context* context);
 maybe_unused internal void add_isa_constraints_to_mir(struct Compilation_Context* context);
 maybe_unused internal void allocate_registers(struct Compilation_Context* context);
+maybe_unused internal void compute_layout_of_mir_blocks(struct Compilation_Context* context);

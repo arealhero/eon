@@ -604,6 +604,389 @@ convert_mir_operand_to_string(Compilation_Context* context,
     }
 }
 
+internal void
+convert_mir_block_to_string(Compilation_Context* context,
+                            String_Builder* builder,
+                            const MIR_Function* mir_function,
+                            const MIR_Block* block,
+                            Index* current_instruction_index)
+{
+    append_string(builder, format_string(context->scratch_arena,
+                                         "       |\n"
+                                         "       | LABEL_{}:\n",
+                                         block->sequence_number));
+
+    for (MIR_Instruction* instruction = block->first_instruction;
+         instruction != NULL;
+         instruction = instruction->next_instruction)
+    {
+        if (instruction->opcode == MIR_NOP)
+        {
+            // NOTE(vlad): Sanity checks.
+            ASSERT(instruction->definitions_count == 0);
+            ASSERT(instruction->uses_count == 0);
+
+            continue;
+        }
+
+        if (instruction == block->last_instruction)
+        {
+            for (Index parallel_copy_index = 0;
+                 parallel_copy_index < block->parallel_copies_count;
+                 ++parallel_copy_index)
+            {
+                MIR_Parallel_Copy* copy = &block->parallel_copies[parallel_copy_index];
+
+                MIR_Operand destination = {0};
+                destination.kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                destination.virtual_register_index = copy->destination_virtual_register_index;
+
+                MIR_Operand source = {0};
+                source.kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                source.virtual_register_index = copy->source_virtual_register_index;
+
+                append_string(builder, "       |           PARALLEL_COPY      ");
+                convert_mir_operand_to_string(context, builder, mir_function, &destination);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &source);
+                append_string(builder, "\n");
+            }
+        }
+
+        append_string(builder, format_string(context->scratch_arena,
+                                             "{left-pad-count: 6} | ",
+                                             *current_instruction_index));
+        *current_instruction_index += 1;
+
+        switch (instruction->opcode)
+        {
+            case MIR_UNDEFINED:
+            {
+                UNREACHABLE();
+            } break;
+
+            case MIR_NOP:
+            {
+                UNREACHABLE();
+            } break;
+
+            case MIR_ADD:
+            {
+                append_string(builder, "          ADD                ");
+
+                ASSERT(instruction->definitions_count == 1);
+                ASSERT(instruction->uses_count == 2);
+
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->definitions[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[1]);
+            } break;
+
+            case MIR_SUBTRACT:
+            {
+                append_string(builder, "          SUBTRACT           ");
+
+                ASSERT(instruction->definitions_count == 1);
+                ASSERT(instruction->uses_count == 2);
+
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->definitions[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[1]);
+            } break;
+
+            case MIR_MULTIPLY:
+            {
+                append_string(builder, "          MULTIPLY           ");
+
+                ASSERT(instruction->definitions_count == 1);
+                ASSERT(instruction->uses_count == 2);
+
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->definitions[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[1]);
+            } break;
+
+            case MIR_DIVIDE:
+            {
+                append_string(builder, "          DIVIDE             ");
+
+                ASSERT(instruction->definitions_count == 1);
+                ASSERT(instruction->uses_count == 2);
+
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->definitions[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[1]);
+            } break;
+
+            case MIR_EQUAL:
+            {
+                append_string(builder, "          EQUAL              ");
+
+                ASSERT(instruction->definitions_count == 1);
+                ASSERT(instruction->uses_count == 2);
+
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->definitions[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[1]);
+            } break;
+
+            case MIR_NOT_EQUAL:
+            {
+                append_string(builder, "          NOT_EQUAL          ");
+
+                ASSERT(instruction->definitions_count == 1);
+                ASSERT(instruction->uses_count == 2);
+
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->definitions[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[1]);
+            } break;
+
+            case MIR_LESS:
+            {
+                append_string(builder, "          LESS               ");
+
+                ASSERT(instruction->definitions_count == 1);
+                ASSERT(instruction->uses_count == 2);
+
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->definitions[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[1]);
+            } break;
+
+            case MIR_LESS_OR_EQUAL:
+            {
+                append_string(builder, "          LESS_OR_EQUAL      ");
+
+                ASSERT(instruction->definitions_count == 1);
+                ASSERT(instruction->uses_count == 2);
+
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->definitions[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[1]);
+            } break;
+
+            case MIR_GREATER:
+            {
+                append_string(builder, "          GREATER            ");
+
+                ASSERT(instruction->definitions_count == 1);
+                ASSERT(instruction->uses_count == 2);
+
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->definitions[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[1]);
+            } break;
+
+            case MIR_GREATER_OR_EQUAL:
+            {
+                append_string(builder, "          GREATER_OR_EQUAL   ");
+
+                ASSERT(instruction->definitions_count == 1);
+                ASSERT(instruction->uses_count == 2);
+
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->definitions[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[1]);
+            } break;
+
+            case MIR_LOAD32:
+            {
+                FAIL("[MIR] LOAD32 is not supported yet.");
+            } break;
+
+            case MIR_STORE32:
+            {
+                FAIL("[MIR] STORE32 is not supported yet.");
+            } break;
+
+            case MIR_LOAD64:
+            {
+                FAIL("[MIR] LOAD64 is not supported yet.");
+            } break;
+
+            case MIR_STORE64:
+            {
+                FAIL("[MIR] STORE64 is not supported yet.");
+            } break;
+
+            case MIR_GET_ADDRESS:
+            {
+                FAIL("[MIR] GET_ADDRESS is not supported yet.");
+            } break;
+
+            case MIR_GROW_STACK:
+            {
+                append_string(builder, "          GROW_STACK         ");
+
+                ASSERT(instruction->definitions_count == 0);
+                ASSERT(instruction->uses_count == 1);
+
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
+            } break;
+
+            case MIR_SHRINK_STACK:
+            {
+                append_string(builder, "          SHRINK_STACK       ");
+
+                ASSERT(instruction->definitions_count == 0);
+                ASSERT(instruction->uses_count == 1);
+
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
+            } break;
+
+            case MIR_GET_PARAMETER:
+            {
+                append_string(builder, "          GET_PARAMETER      ");
+
+                ASSERT(instruction->definitions_count == 1);
+                ASSERT(instruction->uses_count == 1);
+
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->definitions[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
+            } break;
+
+            case MIR_MOVE:
+            {
+                append_string(builder, "          MOVE               ");
+
+                ASSERT(instruction->definitions_count == 1);
+                ASSERT(instruction->uses_count == 1);
+
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->definitions[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
+            } break;
+
+            case MIR_JUMP:
+            {
+                append_string(builder, "          JUMP               ");
+
+                ASSERT(instruction->definitions_count == 0);
+                ASSERT(instruction->uses_count == 1);
+
+                const MIR_Operand* destination = &instruction->uses[0];
+                ASSERT(destination->kind == MIR_OPERAND_BLOCK);
+                append_string(builder, " ");
+                convert_mir_operand_to_string(context, builder, mir_function, destination);
+            } break;
+
+            case MIR_JUMP_IF_FALSE:
+            {
+                append_string(builder, "          JUMP_IF_FALSE      ");
+
+                ASSERT(instruction->definitions_count == 0);
+                ASSERT(instruction->uses_count == 2);
+
+                const MIR_Operand* condition = &instruction->uses[0];
+                convert_mir_operand_to_string(context, builder, mir_function, condition);
+
+                append_string(builder, ", ");
+
+                const MIR_Operand* destination = &instruction->uses[1];
+                ASSERT(destination->kind == MIR_OPERAND_BLOCK);
+                convert_mir_operand_to_string(context, builder, mir_function, destination);
+            } break;
+
+            case MIR_PHI:
+            {
+                ASSERT(instruction->phi_arguments_count != 0);
+
+                append_string(builder, "          PHI                ");
+
+                const MIR_Operand* definition = &instruction->phi_definition;
+                ASSERT(definition->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+                convert_mir_operand_to_string(context, builder, mir_function, definition);
+
+                for (Index argument_index = 0;
+                     argument_index < instruction->phi_arguments_count;
+                     ++argument_index)
+                {
+                    append_string(builder, ",");
+                    MIR_PHI_Argument* argument = &instruction->phi_arguments[argument_index];
+
+                    MIR_Operand argument_operand = {0};
+                    argument_operand.kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                    argument_operand.virtual_register_index = argument->virtual_register_index;
+
+                    convert_mir_operand_to_string(context, builder, mir_function, &argument_operand);
+                }
+            } break;
+
+            case MIR_CALL:
+            {
+                append_string(builder, "          CALL               ");
+
+                if (instruction->has_return_value)
+                {
+                    convert_mir_operand_to_string(context,
+                                                  builder,
+                                                  mir_function,
+                                                  &instruction->return_operand);
+                    append_string(builder, ", ");
+                }
+                else
+                {
+                    append_string(builder, " ");
+                }
+
+                const Tac_Function* called_function = get_tac_function_by_label(&context->tac,
+                                                                                instruction->function_label_id);
+                append_string(builder, called_function->ast_function_definition->name.token.lexeme);
+
+                for (Index argument_index = 0;
+                     argument_index < instruction->function_arguments_count;
+                     ++argument_index)
+                {
+                    MIR_Operand* argument = &instruction->function_arguments[argument_index];
+                    append_string(builder, ",");
+                    convert_mir_operand_to_string(context, builder, mir_function, argument);
+                }
+            } break;
+
+            case MIR_RETURN:
+            {
+                append_string(builder, "          RETURN");
+
+                ASSERT(instruction->definitions_count == 0);
+
+                if (instruction->uses_count == 1)
+                {
+                    append_string(builder, "             ");
+                    convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
+                }
+                else
+                {
+                    ASSERT(instruction->uses_count == 0);
+                }
+            } break;
+        }
+
+        append_string(builder, "\n");
+    }
+}
+
 internal String_View
 convert_mir_to_string(Arena* arena, Compilation_Context* context)
 {
@@ -624,417 +1007,60 @@ convert_mir_to_string(Arena* arena, Compilation_Context* context)
 
         Index current_instruction_index = 1;
 
-        local_stack(MIR_Block*, blocks_to_visit);
-        local_array(const MIR_Block*, visited_blocks); // TODO(vlad): Speed this up.
-
-        stack_push(context->scratch_arena, blocks_to_visit, MIR_Block*, mir_function->entry_block);
-
-        while (blocks_to_visit_count > 0)
+        if (mir_function->blocks_layout_computed)
         {
-            const MIR_Block* block = *stack_top(blocks_to_visit);
-            stack_pop(blocks_to_visit);
+            const MIR_Blocks_Layout* layout = &mir_function->blocks_layout;
 
-            append_array(context->scratch_arena, visited_blocks, const MIR_Block*, block);
-
-            append_string(&builder, format_string(context->scratch_arena,
-                                                  "       |\n"
-                                                  "       | LABEL_{}:\n",
-                                                  block->sequence_number));
-
-            for (MIR_Instruction* instruction = block->first_instruction;
-                 instruction != NULL;
-                 instruction = instruction->next_instruction)
+            for (Index block_index = 0;
+                 block_index < layout->blocks_count;
+                 ++block_index)
             {
-                if (instruction->opcode == MIR_NOP)
-                {
-                    // NOTE(vlad): Sanity checks.
-                    ASSERT(instruction->definitions_count == 0);
-                    ASSERT(instruction->uses_count == 0);
+                const MIR_Block* block = layout->blocks[block_index];
+                convert_mir_block_to_string(context, &builder, mir_function, block, &current_instruction_index);
+            }
+        }
+        else
+        {
+            local_stack(MIR_Block*, blocks_to_visit);
+            local_array(const MIR_Block*, visited_blocks); // TODO(vlad): Speed this up.
 
-                    continue;
-                }
+            stack_push(context->scratch_arena, blocks_to_visit, MIR_Block*, mir_function->entry_block);
 
-                if (instruction == block->last_instruction)
+            while (blocks_to_visit_count > 0)
+            {
+                const MIR_Block* block = *stack_top(blocks_to_visit);
+                stack_pop(blocks_to_visit);
+
+                append_array(context->scratch_arena, visited_blocks, const MIR_Block*, block);
+
+                convert_mir_block_to_string(context, &builder, mir_function, block, &current_instruction_index);
+
+                for (Index successor_index = 0;
+                     successor_index < block->successors_count;
+                     ++successor_index)
                 {
-                    for (Index parallel_copy_index = 0;
-                         parallel_copy_index < block->parallel_copies_count;
-                         ++parallel_copy_index)
+                    MIR_Block* successor = block->successors[successor_index];
+
+                    Bool successor_was_visited = false;
+                    for (Index visited_block_index = 0;
+                         visited_block_index < visited_blocks_count;
+                         ++visited_block_index)
                     {
-                        MIR_Parallel_Copy* copy = &block->parallel_copies[parallel_copy_index];
+                        const MIR_Block* visited_block = visited_blocks[visited_block_index];
+                        if (visited_block == successor)
+                        {
+                            successor_was_visited = true;
+                            break;
+                        }
+                    }
 
-                        MIR_Operand destination = {0};
-                        destination.kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                        destination.virtual_register_index = copy->destination_virtual_register_index;
-
-                        MIR_Operand source = {0};
-                        source.kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                        source.virtual_register_index = copy->source_virtual_register_index;
-
-                        append_string(&builder, "       |           PARALLEL_COPY      ");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &destination);
-                        append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &source);
-                        append_string(&builder, "\n");
+                    if (!successor_was_visited)
+                    {
+                        stack_push(context->scratch_arena, blocks_to_visit, MIR_Block*, successor);
                     }
                 }
-
-                append_string(&builder, format_string(context->scratch_arena,
-                                                      "{left-pad-count: 6} | ",
-                                                      current_instruction_index));
-                current_instruction_index += 1;
-
-                switch (instruction->opcode)
-                {
-                    case MIR_UNDEFINED:
-                    {
-                        UNREACHABLE();
-                    } break;
-
-                    case MIR_NOP:
-                    {
-                        UNREACHABLE();
-                    } break;
-
-                    case MIR_ADD:
-                    {
-                        append_string(&builder, "          ADD                ");
-
-                        ASSERT(instruction->definitions_count == 1);
-                        ASSERT(instruction->uses_count == 2);
-
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
-                        append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
-                        append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[1]);
-                    } break;
-
-                    case MIR_SUBTRACT:
-                    {
-                        append_string(&builder, "          SUBTRACT           ");
-
-                        ASSERT(instruction->definitions_count == 1);
-                        ASSERT(instruction->uses_count == 2);
-
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
-                        append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
-                        append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[1]);
-                    } break;
-
-                    case MIR_MULTIPLY:
-                    {
-                        append_string(&builder, "          MULTIPLY           ");
-
-                        ASSERT(instruction->definitions_count == 1);
-                        ASSERT(instruction->uses_count == 2);
-
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
-                        append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
-                        append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[1]);
-                    } break;
-
-                    case MIR_DIVIDE:
-                    {
-                        append_string(&builder, "          DIVIDE             ");
-
-                        ASSERT(instruction->definitions_count == 1);
-                        ASSERT(instruction->uses_count == 2);
-
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
-                        append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
-                        append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[1]);
-                    } break;
-
-                    case MIR_EQUAL:
-                    {
-                        append_string(&builder, "          EQUAL              ");
-
-                        ASSERT(instruction->definitions_count == 1);
-                        ASSERT(instruction->uses_count == 2);
-
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
-                        append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
-                        append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[1]);
-                    } break;
-
-                    case MIR_NOT_EQUAL:
-                    {
-                        append_string(&builder, "          NOT_EQUAL          ");
-
-                        ASSERT(instruction->definitions_count == 1);
-                        ASSERT(instruction->uses_count == 2);
-
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
-                        append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
-                        append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[1]);
-                    } break;
-
-                    case MIR_LESS:
-                    {
-                        append_string(&builder, "          LESS               ");
-
-                        ASSERT(instruction->definitions_count == 1);
-                        ASSERT(instruction->uses_count == 2);
-
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
-                        append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
-                        append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[1]);
-                    } break;
-
-                    case MIR_LESS_OR_EQUAL:
-                    {
-                        append_string(&builder, "          LESS_OR_EQUAL      ");
-
-                        ASSERT(instruction->definitions_count == 1);
-                        ASSERT(instruction->uses_count == 2);
-
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
-                        append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
-                        append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[1]);
-                    } break;
-
-                    case MIR_GREATER:
-                    {
-                        append_string(&builder, "          GREATER            ");
-
-                        ASSERT(instruction->definitions_count == 1);
-                        ASSERT(instruction->uses_count == 2);
-
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
-                        append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
-                        append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[1]);
-                    } break;
-
-                    case MIR_GREATER_OR_EQUAL:
-                    {
-                        append_string(&builder, "          GREATER_OR_EQUAL   ");
-
-                        ASSERT(instruction->definitions_count == 1);
-                        ASSERT(instruction->uses_count == 2);
-
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
-                        append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
-                        append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[1]);
-                    } break;
-
-                    case MIR_LOAD32:
-                    {
-                        FAIL("[MIR] LOAD32 is not supported yet.");
-                    } break;
-
-                    case MIR_STORE32:
-                    {
-                        FAIL("[MIR] STORE32 is not supported yet.");
-                    } break;
-
-                    case MIR_LOAD64:
-                    {
-                        FAIL("[MIR] LOAD64 is not supported yet.");
-                    } break;
-
-                    case MIR_STORE64:
-                    {
-                        FAIL("[MIR] STORE64 is not supported yet.");
-                    } break;
-
-                    case MIR_GET_ADDRESS:
-                    {
-                        FAIL("[MIR] GET_ADDRESS is not supported yet.");
-                    } break;
-
-                    case MIR_GROW_STACK:
-                    {
-                        append_string(&builder, "          GROW_STACK         ");
-
-                        ASSERT(instruction->definitions_count == 0);
-                        ASSERT(instruction->uses_count == 1);
-
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
-                    } break;
-
-                    case MIR_SHRINK_STACK:
-                    {
-                        append_string(&builder, "          SHRINK_STACK       ");
-
-                        ASSERT(instruction->definitions_count == 0);
-                        ASSERT(instruction->uses_count == 1);
-
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
-                    } break;
-
-                    case MIR_GET_PARAMETER:
-                    {
-                        append_string(&builder, "          GET_PARAMETER      ");
-
-                        ASSERT(instruction->definitions_count == 1);
-                        ASSERT(instruction->uses_count == 1);
-
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
-                        append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
-                    } break;
-
-                    case MIR_MOVE:
-                    {
-                        append_string(&builder, "          MOVE               ");
-
-                        ASSERT(instruction->definitions_count == 1);
-                        ASSERT(instruction->uses_count == 1);
-
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->definitions[0]);
-                        append_string(&builder, ",");
-                        convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
-                    } break;
-
-                    case MIR_JUMP:
-                    {
-                        append_string(&builder, "          JUMP               ");
-
-                        ASSERT(instruction->definitions_count == 0);
-                        ASSERT(instruction->uses_count == 1);
-
-                        const MIR_Operand* destination = &instruction->uses[0];
-                        ASSERT(destination->kind == MIR_OPERAND_BLOCK);
-                        append_string(&builder, " ");
-                        convert_mir_operand_to_string(context, &builder, mir_function, destination);
-                    } break;
-
-                    case MIR_JUMP_IF_FALSE:
-                    {
-                        append_string(&builder, "          JUMP_IF_FALSE      ");
-
-                        ASSERT(instruction->definitions_count == 0);
-                        ASSERT(instruction->uses_count == 2);
-
-                        const MIR_Operand* condition = &instruction->uses[0];
-                        convert_mir_operand_to_string(context, &builder, mir_function, condition);
-
-                        append_string(&builder, ", ");
-
-                        const MIR_Operand* destination = &instruction->uses[1];
-                        ASSERT(destination->kind == MIR_OPERAND_BLOCK);
-                        convert_mir_operand_to_string(context, &builder, mir_function, destination);
-                    } break;
-
-                    case MIR_PHI:
-                    {
-                        ASSERT(instruction->phi_arguments_count != 0);
-
-                        append_string(&builder, "          PHI                ");
-
-                        const MIR_Operand* definition = &instruction->phi_definition;
-                        ASSERT(definition->kind == MIR_OPERAND_VIRTUAL_REGISTER);
-                        convert_mir_operand_to_string(context, &builder, mir_function, definition);
-
-                        for (Index argument_index = 0;
-                             argument_index < instruction->phi_arguments_count;
-                             ++argument_index)
-                        {
-                            append_string(&builder, ",");
-                            MIR_PHI_Argument* argument = &instruction->phi_arguments[argument_index];
-
-                            MIR_Operand argument_operand = {0};
-                            argument_operand.kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                            argument_operand.virtual_register_index = argument->virtual_register_index;
-
-                            convert_mir_operand_to_string(context, &builder, mir_function, &argument_operand);
-                        }
-                    } break;
-
-                    case MIR_CALL:
-                    {
-                        append_string(&builder, "          CALL               ");
-
-                        if (instruction->has_return_value)
-                        {
-                            convert_mir_operand_to_string(context,
-                                                          &builder,
-                                                          mir_function,
-                                                          &instruction->return_operand);
-                            append_string(&builder, ", ");
-                        }
-                        else
-                        {
-                            append_string(&builder, " ");
-                        }
-
-                        const Tac_Function* called_function = get_tac_function_by_label(&context->tac,
-                                                                                        instruction->function_label_id);
-                        append_string(&builder, called_function->ast_function_definition->name.token.lexeme);
-
-                        for (Index argument_index = 0;
-                             argument_index < instruction->function_arguments_count;
-                             ++argument_index)
-                        {
-                            MIR_Operand* argument = &instruction->function_arguments[argument_index];
-                            append_string(&builder, ",");
-                            convert_mir_operand_to_string(context, &builder, mir_function, argument);
-                        }
-                    } break;
-
-                    case MIR_RETURN:
-                    {
-                        append_string(&builder, "          RETURN");
-
-                        ASSERT(instruction->definitions_count == 0);
-
-                        if (instruction->uses_count == 1)
-                        {
-                            append_string(&builder, "             ");
-                            convert_mir_operand_to_string(context, &builder, mir_function, &instruction->uses[0]);
-                        }
-                        else
-                        {
-                            ASSERT(instruction->uses_count == 0);
-                        }
-                    } break;
-                }
-
-                append_string(&builder, "\n");
             }
 
-            for (Index successor_index = 0;
-                 successor_index < block->successors_count;
-                 ++successor_index)
-            {
-                MIR_Block* successor = block->successors[successor_index];
-
-                Bool successor_was_visited = false;
-                for (Index visited_block_index = 0;
-                     visited_block_index < visited_blocks_count;
-                     ++visited_block_index)
-                {
-                    const MIR_Block* visited_block = visited_blocks[visited_block_index];
-                    if (visited_block == successor)
-                    {
-                        successor_was_visited = true;
-                        break;
-                    }
-                }
-
-                if (!successor_was_visited)
-                {
-                    stack_push(context->scratch_arena, blocks_to_visit, MIR_Block*, successor);
-                }
-            }
         }
 
         if (function_index != mir->functions_count - 1)

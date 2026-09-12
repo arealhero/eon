@@ -50,6 +50,7 @@ struct Compilation_Context
     Arena* mir_instructions_arena;
     Arena* mir_operands_arena;
     Arena* mir_coalescing_hints_arena;
+    Arena* mir_block_layouts_arena;
 
     Target_Architecture target_architecture;
     Calling_Convention calling_convention;

@@ -1,0 +1,19 @@
+parallel_copy:
+       |
+       | LABEL_1:
+     1 |           MOVE                RDX, IMM 1
+     2 |           MOVE                RBX, IMM 2
+       |
+       | LABEL_2:
+     3 |           LESS                RAX, RDX, IMM 10
+     4 |           JUMP_IF_FALSE       RAX, LABEL_4
+       |
+       | LABEL_3:
+     5 |           MOVE                RCX, RDX
+     6 |           MOVE                RAX, RCX
+     7 |           MOVE                RDX, RBX
+     8 |           MOVE                RBX, RAX
+     9 |           JUMP                LABEL_2
+       |
+       | LABEL_4:
+    10 |           RETURN

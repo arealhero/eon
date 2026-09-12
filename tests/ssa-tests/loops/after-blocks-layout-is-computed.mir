@@ -1,0 +1,70 @@
+unreachable_while_loop:
+       |
+       | LABEL_1:
+       |
+       | LABEL_2:
+     1 |           MOVE                RAX, IMM 20
+     2 |           RETURN
+
+redundant_while_loop:
+       |
+       | LABEL_3:
+       |
+       | LABEL_4:
+     1 |           MOVE                RAX, IMM 10
+     2 |           RETURN
+
+redundant_continue:
+       |
+       | LABEL_5:
+     1 |           MOVE                RBX, IMM 10
+       |
+       | LABEL_6:
+     2 |           GREATER             RAX, RBX, IMM 0
+     3 |           JUMP_IF_FALSE       RAX, LABEL_8
+       |
+       | LABEL_7:
+     4 |           SUBTRACT            RAX, RBX, IMM 1
+     5 |           MOVE                RBX, RAX
+     6 |           JUMP                LABEL_6
+       |
+       | LABEL_8:
+     7 |           RETURN
+
+while_loops:
+       |
+       | LABEL_9:
+       |
+       | LABEL_10:
+     1 |           MOVE                RBX, IMM 10
+       |
+       | LABEL_11:
+     2 |           GREATER             RAX, RBX, IMM 0
+     3 |           JUMP_IF_FALSE       RAX, LABEL_13
+       |
+       | LABEL_12:
+     4 |           SUBTRACT            RAX, RBX, IMM 1
+     5 |           MOVE                RBX, RAX
+     6 |           JUMP                LABEL_11
+       |
+       | LABEL_13:
+     7 |           MOVE                RBX, IMM 20
+       |
+       | LABEL_14:
+       |
+       | LABEL_16:
+     8 |           SUBTRACT            RAX, RBX, IMM 1
+     9 |           MOVE                RBX, RAX
+    10 |           LESS                RAX, RBX, IMM 0
+    11 |           JUMP_IF_FALSE       RAX, LABEL_17
+       |
+       | LABEL_18:
+    12 |           MOVE                RAX, RBX
+       |
+       | LABEL_19:
+    13 |           RETURN
+       |
+       | LABEL_17:
+       |
+       | LABEL_15:
+    14 |           JUMP                LABEL_14

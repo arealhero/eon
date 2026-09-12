@@ -1578,7 +1578,7 @@ struct MIR_Reverse_Post_Order
 typedef struct MIR_Reverse_Post_Order MIR_Reverse_Post_Order;
 
 internal void
-visit_mir_blocks_in_post_order(Compilation_Context* context,
+visit_mir_blocks_in_post_order(Arena* arena,
                                MIR_Block* block,
                                MIR_Reverse_Post_Order* rpo)
 {
@@ -1593,25 +1593,25 @@ visit_mir_blocks_in_post_order(Compilation_Context* context,
         }
     }
 
-    append_array(context->scratch_arena, rpo->visited_blocks, MIR_Block*, block);
+    append_array(arena, rpo->visited_blocks, MIR_Block*, block);
 
     for (Index successor_index = 0;
          successor_index < block->successors_count;
          ++successor_index)
     {
         MIR_Block* successor = block->successors[successor_index];
-        visit_mir_blocks_in_post_order(context, successor, rpo);
+        visit_mir_blocks_in_post_order(arena, successor, rpo);
     }
 
-    append_array(context->scratch_arena, rpo->blocks, MIR_Block*, block);
+    append_array(arena, rpo->blocks, MIR_Block*, block);
 }
 
 internal MIR_Reverse_Post_Order
-calculate_reverse_post_order_of_mir_blocks(Compilation_Context* context,
+calculate_reverse_post_order_of_mir_blocks(Arena* arena,
                                            MIR_Function* function)
 {
     MIR_Reverse_Post_Order reverse_post_order = {0};
-    visit_mir_blocks_in_post_order(context, function->entry_block, &reverse_post_order);
+    visit_mir_blocks_in_post_order(arena, function->entry_block, &reverse_post_order);
     reverse_array(reverse_post_order.blocks, MIR_Block*);
     return reverse_post_order;
 }
@@ -1785,7 +1785,8 @@ allocate_registers(Compilation_Context* context)
     {
         MIR_Function* function = &mir->functions[function_index];
 
-        MIR_Reverse_Post_Order reverse_post_order = calculate_reverse_post_order_of_mir_blocks(context, function);
+        MIR_Reverse_Post_Order reverse_post_order = calculate_reverse_post_order_of_mir_blocks(context->scratch_arena,
+                                                                                               function);
 
         // NOTE(vlad): Performing liveness analysis.
         {
@@ -2460,7 +2461,7 @@ allocate_registers(Compilation_Context* context)
             if (some_edge_was_splitted)
             {
                 // NOTE(vlad): For simplicity's sake we recompute the RPO so we can easily traverse function blocks.
-                reverse_post_order = calculate_reverse_post_order_of_mir_blocks(context, function);
+                reverse_post_order = calculate_reverse_post_order_of_mir_blocks(context->scratch_arena, function);
             }
 
             // NOTE(vlad): Converting PHI nodes to parallel copies.
@@ -2794,6 +2795,75 @@ allocate_registers(Compilation_Context* context)
                     }
 
                     instruction = next_instruction;
+                }
+            }
+        }
+
+        request_arena_reset(context->arena_provider, context->scratch_arena);
+    }
+}
+
+internal void
+compute_layout_of_mir_blocks(Compilation_Context* context)
+{
+    MIR* mir = &context->mir;
+
+    for (Index function_index = 0;
+         function_index < mir->functions_count;
+         ++function_index)
+    {
+        MIR_Function* function = &mir->functions[function_index];
+
+        // NOTE(vlad): Computing simple RPO as a linear layout of MIR blocks.
+        {
+            MIR_Reverse_Post_Order reverse_post_order
+                = calculate_reverse_post_order_of_mir_blocks(context->mir_block_layouts_arena, function);
+
+            function->blocks_layout_computed = true;
+            function->blocks_layout.blocks = reverse_post_order.blocks;
+            function->blocks_layout.blocks_count = reverse_post_order.blocks_count;
+        }
+
+        // NOTE(vlad): Marking sequential jumps as fall-through instructions.
+        {
+            MIR_Blocks_Layout* layout = &function->blocks_layout;
+
+            for (Index block_index = 0;
+                 block_index < layout->blocks_count - 1;
+                 ++block_index)
+            {
+                MIR_Block* current_block = layout->blocks[block_index];
+                MIR_Block* next_block = layout->blocks[block_index + 1];
+
+                MIR_Instruction* last_instruction = current_block->last_instruction;
+                if (last_instruction->opcode == MIR_JUMP)
+                {
+                    ASSERT(last_instruction->uses_count == 1);
+
+                    MIR_Operand* destination_operand = &last_instruction->uses[0];
+                    ASSERT(destination_operand->kind == MIR_OPERAND_BLOCK);
+
+                    MIR_Block* destination_block = destination_operand->block;
+                    if (destination_block == next_block)
+                    {
+                        // NOTE(vlad): This jump is redundant, removing it.
+
+                        MIR_Instruction* previous_instruction = last_instruction->previous_instruction;
+                        if (previous_instruction == NULL)
+                        {
+                            // NOTE(vlad): Block has no instructions left, making it empty.
+
+                            ASSERT(current_block->first_instruction == last_instruction);
+
+                            current_block->first_instruction = NULL;
+                            current_block->last_instruction = NULL;
+                        }
+                        else
+                        {
+                            previous_instruction->next_instruction = NULL;
+                            current_block->last_instruction = previous_instruction;
+                        }
+                    }
                 }
             }
         }
