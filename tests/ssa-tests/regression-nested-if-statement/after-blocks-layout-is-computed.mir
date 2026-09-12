@@ -3,8 +3,6 @@ regression_nested_if_statement:
        | LABEL_1:
      1 |           MOVE                RAX, IMM 10
        |
-       | LABEL_2:
-       |
        | LABEL_3:
      2 |           MOVE                RAX, IMM 21
      3 |           RETURN
