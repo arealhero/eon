@@ -1,0 +1,19 @@
+good_example: () -> void =
+{
+    a: mutable _ = 10;
+    while a > 0
+    {
+        a = a - 1;
+    }
+}
+
+bad_example: () -> void =
+{
+    while false {}
+
+    a: mutable _ = 10;
+    while a > 0
+    {
+        a = a - 1;
+    }
+}

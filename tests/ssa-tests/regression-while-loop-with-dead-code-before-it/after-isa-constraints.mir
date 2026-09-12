@@ -1,0 +1,42 @@
+good_example:
+       |
+       | LABEL_1:
+     1 |           MOVE                VREG 1, IMM 10
+     2 |           JUMP                LABEL_2
+       |
+       | LABEL_2:
+     3 |           PHI                 VREG 2, VREG 1, VREG 3
+     4 |           GREATER             VREG 4, VREG 2, IMM 0
+     5 |           JUMP_IF_FALSE       VREG 4, LABEL_4
+     6 |           JUMP                LABEL_3
+       |
+       | LABEL_3:
+     7 |           SUBTRACT            VREG 5, VREG 2, IMM 1
+     8 |           MOVE                VREG 3, VREG 5
+     9 |           JUMP                LABEL_2
+       |
+       | LABEL_4:
+    10 |           RETURN
+
+bad_example:
+       |
+       | LABEL_5:
+     1 |           JUMP                LABEL_6
+       |
+       | LABEL_6:
+     2 |           MOVE                VREG 1, IMM 10
+     3 |           JUMP                LABEL_7
+       |
+       | LABEL_7:
+     4 |           PHI                 VREG 2, VREG 1, VREG 3
+     5 |           GREATER             VREG 4, VREG 2, IMM 0
+     6 |           JUMP_IF_FALSE       VREG 4, LABEL_9
+     7 |           JUMP                LABEL_8
+       |
+       | LABEL_8:
+     8 |           SUBTRACT            VREG 5, VREG 2, IMM 1
+     9 |           MOVE                VREG 3, VREG 5
+    10 |           JUMP                LABEL_7
+       |
+       | LABEL_9:
+    11 |           RETURN
