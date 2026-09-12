@@ -1,10 +1,14 @@
 unreachable_while_loop:
        |
+       | LABEL_1:
+       |
        | LABEL_2:
      1 |           MOVE                RAX, IMM 20
      2 |           RETURN
 
 redundant_while_loop:
+       |
+       | LABEL_3:
        |
        | LABEL_4:
      1 |           MOVE                RAX, IMM 10
@@ -29,6 +33,8 @@ redundant_continue:
 
 while_loops:
        |
+       | LABEL_9:
+       |
        | LABEL_10:
      1 |           MOVE                RBX, IMM 10
        |
@@ -44,6 +50,8 @@ while_loops:
        | LABEL_13:
      7 |           MOVE                RBX, IMM 20
        |
+       | LABEL_14:
+       |
        | LABEL_16:
      8 |           SUBTRACT            RAX, RBX, IMM 1
      9 |           MOVE                RBX, RAX
@@ -55,6 +63,8 @@ while_loops:
        |
        | LABEL_19:
     13 |           RETURN
+       |
+       | LABEL_17:
        |
        | LABEL_15:
     14 |           JUMP                LABEL_14

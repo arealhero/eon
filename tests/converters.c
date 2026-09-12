@@ -611,12 +611,6 @@ convert_mir_block_to_string(Compilation_Context* context,
                             const MIR_Block* block,
                             Index* current_instruction_index)
 {
-    if (block->first_instruction == NULL)
-    {
-        ASSERT(block->last_instruction == NULL);
-        return;
-    }
-
     append_string(builder, format_string(context->scratch_arena,
                                          "       |\n"
                                          "       | LABEL_{}:\n",

@@ -17,6 +17,8 @@ good_example:
 
 bad_example:
        |
+       | LABEL_5:
+       |
        | LABEL_6:
      1 |           MOVE                RBX, IMM 10
        |

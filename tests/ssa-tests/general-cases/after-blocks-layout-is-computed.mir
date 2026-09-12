@@ -30,6 +30,8 @@ simple_conditional_assignment:
        | LABEL_5:
      1 |           MOVE                RAX, IMM 10
        |
+       | LABEL_6:
+       |
        | LABEL_7:
      2 |           RETURN
 

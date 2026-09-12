@@ -13,11 +13,15 @@ non_trivial_conditional:
 
 then_branch_elimination:
        |
+       | LABEL_3:
+       |
        | LABEL_4:
      1 |           MOVE                RAX, IMM 20
      2 |           RETURN
 
 else_branch_elimination:
+       |
+       | LABEL_5:
        |
        | LABEL_6:
      1 |           MOVE                RAX, IMM 10
