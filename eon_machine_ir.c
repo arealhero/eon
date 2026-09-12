@@ -41,7 +41,6 @@ instruction_is_a_block_terminator(const MIR_Instruction* instruction)
         } break;
 
         case MIR_JUMP:
-        case MIR_JUMP_IF_FALSE:
         case MIR_RETURN:
         {
             return true;
@@ -69,6 +68,7 @@ instruction_is_a_block_terminator(const MIR_Instruction* instruction)
         case MIR_MOVE:
         case MIR_PHI:
         case MIR_CALL:
+        case MIR_JUMP_IF_FALSE:
         {
             return false;
         } break;
@@ -668,7 +668,7 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                 ASSERT(ssa_second_argument->kind == TAC_OPERAND_NONE);
 
                 const Tac_Label_Id label_id = ssa_destination->label_id;
-                const Cfg_Block_Id destination_block_id = context->tac.label_index_to_cfg_block_id_map[label_id.index];
+                const Cfg_Block_Id destination_block_id = ssa_function->label_index_to_cfg_block_id_map[label_id.index];
 
                 MIR_Instruction* instruction = add_new_instruction_to_mir_block(context, this_block);
                 instruction->opcode = MIR_JUMP;
@@ -685,7 +685,7 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                 ASSERT(ssa_second_argument->kind == TAC_OPERAND_NONE);
 
                 const Tac_Label_Id label_id = ssa_destination->label_id;
-                const Cfg_Block_Id destination_block_id = context->tac.label_index_to_cfg_block_id_map[label_id.index];
+                const Cfg_Block_Id destination_block_id = ssa_function->label_index_to_cfg_block_id_map[label_id.index];
 
                 MIR_Instruction* instruction = add_new_instruction_to_mir_block(context, this_block);
                 instruction->opcode = MIR_JUMP_IF_FALSE;

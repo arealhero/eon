@@ -1162,14 +1162,14 @@ remove_unreachable_jumps(Compilation_Context* context)
 
                             const Tac_Label_Id conditional_jump_label_id = instruction->destination.label_id;
                             const Cfg_Block_Id conditional_jump_destination_block_id
-                                = tac->label_index_to_cfg_block_id_map[conditional_jump_label_id.index];
+                                = tac_function->label_index_to_cfg_block_id_map[conditional_jump_label_id.index];
 
                             const Cfg_Block* conditional_jump_destination_block
                                 = get_cfg_block_by_id(tac_function, conditional_jump_destination_block_id);
 
                             const Tac_Label_Id unconditional_jump_label_id = last_instruction->destination.label_id;
                             const Cfg_Block_Id unconditional_jump_destination_block_id
-                                = tac->label_index_to_cfg_block_id_map[unconditional_jump_label_id.index];
+                                = tac_function->label_index_to_cfg_block_id_map[unconditional_jump_label_id.index];
 
                             const Cfg_Block* unconditional_jump_destination_block
                                 = get_cfg_block_by_id(tac_function, unconditional_jump_destination_block_id);
@@ -1180,7 +1180,7 @@ remove_unreachable_jumps(Compilation_Context* context)
                         if (constant->boolean_value)
                         {
                             const Tac_Label_Id label_id = instruction->destination.label_id;
-                            const Cfg_Block_Id destination_block_id = tac->label_index_to_cfg_block_id_map[label_id.index];
+                            const Cfg_Block_Id destination_block_id = tac_function->label_index_to_cfg_block_id_map[label_id.index];
 
                             Cfg_Block* destination_block = get_cfg_block_by_id(tac_function, destination_block_id);
 
@@ -1189,6 +1189,8 @@ remove_unreachable_jumps(Compilation_Context* context)
 
                             Tac_Instruction* next_instruction = instruction->next_instruction;
                             Tac_Instruction* previous_instruction = instruction->previous_instruction;
+
+                            ASSERT(next_instruction != NULL);
 
                             if (next_instruction != NULL)
                             {
@@ -1210,10 +1212,6 @@ remove_unreachable_jumps(Compilation_Context* context)
                         }
                         else
                         {
-                            instruction->next_instruction = NULL;
-                            instruction->operation = TAC_JUMP;
-                            instruction->first_argument = (Tac_Operand){0};
-
                             Tac_Instruction* last_instruction = this_block->last_tac_instruction;
                             ASSERT(last_instruction != NULL);
                             ASSERT(last_instruction->operation == TAC_JUMP);
@@ -1221,13 +1219,19 @@ remove_unreachable_jumps(Compilation_Context* context)
 
                             const Tac_Label_Id unconditional_jump_label_id = last_instruction->destination.label_id;
                             const Cfg_Block_Id unconditional_jump_destination_block_id
-                                = tac->label_index_to_cfg_block_id_map[unconditional_jump_label_id.index];
+                                = tac_function->label_index_to_cfg_block_id_map[unconditional_jump_label_id.index];
 
                             Cfg_Block* unconditional_jump_destination_block
                                 = get_cfg_block_by_id(tac_function, unconditional_jump_destination_block_id);
 
                             remove_edge(this_block, unconditional_jump_destination_block_id);
                             remove_predecessor(unconditional_jump_destination_block, this_block_id);
+
+                            instruction->next_instruction = NULL;
+                            instruction->operation = TAC_JUMP;
+                            instruction->first_argument = (Tac_Operand){0};
+
+                            this_block->last_tac_instruction = instruction;
                         }
                     } break;
 

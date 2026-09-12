@@ -49,7 +49,7 @@ while_loops:
      4 |           PHI                 VREG 2, VREG 1, VREG 3
      5 |           GREATER             VREG 4, VREG 2, IMM 0
      6 |           JUMP_IF_FALSE       VREG 4, LABEL_13
-     7 |           JUMP                LABEL_13
+     7 |           JUMP                LABEL_12
        |
        | LABEL_12:
      8 |           SUBTRACT            VREG 5, VREG 2, IMM 1
@@ -64,21 +64,21 @@ while_loops:
     13 |           PHI                 VREG 7, VREG 6, VREG 8
     14 |           JUMP                LABEL_16
        |
-       | LABEL_18:
+       | LABEL_16:
     15 |           SUBTRACT            VREG 10, VREG 7, IMM 1
     16 |           MOVE                VREG 8, VREG 10
     17 |           LESS                VREG 11, VREG 8, IMM 0
-    18 |           JUMP_IF_FALSE       VREG 11, LABEL_19
-    19 |           JUMP                LABEL_19
+    18 |           JUMP_IF_FALSE       VREG 11, LABEL_17
+    19 |           JUMP                LABEL_18
        |
-       | LABEL_16:
-    20 |           JUMP                LABEL_17
+       | LABEL_18:
+    20 |           JUMP                LABEL_19
        |
-       | LABEL_17:
+       | LABEL_19:
     21 |           PHI                 VREG 9, VREG 8
     22 |           RETURN
        |
-       | LABEL_19:
+       | LABEL_17:
     23 |           JUMP                LABEL_15
        |
        | LABEL_15:

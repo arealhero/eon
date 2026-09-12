@@ -66,8 +66,7 @@ convert_tac_operand_to_string(Compilation_Context* context,
 
         case TAC_OPERAND_LABEL:
         {
-            ASSERT(operand->label_id.index != INVALID_TAC_INDEX);
-            append_string(builder, format_string(context->scratch_arena, " LABEL_{}", operand->label_id.index));
+            append_string(builder, format_string(context->scratch_arena, " LABEL_{}", operand->label_id.index + 1));
         } break;
 
         case TAC_OPERAND_CONSTANT:
@@ -446,10 +445,9 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         ASSERT(instruction->first_argument.kind == TAC_OPERAND_NONE);
                         ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
 
-                        ASSERT(instruction->destination.label_id.index != INVALID_TAC_INDEX);
                         append_string(&builder, format_string(context->scratch_arena,
                                                               "LABEL_{}:",
-                                                              instruction->destination.label_id.index));
+                                                              instruction->destination.label_id.index + 1));
                     } break;
 
                     case TAC_JUMP:

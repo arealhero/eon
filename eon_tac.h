@@ -194,14 +194,13 @@ struct Tac_Function
     Index first_tac_variable_index;
     Index last_tac_variable_index; // NOTE(vlad): This index is not included.
 
-    Index first_tac_label_index;
-    Index last_tac_label_index; // NOTE(vlad): This index is not included.
-
     Tac_Instruction* first_instruction;
     Tac_Instruction* last_instruction;
 
-    // TODO(vlad): Move this to Compilation_Context.
     array(struct Cfg_Block, cfg_blocks);
+    array(Tac_Label, labels);
+
+    array(Cfg_Block_Id, label_index_to_cfg_block_id_map);
 };
 typedef struct Tac_Function Tac_Function;
 
@@ -212,21 +211,17 @@ struct Tac
     array(Tac_Function_Label, function_labels);
     array(Tac_Variable, variables);
     array(Tac_Constant, constants);
-    array(Tac_Label, labels);
-
-    array(Cfg_Block_Id, label_index_to_cfg_block_id_map);
 };
 typedef struct Tac Tac;
 
 maybe_unused internal void lower_ast_to_tac(struct Compilation_Context* context);
 
-maybe_unused internal Tac_Label_Id create_tac_label(struct Compilation_Context* context);
+maybe_unused internal Tac_Label_Id create_tac_label(struct Compilation_Context* context, Tac_Function* function);
 maybe_unused internal Tac_Constant_Id create_tac_constant(struct Compilation_Context* context);
 
 maybe_unused internal inline Tac_Function* get_tac_function_by_label(Tac* tac, const Tac_Function_Label_Id label_id);
 maybe_unused internal inline Tac_Function_Label* get_tac_function_label_by_id(Tac* tac, const Tac_Function_Label_Id id);
 maybe_unused internal inline Tac_Variable* get_tac_variable_by_id(Tac* tac, const Tac_Variable_Id id);
 maybe_unused internal inline Tac_Constant* get_tac_constant_by_id(Tac* tac, const Tac_Constant_Id id);
-maybe_unused internal inline Tac_Label* get_tac_label_by_id(Tac* tac, const Tac_Label_Id id);
 
 #undef DEFINE_TAC_ID_FOR

@@ -64,15 +64,15 @@ call :compile_and_run_unit_test eon_ssa_ut.c || exit /B 1
 if not exist build\tests\ssa-tests mkdir build\tests\ssa-tests
 call :compile tests\ssa-tests\run_ssa_test.c build\tests\ssa-tests\run_ssa_test || exit /B 1
 
-call :run_ssa_test tests\ssa-tests\parallel-copy || exit /B 1
-
 call :run_ssa_test tests\ssa-tests\general-cases || exit /B 1
 call :run_ssa_test tests\ssa-tests\constant-folding || exit /B 1
 call :run_ssa_test tests\ssa-tests\loops || exit /B 1
+call :run_ssa_test tests\ssa-tests\parallel-copy || exit /B 1
 
 call :run_ssa_test tests\ssa-tests\regression-if-statement-with-return || exit /B 1
 call :run_ssa_test tests\ssa-tests\regression-nested-if-statement || exit /B 1
 call :run_ssa_test tests\ssa-tests\regression-while-loop-with-break-and-continue || exit /B 1
+call :run_ssa_test tests\ssa-tests\regression-while-loop-with-dead-code-before-it || exit /B 1
 
 exit /B %ERRORLEVEL%
 

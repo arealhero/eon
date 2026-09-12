@@ -47,7 +47,7 @@ while_loops:
        | LABEL_11:
      4 |           GREATER             RAX, RBX, IMM 0
      5 |           JUMP_IF_FALSE       RAX, LABEL_13
-     6 |           JUMP                LABEL_13
+     6 |           JUMP                LABEL_12
        |
        | LABEL_12:
      7 |           SUBTRACT            RAX, RBX, IMM 1
@@ -61,21 +61,21 @@ while_loops:
        | LABEL_14:
     12 |           JUMP                LABEL_16
        |
-       | LABEL_18:
+       | LABEL_16:
     13 |           SUBTRACT            RAX, RBX, IMM 1
     14 |           MOVE                RBX, RAX
     15 |           LESS                RAX, RBX, IMM 0
-    16 |           JUMP_IF_FALSE       RAX, LABEL_19
-    17 |           JUMP                LABEL_19
+    16 |           JUMP_IF_FALSE       RAX, LABEL_17
+    17 |           JUMP                LABEL_18
        |
-       | LABEL_16:
+       | LABEL_18:
     18 |           MOVE                RAX, RBX
-    19 |           JUMP                LABEL_17
-       |
-       | LABEL_17:
-    20 |           RETURN
+    19 |           JUMP                LABEL_19
        |
        | LABEL_19:
+    20 |           RETURN
+       |
+       | LABEL_17:
     21 |           JUMP                LABEL_15
        |
        | LABEL_15:

@@ -168,7 +168,9 @@ echo " === Running SSA tests ==="
 run_ssa_test tests/ssa-tests/general-cases
 run_ssa_test tests/ssa-tests/constant-folding
 run_ssa_test tests/ssa-tests/loops
+run_ssa_test tests/ssa-tests/parallel-copy
 
 run_ssa_test tests/ssa-tests/regression-if-statement-with-return
 run_ssa_test tests/ssa-tests/regression-nested-if-statement
 run_ssa_test tests/ssa-tests/regression-while-loop-with-break-and-continue
+run_ssa_test tests/ssa-tests/regression-while-loop-with-dead-code-before-it

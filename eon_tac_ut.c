@@ -1137,8 +1137,8 @@ test_while_loops_lowering(Test_Context* test_context)
             const Tac_Operand* destination = &instruction->destination;
             ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_LABEL);
             {
-                ASSERT_EQUAL(destination->label_id.index, 1);
-                const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
+                ASSERT_EQUAL(destination->label_id.index, 0);
+                const Tac_Label* label = &tac_function->labels[destination->label_id.index];
                 ASSERT_POINTERS_ARE_EQUAL(label->points_to, instruction);
             }
 
@@ -1179,8 +1179,8 @@ test_while_loops_lowering(Test_Context* test_context)
             const Tac_Operand* destination = &instruction->destination;
             ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_LABEL);
             {
-                ASSERT_EQUAL(destination->label_id.index, 2);
-                const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
+                ASSERT_EQUAL(destination->label_id.index, 1);
+                const Tac_Label* label = &tac_function->labels[destination->label_id.index];
                 ASSERT_TRUE(label->points_to != NULL);
             }
 
@@ -1237,8 +1237,8 @@ test_while_loops_lowering(Test_Context* test_context)
             const Tac_Operand* destination = &instruction->destination;
             ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_LABEL);
             {
-                ASSERT_EQUAL(destination->label_id.index, 1);
-                const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
+                ASSERT_EQUAL(destination->label_id.index, 0);
+                const Tac_Label* label = &tac_function->labels[destination->label_id.index];
                 ASSERT_TRUE(label->points_to != NULL);
             }
 
@@ -1259,8 +1259,8 @@ test_while_loops_lowering(Test_Context* test_context)
             const Tac_Operand* destination = &instruction->destination;
             ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_LABEL);
             {
-                ASSERT_EQUAL(destination->label_id.index, 2);
-                const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
+                ASSERT_EQUAL(destination->label_id.index, 1);
+                const Tac_Label* label = &tac_function->labels[destination->label_id.index];
                 ASSERT_TRUE(label->points_to != NULL);
             }
 
@@ -1373,8 +1373,8 @@ test_if_statements_lowering(Test_Context* test_context)
             const Tac_Operand* destination = &instruction->destination;
             ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_LABEL);
             {
-                ASSERT_EQUAL(destination->label_id.index, 1);
-                const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
+                ASSERT_EQUAL(destination->label_id.index, 0);
+                const Tac_Label* label = &tac_function->labels[destination->label_id.index];
                 ASSERT_TRUE(label->points_to != NULL);
             }
 
@@ -1432,8 +1432,8 @@ test_if_statements_lowering(Test_Context* test_context)
             const Tac_Operand* destination = &instruction->destination;
             ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_LABEL);
             {
-                ASSERT_EQUAL(destination->label_id.index, 2);
-                const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
+                ASSERT_EQUAL(destination->label_id.index, 1);
+                const Tac_Label* label = &tac_function->labels[destination->label_id.index];
                 ASSERT_TRUE(label->points_to != NULL);
             }
 
@@ -1454,8 +1454,8 @@ test_if_statements_lowering(Test_Context* test_context)
             const Tac_Operand* destination = &instruction->destination;
             ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_LABEL);
             {
-                ASSERT_EQUAL(destination->label_id.index, 1);
-                const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
+                ASSERT_EQUAL(destination->label_id.index, 0);
+                const Tac_Label* label = &tac_function->labels[destination->label_id.index];
                 ASSERT_TRUE(label->points_to != NULL);
             }
 
@@ -1511,8 +1511,8 @@ test_if_statements_lowering(Test_Context* test_context)
             const Tac_Operand* destination = &instruction->destination;
             ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_LABEL);
             {
-                ASSERT_EQUAL(destination->label_id.index, 2);
-                const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
+                ASSERT_EQUAL(destination->label_id.index, 1);
+                const Tac_Label* label = &tac_function->labels[destination->label_id.index];
                 ASSERT_TRUE(label->points_to != NULL);
             }
 
@@ -1617,8 +1617,8 @@ test_if_statements_lowering(Test_Context* test_context)
             const Tac_Operand* destination = &instruction->destination;
             ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_LABEL);
             {
-                ASSERT_EQUAL(destination->label_id.index, 1);
-                const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
+                ASSERT_EQUAL(destination->label_id.index, 0);
+                const Tac_Label* label = &tac_function->labels[destination->label_id.index];
                 ASSERT_TRUE(label->points_to != NULL);
             }
 
@@ -1676,8 +1676,8 @@ test_if_statements_lowering(Test_Context* test_context)
             const Tac_Operand* destination = &instruction->destination;
             ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_LABEL);
             {
-                ASSERT_EQUAL(destination->label_id.index, 2);
-                const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
+                ASSERT_EQUAL(destination->label_id.index, 1);
+                const Tac_Label* label = &tac_function->labels[destination->label_id.index];
                 ASSERT_TRUE(label->points_to != NULL);
             }
 
@@ -1698,8 +1698,8 @@ test_if_statements_lowering(Test_Context* test_context)
             const Tac_Operand* destination = &instruction->destination;
             ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_LABEL);
             {
-                ASSERT_EQUAL(destination->label_id.index, 1);
-                const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
+                ASSERT_EQUAL(destination->label_id.index, 0);
+                const Tac_Label* label = &tac_function->labels[destination->label_id.index];
                 ASSERT_TRUE(label->points_to != NULL);
             }
 
@@ -1720,8 +1720,8 @@ test_if_statements_lowering(Test_Context* test_context)
             const Tac_Operand* destination = &instruction->destination;
             ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_LABEL);
             {
-                ASSERT_EQUAL(destination->label_id.index, 2);
-                const Tac_Label* label = get_tac_label_by_id(&context.tac, destination->label_id);
+                ASSERT_EQUAL(destination->label_id.index, 1);
+                const Tac_Label* label = &tac_function->labels[destination->label_id.index];
                 ASSERT_TRUE(label->points_to != NULL);
             }
 

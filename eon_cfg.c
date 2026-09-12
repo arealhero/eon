@@ -235,7 +235,7 @@ add_cfg_fall_through_edge_if_needed(Compilation_Context* context,
                 }
                 else
                 {
-                    label_id = create_tac_label(context);
+                    label_id = create_tac_label(context, tac_function);
 
                     Tac_Instruction* label = allocate(context->tac_instructions_arena, Tac_Instruction);
                     label->was_automatically_inserted = true;
@@ -248,12 +248,10 @@ add_cfg_fall_through_edge_if_needed(Compilation_Context* context,
                     label->destination.label_id = label_id;
 
                     append_array(context->tac_label_to_cfg_block_map_arena,
-                                 context->tac.label_index_to_cfg_block_id_map,
+                                 tac_function->label_index_to_cfg_block_id_map,
                                  Cfg_Block_Id,
                                  destination_block_id);
                 }
-
-                ASSERT(label_id.index != INVALID_TAC_INDEX);
 
                 Tac_Instruction* jump = allocate(context->tac_instructions_arena, Tac_Instruction);
                 jump->was_automatically_inserted = true;
@@ -282,7 +280,7 @@ tac_operation_is_a_cfg_block_terminator(const Tac_Operation operation)
     switch (operation)
     {
         case TAC_JUMP:
-        case TAC_JUMP_IF_FALSE:
+        case TAC_JUMP_IF_FALSE: // FIXME(vlad): This instruction cannot terminate CFG block.
         case TAC_RETURN:
         {
             return true;
@@ -322,33 +320,36 @@ construct_cfg_from_tac(Compilation_Context* context)
 
     // NOTE(vlad): Creating basic blocks for TAC functions.
 
-    const Size total_labels_count = tac->labels_count;
-    if (total_labels_count > 0)
-    {
-        ensure_array_has_enough_capacity(context->tac_label_to_cfg_block_map_arena,
-                                         tac->label_index_to_cfg_block_id_map,
-                                         Cfg_Block_Id,
-                                         total_labels_count);
-
-        Cfg_Block_Id invalid_block_id = {0};
-        invalid_block_id.index = INVALID_CFG_BLOCK_INDEX;
-
-        for (Index label_index = 0;
-             label_index < total_labels_count;
-             ++label_index)
-        {
-            append_array(context->tac_label_to_cfg_block_map_arena,
-                         tac->label_index_to_cfg_block_id_map,
-                         Cfg_Block_Id,
-                         invalid_block_id);
-        }
-    }
-
     for (Index function_index = 0;
          function_index < tac->functions_count;
          ++function_index)
     {
         Tac_Function* tac_function = &tac->functions[function_index];
+
+        // NOTE(vlad): Initializing TAC label to CFG block map.
+        {
+            const Size total_labels_count = tac_function->labels_count;
+            if (total_labels_count > 0)
+            {
+                ensure_array_has_enough_capacity(context->tac_label_to_cfg_block_map_arena,
+                                                 tac_function->label_index_to_cfg_block_id_map,
+                                                 Cfg_Block_Id,
+                                                 total_labels_count);
+
+                Cfg_Block_Id invalid_block_id = {0};
+                invalid_block_id.index = INVALID_CFG_BLOCK_INDEX;
+
+                for (Index label_index = 0;
+                     label_index < total_labels_count;
+                     ++label_index)
+                {
+                    append_array(context->tac_label_to_cfg_block_map_arena,
+                                 tac_function->label_index_to_cfg_block_id_map,
+                                 Cfg_Block_Id,
+                                 invalid_block_id);
+                }
+            }
+        }
 
         Cfg_Block_Id entry_block_id = {0};
         entry_block_id.index = tac_function->cfg_blocks_count;
@@ -404,13 +405,13 @@ construct_cfg_from_tac(Compilation_Context* context)
             if (instruction->operation == TAC_LABEL)
             {
                 const Tac_Label_Id label_id = instruction->destination.label_id;
-                ASSERT(INVALID_TAC_INDEX < label_id.index && label_id.index <= total_labels_count);
+                ASSERT(0 <= label_id.index && label_id.index < tac_function->labels_count);
 
                 Cfg_Block_Id block_id = {0};
                 block_id.index = block_index;
 
-                ASSERT(tac->label_index_to_cfg_block_id_map[label_id.index].index == INVALID_CFG_BLOCK_INDEX);
-                tac->label_index_to_cfg_block_id_map[label_id.index] = block_id;
+                ASSERT(tac_function->label_index_to_cfg_block_id_map[label_id.index].index == INVALID_CFG_BLOCK_INDEX);
+                tac_function->label_index_to_cfg_block_id_map[label_id.index] = block_id;
             }
         }
 
@@ -433,7 +434,7 @@ construct_cfg_from_tac(Compilation_Context* context)
                 case TAC_JUMP:
                 {
                     const Tac_Label_Id destination_label_id = last_instruction->destination.label_id;
-                    const Cfg_Block_Id destination_block_id = tac->label_index_to_cfg_block_id_map[destination_label_id.index];
+                    const Cfg_Block_Id destination_block_id = tac_function->label_index_to_cfg_block_id_map[destination_label_id.index];
                     ASSERT(destination_block_id.index != INVALID_CFG_BLOCK_INDEX);
 
                     add_cfg_edge(tac_function, source_block_id, destination_block_id);
@@ -442,7 +443,7 @@ construct_cfg_from_tac(Compilation_Context* context)
                 case TAC_JUMP_IF_FALSE:
                 {
                     const Tac_Label_Id destination_label_id = last_instruction->destination.label_id;
-                    const Cfg_Block_Id destination_block_id = tac->label_index_to_cfg_block_id_map[destination_label_id.index];
+                    const Cfg_Block_Id destination_block_id = tac_function->label_index_to_cfg_block_id_map[destination_label_id.index];
                     ASSERT(destination_block_id.index != INVALID_CFG_BLOCK_INDEX);
 
                     add_cfg_edge(tac_function, source_block_id, destination_block_id);
@@ -483,13 +484,15 @@ construct_cfg_from_tac(Compilation_Context* context)
         // NOTE(vlad): We should not use first_instruction and last_instruction after CFG construction.
         tac_function->first_instruction = NULL;
         tac_function->last_instruction = NULL;
-    }
 
-    for (Index label_index = INVALID_TAC_INDEX + 1;
-         label_index < total_labels_count;
-         ++label_index)
-    {
-        ASSERT(tac->label_index_to_cfg_block_id_map[label_index].index != INVALID_CFG_BLOCK_INDEX);
+#if EON_SLOW_BUILD
+        for (Index label_index = 0;
+             label_index < tac_function->labels_count;
+             ++label_index)
+        {
+            ASSERT(tac_function->label_index_to_cfg_block_id_map[label_index].index != INVALID_CFG_BLOCK_INDEX);
+        }
+#endif
     }
 
     request_arena_reset(context->arena_provider, context->scratch_arena);
@@ -611,15 +614,11 @@ remove_last_cfg_block(Compilation_Context* context, Tac_Function* tac_function)
         remove_edge(predecessor, last_block_id);
     }
 
-    Tac* tac = &context->tac;
-
-    ASSERT(tac->label_index_to_cfg_block_id_map != NULL);
-
-    for (Index label_index = tac_function->first_tac_label_index;
-         label_index < tac_function->last_tac_label_index;
+    for (Index label_index = 0;
+         label_index < tac_function->labels_count;
          ++label_index)
     {
-        Cfg_Block_Id* block_id = &tac->label_index_to_cfg_block_id_map[label_index];
+        Cfg_Block_Id* block_id = &tac_function->label_index_to_cfg_block_id_map[label_index];
 
         if (cfg_block_ids_are_equal(*block_id, last_block_id))
         {
@@ -634,15 +633,16 @@ remove_last_cfg_block(Compilation_Context* context, Tac_Function* tac_function)
 }
 
 internal void
-swap_cfg_blocks(Tac* tac,
-                Tac_Function* tac_function,
+swap_cfg_blocks(Tac_Function* tac_function,
                 const Cfg_Block_Id first_block_id,
                 const Cfg_Block_Id second_block_id)
 {
+    ASSERT(!cfg_block_ids_are_equal(first_block_id, second_block_id));
+
     Cfg_Block* first_block = get_cfg_block_by_id(tac_function, first_block_id);
     Cfg_Block* second_block = get_cfg_block_by_id(tac_function, second_block_id);
 
-    // FIXME(vlad): Use first and second block edges and predecessors instead of traversing every block.
+    // FIXME(vlad): Use first and second block's edges and predecessors instead of traversing every block.
     for (Index block_index = 0;
          block_index < tac_function->cfg_blocks_count;
          ++block_index)
@@ -723,13 +723,13 @@ swap_cfg_blocks(Tac* tac,
         }
     }
 
-    ASSERT(tac->label_index_to_cfg_block_id_map != NULL);
+    ASSERT(tac_function->label_index_to_cfg_block_id_map != NULL);
 
-    for (Index label_index = tac_function->first_tac_label_index;
-         label_index < tac_function->last_tac_label_index;
+    for (Index label_index = 0;
+         label_index < tac_function->labels_count;
          ++label_index)
     {
-        Cfg_Block_Id* linked_block_id = &tac->label_index_to_cfg_block_id_map[label_index];
+        Cfg_Block_Id* linked_block_id = &tac_function->label_index_to_cfg_block_id_map[label_index];
         if (cfg_block_ids_are_equal(*linked_block_id, first_block_id))
         {
             *linked_block_id = second_block_id;
@@ -830,7 +830,7 @@ remove_unreachable_cfg_blocks(Compilation_Context* context)
                     Cfg_Block_Id new_block_id = {0};
                     new_block_id.index = unreachable_block_index;
 
-                    swap_cfg_blocks(tac, tac_function, old_block_id, new_block_id);
+                    swap_cfg_blocks(tac_function, old_block_id, new_block_id);
                 }
 
                 reachability_info[unreachable_block_index].was_reached = true;
