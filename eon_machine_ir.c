@@ -407,10 +407,7 @@ lower_ssa_block_to_mir(Compilation_Context* context,
 
     mir_blocks_map[this_ssa_block_id.index] = this_block;
 
-    stack(MIR_Operand, parameters_stack);
-    parameters_stack = NULL;
-    parameters_stack_count = 0;
-    parameters_stack_capacity = 0;
+    local_stack(MIR_Operand, parameters_stack);
 
     for (Index phi_node_index = 0;
          phi_node_index < this_ssa_block->phi_nodes_count;
