@@ -2,6 +2,8 @@
 
 #include <eon/build_info.h>
 
+#define NULL ((void*)(0))
+
 #if COMPILER_MSVC
 typedef unsigned __int8  u8;
 typedef unsigned __int16 u16;

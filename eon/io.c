@@ -6,8 +6,6 @@
 #include <eon/platform/memory.h>
 #include <eon/sanitizers/asan.h>
 
-#include <stdlib.h> // NOTE(vlad): For 'atexit()'.
-
 #define STDOUT_BUFFER_SIZE KiB(4)
 
 internal void
@@ -39,8 +37,6 @@ init_io_state(const Size initial_arena_size)
 
     // TODO(vlad): Commit memory only if needed (like we do that in arenas).
     platform_commit_memory(global_io_state.stdout_buffer, STDOUT_BUFFER_SIZE);
-
-    atexit(deinit_io_state);
 }
 
 internal void

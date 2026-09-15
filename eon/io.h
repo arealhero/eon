@@ -30,6 +30,7 @@ struct IO_State
 internal struct IO_State global_io_state = {0};
 
 internal void init_io_state(const Size initial_arena_size);
+internal void deinit_io_state(void);
 
 internal void print_impl(const String_View message);
 internal void print_flush_stdout(void);

@@ -2,8 +2,9 @@
 #    error Do not use this file directly. Include "<eon/platform/filesystem.h>" instead.
 #endif
 
-#include "win32_hacks.h"
-#include <windows.h>
+#include "win32_declarations.h"
+
+#include <eon/assert.h>
 
 internal Read_File_Result
 platform_read_entire_text_file(Arena* arena, const String_View filename)
@@ -149,5 +150,3 @@ platform_write_string_to_file(Arena* scratch_arena,
     ASSERT(bytes_written == (DWORD)content.length);
     CloseHandle(file_handle);
 }
-
-#include "win32_restore_hacks.h" // IWYU pragma: export

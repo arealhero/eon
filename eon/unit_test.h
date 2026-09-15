@@ -7,6 +7,7 @@
 #include <eon/string.h>
 
 #include <eon/platform/time.h>
+#include <eon/platform/entry_point.h>
 
 #define FAIL_ON_FAILED_ASSERTS 0
 
@@ -60,12 +61,11 @@ internal void registry_register_test(Arena* arena,
                                      const String_View test_name);
 
 int
-main(const int argc, const char* argv[])
+eon_main(const String_View* arguments,
+         const Size arguments_count)
 {
-    init_io_state(GiB(1));
-
     Bool show_stats_at_the_end = true;
-    if (argc >= 2 && strings_are_equal(argv[1], "--hide-stats"))
+    if (arguments_count >= 2 && strings_are_equal(arguments[1], "--hide-stats"))
     {
         show_stats_at_the_end = false;
     }

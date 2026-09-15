@@ -4,6 +4,8 @@
 #include <eon/common.h>
 #include <eon/containers.h>
 
+#include <eon/string_declarations.h>
+
 internal inline Bool
 is_ascii_letter(const char c)
 {
@@ -16,23 +18,21 @@ is_ascii_digit(const char c)
     return ('0' <= c && c <= '9');
 }
 
+internal inline Size
+c_string_length(const char* c_string)
+{
+    if (c_string == NULL) return 0;
+
+    Size length = 0;
+    while (c_string[length] != '\0')
+    {
+        ++length;
+    }
+
+    return length;
+}
+
 struct Arena;
-
-typedef char* C_String;
-
-struct String_View
-{
-    const char* data;
-    Size length;
-};
-typedef struct String_View String_View;
-
-struct String
-{
-    char* data;
-    Size length;
-};
-typedef struct String String;
 
 maybe_unused internal char* to_c_string(struct Arena* arena, const String_View string_view);
 

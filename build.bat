@@ -3,12 +3,12 @@ setlocal
 
 set ERROR_ON=1
 
-set ENABLE_ASAN=1
+set ENABLE_ASAN=0
 set USE_CLANG=1
 
 REM FIXME: Remove no-c23-extensions suppression. AFAIK we only need to remove __VA_OPT__ in 'macros.h'.
 set "clang_warnings=-pedantic -Wall -Wextra -Werror -Wconversion -Wshadow -Wunreachable-code -Wno-c23-extensions -Wno-error=unused-function -Wno-error=unused-variable -Wno-error=unused-parameter"
-set "clang_common_flags=-std=gnu11 -I. -ferror-limit=0 -O0 -fno-omit-frame-pointer -g -gcodeview -fuse-ld=lld -D_DLL -D_WIN32_WINNT=0x0501 -lmsvcrt"
+set "clang_common_flags=-std=gnu11 -I. -ferror-limit=0 -O0 -fno-omit-frame-pointer -g -gcodeview -nostdlib -fno-builtin -mno-stack-arg-probe -lkernel32 -Wl,/ENTRY:platform_entry_point -Wl,/SUBSYSTEM:CONSOLE"
 
 REM NOTE: '-D_WIN32_WINNT=0x0501' forces compiler to use APIs that are compatible with Windows XP.
 REM @ref: https://www.yoctopuce.com/EN/article/running-on-an-antique-windows-xp
@@ -33,6 +33,8 @@ if not exist build\tests\eon\sanitizers mkdir build\tests\eon\sanitizers
 call :compile grammar\check_grammar_soundness.c build\grammar\check_grammar_soundness || exit /B 1
 call :compile utils\pe-viewer.c build\utils\pe-viewer || exit /B 1
 
+rem build\utils\pe-viewer build\utils\pe-viewer.exe
+
 build\grammar\check_grammar_soundness.exe grammar\eon-grammar || exit /B 1
 
 call :compile_and_run_unit_test eon\memory_ut.c || exit /B 1
@@ -40,17 +42,17 @@ call :compile_and_run_unit_test eon\containers_ut.c || exit /B 1
 call :compile_and_run_unit_test eon\string_ut.c || exit /B 1
 call :compile_and_run_unit_test eon\diff_ut.c || exit /B 1
 
-if %USE_CLANG% EQU 1 (
-   setlocal
-   set "clang_common_flags=%clang_common_flags% -fsanitize=address"
-   call :compile_and_run_unit_test eon\sanitizers\asan_ut.c 2>NUL || exit /B 1
-   endlocal
-) else (
-   setlocal
-   set "cl_common_flags=%cl_common_flags% /fsanitize=address"
-   call :compile_and_run_unit_test eon\sanitizers\asan_ut.c 2>NUL || exit /B 1
-   endlocal
-)
+rem if %USE_CLANG% EQU 1 (
+rem    setlocal
+rem    set "clang_common_flags=%clang_common_flags% -fsanitize=address"
+rem    call :compile_and_run_unit_test eon\sanitizers\asan_ut.c 2>NUL || exit /B 1
+rem    endlocal
+rem ) else (
+rem    setlocal
+rem    set "cl_common_flags=%cl_common_flags% /fsanitize=address"
+rem    call :compile_and_run_unit_test eon\sanitizers\asan_ut.c 2>NUL || exit /B 1
+rem    endlocal
+rem )
 
 call :compile_and_run_unit_test eon_lexer_ut.c || exit /B 1
 call :compile_and_run_unit_test eon_parser_ut.c || exit /B 1

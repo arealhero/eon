@@ -8,6 +8,7 @@
 -Wunreachable-code
 
 -Wno-variadic-macro-arguments-omitted
+-Wno-c23-extensions
 
 -Wno-error=unused-function
 -Wno-error=unused-variable

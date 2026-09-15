@@ -1,6 +1,9 @@
 #include <eon/common.h>
 #include <eon/string.h>
+#include <eon/assert.h>
 #include <eon/io.h>
+
+#include <eon/platform/entry_point.h>
 
 #include <eon/platform/filesystem.h>
 
@@ -300,11 +303,10 @@ struct PE_Info
 typedef struct PE_Info PE_Info;
 
 int
-main(int argc, const char* argv[])
+eon_main(const String_View* arguments,
+         const Size arguments_count)
 {
-    init_io_state(GiB(1));
-
-    if (argc != 2)
+    if (arguments_count != 2)
     {
         println("Usage: pe-viewer <path-to-executable>");
         return EXIT_FAILURE;
@@ -313,7 +315,7 @@ main(int argc, const char* argv[])
     Arena* scratch_arena = create_arena("scratch", GiB(1), MiB(1));
     Arena* executable_arena = create_arena("executable", GiB(1), MiB(1));
 
-    const String_View executable_filename = string_view(argv[1]);
+    const String_View executable_filename = arguments[1];
     println("Reading file '{}'", executable_filename);
 
     const Read_Binary_File_Result result = platform_read_entire_binary_file(executable_arena, executable_filename);

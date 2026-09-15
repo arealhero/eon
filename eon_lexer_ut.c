@@ -7,6 +7,21 @@ internal void
 test_line_comments(Test_Context* test_context)
 {
     {
+        s64 i1 = 0;
+        s64 i2 = 0;
+        s64 i3 = 0;
+        s64 i4 = 0;
+        s64 i5 = 0;
+        s64 i6 = 0;
+        s64 i7 = 0;
+        s64 i8 = 0;
+        Test_Context* bruh = NULL;
+        struct Arena_Provider test1 = {0};
+        struct Arena_Provider test2 = {0};
+        struct Arena_Provider test3 = {0};
+
+        UNUSED(bruh, i1, i2, i3, i4, i5, i6, i7, i8, test1, test2, test3);
+
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("// line comment");
 
         Lexer lexer = {0};
