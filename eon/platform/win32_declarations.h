@@ -3,6 +3,7 @@
 #include <eon/build_info.h>
 #include <eon/types.h>
 
+#if !COMPILER_MSVC
 typedef unsigned short WORD;
 typedef unsigned long DWORD;
 typedef long LONG;
@@ -133,3 +134,4 @@ __declspec(dllimport) BOOL __stdcall VirtualFree(LPVOID address,
 
 __declspec(dllimport) BOOL __stdcall QueryPerformanceCounter(PLARGE_INTEGER lpPerformanceCount);
 __declspec(dllimport) BOOL __stdcall QueryPerformanceFrequency(PLARGE_INTEGER lpFrequency);
+#endif

@@ -73,6 +73,8 @@ instruction_is_a_block_terminator(const MIR_Instruction* instruction)
             return false;
         } break;
     }
+
+    UNREACHABLE();
 }
 
 internal String_View
@@ -172,6 +174,8 @@ physical_register_to_string(Compilation_Context* context,
             FAIL("[MIR] This target architecture is not supported yet.");
         } break;
     }
+
+    UNREACHABLE();
 }
 internal inline MIR_Block*
 create_new_mir_block(Compilation_Context* context)

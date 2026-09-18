@@ -2,7 +2,9 @@
 
 #include <eon/build_info.h>
 
-#define NULL ((void*)(0))
+#if !defined(NULL)
+#    define NULL ((void*)(0))
+#endif
 
 #if COMPILER_MSVC
 typedef unsigned __int8  u8;

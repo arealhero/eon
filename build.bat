@@ -10,19 +10,9 @@ REM FIXME: Remove no-c23-extensions suppression. AFAIK we only need to remove __
 set "clang_warnings=-pedantic -Wall -Wextra -Werror -Wconversion -Wshadow -Wunreachable-code -Wno-c23-extensions -Wno-error=unused-function -Wno-error=unused-variable -Wno-error=unused-parameter"
 set "clang_common_flags=-std=gnu11 -I. -ferror-limit=0 -O0 -fno-omit-frame-pointer -g -gcodeview"
 
-REM NOTE: '-D_WIN32_WINNT=0x0501' forces compiler to use APIs that are compatible with Windows XP.
-REM @ref: https://www.yoctopuce.com/EN/article/running-on-an-antique-windows-xp
-
 set "cl_warnings=/W4 /WX /wd4146 /wd4210 /wd4310"
 set "cl_common_flags=/std:c11 /Od /Zi /Zo /I. /nologo"
 set "cl_link_flags=/link /INCREMENTAL:NO"
-
-if %ENABLE_ASAN% EQU 1 (
-   set "clang_common_flags=%clang_common_flags% -fsanitize=address -DEON_WITHOUT_CRT=0 -fuse-ld=lld -D_DLL -D_WIN32_WINNT=0x0501 -lmsvcrt"
-   set "cl_common_flags=%cl_common_flags% /fsanitize=address"
-) else (
-   set "clang_common_flags=%clang_common_flags% -nostartfiles -nostdlib -nodefaultlibs -fno-builtin -lkernel32 eon\platform\win32_chkstk.s -Wl,/ENTRY:platform_entry_point -Wl,/SUBSYSTEM:CONSOLE"
-)
 
 if exist build rmdir /S /Q build
 if not exist build mkdir build
@@ -31,6 +21,25 @@ if not exist build\utils mkdir build\utils
 if not exist build\tests mkdir build\tests
 if not exist build\tests\eon mkdir build\tests\eon
 if not exist build\tests\eon\sanitizers mkdir build\tests\eon\sanitizers
+
+if %ENABLE_ASAN% EQU 1 (
+   REM NOTE: '-D_WIN32_WINNT=0x0501' forces compiler to use APIs that are compatible with Windows XP.
+   REM @ref: https://www.yoctopuce.com/EN/article/running-on-an-antique-windows-xp
+   set "clang_common_flags=%clang_common_flags% -fsanitize=address -DEON_WITHOUT_CRT=0 -fuse-ld=lld -D_DLL -D_WIN32_WINNT=0x0501 -lmsvcrt"
+   set "cl_common_flags=%cl_common_flags% /fsanitize=address /DEON_WITHOUT_CRT=0"
+) else (
+   set "clang_common_flags=%clang_common_flags% -nostartfiles -nostdlib -nodefaultlibs -fno-builtin -lkernel32 eon\platform\win32_chkstk.s -Wl,/ENTRY:platform_entry_point -Wl,/SUBSYSTEM:CONSOLE"
+
+   if %USE_CLANG% EQU 0 (
+      echo Compiling 'chkstk.asm'
+      pushd build\
+      ml64 /nologo ..\eon\platform\win32_chkstk.asm /c
+      popd
+
+      set "cl_common_flags=%cl_common_flags% /Zl /GS-"
+      set "cl_link_flags=%cl_link_flags% /NODEFAULTLIB /ENTRY:platform_entry_point /SUBSYSTEM:CONSOLE kernel32.lib build\win32_chkstk.obj"
+   )
+)
 
 call :compile grammar\check_grammar_soundness.c build\grammar\check_grammar_soundness || exit /B 1
 call :compile utils\pe-viewer.c build\utils\pe-viewer || exit /B 1
@@ -44,17 +53,9 @@ call :compile_and_run_unit_test eon\containers_ut.c || exit /B 1
 call :compile_and_run_unit_test eon\string_ut.c || exit /B 1
 call :compile_and_run_unit_test eon\diff_ut.c || exit /B 1
 
-rem if %USE_CLANG% EQU 1 (
-rem    setlocal
-rem    set "clang_common_flags=%clang_common_flags% -fsanitize=address"
-rem    call :compile_and_run_unit_test eon\sanitizers\asan_ut.c 2>NUL || exit /B 1
-rem    endlocal
-rem ) else (
-rem    setlocal
-rem    set "cl_common_flags=%cl_common_flags% /fsanitize=address"
-rem    call :compile_and_run_unit_test eon\sanitizers\asan_ut.c 2>NUL || exit /B 1
-rem    endlocal
-rem )
+if %ENABLE_ASAN% EQU 1 (
+   call :compile_and_run_unit_test eon\sanitizers\asan_ut.c 2>NUL || exit /B 1
+)
 
 call :compile_and_run_unit_test eon_lexer_ut.c || exit /B 1
 call :compile_and_run_unit_test eon_parser_ut.c || exit /B 1

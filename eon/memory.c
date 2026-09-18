@@ -77,8 +77,15 @@ count_trailing_zero_bits(const u64 number)
 #if COMPILER_GCC || COMPILER_CLANG
     return __builtin_ctzll(number);
 #elif COMPILER_MSVC
-    // TODO(vlad): Use '_BitScanForward64' here.
-#    error This compiler is not supported yet.
+    unsigned long result = 0;
+    if (_BitScanForward64(&result, number) == 0)
+    {
+        return 64;
+    }
+    else
+    {
+        return (Size)(result);
+    }
 #else
 #    error This compiler is not supported yet.
 #endif
