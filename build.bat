@@ -42,9 +42,9 @@ if %ENABLE_ASAN% EQU 1 (
 )
 
 call :compile grammar\check_grammar_soundness.c build\grammar\check_grammar_soundness || exit /B 1
-call :compile utils\pe-viewer.c build\utils\pe-viewer || exit /B 1
+call :compile utils\executable-viewer.c build\utils\executable-viewer || exit /B 1
 
-rem build\utils\pe-viewer build\utils\pe-viewer.exe
+rem build\utils\executable-viewer build\utils\executable-viewer.exe
 
 build\grammar\check_grammar_soundness.exe grammar\eon-grammar || exit /B 1
 

@@ -93,7 +93,7 @@ compile grammar/check_grammar_soundness.c -o build/grammar/check_grammar_soundne
 
 mkdir -p build/utils
 
-compile utils/pe-viewer.c -o build/utils/pe-viewer \
+compile utils/executable-viewer.c -o build/utils/executable-viewer \
         $compiler_common_flags \
         $compiler_warnings
 
