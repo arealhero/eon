@@ -12,9 +12,8 @@
 
 internal Bool check_grammar_soundness(const String_View grammar_filename, const String_View grammar);
 
-int
-eon_main(const String_View* arguments,
-         const Size arguments_count)
+internal int
+eon_main(const String_View* arguments, const Size arguments_count)
 {
     if (arguments_count != 2)
     {

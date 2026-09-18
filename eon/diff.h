@@ -1,7 +1,8 @@
 #pragma once
 
-#include <eon/string.h>
 #include <eon/containers.h>
+#include <eon/memory.h>
+#include <eon/string.h>
 
 struct Diff
 {

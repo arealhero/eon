@@ -8,7 +8,7 @@ set USE_CLANG=1
 
 REM FIXME: Remove no-c23-extensions suppression. AFAIK we only need to remove __VA_OPT__ in 'macros.h'.
 set "clang_warnings=-pedantic -Wall -Wextra -Werror -Wconversion -Wshadow -Wunreachable-code -Wno-c23-extensions -Wno-error=unused-function -Wno-error=unused-variable -Wno-error=unused-parameter"
-set "clang_common_flags=-std=gnu11 -I. -ferror-limit=0 -O0 -fno-omit-frame-pointer -g -gcodeview -nostdlib -fno-builtin -mno-stack-arg-probe -lkernel32 -Wl,/ENTRY:platform_entry_point -Wl,/SUBSYSTEM:CONSOLE"
+set "clang_common_flags=-std=gnu11 -I. -ferror-limit=0 -O0 -fno-omit-frame-pointer -g -gcodeview"
 
 REM NOTE: '-D_WIN32_WINNT=0x0501' forces compiler to use APIs that are compatible with Windows XP.
 REM @ref: https://www.yoctopuce.com/EN/article/running-on-an-antique-windows-xp
@@ -18,8 +18,10 @@ set "cl_common_flags=/std:c11 /Od /Zi /Zo /I. /nologo"
 set "cl_link_flags=/link /INCREMENTAL:NO"
 
 if %ENABLE_ASAN% EQU 1 (
-   set "clang_common_flags=%clang_common_flags% -fsanitize=address"
+   set "clang_common_flags=%clang_common_flags% -fsanitize=address -DEON_WITHOUT_CRT=0 -fuse-ld=lld -D_DLL -D_WIN32_WINNT=0x0501 -lmsvcrt"
    set "cl_common_flags=%cl_common_flags% /fsanitize=address"
+) else (
+   set "clang_common_flags=%clang_common_flags% -nostartfiles -nostdlib -nodefaultlibs -fno-builtin -lkernel32 eon\platform\win32_chkstk.s -Wl,/ENTRY:platform_entry_point -Wl,/SUBSYSTEM:CONSOLE"
 )
 
 if exist build rmdir /S /Q build

@@ -48,8 +48,6 @@ memcpy(void* destination,
     return destination;
 }
 
-internal int eon_main(const String_View* arguments, const Size arguments_count);
-
 // NOTE(vlad): Since we use floats, the linker expects this variable to be defined.
 //             That in turn will force Windows to initialize the FPU.
 int _fltused = 0;
