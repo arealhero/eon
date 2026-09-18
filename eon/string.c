@@ -16,20 +16,6 @@ to_c_string(Arena* arena, const String_View string_view)
     return c_string;
 }
 
-internal Size
-c_string_length(const char* c_string)
-{
-    if (c_string == NULL) return 0;
-
-    Size length = 0;
-    while (c_string[length] != '\0')
-    {
-        ++length;
-    }
-
-    return length;
-}
-
 // NOTE(vlad): No-op for 'string_view' generic.
 internal inline String_View
 INTERNAL_string_view_passthrough(const String_View string_view)

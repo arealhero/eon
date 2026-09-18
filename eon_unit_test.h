@@ -37,7 +37,8 @@ release_arena_to_provider(struct Arena_Provider* provider, Arena* arena)
     test_arena_provider.test_context = test_context;                    \
                                                                         \
     Compilation_Context context = {0};                                  \
-    do {                                                                \
+    do                                                                  \
+    {                                                                   \
         Source_File source_file = {0};                                  \
         source_file.filename = string_view("<test-input>");             \
         source_file.code = string_view(source_code);                    \

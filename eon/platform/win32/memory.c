@@ -2,10 +2,7 @@
 #    error Do not use this file directly. Include "<eon/platform/memory.h>" instead.
 #endif
 
-// FIXME(vlad): Test this -- I just stole this functions without testing.
-
-#include "win32_hacks.h"
-#include <windows.h>
+#include "windows_interface.h"
 
 internal Size
 platform_get_page_size(void)
@@ -39,5 +36,3 @@ platform_release_memory(Byte* pointer, Size number_of_bytes)
 {
     return VirtualFree(pointer, (USize)number_of_bytes, MEM_RELEASE);
 }
-
-#include "win32_restore_hacks.h" // IWYU pragma: export

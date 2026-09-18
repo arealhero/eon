@@ -1,9 +1,6 @@
 #pragma once
 
-#include <eon/assert.h>
 #include <eon/build_info.h>
-#include <eon/memory.h>
-
 #include <eon/sanitizers/asan.h>
 
 #if ASAN_ENABLED

@@ -3,9 +3,9 @@
 #endif
 
 #include <eon/conversions.h>
+#include <eon/assert.h>
 
-#include "win32_hacks.h"
-#include <windows.h>
+#include "windows_interface.h"
 
 internal Timestamp
 platform_get_current_monotonic_timestamp(void)
@@ -18,5 +18,3 @@ platform_get_current_monotonic_timestamp(void)
 
     return SECONDS_TO_MICROSECONDS(ticks.QuadPart) / ticks_per_second.QuadPart;
 }
-
-#include "win32_restore_hacks.h" // IWYU pragma: export

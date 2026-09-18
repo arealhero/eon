@@ -8,6 +8,10 @@
 #    define EON_DEBUG_BUILD 1
 #endif
 
+#if !defined(EON_WITH_CRT)
+#    define EON_WITH_CRT 0
+#endif
+
 #if defined(_WIN32)
 #    define OS_WINDOWS 1
 #    define OS_LINUX   0

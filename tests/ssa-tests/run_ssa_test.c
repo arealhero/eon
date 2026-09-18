@@ -7,6 +7,7 @@
 
 #include <eon/platform/filesystem.h>
 #include <eon/platform/time.h>
+#include <eon/platform/entry_point.h>
 
 #include <tests/converters.h>
 
@@ -56,29 +57,27 @@ internal Bool compare_outputs_and_optionally_canonize(Arena* scratch_arena,
                                                       const String_View output,
                                                       const Bool canonize_output);
 
-int
-main(const int argc, const char* argv[])
+internal int
+eon_main(const String_View* arguments, const Size arguments_count)
 {
-    init_io_state(GiB(1));
-
     Bool canonize_output = false;
     String_View test_directory = {0};
 
-    if (argc == 2)
+    if (arguments_count == 2)
     {
-        test_directory = string_view(argv[1]);
+        test_directory = arguments[1];
     }
-    else if (argc == 3)
+    else if (arguments_count == 3)
     {
-        test_directory = string_view(argv[1]);
+        test_directory = arguments[1];
 
-        if (strings_are_equal(argv[2], "canonize"))
+        if (strings_are_equal(arguments[2], "canonize"))
         {
             canonize_output = true;
         }
         else
         {
-            println("Unknown argument encountered: '{}'", argv[2]);
+            println("Unknown argument encountered: '{}'", arguments[2]);
             print_usage();
             return EXIT_FAILURE;
         }

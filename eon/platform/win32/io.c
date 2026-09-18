@@ -2,8 +2,7 @@
 #    error Do not use this file directly. Include "<eon/platform/io.h>" instead.
 #endif
 
-#include "win32_hacks.h"
-#include <windows.h>
+#include "windows_interface.h"
 
 internal void
 write_data_to_stdout(const Byte* data, const Size data_size)
@@ -26,5 +25,3 @@ write_data_to_stdout(const Byte* data, const Size data_size)
         }
     }
 }
-
-#include "win32_restore_hacks.h" // IWYU pragma: export

@@ -13,11 +13,11 @@
 
 #if COMPILER_CLANG || COMPILER_GCC
 #    define maybe_unused __attribute__((unused))
-#    define noreturn __attribute__((noreturn))
+#    define no_return __attribute__((noreturn))
 #elif COMPILER_MSVC
 // TODO(vlad): Implement this.
 #    define maybe_unused
-#    define noreturn __declspec(noreturn)
+#    define no_return __declspec(noreturn)
 #elif COMPILER_MSVC
 #    error Failed to define 'maybe_unused' and 'noreturn'.
 #endif

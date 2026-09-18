@@ -3,7 +3,7 @@
 #include <eon/keywords.h>
 #include <eon/types.h>
 
-#include <eon/assert.h>
+#include <eon/static_assert.h>
 #include <eon/macros.h>
 
 internal inline void

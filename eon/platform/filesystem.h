@@ -36,11 +36,11 @@ maybe_unused internal void platform_write_string_to_file(Arena* scratch_arena,
                                                          const String_View content);
 
 #if OS_LINUX
-#    include "linux_filesystem.c"
+#    include "linux/filesystem.c"
 #elif OS_MAC
-#    include "macos_filesystem.c"
+#    include "macos/filesystem.c"
 #elif OS_WINDOWS
-#    include "win32_filesystem.c"
+#    include "win32/filesystem.c"
 #else
 #    error This OS is not supported yet.
 #endif

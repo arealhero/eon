@@ -4,6 +4,7 @@
 
 #include <eon/platform/filesystem.h>
 #include <eon/platform/time.h>
+#include <eon/platform/entry_point.h>
 
 #include "grammar_lexer.h"
 #include "grammar_log.h"
@@ -11,21 +12,19 @@
 
 internal Bool check_grammar_soundness(const String_View grammar_filename, const String_View grammar);
 
-int
-main(int argc, const char* argv[])
+internal int
+eon_main(const String_View* arguments, const Size arguments_count)
 {
-    init_io_state(MiB(40));
-
-    if (argc != 2)
+    if (arguments_count != 2)
     {
-        println("Usage: {} <grammar-file>", argv[0]);
+        println("Usage: {} <grammar-file>", arguments[0]);
         return EXIT_FAILURE;
     }
 
     // TODO(vlad): Allocate more memory, otherwise we wouldn't be able to read files with size > 1 GiB.
     Arena* arena = create_arena("filesystem", GiB(1), MiB(1));
 
-    const String_View grammar_filename = string_view(argv[1]);
+    const String_View grammar_filename = string_view(arguments[1]);
     Read_File_Result read_result = platform_read_entire_text_file(arena, grammar_filename);
 
     if (read_result.status == READ_FILE_FAILURE)
