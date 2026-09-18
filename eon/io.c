@@ -1,9 +1,9 @@
 #include "io.h"
 
 #include <eon/platform/io.h>
+#include <eon/platform/memory.h>
 
 #include <eon/memory.h>
-#include <eon/platform/memory.h>
 #include <eon/sanitizers/asan.h>
 
 #define STDOUT_BUFFER_SIZE KiB(4)

@@ -22,7 +22,6 @@
 -O0
 -ggdb
 -I.
--fsanitize=address
 -fno-omit-frame-pointer
 -ferror-limit=0
 

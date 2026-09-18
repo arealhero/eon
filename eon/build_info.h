@@ -8,8 +8,8 @@
 #    define EON_DEBUG_BUILD 1
 #endif
 
-#if !defined(EON_WITHOUT_CRT)
-#    define EON_WITHOUT_CRT 1
+#if !defined(EON_WITH_CRT)
+#    define EON_WITH_CRT 0
 #endif
 
 #if defined(_WIN32)

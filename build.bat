@@ -3,7 +3,7 @@ setlocal
 
 set ERROR_ON=1
 
-set ENABLE_ASAN=0
+set ENABLE_ASAN=1
 set USE_CLANG=1
 
 REM FIXME: Remove no-c23-extensions suppression. AFAIK we only need to remove __VA_OPT__ in 'macros.h'.
@@ -25,19 +25,19 @@ if not exist build\tests\eon\sanitizers mkdir build\tests\eon\sanitizers
 if %ENABLE_ASAN% EQU 1 (
    REM NOTE: '-D_WIN32_WINNT=0x0501' forces compiler to use APIs that are compatible with Windows XP.
    REM @ref: https://www.yoctopuce.com/EN/article/running-on-an-antique-windows-xp
-   set "clang_common_flags=%clang_common_flags% -fsanitize=address -DEON_WITHOUT_CRT=0 -fuse-ld=lld -D_DLL -D_WIN32_WINNT=0x0501 -lmsvcrt"
-   set "cl_common_flags=%cl_common_flags% /fsanitize=address /DEON_WITHOUT_CRT=0"
+   set "clang_common_flags=%clang_common_flags% -fsanitize=address -DEON_WITH_CRT=1 -fuse-ld=lld -D_DLL -D_WIN32_WINNT=0x0501 -lmsvcrt"
+   set "cl_common_flags=%cl_common_flags% /fsanitize=address /DEON_WITH_CRT=1"
 ) else (
-   set "clang_common_flags=%clang_common_flags% -nostartfiles -nostdlib -nodefaultlibs -fno-builtin -lkernel32 eon\platform\win32_chkstk.s -Wl,/ENTRY:platform_entry_point -Wl,/SUBSYSTEM:CONSOLE"
+   set "clang_common_flags=%clang_common_flags% -nostartfiles -nostdlib -nodefaultlibs -fno-builtin -lkernel32 eon\platform\win32\clang\chkstk.s -Wl,/ENTRY:platform_entry_point -Wl,/SUBSYSTEM:CONSOLE"
 
    if %USE_CLANG% EQU 0 (
       echo Compiling 'chkstk.asm'
       pushd build\
-      ml64 /nologo ..\eon\platform\win32_chkstk.asm /c
+      ml64 /nologo ..\eon\platform\win32\msvc\chkstk.asm /c
       popd
 
       set "cl_common_flags=%cl_common_flags% /Zl /GS-"
-      set "cl_link_flags=%cl_link_flags% /NODEFAULTLIB /ENTRY:platform_entry_point /SUBSYSTEM:CONSOLE kernel32.lib build\win32_chkstk.obj"
+      set "cl_link_flags=%cl_link_flags% /NODEFAULTLIB /ENTRY:platform_entry_point /SUBSYSTEM:CONSOLE kernel32.lib build\chkstk.obj"
    )
 )
 

@@ -10,6 +10,7 @@
 #include <eon/keywords.h>
 #include <eon/macros.h>
 
+// FIXME(vlad): Move this to 'compiler_builtins.h' or something.
 #if COMPILER_MSVC
 #    define DEBUGTRAP() __debugbreak()
 #elif defined(__has_builtin) && __has_builtin(__builtin_debugtrap)
@@ -28,8 +29,7 @@
 #    if ARCH_X86
 #        define TRAP() __asm { ud2 }
 #    elif ARCH_X86_64
-#        include <eon/platform/win32_hacks.h>
-#        include <windows.h>
+#        include <eon/platform/win32/windows_interface.h>
 internal inline void
 TRAP(void)
 {
@@ -38,7 +38,6 @@ TRAP(void)
     VirtualProtect(code, sizeof(code), PAGE_EXECUTE_READWRITE, &dummy);
     ((void(*)(void))code)();
 }
-#        include <eon/platform/win32_restore_hacks.h> // IWYU pragma: export
 #    else
 #        error Failed to define 'TRAP()': unknown architecture.
 #    endif
@@ -50,7 +49,7 @@ TRAP(void)
 #    error Failed to define 'TRAP()'.
 #endif
 
-noreturn internal inline void
+no_return internal inline void
 INTERNAL_abort(void)
 {
     // TODO(vlad): Print backtrace?
@@ -62,7 +61,7 @@ INTERNAL_abort(void)
     TRAP();
 }
 
-noreturn internal inline void
+no_return internal inline void
 INTERNAL_exit(const String_View filename,
               const String_View line_number,
               const String_View message)

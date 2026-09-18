@@ -2,7 +2,7 @@
 #    error Do not use this file directly. Include "<eon/platform/memory.h>" instead.
 #endif
 
-#include "win32_declarations.h"
+#include "windows_interface.h"
 
 internal Size
 platform_get_page_size(void)

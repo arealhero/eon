@@ -2,7 +2,7 @@
 #    error Do not use this file directly. Include "<eon/platform/filesystem.h>" instead.
 #endif
 
-#include "win32_declarations.h"
+#include "windows_interface.h"
 
 #include <eon/assert.h>
 

@@ -2,7 +2,7 @@
 #    error Do not use this file directly. Include "<eon/platform/entry_point.h>" instead.
 #endif
 
-#include "win32_declarations.h"
+#include "windows_interface.h"
 
 #include <eon/keywords.h>
 #include <eon/assert.h>

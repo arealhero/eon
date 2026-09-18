@@ -5,7 +5,7 @@
 #include <eon/conversions.h>
 #include <eon/assert.h>
 
-#include "win32_declarations.h"
+#include "windows_interface.h"
 
 internal Timestamp
 platform_get_current_monotonic_timestamp(void)

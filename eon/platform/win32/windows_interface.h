@@ -3,7 +3,6 @@
 #include <eon/build_info.h>
 #include <eon/types.h>
 
-#if !COMPILER_MSVC
 typedef unsigned short WORD;
 typedef unsigned long DWORD;
 typedef long LONG;
@@ -17,6 +16,7 @@ typedef void* HANDLE;
 typedef const char* LPCSTR;
 typedef const void* LPCVOID;
 typedef void* LPVOID;
+typedef DWORD* PDWORD;
 typedef DWORD* LPDWORD;
 
 #define TRUE  1
@@ -46,7 +46,8 @@ typedef DWORD* LPDWORD;
 #define OPEN_ALWAYS       4
 #define TRUNCATE_EXISTING 5
 
-#define PAGE_READWRITE 0x04
+#define PAGE_READWRITE         0x04
+#define PAGE_EXECUTE_READWRITE 0x40
 
 union LARGE_INTEGER {
     struct {
@@ -64,7 +65,7 @@ typedef LARGE_INTEGER* PLARGE_INTEGER;
 
 struct SYSTEM_INFO {
     union {
-        DWORD dwOemId;
+        DWORD dwOemId; // NOTE(vlad): Deprecated, do not use.
         struct {
             WORD wProcessorArchitecture;
             WORD wReserved;
@@ -81,14 +82,6 @@ struct SYSTEM_INFO {
     WORD wProcessorRevision;
 };
 
-struct SECURITY_ATTRIBUTES {
-    DWORD nLength;
-    LPVOID lpSecurityDescriptor;
-    BOOL bInheritHandle;
-};
-typedef struct SECURITY_ATTRIBUTES SECURITY_ATTRIBUTES;
-typedef SECURITY_ATTRIBUTES* LPSECURITY_ATTRIBUTES;
-
 typedef struct SYSTEM_INFO SYSTEM_INFO;
 typedef SYSTEM_INFO* LPSYSTEM_INFO;
 
@@ -96,13 +89,13 @@ __declspec(dllimport) void __stdcall ExitProcess(DWORD exit_code);
 
 __declspec(dllimport) HANDLE __stdcall GetStdHandle(DWORD std_handle);
 
-__declspec(dllimport) HANDLE __stdcall CreateFileA(LPCSTR lpFileName,
-                                                   DWORD dwDesiredAccess,
-                                                   DWORD dwShareMode,
-                                                   LPVOID lpSecurityAttributes,
-                                                   DWORD dwCreationDisposition,
-                                                   DWORD dwFlagsAndAttributes,
-                                                   HANDLE hTemplateFile);
+__declspec(dllimport) HANDLE __stdcall CreateFileA(LPCSTR filename,
+                                                   DWORD desired_access,
+                                                   DWORD share_mode,
+                                                   LPVOID security_attributes,
+                                                   DWORD creation_disposition,
+                                                   DWORD flags_and_attributes,
+                                                   HANDLE template_file);
 __declspec(dllimport) BOOL __stdcall WriteFile(HANDLE file,
                                                LPCVOID buffer,
                                                DWORD number_of_bytes_to_write,
@@ -114,24 +107,27 @@ __declspec(dllimport) BOOL __stdcall ReadFile(HANDLE file,
                                               LPDWORD number_of_bytes_read,
                                               LPVOID overlapped);
 
-__declspec(dllimport) BOOL __stdcall GetFileSizeEx(HANDLE hFile,
-                                                   PLARGE_INTEGER lpFileSize);
+__declspec(dllimport) BOOL __stdcall GetFileSizeEx(HANDLE file_handle,
+                                                   PLARGE_INTEGER out_file_size);
 
 __declspec(dllimport) BOOL __stdcall CloseHandle(HANDLE handle);
 
 __declspec(dllimport) char* __stdcall GetCommandLineA(void);
 
-__declspec(dllimport) void __stdcall GetSystemInfo(LPSYSTEM_INFO lpSystemInfo);
+__declspec(dllimport) void __stdcall GetSystemInfo(LPSYSTEM_INFO out_system_info);
 
 __declspec(dllimport) LPVOID __stdcall VirtualAlloc(LPVOID address,
                                                     SIZE_T size,
                                                     DWORD allocation_type,
                                                     DWORD protect);
+__declspec(dllimport) BOOL __stdcall VirtualProtect(LPVOID address,
+                                                    SIZE_T size,
+                                                    DWORD new_protect,
+                                                    PDWORD out_old_protect);
 
 __declspec(dllimport) BOOL __stdcall VirtualFree(LPVOID address,
                                                  SIZE_T size,
                                                  DWORD free_type);
 
-__declspec(dllimport) BOOL __stdcall QueryPerformanceCounter(PLARGE_INTEGER lpPerformanceCount);
-__declspec(dllimport) BOOL __stdcall QueryPerformanceFrequency(PLARGE_INTEGER lpFrequency);
-#endif
+__declspec(dllimport) BOOL __stdcall QueryPerformanceCounter(PLARGE_INTEGER out_performance_count);
+__declspec(dllimport) BOOL __stdcall QueryPerformanceFrequency(PLARGE_INTEGER out_frequency);
