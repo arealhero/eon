@@ -54,6 +54,7 @@ compiler_common_flags="
   -ggdb
   -I.
   -fno-omit-frame-pointer
+  -DEON_WITH_CRT=1
 "
 
 if [ $ENABLE_ASAN -eq 1 ];

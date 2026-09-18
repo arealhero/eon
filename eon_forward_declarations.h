@@ -73,7 +73,9 @@ typedef enum Calling_Convention Calling_Convention;
 #if ARCH_X86_64
 global_variable const Target_Architecture DEFAULT_TARGET_ARCHITECTURE = TARGET_ARCH_X86_64;
 #elif ARCH_ARM64
-global_variable const Target_Architecture DEFAULT_TARGET_ARCHITECTURE = TARGET_ARCH_AARCH64;
+global_variable const Target_Architecture DEFAULT_TARGET_ARCHITECTURE = TARGET_ARCH_X86_64;
+// FIXME(vlad): Use actual target architecture.
+// global_variable const Target_Architecture DEFAULT_TARGET_ARCHITECTURE = TARGET_ARCH_AARCH64;
 #else
 #    error This architecture is not supported yet.
 #endif
@@ -81,5 +83,6 @@ global_variable const Target_Architecture DEFAULT_TARGET_ARCHITECTURE = TARGET_A
 #if ARCH_X86_64 && OS_WINDOWS
 global_variable const Calling_Convention DEFAULT_CALLING_CONVENTION = CALLING_CONVENTION_MICROSOFT_X64;
 #else
-#    error This architecture and OS pair is not supported yet.
+// FIXME(vlad): Use actual calling convention.
+global_variable const Calling_Convention DEFAULT_CALLING_CONVENTION = CALLING_CONVENTION_MICROSOFT_X64;
 #endif

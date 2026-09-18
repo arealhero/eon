@@ -8,6 +8,8 @@
 #include <sys/uio.h>
 #include <unistd.h> // NOTE(vlad0): For 'read', 'write', 'close', and 'access'.
 
+#include <eon/assert.h>
+
 internal Read_File_Result
 platform_read_entire_text_file(Arena* arena, const String_View filename)
 {
