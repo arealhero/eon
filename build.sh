@@ -94,7 +94,7 @@ compile grammar/check_grammar_soundness.c -o build/grammar/check_grammar_soundne
 
 mkdir -p build/utils
 
-compile utils/executable-viewer.c -o build/utils/executable-viewer \
+compile utils/inspect-executable.c -o build/utils/inspect-executable \
         $compiler_common_flags \
         $compiler_warnings
 
