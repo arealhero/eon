@@ -24,25 +24,25 @@ create_cfg_block(Compilation_Context* context,
 
     block->edges_arena = acquire_arena_from_provider(context->arena_provider,
                                                      string_view("cfg-edges"),
-                                                     GiB(1),
+                                                     MiB(10),
                                                      MiB(1));
     block->predecessors_arena = acquire_arena_from_provider(context->arena_provider,
                                                             string_view("cfg-predecessors"),
-                                                            GiB(1),
+                                                            MiB(10),
                                                             MiB(1));
     block->dominance_frontier_arena = acquire_arena_from_provider(context->arena_provider,
                                                                   string_view("cfg-dominance-frontier"),
-                                                                  GiB(1),
+                                                                  MiB(10),
                                                                   MiB(1));
 
     block->phi_nodes_arena = acquire_arena_from_provider(context->arena_provider,
                                                          string_view("cfg-phi-nodes"),
-                                                         GiB(1),
+                                                         MiB(10),
                                                          MiB(1));
 
     block->dominated_block_ids_arena = acquire_arena_from_provider(context->arena_provider,
                                                                    string_view("cfg-dominated-block-ids"),
-                                                                   GiB(1),
+                                                                   MiB(10),
                                                                    MiB(1));
 
     block->first_tac_instruction = first_instruction;

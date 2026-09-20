@@ -892,11 +892,11 @@ lower_ssa_to_mir(Compilation_Context* context)
 
         mir_function->virtual_registers_arena = acquire_arena_from_provider(context->arena_provider,
                                                                             string_view("mir-function-virtual-registers"),
-                                                                            GiB(1),
+                                                                            MiB(10),
                                                                             MiB(1));
         mir_function->stack_slots_arena = acquire_arena_from_provider(context->arena_provider,
                                                                       string_view("mir-function-stack-slots"),
-                                                                      GiB(1),
+                                                                      MiB(10),
                                                                       MiB(1));
 
         // TODO(vlad): Reserve space for virtual registers.

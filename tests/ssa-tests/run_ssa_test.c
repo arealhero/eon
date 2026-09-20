@@ -88,8 +88,8 @@ eon_main(const String_View* arguments, const Size arguments_count)
         return EXIT_FAILURE;
     }
 
-    Arena* source_code_arena = create_arena("source-code", GiB(1), MiB(1));
-    Arena* ssa_string_arena = create_arena("ssa-string", GiB(1), MiB(1));
+    Arena* source_code_arena = create_arena("source-code", MiB(10), MiB(1));
+    Arena* ssa_string_arena = create_arena("ssa-string", MiB(80), MiB(1));
 
     Arena_Provider arena_provider = {0};
     Compilation_Context context = {0};

@@ -11,35 +11,35 @@ create_compilation_context(Compilation_Context* context,
 {
     context->arena_provider = arena_provider;
 
-    context->scratch_arena = acquire_arena_from_provider(arena_provider, string_view("scratch"), GiB(1), MiB(1));
-    context->keywords_arena = acquire_arena_from_provider(arena_provider, string_view("keywords"), GiB(1), MiB(1));
+    context->scratch_arena = acquire_arena_from_provider(arena_provider, string_view("scratch"), MiB(100), MiB(1));
+    context->keywords_arena = acquire_arena_from_provider(arena_provider, string_view("keywords"), MiB(10), MiB(1));
 
-    context->diagnostic_message_texts_arena = acquire_arena_from_provider(arena_provider, string_view("diagnostic-message-texts"), GiB(1), MiB(1));
-    context->diagnostic_messages_arena = acquire_arena_from_provider(arena_provider, string_view("diagnostic-messages"), GiB(1), MiB(1));
-    context->ast_arena = acquire_arena_from_provider(arena_provider, string_view("ast"), GiB(1), MiB(1));
-    context->lexical_scopes_arena = acquire_arena_from_provider(arena_provider, string_view("lexical-scopes"), GiB(1), MiB(1));
-    context->symbols_arena = acquire_arena_from_provider(arena_provider, string_view("symbols"), GiB(1), MiB(1));
-    context->types_arena = acquire_arena_from_provider(arena_provider, string_view("types"), GiB(1), MiB(1));
-    context->parameter_type_ids_arena = acquire_arena_from_provider(arena_provider, string_view("function-parameter-type-ids"), GiB(1), MiB(1));
+    context->diagnostic_message_texts_arena = acquire_arena_from_provider(arena_provider, string_view("diagnostic-message-texts"), MiB(10), MiB(1));
+    context->diagnostic_messages_arena = acquire_arena_from_provider(arena_provider, string_view("diagnostic-messages"), MiB(10), MiB(1));
+    context->ast_arena = acquire_arena_from_provider(arena_provider, string_view("ast"), MiB(10), MiB(1));
+    context->lexical_scopes_arena = acquire_arena_from_provider(arena_provider, string_view("lexical-scopes"), MiB(10), MiB(1));
+    context->symbols_arena = acquire_arena_from_provider(arena_provider, string_view("symbols"), MiB(10), MiB(1));
+    context->types_arena = acquire_arena_from_provider(arena_provider, string_view("types"), MiB(10), MiB(1));
+    context->parameter_type_ids_arena = acquire_arena_from_provider(arena_provider, string_view("function-parameter-type-ids"), MiB(10), MiB(1));
 
-    context->tac_functions_arena = acquire_arena_from_provider(arena_provider, string_view("tac-functions"), GiB(1), MiB(1));
-    context->tac_instructions_arena = acquire_arena_from_provider(arena_provider, string_view("tac-instructions"), GiB(1), MiB(1));
-    context->tac_function_labels_arena = acquire_arena_from_provider(arena_provider, string_view("tac-function-labels"), GiB(1), MiB(1));
-    context->tac_variables_arena = acquire_arena_from_provider(arena_provider, string_view("tac-variables"), GiB(1), MiB(1));
-    context->tac_constants_arena = acquire_arena_from_provider(arena_provider, string_view("tac-constants"), GiB(1), MiB(1));
-    context->tac_labels_arena = acquire_arena_from_provider(arena_provider, string_view("tac-labels"), GiB(1), MiB(1));
-    context->tac_label_to_cfg_block_map_arena = acquire_arena_from_provider(arena_provider, string_view("tac-label-to-cfg-block-map"), GiB(1), MiB(1));
+    context->tac_functions_arena = acquire_arena_from_provider(arena_provider, string_view("tac-functions"), MiB(10), MiB(1));
+    context->tac_instructions_arena = acquire_arena_from_provider(arena_provider, string_view("tac-instructions"), MiB(10), MiB(1));
+    context->tac_function_labels_arena = acquire_arena_from_provider(arena_provider, string_view("tac-function-labels"), MiB(10), MiB(1));
+    context->tac_variables_arena = acquire_arena_from_provider(arena_provider, string_view("tac-variables"), MiB(10), MiB(1));
+    context->tac_constants_arena = acquire_arena_from_provider(arena_provider, string_view("tac-constants"), MiB(10), MiB(1));
+    context->tac_labels_arena = acquire_arena_from_provider(arena_provider, string_view("tac-labels"), MiB(10), MiB(1));
+    context->tac_label_to_cfg_block_map_arena = acquire_arena_from_provider(arena_provider, string_view("tac-label-to-cfg-block-map"), MiB(10), MiB(1));
 
-    context->cfg_blocks_arena = acquire_arena_from_provider(arena_provider, string_view("cfg-blocks"), GiB(1), MiB(1));
-    context->phi_node_arguments_arena = acquire_arena_from_provider(arena_provider, string_view("cfg-phi-node-arguments"), GiB(1), MiB(1));
+    context->cfg_blocks_arena = acquire_arena_from_provider(arena_provider, string_view("cfg-blocks"), MiB(10), MiB(1));
+    context->phi_node_arguments_arena = acquire_arena_from_provider(arena_provider, string_view("cfg-phi-node-arguments"), MiB(10), MiB(1));
 
-    context->mir_functions_arena = acquire_arena_from_provider(arena_provider, string_view("mir-functions"), GiB(1), MiB(1));
-    context->mir_blocks_arena = acquire_arena_from_provider(arena_provider, string_view("mir-blocks"), GiB(1), MiB(1));
-    context->mir_edges_arena = acquire_arena_from_provider(arena_provider, string_view("mir-edges"), GiB(1), MiB(1));
-    context->mir_instructions_arena = acquire_arena_from_provider(arena_provider, string_view("mir-instructions"), GiB(1), MiB(1));
-    context->mir_operands_arena = acquire_arena_from_provider(arena_provider, string_view("mir-operands"), GiB(1), MiB(1));
-    context->mir_coalescing_hints_arena = acquire_arena_from_provider(arena_provider, string_view("mir-coalescing-hints"), GiB(1), MiB(1));
-    context->mir_block_layouts_arena = acquire_arena_from_provider(arena_provider, string_view("mir-block-layouts"), GiB(1), MiB(1));
+    context->mir_functions_arena = acquire_arena_from_provider(arena_provider, string_view("mir-functions"), MiB(10), MiB(1));
+    context->mir_blocks_arena = acquire_arena_from_provider(arena_provider, string_view("mir-blocks"), MiB(10), MiB(1));
+    context->mir_edges_arena = acquire_arena_from_provider(arena_provider, string_view("mir-edges"), MiB(10), MiB(1));
+    context->mir_instructions_arena = acquire_arena_from_provider(arena_provider, string_view("mir-instructions"), MiB(10), MiB(1));
+    context->mir_operands_arena = acquire_arena_from_provider(arena_provider, string_view("mir-operands"), MiB(10), MiB(1));
+    context->mir_coalescing_hints_arena = acquire_arena_from_provider(arena_provider, string_view("mir-coalescing-hints"), MiB(10), MiB(1));
+    context->mir_block_layouts_arena = acquire_arena_from_provider(arena_provider, string_view("mir-block-layouts"), MiB(10), MiB(1));
 
     context->target_architecture = DEFAULT_TARGET_ARCHITECTURE;
     context->calling_convention = DEFAULT_CALLING_CONVENTION;

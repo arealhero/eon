@@ -9,7 +9,7 @@
 int
 main(const int argc, const char** argv)
 {
-    init_io_state(GiB(1));
+    init_io_state(MiB(30));
 
     const Size number_of_bytes = argc * size_of(String_View);
     String_View* arguments = (String_View*)(platform_reserve_memory(number_of_bytes));
