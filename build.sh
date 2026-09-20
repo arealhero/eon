@@ -8,8 +8,6 @@ set -e
 ENABLE_ASAN=1
 USE_GCC=0
 
-asan_is_broken=0
-
 if [ $(uname) = "Darwin" ]; then
     # NOTE(vlad): https://stackoverflow.com/a/70209891
     export MallocNanoZone=0
@@ -26,7 +24,6 @@ if [ $(uname) = "Darwin" ]; then
         if [ "$major" -eq 26 ] && [ "$minor" -gt 4 ] && [ "$clang_version" = "17.0.0" ]; then
             # NOTE(vlad): ASAN deadlocks on these versions. I reproduced this deadlock on Tahoe 26.5.2 (2026-07-12).
             #             @ref: https://github.com/fragcolor-xyz/shards/blob/devel/CLAUDE.md#clt-26x-addresssanitizer-deadlocks-at-startup
-            asan_is_broken=1
             if [ "$ENABLE_ASAN" -eq 1 ]; then
                 echo "ASAN is broken on this version of macOS."
                 exit 1
@@ -54,12 +51,13 @@ compiler_common_flags="
   -ggdb
   -I.
   -fno-omit-frame-pointer
-  -DEON_WITH_CRT=1
 "
 
 if [ $ENABLE_ASAN -eq 1 ];
 then
-    compiler_common_flags="$compiler_common_flags -fsanitize=address"
+    compiler_common_flags="$compiler_common_flags -fsanitize=address -DEON_WITH_CRT=1"
+else
+    compiler_common_flags="$compiler_common_flags -ffreestanding -nostdlib -nodefaultlibs -fno-builtin -lSystem"
 fi
 
 if [ $USE_GCC -eq 1 ];
@@ -130,7 +128,7 @@ compile_and_run_unit_test eon/containers_ut.c
 compile_and_run_unit_test eon/string_ut.c
 compile_and_run_unit_test eon/diff_ut.c
 
-if [ $asan_is_broken -eq 0 ];
+if [ $ENABLE_ASAN -eq 1 ];
 then
     compile_and_run_unit_test eon/sanitizers/asan_ut.c -fsanitize=address -fsanitize-recover=address 2>/dev/null
 fi

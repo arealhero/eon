@@ -7,7 +7,7 @@
 internal int eon_main(const String_View* arguments, const Size arguments_count);
 
 #if EON_WITH_CRT
-#    include "common/crt_entry_point.c"
+#    include "common/entry_point.c"
 #else
 #    if ASAN_ENABLED
 #        error ASAN requires C runtime.
@@ -15,6 +15,8 @@ internal int eon_main(const String_View* arguments, const Size arguments_count);
 
 #    if OS_WINDOWS
 #        include "win32/entry_point.c"
+#    elif OS_MAC
+#        include "common/entry_point.c"
 #    else
 #        error This OS is not supported yet.
 #    endif
