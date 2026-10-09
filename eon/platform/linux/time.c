@@ -2,6 +2,7 @@
 #    error Do not use this file directly. Include "<eon/platform/time.h>" instead.
 #endif
 
+#include <eon/assert.h>
 #include <eon/conversions.h>
 
 #include <time.h> // NOTE(vlad): For 'struct timespec' and 'clock_gettime'.

@@ -96,6 +96,10 @@ compile utils/inspect-executable.c -o build/utils/inspect-executable \
         $compiler_common_flags \
         $compiler_warnings
 
+compile utils/elf-emitter/elf-emitter.c -o build/utils/elf-emitter \
+        $compiler_common_flags \
+        $compiler_warnings
+
 compile_and_run_unit_test()
 {
     test_filename="$1"

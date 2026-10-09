@@ -29,6 +29,12 @@ struct Bytes_View
 };
 typedef struct Bytes_View Bytes_View;
 
+#define as_bytes_view(object)                       \
+    (Bytes_View){                                   \
+        .data = as_bytes(&(object)),                \
+        .data_size_in_bytes = size_of(object),      \
+    }
+
 struct Arena
 {
     String_View name;

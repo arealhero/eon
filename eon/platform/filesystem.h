@@ -35,8 +35,19 @@ maybe_unused internal void platform_write_string_to_file(Arena* scratch_arena,
                                                          const String_View filename,
                                                          const String_View content);
 
+typedef u64 Platform_File_State;
+
+maybe_unused internal Platform_File_State platform_open_binary_file_for_writing(Arena* scratch_arena,
+                                                                                const String_View filename);
+maybe_unused internal void platform_write_binary_blob_to_file(const Platform_File_State platform_file_state,
+                                                              const Bytes_View blob);
+maybe_unused internal void platform_close_file(const Platform_File_State platform_file_state);
+
 #if OS_LINUX
 #    include "linux/filesystem.c"
+
+STATIC_ASSERT(size_of(Linux_File_State) == size_of(Platform_File_State));
+
 #elif OS_MAC
 #    include "macos/filesystem.c"
 #elif OS_WINDOWS
