@@ -15,7 +15,7 @@ test_break_and_continue_statements_validation(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -85,7 +85,7 @@ test_break_and_continue_statements_validation(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -158,7 +158,7 @@ test_break_and_continue_statements_validation(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -264,7 +264,7 @@ test_break_and_continue_statements_validation(Test_Context* test_context)
                                                  "    return 10;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -378,7 +378,7 @@ test_invalid_break_and_continue_statements(Test_Context* test_context)
                                                  "    break;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -400,7 +400,7 @@ test_invalid_break_and_continue_statements(Test_Context* test_context)
                                                  "    continue;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -425,7 +425,7 @@ test_invalid_break_and_continue_statements(Test_Context* test_context)
                                                  "    }\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -451,7 +451,7 @@ test_invalid_break_and_continue_statements(Test_Context* test_context)
                                                  "    }\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);

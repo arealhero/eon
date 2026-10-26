@@ -12,7 +12,7 @@ test_builtin_types_resolving(Test_Context* test_context)
                                                  "    var := parameter;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -116,7 +116,7 @@ test_builtin_types_resolving(Test_Context* test_context)
                                                  "    return var;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -227,7 +227,7 @@ test_pointers(Test_Context* test_context)
                                                  "    return var;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -324,7 +324,7 @@ test_pointers(Test_Context* test_context)
                                                  "    return var;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -398,7 +398,7 @@ test_comparisons(Test_Context* test_context)
                                                  "    var := parameter == parameter;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -490,7 +490,7 @@ test_comparisons(Test_Context* test_context)
                                                  "    var := parameter != parameter;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -582,7 +582,7 @@ test_comparisons(Test_Context* test_context)
                                                  "    var := parameter < parameter;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -674,7 +674,7 @@ test_comparisons(Test_Context* test_context)
                                                  "    var := parameter <= parameter;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -766,7 +766,7 @@ test_comparisons(Test_Context* test_context)
                                                  "    var := parameter > parameter;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -858,7 +858,7 @@ test_comparisons(Test_Context* test_context)
                                                  "    var := parameter >= parameter;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -954,7 +954,7 @@ test_if_statements(Test_Context* test_context)
                                                  "    if parameter == parameter {}\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1050,7 +1050,7 @@ test_if_statements(Test_Context* test_context)
                                                  "    }\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1147,7 +1147,7 @@ test_if_statements(Test_Context* test_context)
                                                  "    return parameter;"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1265,7 +1265,7 @@ test_while_statements(Test_Context* test_context)
                                                  "    while parameter == parameter {}\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1354,7 +1354,7 @@ test_while_statements(Test_Context* test_context)
                                                  "    }\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1447,7 +1447,7 @@ test_while_statements(Test_Context* test_context)
                                                  "    }\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1540,7 +1540,7 @@ test_while_statements(Test_Context* test_context)
                                                  "    }\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1635,7 +1635,7 @@ test_assignments(Test_Context* test_context)
                                                  "    a = 10;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1723,7 +1723,7 @@ test_assignments(Test_Context* test_context)
                                                  "    a&* = 10;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1811,7 +1811,7 @@ test_assignments(Test_Context* test_context)
                                                  "    b := a;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1914,7 +1914,7 @@ test_pointers_to_mutable_binding(Test_Context* test_context)
                                                  "    ptr* = 10;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2030,7 +2030,7 @@ test_pointers_to_mutable_binding(Test_Context* test_context)
                                                  "    bar(a&);\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2185,7 +2185,7 @@ test_pointers_to_mutable_binding(Test_Context* test_context)
                                                  "    bar(a&);\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2341,7 +2341,7 @@ test_calls(Test_Context* test_context)
                                                  "    return (parameter*)();\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2554,7 +2554,7 @@ test_calls(Test_Context* test_context)
                                                  "}\n"
                                                  "bar: () -> void = {}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2691,7 +2691,7 @@ test_calls(Test_Context* test_context)
                                                  "}\n"
                                                  "bar: () -> void = {}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2826,7 +2826,7 @@ test_calls(Test_Context* test_context)
                                                  "    (foo_ptr*)();\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2934,7 +2934,7 @@ test_signed_integers(Test_Context* test_context)
                                                      "    return 1;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -3005,7 +3005,7 @@ test_signed_integers(Test_Context* test_context)
                                                      "    return 1;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -3076,7 +3076,7 @@ test_signed_integers(Test_Context* test_context)
                                                      "    return 1;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -3147,7 +3147,7 @@ test_signed_integers(Test_Context* test_context)
                                                      "    return 1;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -3225,7 +3225,7 @@ test_unsigned_integers(Test_Context* test_context)
                                                      "    return 1;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -3296,7 +3296,7 @@ test_unsigned_integers(Test_Context* test_context)
                                                      "    return 1;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -3367,7 +3367,7 @@ test_unsigned_integers(Test_Context* test_context)
                                                      "    return 1;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -3438,7 +3438,7 @@ test_unsigned_integers(Test_Context* test_context)
                                                      "    return 1;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -3516,7 +3516,7 @@ test_floats(Test_Context* test_context)
                                                      "    return 1;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -3587,7 +3587,7 @@ test_floats(Test_Context* test_context)
                                                      "    return 1;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -3661,7 +3661,7 @@ test_floats(Test_Context* test_context)
                                                      "    return 1.0;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -3732,7 +3732,7 @@ test_floats(Test_Context* test_context)
                                                      "    return 1.0;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -3808,7 +3808,7 @@ test_floats(Test_Context* test_context)
                                                      "    a = b;\n"
                                                      "}\n");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -3958,7 +3958,7 @@ test_number_types_inference_in_arithmetic_expressions(Test_Context* test_context
 
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE(test_info.source_code);
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4093,7 +4093,7 @@ test_number_types_inference_in_arithmetic_expressions(Test_Context* test_context
         Number_Test_Info test_info = return_test_infos[i];
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE(test_info.source_code);
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4196,7 +4196,7 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                      "    return a;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -4224,7 +4224,7 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                      "    return parameter;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -4254,7 +4254,7 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                      "}\n"
                                                      "bar: () -> void = {}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -4288,7 +4288,7 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                      "}"
                                                      );
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -4322,7 +4322,7 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                      "    return a*;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -4350,7 +4350,7 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                      "    return parameter*;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -4381,7 +4381,7 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                      "bar: () -> * void = {\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -4416,7 +4416,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    return parameter;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4447,7 +4447,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    return variable;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4477,7 +4477,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    return parameter;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4508,7 +4508,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    return var;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4538,7 +4538,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    var := parameter*;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4571,7 +4571,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    return parameter();\n"
                                                  "}\n");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4599,7 +4599,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    parameter();\n"
                                                  "}\n");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4630,7 +4630,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    return parameter;"
                                                  "}\n");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4661,7 +4661,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    return parameter;"
                                                  "}\n");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4688,7 +4688,7 @@ test_type_mismatches(Test_Context* test_context)
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {\n"
                                                  "}\n");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4718,7 +4718,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    }\n"
                                                  "}\n");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4746,7 +4746,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    if parameter {}\n"
                                                  "}\n");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4776,7 +4776,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    a = 2.0;\n"
                                                  "}\n");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4810,7 +4810,7 @@ test_number_type_mismatches(Test_Context* test_context)
                                                  "    return a;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4838,7 +4838,7 @@ test_number_type_mismatches(Test_Context* test_context)
                                                  "    return 10.0;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4866,7 +4866,7 @@ test_number_type_mismatches(Test_Context* test_context)
                                                  "    return 128;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4899,7 +4899,7 @@ test_number_type_mismatches(Test_Context* test_context)
                                                  "    return a + b;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4929,7 +4929,7 @@ test_number_type_mismatches(Test_Context* test_context)
                                                  "    return ptr*;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4959,7 +4959,7 @@ test_number_type_mismatches(Test_Context* test_context)
                                                  "    c := a + 2 * b;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4989,7 +4989,7 @@ test_number_type_mismatches(Test_Context* test_context)
                                                  "    c := (a + 2) * b;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5021,7 +5021,7 @@ test_lvalue_mismatches(Test_Context* test_context)
                                                  "    10 = 10;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5050,7 +5050,7 @@ test_lvalue_mismatches(Test_Context* test_context)
                                                  "    a + 1 = 10;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5079,7 +5079,7 @@ test_lvalue_mismatches(Test_Context* test_context)
                                                  "    a& = 10;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5112,7 +5112,7 @@ test_mutability_mismatches(Test_Context* test_context)
                                                  "    a = 10;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5142,7 +5142,7 @@ test_mutability_mismatches(Test_Context* test_context)
                                                  "    ptr* = 10;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5172,7 +5172,7 @@ test_mutability_mismatches(Test_Context* test_context)
                                                  "    bar(a&);\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5201,7 +5201,7 @@ test_mutability_mismatches(Test_Context* test_context)
                                                  "    ptr: * mutable _ = a&;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5231,7 +5231,7 @@ test_mutability_mismatches(Test_Context* test_context)
                                                  "    ptr: * mutable _ = b&;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5261,7 +5261,7 @@ test_mutability_mismatches(Test_Context* test_context)
                                                  "    mutable_ptr: * mutable _ = immutable_ptr;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);

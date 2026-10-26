@@ -16,7 +16,7 @@ test_dominators_and_dominance_frontiers_computing(Test_Context* test_context)
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -79,7 +79,7 @@ test_dominators_and_dominance_frontiers_computing(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -202,7 +202,7 @@ test_dominators_and_dominance_frontiers_computing(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -308,7 +308,7 @@ test_dominators_and_dominance_frontiers_computing(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -475,7 +475,7 @@ test_dominators_and_dominance_frontiers_computing(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -654,7 +654,7 @@ test_phi_nodes_insertion(Test_Context* test_context)
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -725,7 +725,7 @@ test_phi_nodes_insertion(Test_Context* test_context)
                                                      "    }"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -862,7 +862,7 @@ test_phi_nodes_insertion(Test_Context* test_context)
                                                      "    }"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -986,7 +986,7 @@ test_phi_nodes_insertion(Test_Context* test_context)
                                                      "    d := b;"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -1127,7 +1127,7 @@ test_phi_nodes_insertion(Test_Context* test_context)
                                                      "    return parameter;"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -1282,7 +1282,7 @@ test_phi_nodes_insertion(Test_Context* test_context)
                                                  "    c := b;"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1495,7 +1495,7 @@ test_phi_nodes_insertion(Test_Context* test_context)
                                                      "    }"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -1677,7 +1677,7 @@ test_phi_nodes_insertion(Test_Context* test_context)
                                                      "    }"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -1873,7 +1873,7 @@ test_ssa_versions_of_variables(Test_Context* test_context)
                                                      "    }"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -2017,7 +2017,7 @@ test_unused_ssa_assignments(Test_Context* test_context)
                                                  "    a := 10;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2071,7 +2071,7 @@ test_unused_ssa_assignments(Test_Context* test_context)
                                                  "    return a;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2132,7 +2132,7 @@ test_unused_ssa_assignments(Test_Context* test_context)
                                                  "    return 30;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2192,7 +2192,7 @@ test_unused_ssa_assignments(Test_Context* test_context)
                                                  "    return 30;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2243,7 +2243,7 @@ test_unused_ssa_assignments(Test_Context* test_context)
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (parameter: s32) -> void = {}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2307,7 +2307,7 @@ test_unused_ssa_assignments(Test_Context* test_context)
                                                  "    return 30;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2377,7 +2377,7 @@ test_unused_ssa_assignments(Test_Context* test_context)
                                                  "    return 30;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2445,7 +2445,7 @@ test_unused_ssa_assignments(Test_Context* test_context)
                                                  "    return a + b;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2504,7 +2504,7 @@ test_unreachable_jumps_elimination(Test_Context* test_context)
                                                  "    }\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2569,7 +2569,7 @@ test_unreachable_jumps_elimination(Test_Context* test_context)
                                                  "    return 20;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2634,7 +2634,7 @@ test_unreachable_jumps_elimination(Test_Context* test_context)
                                                  "    return 20;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);

@@ -17,5 +17,4 @@ struct Parser
 };
 typedef struct Parser Parser;
 
-// FIXME(vlad): Change the return type to 'void'.
-maybe_unused internal Bool parse_ast(struct Compilation_Context* context);
+maybe_unused internal void parse_ast(struct Compilation_Context* context);

@@ -13,7 +13,7 @@ test_functions_without_jumps(Test_Context* test_context)
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -59,7 +59,7 @@ test_functions_without_jumps(Test_Context* test_context)
                                                  "    return a + b;"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -108,7 +108,7 @@ test_functions_without_jumps(Test_Context* test_context)
                                                  "    return 2 * number;"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -185,7 +185,7 @@ test_if_statements(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -283,7 +283,7 @@ test_if_statements(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -388,7 +388,7 @@ test_while_loops(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -479,7 +479,7 @@ test_complex_statements(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -690,7 +690,7 @@ test_critical_edges(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -851,7 +851,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                                                  "    return;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -920,7 +920,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                                                  "    a := 10;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1006,7 +1006,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                                                  "    b := 20;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1097,7 +1097,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                                                  "    }\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);

@@ -54,7 +54,7 @@ test_function_parameters_lowering(Test_Context* test_context)
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (parameter: s32) -> void = {"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -141,7 +141,7 @@ test_expression_lowering(Test_Context* test_context)
                                                  "    a := 10;"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -238,7 +238,7 @@ test_expression_lowering(Test_Context* test_context)
                                                  "    a = 20;"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -352,7 +352,7 @@ test_return_statements_lowering(Test_Context* test_context)
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -405,7 +405,7 @@ test_return_statements_lowering(Test_Context* test_context)
                                                  "    return;"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -475,7 +475,7 @@ test_return_statements_lowering(Test_Context* test_context)
                                                  "    return 10;"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -530,7 +530,7 @@ test_return_statements_lowering(Test_Context* test_context)
                                                  "    return a;"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -630,7 +630,7 @@ test_calls(Test_Context* test_context)
                                                  "    return foo();"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -746,7 +746,7 @@ test_calls(Test_Context* test_context)
                                                  "    foo();"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -893,7 +893,7 @@ test_binary_expressions_lowering(Test_Context* test_context)
 
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE(test_info.source_code);
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1017,7 +1017,7 @@ test_while_loops_lowering(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1225,7 +1225,7 @@ test_if_statements_lowering(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1461,7 +1461,7 @@ test_if_statements_lowering(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1665,7 +1665,7 @@ test_indirect_memory_access(Test_Context* test_context)
                                                  "    return ptr*;"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1842,7 +1842,7 @@ test_indirect_memory_access(Test_Context* test_context)
                                                  "    return a;"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);

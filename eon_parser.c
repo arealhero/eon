@@ -1,7 +1,5 @@
 #include "eon_parser.h"
 
-#include <eon/io.h>
-
 #include "eon_compilation_context.h"
 
 // FIXME(vlad): Report syntax errors here.
@@ -81,6 +79,15 @@ parser_fetch_token(Compilation_Context* context)
 
     if (!get_next_token(context, &parser->current_token))
     {
+        const String_View error_message_text = string_view("Unexpected end of file encountered");
+
+        Diagnostic_Message error = {0};
+        error.level = MESSAGE_LEVEL_ERROR;
+        error.location = parser->current_token.location;
+        error.text = error_message_text;
+
+        emit_diagnostic_message(context, &error);
+
         return false;
     }
 
@@ -246,8 +253,17 @@ parse_type(Compilation_Context* context, Ast_Type* type)
 
         default:
         {
-            // TODO(vlad): Ensure that token has one of these types and report an error if it does not.
-            println("Failed to parse type");
+            const String error_message_text = format_string(context->diagnostic_message_texts_arena,
+                                                            "Failed to parse type: unexpected token type {} encountered",
+                                                            token_type_to_string(parser->current_token.type));
+
+            Diagnostic_Message error = {0};
+            error.level = MESSAGE_LEVEL_ERROR;
+            error.location = parser->current_token.location;
+            error.text = string_view(error_message_text);
+
+            emit_diagnostic_message(context, &error);
+
             return false;
         };
     }
@@ -501,8 +517,17 @@ parse_primary_expression(Compilation_Context* context, Ast_Expression* expressio
 
         default:
         {
-            // TODO(vlad): Ensure that token has one of these types and report an error if it does not.
-            println("Failed to parse primary expression");
+            const String error_message_text = format_string(context->diagnostic_message_texts_arena,
+                                                            "Failed to parse expression: unexpected token type {} encountered",
+                                                            token_type_to_string(parser->current_token.type));
+
+            Diagnostic_Message error = {0};
+            error.level = MESSAGE_LEVEL_ERROR;
+            error.location = parser->current_token.location;
+            error.text = string_view(error_message_text);
+
+            emit_diagnostic_message(context, &error);
+
             return false;
         } break;
     }
@@ -1442,7 +1467,7 @@ parse_function_definition(Compilation_Context* context, Ast_Function_Definition*
     return true;
 }
 
-internal Bool
+internal void
 parse_ast(Compilation_Context* context)
 {
     Parser* parser = &context->parser;
@@ -1453,8 +1478,8 @@ parse_ast(Compilation_Context* context)
         Ast_Function_Definition function_definition = {0};
         if (!parse_function_definition(context, &function_definition))
         {
-            println("Failed to parse function definition");
-            return false;
+            // TODO(vlad): Try to parse other functions.
+            return;
         }
 
         append_array(context->ast_arena,
@@ -1465,10 +1490,8 @@ parse_ast(Compilation_Context* context)
         // NOTE(vlad): Prefetching the next token to check if its type is EOF.
         if (!parser_fetch_token(context))
         {
-            return false;
+            return;
         }
     }
     while (parser->current_token.type != TOKEN_EOF);
-
-    return true;
 }

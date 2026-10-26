@@ -127,12 +127,7 @@ eon_main(const String_View* arguments, const Size arguments_count)
     Bool test_failed = false;
 
     START_TIMER(ast_parsing);
-    if (!parse_ast(&context))
-    {
-        println("Error: failed to parse {}", context.source_file.filename);
-        test_failed = true;
-        goto cleanup;
-    }
+    parse_ast(&context);
     END_TIMER(ast_parsing, "AST parsed");
 
     if (has_diagnostic_messages(&context))

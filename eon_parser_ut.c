@@ -8,7 +8,7 @@ test_function_definitions_parsing(Test_Context* test_context)
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> Bool = {}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -35,7 +35,7 @@ test_function_definitions_parsing(Test_Context* test_context)
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -62,7 +62,7 @@ test_function_definitions_parsing(Test_Context* test_context)
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (argument: s32) -> void = {}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -101,7 +101,7 @@ test_function_definitions_parsing(Test_Context* test_context)
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> () -> void = {}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -134,7 +134,7 @@ test_function_definitions_parsing(Test_Context* test_context)
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> * () -> void = {}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -173,7 +173,7 @@ test_function_definitions_parsing(Test_Context* test_context)
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (first: s32, second: Some_Type) -> void = {}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -229,7 +229,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {}\n"
                                                  "bar: (arg: Type) -> Other_Type = {}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 2);
@@ -289,7 +289,7 @@ test_function_definitions_parsing(Test_Context* test_context)
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> f32 = {}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -318,7 +318,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         {
             CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (first: mutable s32, second: Some_Type) -> void = {}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -375,7 +375,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         {
             CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (first: s32, second: mutable Some_Type) -> void = {}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -430,7 +430,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         {
             CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (first: mutable s32, second: mutable Some_Type) -> void = {}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -487,7 +487,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         {
             CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> mutable f32 = {}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -516,7 +516,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         {
             CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> mutable * f32 = {}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -549,7 +549,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         {
             CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> * mutable f32 = {}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -582,7 +582,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         {
             CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> mutable * mutable f32 = {}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -615,7 +615,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         {
             CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> mutable * () -> void = {}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -659,7 +659,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = { variable: s32; }");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -705,7 +705,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                                  "    variable: s32 = 123;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -755,7 +755,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                                  "    variable := 123;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -805,7 +805,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                                  "    var2: String_View;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -870,7 +870,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                                  "    var: String_View = \"Hello\";\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -920,7 +920,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                                  "    var2 := var1;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -986,7 +986,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                                  "    pointer: * s32;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1036,7 +1036,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                                  "    pointer: ** s32;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1090,7 +1090,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                                      "    variable: mutable s32;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1135,7 +1135,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                                      "    pointer: mutable * s32;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1184,7 +1184,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                                      "    pointer: mutable * mutable s32;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1233,7 +1233,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                                      "    variable: mutable _ = 123;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1287,7 +1287,7 @@ test_return_statement_parsing(Test_Context* test_context)
                                                  "    return;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1325,7 +1325,7 @@ test_return_statement_parsing(Test_Context* test_context)
                                                  "    return 123;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1372,7 +1372,7 @@ test_if_statement_parsing(Test_Context* test_context)
                                                  "    if true { return; }\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1428,7 +1428,7 @@ test_if_statement_parsing(Test_Context* test_context)
                                                  "    else { a := 1; }\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1506,7 +1506,7 @@ test_if_statement_parsing(Test_Context* test_context)
                                                  "    else { return 3; }\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1600,7 +1600,7 @@ test_expressions(Test_Context* test_context)
                                                  "    var2 := (var1);\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1715,7 +1715,7 @@ test_expressions(Test_Context* test_context)
 
             CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE(test_info.source_code);
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1810,7 +1810,7 @@ test_expressions(Test_Context* test_context)
                                                  "    var := foo();\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 2);
@@ -1898,7 +1898,7 @@ test_expressions(Test_Context* test_context)
                                                  "    var := foo(10, 20);\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 2);
@@ -1967,7 +1967,7 @@ test_expressions(Test_Context* test_context)
                                                  "    var := bar(10 + something * 30, baz(10, 20));\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -2072,7 +2072,7 @@ test_expressions(Test_Context* test_context)
                                                      "    var := -1;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -2125,7 +2125,7 @@ test_expressions(Test_Context* test_context)
                                                      "    var := arg* * 2;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -2210,7 +2210,7 @@ test_expressions(Test_Context* test_context)
                                                      "    var := arg* + 2;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -2286,7 +2286,7 @@ test_expressions(Test_Context* test_context)
                                                      "    var := arg** * 2;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -2375,7 +2375,7 @@ test_expressions(Test_Context* test_context)
                                                      "    var := arg***2;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -2463,7 +2463,7 @@ test_expressions(Test_Context* test_context)
                                                      "    var := arg&;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -2523,7 +2523,7 @@ test_expressions(Test_Context* test_context)
                                                      "    var := arg&* * 2;\n"
                                                      "}");
 
-            ASSERT_TRUE(parse_ast(&context));
+            parse_ast(&context);
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -2607,7 +2607,7 @@ test_operator_precedence(Test_Context* test_context)
                                                  "    var := 1 + 2 * 3;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -2675,7 +2675,7 @@ test_operator_precedence(Test_Context* test_context)
                                                  "    var := (1 + 2) * 3;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -2744,7 +2744,7 @@ test_operator_precedence(Test_Context* test_context)
                                                  "    var := 3 + bar();\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -2814,7 +2814,7 @@ test_assignments(Test_Context* test_context)
                                                  "    var = 2;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -2882,7 +2882,7 @@ test_assignments(Test_Context* test_context)
                                                  "    var = var + 1;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -2961,7 +2961,7 @@ test_assignments(Test_Context* test_context)
                                                  "    parameter* = 10;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -3044,7 +3044,7 @@ test_assignments(Test_Context* test_context)
                                                  "    10 = 10;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -3112,7 +3112,7 @@ test_while_statements(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -3207,7 +3207,7 @@ test_while_statements(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -3274,7 +3274,7 @@ test_while_statements(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -3344,7 +3344,7 @@ test_while_statements(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -3447,7 +3447,7 @@ test_while_statements(Test_Context* test_context)
                                                  "    return 10;\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -3558,7 +3558,7 @@ test_call_statements(Test_Context* test_context)
                                                  "    bar(10);\n"
                                                  "}");
 
-        ASSERT_TRUE(parse_ast(&context));
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -3617,7 +3617,7 @@ test_syntax_errors(Test_Context* test_context)
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("");
 
-        ASSERT_FALSE(parse_ast(&context));
+        parse_ast(&context);
 
         ASSERT_TRUE(has_compilation_errors(&context));
 
@@ -3635,7 +3635,7 @@ test_syntax_errors(Test_Context* test_context)
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo");
 
-        ASSERT_FALSE(parse_ast(&context));
+        parse_ast(&context);
 
         ASSERT_TRUE(has_compilation_errors(&context));
 
@@ -3655,7 +3655,7 @@ test_syntax_errors(Test_Context* test_context)
                                                  "    var := 123a;\n"
                                                  "}");
 
-        ASSERT_FALSE(parse_ast(&context));
+        parse_ast(&context);
 
         ASSERT_TRUE(has_compilation_errors(&context));
 
