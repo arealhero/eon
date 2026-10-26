@@ -15,13 +15,7 @@ test_break_and_continue_statements_validation(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -80,8 +74,6 @@ test_break_and_continue_statements_validation(Test_Context* test_context)
             ASSERT_POINTERS_ARE_EQUAL(inner_statement->jump.destination, statement);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -93,13 +85,7 @@ test_break_and_continue_statements_validation(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -158,8 +144,6 @@ test_break_and_continue_statements_validation(Test_Context* test_context)
             ASSERT_POINTERS_ARE_EQUAL(inner_statement->jump.destination, statement);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -174,13 +158,7 @@ test_break_and_continue_statements_validation(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -271,8 +249,6 @@ test_break_and_continue_statements_validation(Test_Context* test_context)
             }
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
     {
@@ -288,13 +264,7 @@ test_break_and_continue_statements_validation(Test_Context* test_context)
                                                  "    return 10;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -396,8 +366,6 @@ test_break_and_continue_statements_validation(Test_Context* test_context)
             ASSERT_FALSE(statement->return_statement.expression.number.is_a_floating_point_number);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -410,13 +378,7 @@ test_invalid_break_and_continue_statements(Test_Context* test_context)
                                                  "    break;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -430,8 +392,6 @@ test_invalid_break_and_continue_statements(Test_Context* test_context)
                                                         "    |     ^~~~~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -440,13 +400,7 @@ test_invalid_break_and_continue_statements(Test_Context* test_context)
                                                  "    continue;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -460,8 +414,6 @@ test_invalid_break_and_continue_statements(Test_Context* test_context)
                                                         "    |     ^~~~~~~~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -473,13 +425,7 @@ test_invalid_break_and_continue_statements(Test_Context* test_context)
                                                  "    }\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -493,8 +439,6 @@ test_invalid_break_and_continue_statements(Test_Context* test_context)
                                                         "    |         ^~~~~~~~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -507,13 +451,7 @@ test_invalid_break_and_continue_statements(Test_Context* test_context)
                                                  "    }\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -527,8 +465,6 @@ test_invalid_break_and_continue_statements(Test_Context* test_context)
                                                         "    |         ^~~~~~~~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }

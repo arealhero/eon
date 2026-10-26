@@ -6,13 +6,10 @@
 
 #include "eon_lexer.h"
 
-#include "eon_compilation_context.h"
+#include "eon_forward_declarations.h"
 
 struct Parser
 {
-    Compilation_Context* context;
-
-    Lexer* lexer;
     Token current_token;
     Token lookahead_token;
 
@@ -20,6 +17,5 @@ struct Parser
 };
 typedef struct Parser Parser;
 
-internal void create_parser(Parser* parser, Lexer* lexer, Compilation_Context* context);
-internal Bool parse_ast(Parser* parser);
-internal void destroy_parser(Parser* parser);
+// FIXME(vlad): Change the return type to 'void'.
+maybe_unused internal Bool parse_ast(struct Compilation_Context* context);

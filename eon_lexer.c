@@ -4,42 +4,6 @@
 
 #include <eon/io.h>
 
-internal void
-create_lexer(Lexer* lexer, Compilation_Context* context)
-{
-    lexer->context = context;
-    lexer->code = context->source_file.code;
-    lexer->lexeme_start_index = 0;
-    lexer->current_index = 0;
-    lexer->current_line = 0;
-    lexer->current_column = 0;
-
-    const Keyword keywords[] = {
-        { .type = TOKEN_FOR,   .lexeme = string_view("for"), },
-        { .type = TOKEN_IF,    .lexeme = string_view("if"), },
-        { .type = TOKEN_ELSE,  .lexeme = string_view("else"), },
-        { .type = TOKEN_WHILE, .lexeme = string_view("while"), },
-        { .type = TOKEN_TRUE,  .lexeme = string_view("true"), },
-        { .type = TOKEN_FALSE, .lexeme = string_view("false"), },
-        { .type = TOKEN_ARROW, .lexeme = string_view("->"), },
-        { .type = TOKEN_RETURN, .lexeme = string_view("return"), },
-        { .type = TOKEN_BREAK, .lexeme = string_view("break"), },
-        { .type = TOKEN_CONTINUE, .lexeme = string_view("continue"), },
-        { .type = TOKEN_WILDCARD, .lexeme = string_view("_"), },
-
-        { .type = TOKEN_MUTABLE, .lexeme = string_view("mutable"), },
-    };
-
-    lexer->keywords_count = NUMBER_OF_STATIC_ARRAY_ELEMENTS(keywords);
-    lexer->keywords = allocate_array(context->keywords_arena, lexer->keywords_count, Keyword);
-    for (Index i = 0;
-         i < lexer->keywords_count;
-         ++i)
-    {
-        lexer->keywords[i] = keywords[i];
-    }
-}
-
 internal inline char
 get_current_character(Lexer* lexer)
 {
@@ -132,8 +96,10 @@ consume_characters_while_preciate_is_true(Lexer* lexer,
 }
 
 internal Bool
-get_next_token(Lexer* lexer, Token* token)
+get_next_token(Compilation_Context* context, Token* token)
 {
+    Lexer* lexer = &context->lexer;
+
     if (lexer->current_index >= lexer->code.length)
     {
         lexer->lexeme_start_index = lexer->current_index;
@@ -355,7 +321,7 @@ get_next_token(Lexer* lexer, Token* token)
                 error.location.column = lexer->current_column - 1;
                 error.text = string_view("Unexpected character encountered");
 
-                emit_diagnostic_message(lexer->context, &error);
+                emit_diagnostic_message(context, &error);
 
                 // TODO(vlad): Do we really need this?
                 lexer->lexeme_start_index = lexer->current_index;
@@ -371,10 +337,4 @@ get_next_token(Lexer* lexer, Token* token)
 
     create_token(lexer, token, TOKEN_EOF);
     return true;
-}
-
-internal void
-destroy_lexer(Lexer* lexer)
-{
-    UNUSED(lexer);
 }

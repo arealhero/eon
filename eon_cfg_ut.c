@@ -13,13 +13,7 @@ test_functions_without_jumps(Test_Context* test_context)
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -55,8 +49,6 @@ test_functions_without_jumps(Test_Context* test_context)
             ASSERT_EQUAL(block->predecessors_count, 0);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -67,13 +59,7 @@ test_functions_without_jumps(Test_Context* test_context)
                                                  "    return a + b;"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -109,8 +95,6 @@ test_functions_without_jumps(Test_Context* test_context)
             ASSERT_EQUAL(block->predecessors_count, 0);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -124,13 +108,7 @@ test_functions_without_jumps(Test_Context* test_context)
                                                  "    return 2 * number;"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -188,8 +166,6 @@ test_functions_without_jumps(Test_Context* test_context)
             }
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -209,13 +185,7 @@ test_if_statements(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -302,8 +272,6 @@ test_if_statements(Test_Context* test_context)
             ASSERT_EQUAL(block->predecessors[1].index, else_block_index);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -315,13 +283,7 @@ test_if_statements(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -411,8 +373,6 @@ test_if_statements(Test_Context* test_context)
             ASSERT_EQUAL(block->predecessors[1].index, else_block_index);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -428,13 +388,7 @@ test_while_loops(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -506,8 +460,6 @@ test_while_loops(Test_Context* test_context)
             ASSERT_EQUAL(block->predecessors[0].index, condition_block_index);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -527,13 +479,7 @@ test_complex_statements(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -669,8 +615,6 @@ test_complex_statements(Test_Context* test_context)
             }
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -746,13 +690,7 @@ test_critical_edges(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -901,8 +839,6 @@ test_critical_edges(Test_Context* test_context)
             ASSERT_EQUAL(block->predecessors[1].index, then_block_index);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -915,13 +851,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                                                  "    return;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -981,8 +911,6 @@ test_unreachable_blocks_removal(Test_Context* test_context)
         // NOTE(vlad): Removal of automatically inserted instructions should not trigger a warning/error emission.
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -992,13 +920,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                                                  "    a := 10;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1074,8 +996,6 @@ test_unreachable_blocks_removal(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -1086,13 +1006,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                                                  "    b := 20;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1171,8 +1085,6 @@ test_unreachable_blocks_removal(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -1185,13 +1097,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                                                  "    }\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1369,8 +1275,6 @@ test_unreachable_blocks_removal(Test_Context* test_context)
             }
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }

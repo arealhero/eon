@@ -7,8 +7,10 @@
 
 #include "eon_ast.h"
 #include "eon_diagnostics.h"
-#include "eon_tac.h"
+#include "eon_lexer.h"
 #include "eon_machine_ir.h"
+#include "eon_parser.h"
+#include "eon_tac.h"
 
 struct Arena_Provider;
 internal Arena* acquire_arena_from_provider(struct Arena_Provider* provider,
@@ -58,6 +60,9 @@ struct Compilation_Context
     Source_File source_file;
 
     array(Diagnostic_Message, diagnostic_messages);
+
+    Lexer lexer;
+    Parser parser;
 
     Ast ast;
 

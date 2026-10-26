@@ -8,13 +8,7 @@ test_function_definitions_parsing(Test_Context* test_context)
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> Bool = {}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -35,21 +29,13 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "Bool");
         ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "Bool");
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -70,21 +56,13 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (argument: s32) -> void = {}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -117,21 +95,13 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> () -> void = {}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -158,21 +128,13 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->function.return_type->location,
                                           "void");
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> * () -> void = {}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -205,21 +167,13 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(return_type->pointer.pointed_to->function.return_type->named_type.token.lexeme,
                                  "void");
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (first: s32, second: Some_Type) -> void = {}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -267,8 +221,6 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
         ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -277,13 +229,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {}\n"
                                                  "bar: (arg: Type) -> Other_Type = {}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 2);
@@ -337,21 +283,13 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "Other_Type");
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> f32 = {}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -372,8 +310,6 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "f32");
         ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "f32");
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -382,13 +318,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         {
             CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (first: mutable s32, second: Some_Type) -> void = {}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -439,21 +369,13 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location,
                                               "void");
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
         {
             CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (first: s32, second: mutable Some_Type) -> void = {}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -502,21 +424,13 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
             ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
         {
             CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (first: mutable s32, second: mutable Some_Type) -> void = {}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -567,21 +481,13 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location,
                                               "void");
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
         {
             CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> mutable f32 = {}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -604,21 +510,13 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location,
                                               "mutable f32");
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
         {
             CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> mutable * f32 = {}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -645,21 +543,13 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->pointer.pointed_to->location,
                                               "f32");
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
         {
             CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> * mutable f32 = {}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -686,21 +576,13 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->pointer.pointed_to->location,
                                               "mutable f32");
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
         {
             CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> mutable * mutable f32 = {}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -727,21 +609,13 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->pointer.pointed_to->location,
                                               "mutable f32");
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
         {
             CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> mutable * () -> void = {}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -773,8 +647,6 @@ test_function_definitions_parsing(Test_Context* test_context)
                                               "void");
             ASSERT_STRINGS_ARE_EQUAL(return_type->pointer.pointed_to->function.return_type->named_type.token.lexeme, "void");
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
     }
@@ -787,13 +659,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = { variable: s32; }");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -830,8 +696,6 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_LOCATION_STRINGS_ARE_EQUAL(&variable_type->location, "s32");
         ASSERT_FALSE(statement->variable_definition.has_initial_value);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -841,13 +705,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                                  "    variable: s32 = 123;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -888,8 +746,6 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.number.token.lexeme, "123");
         ASSERT_FALSE(definition->initial_value.number.is_a_floating_point_number);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -899,13 +755,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                                  "    variable := 123;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -945,8 +795,6 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.number.token.lexeme, "123");
         ASSERT_FALSE(definition->initial_value.number.is_a_floating_point_number);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -957,13 +805,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                                  "    var2: String_View;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1019,8 +861,6 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_FALSE(definition->has_initial_value);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -1030,13 +870,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                                  "    var: String_View = \"Hello\";\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1076,8 +910,6 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.string_literal.value, "Hello");
         ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.string_literal.token.lexeme, "\"Hello\"");
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -1088,13 +920,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                                  "    var2 := var1;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1151,8 +977,6 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(definition->initial_value.identifier.token.lexeme, "var1");
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -1162,13 +986,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                                  "    pointer: * s32;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1209,8 +1027,6 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_LOCATION_STRINGS_ARE_EQUAL(&pointed_to_type->location, "s32");
         ASSERT_FALSE(definition->has_initial_value);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -1220,13 +1036,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                                  "    pointer: ** s32;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1270,8 +1080,6 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                           "s32");
         ASSERT_FALSE(definition->has_initial_value);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -1282,13 +1090,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                                      "    variable: mutable s32;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1325,8 +1127,6 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_LOCATION_STRINGS_ARE_EQUAL(&variable_type->location, "mutable s32");
             ASSERT_FALSE(statement->variable_definition.has_initial_value);
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
@@ -1335,13 +1135,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                                      "    pointer: mutable * s32;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1382,8 +1176,6 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                               "s32");
             ASSERT_FALSE(definition->has_initial_value);
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
@@ -1392,13 +1184,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                                      "    pointer: mutable * mutable s32;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1439,8 +1225,6 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                               "mutable s32");
             ASSERT_FALSE(definition->has_initial_value);
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
@@ -1449,13 +1233,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
                                                      "    variable: mutable _ = 123;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1495,8 +1273,6 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(statement->variable_definition.initial_value.number.token.lexeme, "123");
             ASSERT_FALSE(statement->variable_definition.initial_value.number.is_a_floating_point_number);
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
     }
@@ -1511,13 +1287,7 @@ test_return_statement_parsing(Test_Context* test_context)
                                                  "    return;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1546,8 +1316,6 @@ test_return_statement_parsing(Test_Context* test_context)
         ASSERT_EQUAL(statement->start_location.line, 1);
         ASSERT_EQUAL(statement->start_location.column, 4);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -1557,13 +1325,7 @@ test_return_statement_parsing(Test_Context* test_context)
                                                  "    return 123;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1597,8 +1359,6 @@ test_return_statement_parsing(Test_Context* test_context)
                                  "123");
         ASSERT_FALSE(statement->return_statement.expression.number.is_a_floating_point_number);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -1612,13 +1372,7 @@ test_if_statement_parsing(Test_Context* test_context)
                                                  "    if true { return; }\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1664,8 +1418,6 @@ test_if_statement_parsing(Test_Context* test_context)
         const Ast_Code_Block* else_code_block = &if_statement->else_statements;
         ASSERT_EQUAL(else_code_block->statements_count, 0);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -1676,13 +1428,7 @@ test_if_statement_parsing(Test_Context* test_context)
                                                  "    else { a := 1; }\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1749,8 +1495,6 @@ test_if_statement_parsing(Test_Context* test_context)
             ASSERT_FALSE(variable_definition->initial_value.number.is_a_floating_point_number);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -1762,13 +1506,7 @@ test_if_statement_parsing(Test_Context* test_context)
                                                  "    else { return 3; }\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1849,8 +1587,6 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_STRINGS_ARE_EQUAL(third_return->expression.number.token.lexeme, "3");
         ASSERT_FALSE(third_return->expression.number.is_a_floating_point_number);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -1864,13 +1600,7 @@ test_expressions(Test_Context* test_context)
                                                  "    var2 := (var1);\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -1933,8 +1663,6 @@ test_expressions(Test_Context* test_context)
             ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "(var1)");
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -1987,13 +1715,7 @@ test_expressions(Test_Context* test_context)
 
             CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE(test_info.source_code);
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -2077,8 +1799,6 @@ test_expressions(Test_Context* test_context)
                 ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, expected_location_string);
             }
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
     }
@@ -2090,13 +1810,7 @@ test_expressions(Test_Context* test_context)
                                                  "    var := foo();\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 2);
@@ -2174,8 +1888,6 @@ test_expressions(Test_Context* test_context)
             ASSERT_EQUAL(call->arguments_count, 0);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -2186,13 +1898,7 @@ test_expressions(Test_Context* test_context)
                                                  "    var := foo(10, 20);\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 2);
@@ -2252,8 +1958,6 @@ test_expressions(Test_Context* test_context)
             ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "foo(10, 20)");
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -2263,13 +1967,7 @@ test_expressions(Test_Context* test_context)
                                                  "    var := bar(10 + something * 30, baz(10, 20));\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -2364,8 +2062,6 @@ test_expressions(Test_Context* test_context)
                                               "bar(10 + something * 30, baz(10, 20))");
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -2376,13 +2072,7 @@ test_expressions(Test_Context* test_context)
                                                      "    var := -1;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -2427,8 +2117,6 @@ test_expressions(Test_Context* test_context)
             ASSERT_STRINGS_ARE_EQUAL(unary_expression->operand->number.token.lexeme, "1");
             ASSERT_FALSE(unary_expression->operand->number.is_a_floating_point_number);
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
@@ -2437,13 +2125,7 @@ test_expressions(Test_Context* test_context)
                                                      "    var := arg* * 2;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -2520,8 +2202,6 @@ test_expressions(Test_Context* test_context)
                 ASSERT_LOCATION_STRINGS_ARE_EQUAL(&rhs->number.token.location, "2");
             }
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
@@ -2530,13 +2210,7 @@ test_expressions(Test_Context* test_context)
                                                      "    var := arg* + 2;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -2604,8 +2278,6 @@ test_expressions(Test_Context* test_context)
                 ASSERT_FALSE(rhs->number.is_a_floating_point_number);
             }
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
@@ -2614,13 +2286,7 @@ test_expressions(Test_Context* test_context)
                                                      "    var := arg** * 2;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -2700,8 +2366,6 @@ test_expressions(Test_Context* test_context)
                 ASSERT_FALSE(rhs->number.is_a_floating_point_number);
             }
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
@@ -2711,13 +2375,7 @@ test_expressions(Test_Context* test_context)
                                                      "    var := arg***2;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -2797,8 +2455,6 @@ test_expressions(Test_Context* test_context)
                 ASSERT_FALSE(rhs->number.is_a_floating_point_number);
             }
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
@@ -2807,13 +2463,7 @@ test_expressions(Test_Context* test_context)
                                                      "    var := arg&;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -2865,8 +2515,6 @@ test_expressions(Test_Context* test_context)
             ASSERT_ENUM_VALUES_ARE_EQUAL(unary_expression->operand->kind, AST_EXPRESSION_IDENTIFIER);
             ASSERT_STRINGS_ARE_EQUAL(unary_expression->operand->identifier.token.lexeme, "arg");
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
@@ -2875,13 +2523,7 @@ test_expressions(Test_Context* test_context)
                                                      "    var := arg&* * 2;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -2952,8 +2594,6 @@ test_expressions(Test_Context* test_context)
                 ASSERT_FALSE(rhs->number.is_a_floating_point_number);
             }
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
     }
@@ -2967,13 +2607,7 @@ test_operator_precedence(Test_Context* test_context)
                                                  "    var := 1 + 2 * 3;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -3033,8 +2667,6 @@ test_operator_precedence(Test_Context* test_context)
             ASSERT_FALSE(rhs->binary_expression.rhs->number.is_a_floating_point_number);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -3043,13 +2675,7 @@ test_operator_precedence(Test_Context* test_context)
                                                  "    var := (1 + 2) * 3;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -3110,8 +2736,6 @@ test_operator_precedence(Test_Context* test_context)
             ASSERT_FALSE(rhs->number.is_a_floating_point_number);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -3120,13 +2744,7 @@ test_operator_precedence(Test_Context* test_context)
                                                  "    var := 3 + bar();\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -3183,8 +2801,6 @@ test_operator_precedence(Test_Context* test_context)
             ASSERT_EQUAL(call->arguments_count, 0);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -3198,13 +2814,7 @@ test_assignments(Test_Context* test_context)
                                                  "    var = 2;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -3263,8 +2873,6 @@ test_assignments(Test_Context* test_context)
             ASSERT_FALSE(assignment->rhs.number.is_a_floating_point_number);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -3274,13 +2882,7 @@ test_assignments(Test_Context* test_context)
                                                  "    var = var + 1;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -3351,8 +2953,6 @@ test_assignments(Test_Context* test_context)
             }
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -3361,13 +2961,7 @@ test_assignments(Test_Context* test_context)
                                                  "    parameter* = 10;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -3440,8 +3034,6 @@ test_assignments(Test_Context* test_context)
             }
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -3452,13 +3044,7 @@ test_assignments(Test_Context* test_context)
                                                  "    10 = 10;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -3510,8 +3096,6 @@ test_assignments(Test_Context* test_context)
             }
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -3528,13 +3112,7 @@ test_while_statements(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -3618,8 +3196,6 @@ test_while_statements(Test_Context* test_context)
             ASSERT_FALSE(assignment->rhs.binary_expression.rhs->number.is_a_floating_point_number);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -3631,13 +3207,7 @@ test_while_statements(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -3693,8 +3263,6 @@ test_while_statements(Test_Context* test_context)
             ASSERT_POINTERS_ARE_EQUAL(inner_statement->jump.destination, NULL);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -3706,13 +3274,7 @@ test_while_statements(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -3768,8 +3330,6 @@ test_while_statements(Test_Context* test_context)
             ASSERT_POINTERS_ARE_EQUAL(inner_statement->jump.destination, NULL);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -3784,13 +3344,7 @@ test_while_statements(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -3878,8 +3432,6 @@ test_while_statements(Test_Context* test_context)
             }
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
     {
@@ -3895,13 +3447,7 @@ test_while_statements(Test_Context* test_context)
                                                  "    return 10;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -4000,8 +3546,6 @@ test_while_statements(Test_Context* test_context)
             ASSERT_FALSE(statement->return_statement.expression.number.is_a_floating_point_number);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -4014,13 +3558,7 @@ test_call_statements(Test_Context* test_context)
                                                  "    bar(10);\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
@@ -4069,8 +3607,6 @@ test_call_statements(Test_Context* test_context)
             }
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -4081,13 +3617,7 @@ test_syntax_errors(Test_Context* test_context)
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_FALSE(parse_ast(&parser));
+        ASSERT_FALSE(parse_ast(&context));
 
         ASSERT_TRUE(has_compilation_errors(&context));
 
@@ -4099,21 +3629,13 @@ test_syntax_errors(Test_Context* test_context)
                                                         "    | ^");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_FALSE(parse_ast(&parser));
+        ASSERT_FALSE(parse_ast(&context));
 
         ASSERT_TRUE(has_compilation_errors(&context));
 
@@ -4125,8 +3647,6 @@ test_syntax_errors(Test_Context* test_context)
                                                         "    |    ^");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -4135,13 +3655,7 @@ test_syntax_errors(Test_Context* test_context)
                                                  "    var := 123a;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_FALSE(parse_ast(&parser));
+        ASSERT_FALSE(parse_ast(&context));
 
         ASSERT_TRUE(has_compilation_errors(&context));
 
@@ -4154,8 +3668,6 @@ test_syntax_errors(Test_Context* test_context)
                                                         "    |               ^");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }

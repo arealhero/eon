@@ -54,13 +54,7 @@ test_function_parameters_lowering(Test_Context* test_context)
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (parameter: s32) -> void = {"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -135,8 +129,6 @@ test_function_parameters_lowering(Test_Context* test_context)
             ASSERT_TRUE(parameter_symbol->defined_at_tac_instruction != NULL);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -149,13 +141,7 @@ test_expression_lowering(Test_Context* test_context)
                                                  "    a := 10;"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -243,8 +229,6 @@ test_expression_lowering(Test_Context* test_context)
             ASSERT_TRUE(variable_symbol->defined_at_tac_instruction != NULL);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -254,13 +238,7 @@ test_expression_lowering(Test_Context* test_context)
                                                  "    a = 20;"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -363,8 +341,6 @@ test_expression_lowering(Test_Context* test_context)
             ASSERT_TRUE(variable_symbol->defined_at_tac_instruction != NULL);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -376,13 +352,7 @@ test_return_statements_lowering(Test_Context* test_context)
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -427,8 +397,6 @@ test_return_statements_lowering(Test_Context* test_context)
 
         ASSERT_POINTERS_ARE_EQUAL(instruction, tac_function->last_instruction);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -437,13 +405,7 @@ test_return_statements_lowering(Test_Context* test_context)
                                                  "    return;"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -505,8 +467,6 @@ test_return_statements_lowering(Test_Context* test_context)
 
         ASSERT_POINTERS_ARE_EQUAL(instruction, tac_function->last_instruction);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -515,13 +475,7 @@ test_return_statements_lowering(Test_Context* test_context)
                                                  "    return 10;"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -567,8 +521,6 @@ test_return_statements_lowering(Test_Context* test_context)
 
         ASSERT_POINTERS_ARE_EQUAL(instruction, tac_function->last_instruction);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -578,13 +530,7 @@ test_return_statements_lowering(Test_Context* test_context)
                                                  "    return a;"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -669,8 +615,6 @@ test_return_statements_lowering(Test_Context* test_context)
             ASSERT_TRUE(variable_symbol->defined_at_tac_instruction != NULL);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -686,13 +630,7 @@ test_calls(Test_Context* test_context)
                                                  "    return foo();"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -797,8 +735,6 @@ test_calls(Test_Context* test_context)
             ASSERT_POINTERS_ARE_EQUAL(instruction, tac_bar_function->last_instruction);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -810,13 +746,7 @@ test_calls(Test_Context* test_context)
                                                  "    foo();"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -916,8 +846,6 @@ test_calls(Test_Context* test_context)
             ASSERT_POINTERS_ARE_EQUAL(instruction, tac_bar_function->last_instruction);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -965,13 +893,7 @@ test_binary_expressions_lowering(Test_Context* test_context)
 
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE(test_info.source_code);
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1080,8 +1002,6 @@ test_binary_expressions_lowering(Test_Context* test_context)
             ASSERT_TRUE(variable_symbol->defined_at_tac_instruction != NULL);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -1097,13 +1017,7 @@ test_while_loops_lowering(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1292,8 +1206,6 @@ test_while_loops_lowering(Test_Context* test_context)
 
         ASSERT_POINTERS_ARE_EQUAL(instruction, tac_function->last_instruction);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -1313,13 +1225,7 @@ test_if_statements_lowering(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1544,8 +1450,6 @@ test_if_statements_lowering(Test_Context* test_context)
 
         ASSERT_POINTERS_ARE_EQUAL(instruction, tac_function->last_instruction);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -1557,13 +1461,7 @@ test_if_statements_lowering(Test_Context* test_context)
                                                  "    }"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1753,8 +1651,6 @@ test_if_statements_lowering(Test_Context* test_context)
 
         ASSERT_POINTERS_ARE_EQUAL(instruction, tac_function->last_instruction);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -1769,13 +1665,7 @@ test_indirect_memory_access(Test_Context* test_context)
                                                  "    return ptr*;"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1941,8 +1831,6 @@ test_indirect_memory_access(Test_Context* test_context)
 
         ASSERT_POINTERS_ARE_EQUAL(instruction, tac_function->last_instruction);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -1954,13 +1842,7 @@ test_indirect_memory_access(Test_Context* test_context)
                                                  "    return a;"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2130,8 +2012,6 @@ test_indirect_memory_access(Test_Context* test_context)
 
         ASSERT_POINTERS_ARE_EQUAL(instruction, tac_function->last_instruction);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }

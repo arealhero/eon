@@ -59,8 +59,6 @@ typedef struct Keyword Keyword;
 
 struct Lexer
 {
-    struct Compilation_Context* context;
-
     String_View code;
 
     Index lexeme_start_index;
@@ -74,6 +72,4 @@ struct Lexer
 };
 typedef struct Lexer Lexer;
 
-internal void create_lexer(Lexer* lexer, struct Compilation_Context* context);
-internal Bool get_next_token(Lexer* lexer, Token* token);
-internal void destroy_lexer(Lexer* lexer);
+internal Bool get_next_token(struct Compilation_Context* context, Token* token);

@@ -126,14 +126,8 @@ eon_main(const String_View* arguments, const Size arguments_count)
 
     Bool test_failed = false;
 
-    Lexer lexer = {0};
-    Parser parser = {0};
-
-    create_lexer(&lexer, &context);
-    create_parser(&parser, &lexer, &context);
-
     START_TIMER(ast_parsing);
-    if (!parse_ast(&parser))
+    if (!parse_ast(&context))
     {
         println("Error: failed to parse {}", context.source_file.filename);
         test_failed = true;
@@ -382,8 +376,6 @@ cleanup:
     println("Test took {} mcs to complete", test_end_timestamp - test_start_timestamp);
 
     destroy_compilation_context(&context);
-    destroy_parser(&parser);
-    destroy_lexer(&lexer);
 
     destroy_arena(ssa_string_arena);
 

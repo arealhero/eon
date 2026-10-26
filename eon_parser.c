@@ -2,6 +2,8 @@
 
 #include <eon/io.h>
 
+#include "eon_compilation_context.h"
+
 // FIXME(vlad): Report syntax errors here.
 
 // TODO(vlad): Move to 'eon_lexer.h'?
@@ -67,15 +69,17 @@ token_type_to_string(const Token_Type type)
 }
 
 internal Bool
-parser_fetch_token(Parser* parser)
+parser_fetch_token(Compilation_Context* context)
 {
+    Parser* parser = &context->parser;
+
     if (parser->current_token.type != TOKEN_UNDEFINED)
     {
         // NOTE(vlad): Current token was not consumed yet.
         return true;
     }
 
-    if (!get_next_token(parser->lexer, &parser->current_token))
+    if (!get_next_token(context, &parser->current_token))
     {
         return false;
     }
@@ -84,15 +88,17 @@ parser_fetch_token(Parser* parser)
 }
 
 internal Bool
-parser_fetch_lookahead_token(Parser* parser)
+parser_fetch_lookahead_token(Compilation_Context* context)
 {
+    Parser* parser = &context->parser;
+
     if (parser->lookahead_token.type != TOKEN_UNDEFINED)
     {
         // NOTE(vlad): Lookahead token was not consumed yet.
         return true;
     }
 
-    if (!get_next_token(parser->lexer, &parser->lookahead_token))
+    if (!get_next_token(context, &parser->lookahead_token))
     {
         return false;
     }
@@ -102,22 +108,26 @@ parser_fetch_lookahead_token(Parser* parser)
 
 // TODO(vlad): Remove this and use 'parser_try_to_consume_token_with_type' only?
 internal inline void
-parser_consume_token(Parser* parser)
+parser_consume_token(Compilation_Context* context)
 {
+    Parser* parser = &context->parser;
+
     parser->previous_token_location = parser->current_token.location;
     parser->current_token = parser->lookahead_token;
     parser->lookahead_token = (Token){0};
 }
 
 internal Bool
-parser_ensure_that_current_token_has_type(Parser* parser, const Token_Type expected_type)
+parser_ensure_that_current_token_has_type(Compilation_Context* context, const Token_Type expected_type)
 {
+    Parser* parser = &context->parser;
+
     ASSERT(parser->current_token.type != TOKEN_UNDEFINED && "Current token is undefined");
 
     if (parser->current_token.type != expected_type)
     {
         // FIXME(vlad): Move to 'eon_compilation_context.h' or something.
-        const String error_message_text = format_string(parser->context->diagnostic_message_texts_arena,
+        const String error_message_text = format_string(context->diagnostic_message_texts_arena,
                                                         "Expected {}, found {}",
                                                         token_type_to_string(expected_type),
                                                         token_type_to_string(parser->current_token.type));
@@ -127,7 +137,7 @@ parser_ensure_that_current_token_has_type(Parser* parser, const Token_Type expec
         error.location = parser->current_token.location;
         error.text = string_view(error_message_text);
 
-        emit_diagnostic_message(parser->context, &error);
+        emit_diagnostic_message(context, &error);
 
         return false;
     }
@@ -136,27 +146,26 @@ parser_ensure_that_current_token_has_type(Parser* parser, const Token_Type expec
 }
 
 internal Bool
-parser_try_to_consume_token_with_type(Parser* parser, const Token_Type expected_type)
+parser_try_to_consume_token_with_type(Compilation_Context* context, const Token_Type expected_type)
 {
-    if (!parser_ensure_that_current_token_has_type(parser, expected_type))
+    if (!parser_ensure_that_current_token_has_type(context, expected_type))
     {
         return false;
     }
 
-    parser_consume_token(parser);
+    parser_consume_token(context);
     return true;
 }
 
 internal Bool
-parser_fetch_and_consume_token_with_type(Parser* parser,
-                                         const Token_Type expected_type)
+parser_fetch_and_consume_token_with_type(Compilation_Context* context, const Token_Type expected_type)
 {
-    if (!parser_fetch_token(parser))
+    if (!parser_fetch_token(context))
     {
         return false;
     }
 
-    if (!parser_try_to_consume_token_with_type(parser, expected_type))
+    if (!parser_try_to_consume_token_with_type(context, expected_type))
     {
         return false;
     }
@@ -164,53 +173,46 @@ parser_fetch_and_consume_token_with_type(Parser* parser,
     return true;
 }
 
-internal void
-create_parser(Parser* parser, Lexer* lexer, Compilation_Context* context)
-{
-    parser->context = context;
-
-    parser->lexer = lexer;
-    parser->current_token = (Token){0};
-}
-
 internal Bool
-parse_identifier(Parser* parser, Ast_Identifier* identifier)
+parse_identifier(Compilation_Context* context, Ast_Identifier* identifier)
 {
-    if (!parser_fetch_token(parser))
+    if (!parser_fetch_token(context))
     {
         return false;
     }
 
-    if (!parser_ensure_that_current_token_has_type(parser, TOKEN_IDENTIFIER))
+    if (!parser_ensure_that_current_token_has_type(context, TOKEN_IDENTIFIER))
     {
         return false;
     }
 
-    identifier->token = parser->current_token;
-    parser_consume_token(parser);
+    identifier->token = context->parser.current_token;
+    parser_consume_token(context);
 
     return true;
 }
 
-internal Bool parse_function_type(Parser* parser, Ast_Type* type);
-internal Bool parse_pointer_type(Parser* parser, Ast_Type* type);
+internal Bool parse_function_type(Compilation_Context* context, Ast_Type* type);
+internal Bool parse_pointer_type(Compilation_Context* context, Ast_Type* type);
 
 internal Bool
-parse_type(Parser* parser, Ast_Type* type)
+parse_type(Compilation_Context* context, Ast_Type* type)
 {
-    if (!parser_fetch_token(parser))
+    if (!parser_fetch_token(context))
     {
         return false;
     }
+
+    Parser* parser = &context->parser;
 
     type->location = parser->current_token.location;
 
     if (parser->current_token.type == TOKEN_MUTABLE)
     {
         type->is_mutable = true;
-        parser_consume_token(parser);
+        parser_consume_token(context);
 
-        if (!parser_fetch_token(parser))
+        if (!parser_fetch_token(context))
         {
             return false;
         }
@@ -221,12 +223,12 @@ parse_type(Parser* parser, Ast_Type* type)
     {
         case TOKEN_LEFT_PAREN:
         {
-            return parse_function_type(parser, type);
+            return parse_function_type(context, type);
         } break;
 
         case TOKEN_STAR:
         {
-            return parse_pointer_type(parser, type);
+            return parse_pointer_type(context, type);
         } break;
 
         case TOKEN_IDENTIFIER:
@@ -238,7 +240,7 @@ parse_type(Parser* parser, Ast_Type* type)
             const Source_Location end_location = parser->current_token.location;
             extend_location(&type->location, &end_location);
 
-            parser_consume_token(parser);
+            parser_consume_token(context);
             return true;
         } break;
 
@@ -252,59 +254,61 @@ parse_type(Parser* parser, Ast_Type* type)
 }
 
 internal Bool
-parse_parameter_declaration(Parser* parser, Ast_Function_Parameter* parameter)
+parse_parameter_declaration(Compilation_Context* context, Ast_Function_Parameter* parameter)
 {
-    if (!parse_identifier(parser, &parameter->name))
+    if (!parse_identifier(context, &parameter->name))
     {
         return false;
     }
 
-    if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_COLON))
+    if (!parser_fetch_and_consume_token_with_type(context, TOKEN_COLON))
     {
         return false;
     }
 
-    parameter->type = allocate(parser->context->ast_arena, Ast_Type);
+    parameter->type = allocate(context->ast_arena, Ast_Type);
     parameter->has_default_value = false; // FIXME(vlad): Implement default values for paramters.
-    return parse_type(parser, parameter->type);
+    return parse_type(context, parameter->type);
 }
 
 internal Bool
-parse_parameters_declaration(Parser* parser, Ast_Function_Type* function)
+parse_parameters_declaration(Compilation_Context* context, Ast_Function_Type* function)
 {
     while (true)
     {
         Ast_Function_Parameter parameter = {0};
-        if (!parse_parameter_declaration(parser, &parameter))
+        if (!parse_parameter_declaration(context, &parameter))
         {
             return false;
         }
 
-        append_array(parser->context->ast_arena,
+        append_array(context->ast_arena,
                      function->parameters,
                      Ast_Function_Parameter,
                      parameter);
 
-        if (!parser_fetch_token(parser))
+        if (!parser_fetch_token(context))
         {
             return false;
         }
 
-        if (parser->current_token.type != TOKEN_COMMA)
+        if (context->parser.current_token.type != TOKEN_COMMA)
         {
             return true;
         }
 
-        parser_consume_token(parser);
+        parser_consume_token(context);
     }
 }
 
 internal Bool
-parse_function_type(Parser* parser, Ast_Type* type)
+parse_function_type(Compilation_Context* context, Ast_Type* type)
 {
+    Parser* parser = &context->parser;
+
     type->kind = AST_TYPE_FUNCTION;
 
-    if (!parser_fetch_token(parser))
+    if (!parser_fetch_token(context))
     {
         return false;
     }
@@ -316,38 +320,38 @@ parse_function_type(Parser* parser, Ast_Type* type)
         type->location = parser->current_token.location;
     }
 
-    if (!parser_try_to_consume_token_with_type(parser, TOKEN_LEFT_PAREN))
+    if (!parser_try_to_consume_token_with_type(context, TOKEN_LEFT_PAREN))
     {
         return false;
     }
 
-    if (!parser_fetch_token(parser))
+    if (!parser_fetch_token(context))
     {
         return false;
     }
 
     if (parser->current_token.type != TOKEN_RIGHT_PAREN)
     {
-        if (!parse_parameters_declaration(parser, &type->function))
+        if (!parse_parameters_declaration(context, &type->function))
         {
             return false;
         }
     }
 
-    if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_RIGHT_PAREN))
+    if (!parser_fetch_and_consume_token_with_type(context, TOKEN_RIGHT_PAREN))
     {
         return false;
     }
 
     // XXX(vlad): Make the return type optional for 'main'?
-    if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_ARROW))
+    if (!parser_fetch_and_consume_token_with_type(context, TOKEN_ARROW))
     {
         return false;
     }
 
-    type->function.return_type = allocate(parser->context->ast_arena, Ast_Type);
+    type->function.return_type = allocate(context->ast_arena, Ast_Type);
 
-    if (!parse_type(parser, type->function.return_type))
+    if (!parse_type(context, type->function.return_type))
     {
         return false;
     }
@@ -357,17 +361,17 @@ parse_function_type(Parser* parser, Ast_Type* type)
 }
 
 internal Bool
-parse_pointer_type(Parser* parser, Ast_Type* type)
+parse_pointer_type(Compilation_Context* context, Ast_Type* type)
 {
     type->kind = AST_TYPE_POINTER;
 
-    if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_STAR))
+    if (!parser_fetch_and_consume_token_with_type(context, TOKEN_STAR))
     {
         return false;
     }
 
-    type->pointer.pointed_to = allocate(parser->context->ast_arena, Ast_Type);
-    if (!parse_type(parser, type->pointer.pointed_to))
+    type->pointer.pointed_to = allocate(context->ast_arena, Ast_Type);
+    if (!parse_type(context, type->pointer.pointed_to))
     {
         return false;
     }
@@ -390,39 +394,41 @@ end_expression(Parser* parser, Ast_Expression* expression)
     extend_location(&expression->location, &end_location);
 }
 
-internal Bool parse_expression(Parser* parser, Ast_Expression* expression);
+internal Bool parse_expression(Compilation_Context* context, Ast_Expression* expression);
 
 internal Bool
-parse_arguments(Parser* parser, Ast_Call* call)
+parse_arguments(Compilation_Context* context, Ast_Call* call)
 {
     while (true)
     {
-        Ast_Expression* argument = allocate(parser->context->ast_arena, Ast_Expression);
-        if (!parse_expression(parser, argument))
+        Ast_Expression* argument = allocate(context->ast_arena, Ast_Expression);
+        if (!parse_expression(context, argument))
         {
             return false;
         }
 
-        append_array(parser->context->ast_arena, call->arguments, Ast_Expression*, argument);
+        append_array(context->ast_arena, call->arguments, Ast_Expression*, argument);
 
-        if (!parser_fetch_token(parser))
+        if (!parser_fetch_token(context))
         {
             return false;
         }
 
-        if (parser->current_token.type != TOKEN_COMMA)
+        if (context->parser.current_token.type != TOKEN_COMMA)
         {
             return true;
         }
 
-        parser_consume_token(parser);
+        parser_consume_token(context);
     }
 }
 
 internal Bool
-parse_primary_expression(Parser* parser, Ast_Expression* expression)
+parse_primary_expression(Compilation_Context* context, Ast_Expression* expression)
 {
-    if (!parser_fetch_token(parser))
+    Parser* parser = &context->parser;
+
+    if (!parser_fetch_token(context))
     {
         return false;
     }
@@ -447,7 +453,7 @@ parse_primary_expression(Parser* parser, Ast_Expression* expression)
                 }
             }
 
-            parser_consume_token(parser);
+            parser_consume_token(context);
             return true;
         } break;
 
@@ -460,7 +466,7 @@ parse_primary_expression(Parser* parser, Ast_Expression* expression)
             expression->string_literal.value.data += 1;
             expression->string_literal.value.length -= 2;
 
-            parser_consume_token(parser);
+            parser_consume_token(context);
             return true;
         } break;
 
@@ -470,22 +476,22 @@ parse_primary_expression(Parser* parser, Ast_Expression* expression)
         {
             expression->kind = AST_EXPRESSION_IDENTIFIER;
             expression->identifier.token = parser->current_token;
-            parser_consume_token(parser);
+            parser_consume_token(context);
             return true;
         } break;
 
         case TOKEN_LEFT_PAREN:
         {
-            parser_consume_token(parser);
+            parser_consume_token(context);
 
             const Source_Location location_with_parens = expression->location;
-            if (!parse_expression(parser, expression))
+            if (!parse_expression(context, expression))
             {
                 return false;
             }
             expression->location = location_with_parens;
 
-            if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_RIGHT_PAREN))
+            if (!parser_fetch_and_consume_token_with_type(context, TOKEN_RIGHT_PAREN))
             {
                 return false;
             }
@@ -503,14 +509,16 @@ parse_primary_expression(Parser* parser, Ast_Expression* expression)
 }
 
 internal Bool
-parse_call_expression(Parser* parser, Ast_Expression* expression)
+parse_call_expression(Compilation_Context* context, Ast_Expression* expression)
 {
-    if (!parse_primary_expression(parser, expression))
+    Parser* parser = &context->parser;
+
+    if (!parse_primary_expression(context, expression))
     {
         return false;
     }
 
-    if (!parser_fetch_token(parser))
+    if (!parser_fetch_token(context))
     {
         return false;
     }
@@ -523,9 +531,9 @@ parse_call_expression(Parser* parser, Ast_Expression* expression)
         return true;
     }
 
-    parser_consume_token(parser);
+    parser_consume_token(context);
 
-    Ast_Expression* called_expression = allocate(parser->context->ast_arena, Ast_Expression);
+    Ast_Expression* called_expression = allocate(context->ast_arena, Ast_Expression);
     *called_expression = *expression;
 
     expression->kind = AST_EXPRESSION_CALL;
@@ -534,20 +542,20 @@ parse_call_expression(Parser* parser, Ast_Expression* expression)
     Ast_Call* call = &expression->call;
     call->called_expression = called_expression;
 
-    if (!parser_fetch_token(parser))
+    if (!parser_fetch_token(context))
     {
         return false;
     }
 
     if (parser->current_token.type != TOKEN_RIGHT_PAREN)
     {
-        if (!parse_arguments(parser, call))
+        if (!parse_arguments(context, call))
         {
             return false;
         }
     }
 
-    if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_RIGHT_PAREN))
+    if (!parser_fetch_and_consume_token_with_type(context, TOKEN_RIGHT_PAREN))
     {
         return false;
     }
@@ -556,16 +564,18 @@ parse_call_expression(Parser* parser, Ast_Expression* expression)
 }
 
 internal Bool
-parse_postfix_unary_expression(Parser* parser, Ast_Expression* expression)
+parse_postfix_unary_expression(Compilation_Context* context, Ast_Expression* expression)
 {
-    if (!parse_call_expression(parser, expression))
+    Parser* parser = &context->parser;
+
+    if (!parse_call_expression(context, expression))
     {
         return false;
     }
 
     while (true)
     {
-        if (!parser_fetch_token(parser))
+        if (!parser_fetch_token(context))
         {
             return false;
         }
@@ -576,7 +586,7 @@ parse_postfix_unary_expression(Parser* parser, Ast_Expression* expression)
             return true;
         }
 
-        if (!parser_fetch_lookahead_token(parser))
+        if (!parser_fetch_lookahead_token(context))
         {
             return false;
         }
@@ -598,9 +608,9 @@ parse_postfix_unary_expression(Parser* parser, Ast_Expression* expression)
         }
 
         const Token operator = parser->current_token;
-        parser_consume_token(parser);
+        parser_consume_token(context);
 
-        Ast_Expression* operand = allocate(parser->context->ast_arena, Ast_Expression);
+        Ast_Expression* operand = allocate(context->ast_arena, Ast_Expression);
         *operand = *expression;
 
         if (operator.type == TOKEN_STAR)
@@ -622,9 +632,11 @@ parse_postfix_unary_expression(Parser* parser, Ast_Expression* expression)
 }
 
 internal Bool
-parse_prefix_unary_expression(Parser* parser, Ast_Expression* expression)
+parse_prefix_unary_expression(Compilation_Context* context, Ast_Expression* expression)
 {
-    if (!parser_fetch_token(parser))
+    Parser* parser = &context->parser;
+
+    if (!parser_fetch_token(context))
     {
         return false;
     }
@@ -632,10 +644,10 @@ parse_prefix_unary_expression(Parser* parser, Ast_Expression* expression)
     if (parser->current_token.type == TOKEN_MINUS)
     {
         const Token operator = parser->current_token;
-        parser_consume_token(parser);
+        parser_consume_token(context);
 
-        Ast_Expression* operand = allocate(parser->context->ast_arena, Ast_Expression);
-        if (!parse_prefix_unary_expression(parser, operand))
+        Ast_Expression* operand = allocate(context->ast_arena, Ast_Expression);
+        if (!parse_prefix_unary_expression(context, operand))
         {
             return false;
         }
@@ -646,7 +658,7 @@ parse_prefix_unary_expression(Parser* parser, Ast_Expression* expression)
         return true;
     }
 
-    if (!parse_postfix_unary_expression(parser, expression))
+    if (!parse_postfix_unary_expression(context, expression))
     {
         return false;
     }
@@ -655,19 +667,21 @@ parse_prefix_unary_expression(Parser* parser, Ast_Expression* expression)
 }
 
 internal Bool
-parse_multiplicative_expression(Parser* parser, Ast_Expression* expression)
+parse_multiplicative_expression(Compilation_Context* context, Ast_Expression* expression)
 {
+    Parser* parser = &context->parser;
+
     // TODO(vlad): Use 'expression' here, otherwise we would overallocate.
-    Ast_Expression* lhs = allocate(parser->context->ast_arena, Ast_Expression);
+    Ast_Expression* lhs = allocate(context->ast_arena, Ast_Expression);
 
     start_expression(parser, lhs);
-    if (!parse_prefix_unary_expression(parser, lhs))
+    if (!parse_prefix_unary_expression(context, lhs))
     {
         return false;
     }
     end_expression(parser, lhs);
 
-    if (!parser_fetch_token(parser))
+    if (!parser_fetch_token(context))
     {
         return false;
     }
@@ -677,10 +691,10 @@ parse_multiplicative_expression(Parser* parser, Ast_Expression* expression)
         case TOKEN_STAR:
         {
             const Token operator = parser->current_token;
-            parser_consume_token(parser);
+            parser_consume_token(context);
 
-            Ast_Expression* rhs = allocate(parser->context->ast_arena, Ast_Expression);
-            if (!parse_multiplicative_expression(parser, rhs))
+            Ast_Expression* rhs = allocate(context->ast_arena, Ast_Expression);
+            if (!parse_multiplicative_expression(context, rhs))
             {
                 return false;
             }
@@ -695,10 +709,10 @@ parse_multiplicative_expression(Parser* parser, Ast_Expression* expression)
         case TOKEN_SLASH:
         {
             const Token operator = parser->current_token;
-            parser_consume_token(parser);
+            parser_consume_token(context);
 
-            Ast_Expression* rhs = allocate(parser->context->ast_arena, Ast_Expression);
-            if (!parse_multiplicative_expression(parser, rhs))
+            Ast_Expression* rhs = allocate(context->ast_arena, Ast_Expression);
+            if (!parse_multiplicative_expression(context, rhs))
             {
                 return false;
             }
@@ -719,19 +733,21 @@ parse_multiplicative_expression(Parser* parser, Ast_Expression* expression)
 }
 
 internal Bool
-parse_additive_expression(Parser* parser, Ast_Expression* expression)
+parse_additive_expression(Compilation_Context* context, Ast_Expression* expression)
 {
+    Parser* parser = &context->parser;
+
     // TODO(vlad): Use 'expression' here, otherwise we would overallocate.
-    Ast_Expression* lhs = allocate(parser->context->ast_arena, Ast_Expression);
+    Ast_Expression* lhs = allocate(context->ast_arena, Ast_Expression);
 
     start_expression(parser, lhs);
-    if (!parse_multiplicative_expression(parser, lhs))
+    if (!parse_multiplicative_expression(context, lhs))
     {
         return false;
     }
     end_expression(parser, lhs);
 
-    if (!parser_fetch_token(parser))
+    if (!parser_fetch_token(context))
     {
         return false;
     }
@@ -741,10 +757,10 @@ parse_additive_expression(Parser* parser, Ast_Expression* expression)
         case TOKEN_PLUS:
         {
             const Token operator = parser->current_token;
-            parser_consume_token(parser);
+            parser_consume_token(context);
 
-            Ast_Expression* rhs = allocate(parser->context->ast_arena, Ast_Expression);
-            if (!parse_additive_expression(parser, rhs))
+            Ast_Expression* rhs = allocate(context->ast_arena, Ast_Expression);
+            if (!parse_additive_expression(context, rhs))
             {
                 return false;
             }
@@ -759,10 +775,10 @@ parse_additive_expression(Parser* parser, Ast_Expression* expression)
         case TOKEN_MINUS:
         {
             const Token operator = parser->current_token;
-            parser_consume_token(parser);
+            parser_consume_token(context);
 
-            Ast_Expression* rhs = allocate(parser->context->ast_arena, Ast_Expression);
-            if (!parse_additive_expression(parser, rhs))
+            Ast_Expression* rhs = allocate(context->ast_arena, Ast_Expression);
+            if (!parse_additive_expression(context, rhs))
             {
                 return false;
             }
@@ -783,19 +799,21 @@ parse_additive_expression(Parser* parser, Ast_Expression* expression)
 }
 
 internal Bool
-parse_comparison_expression(Parser* parser, Ast_Expression* expression)
+parse_comparison_expression(Compilation_Context* context, Ast_Expression* expression)
 {
+    Parser* parser = &context->parser;
+
     // TODO(vlad): Use 'expression' here, otherwise we would overallocate.
-    Ast_Expression* lhs = allocate(parser->context->ast_arena, Ast_Expression);
+    Ast_Expression* lhs = allocate(context->ast_arena, Ast_Expression);
 
     start_expression(parser, lhs);
-    if (!parse_additive_expression(parser, lhs))
+    if (!parse_additive_expression(context, lhs))
     {
         return false;
     }
     end_expression(parser, lhs);
 
-    if (!parser_fetch_token(parser))
+    if (!parser_fetch_token(context))
     {
         return false;
     }
@@ -805,12 +823,12 @@ parse_comparison_expression(Parser* parser, Ast_Expression* expression)
         case TOKEN_EQUAL:
         {
             const Token operator = parser->current_token;
-            parser_consume_token(parser);
+            parser_consume_token(context);
 
-            Ast_Expression* rhs = allocate(parser->context->ast_arena, Ast_Expression);
+            Ast_Expression* rhs = allocate(context->ast_arena, Ast_Expression);
 
             start_expression(parser, rhs);
-            if (!parse_comparison_expression(parser, rhs))
+            if (!parse_comparison_expression(context, rhs))
             {
                 return false;
             }
@@ -826,12 +844,12 @@ parse_comparison_expression(Parser* parser, Ast_Expression* expression)
         case TOKEN_NOT_EQUAL:
         {
             const Token operator = parser->current_token;
-            parser_consume_token(parser);
+            parser_consume_token(context);
 
-            Ast_Expression* rhs = allocate(parser->context->ast_arena, Ast_Expression);
+            Ast_Expression* rhs = allocate(context->ast_arena, Ast_Expression);
 
             start_expression(parser, rhs);
-            if (!parse_comparison_expression(parser, rhs))
+            if (!parse_comparison_expression(context, rhs))
             {
                 return false;
             }
@@ -847,12 +865,12 @@ parse_comparison_expression(Parser* parser, Ast_Expression* expression)
         case TOKEN_LESS:
         {
             const Token operator = parser->current_token;
-            parser_consume_token(parser);
+            parser_consume_token(context);
 
-            Ast_Expression* rhs = allocate(parser->context->ast_arena, Ast_Expression);
+            Ast_Expression* rhs = allocate(context->ast_arena, Ast_Expression);
 
             start_expression(parser, rhs);
-            if (!parse_comparison_expression(parser, rhs))
+            if (!parse_comparison_expression(context, rhs))
             {
                 return false;
             }
@@ -868,12 +886,12 @@ parse_comparison_expression(Parser* parser, Ast_Expression* expression)
         case TOKEN_LESS_OR_EQUAL:
         {
             const Token operator = parser->current_token;
-            parser_consume_token(parser);
+            parser_consume_token(context);
 
-            Ast_Expression* rhs = allocate(parser->context->ast_arena, Ast_Expression);
+            Ast_Expression* rhs = allocate(context->ast_arena, Ast_Expression);
 
             start_expression(parser, rhs);
-            if (!parse_comparison_expression(parser, rhs))
+            if (!parse_comparison_expression(context, rhs))
             {
                 return false;
             }
@@ -889,12 +907,12 @@ parse_comparison_expression(Parser* parser, Ast_Expression* expression)
         case TOKEN_GREATER:
         {
             const Token operator = parser->current_token;
-            parser_consume_token(parser);
+            parser_consume_token(context);
 
-            Ast_Expression* rhs = allocate(parser->context->ast_arena, Ast_Expression);
+            Ast_Expression* rhs = allocate(context->ast_arena, Ast_Expression);
 
             start_expression(parser, rhs);
-            if (!parse_comparison_expression(parser, rhs))
+            if (!parse_comparison_expression(context, rhs))
             {
                 return false;
             }
@@ -910,12 +928,12 @@ parse_comparison_expression(Parser* parser, Ast_Expression* expression)
         case TOKEN_GREATER_OR_EQUAL:
         {
             const Token operator = parser->current_token;
-            parser_consume_token(parser);
+            parser_consume_token(context);
 
-            Ast_Expression* rhs = allocate(parser->context->ast_arena, Ast_Expression);
+            Ast_Expression* rhs = allocate(context->ast_arena, Ast_Expression);
 
             start_expression(parser, rhs);
-            if (!parse_comparison_expression(parser, rhs))
+            if (!parse_comparison_expression(context, rhs))
             {
                 return false;
             }
@@ -937,37 +955,39 @@ parse_comparison_expression(Parser* parser, Ast_Expression* expression)
 }
 
 internal Bool
-parse_expression(Parser* parser, Ast_Expression* expression)
+parse_expression(Compilation_Context* context, Ast_Expression* expression)
 {
-    if (!parser_fetch_token(parser))
+    Parser* parser = &context->parser;
+
+    if (!parser_fetch_token(context))
     {
         return false;
     }
 
     start_expression(parser, expression);
-    const Bool result = parse_comparison_expression(parser, expression);
+    const Bool result = parse_comparison_expression(context, expression);
     end_expression(parser, expression);
 
     return result;
 }
 
 // FIXME(vlad): Inline this function in 'parse_code_block'.
-internal Bool parse_statement(Parser* parser, Ast_Statement* statement);
+internal Bool parse_statement(Compilation_Context* context, Ast_Statement* statement);
 
 internal Bool
-parse_optional_variable_assignment(Parser* parser, Ast_Variable_Definition* definition)
+parse_optional_variable_assignment(Compilation_Context* context, Ast_Variable_Definition* definition)
 {
-    if (!parser_fetch_token(parser))
+    if (!parser_fetch_token(context))
     {
         return false;
     }
 
-    if (parser->current_token.type == TOKEN_ASSIGN)
+    if (context->parser.current_token.type == TOKEN_ASSIGN)
     {
-        parser_consume_token(parser);
+        parser_consume_token(context);
 
         definition->has_initial_value = true;
-        if (!parse_expression(parser, &definition->initial_value))
+        if (!parse_expression(context, &definition->initial_value))
         {
             return false;
         }
@@ -977,26 +997,26 @@ parse_optional_variable_assignment(Parser* parser, Ast_Variable_Definition* defi
 }
 
 internal Bool
-parse_variable_definition(Parser* parser,
+parse_variable_definition(Compilation_Context* context,
                           Ast_Identifier* identifier,
                           Ast_Variable_Definition* definition)
 {
     definition->name = *identifier;
 
-    if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_COLON))
+    if (!parser_fetch_and_consume_token_with_type(context, TOKEN_COLON))
     {
         return false;
     }
 
-    if (!parser_fetch_token(parser))
+    if (!parser_fetch_token(context))
     {
         return false;
     }
 
-    definition->type = allocate(parser->context->ast_arena, Ast_Type);
-    if (parser->current_token.type != TOKEN_ASSIGN)
+    definition->type = allocate(context->ast_arena, Ast_Type);
+    if (context->parser.current_token.type != TOKEN_ASSIGN)
     {
-        if (!parse_type(parser, definition->type))
+        if (!parse_type(context, definition->type))
         {
             return false;
         }
@@ -1007,14 +1027,14 @@ parse_variable_definition(Parser* parser,
         definition->type->kind = AST_TYPE_OMITTED;
     }
 
-    if (!parse_optional_variable_assignment(parser, definition))
+    if (!parse_optional_variable_assignment(context, definition))
     {
         return false;
     }
 
     // TODO(vlad): Move the semicolon parsing to 'parse_statement' or 'parse_expression_statement'
     //             or something more high-level.
-    if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_SEMICOLON))
+    if (!parser_fetch_and_consume_token_with_type(context, TOKEN_SEMICOLON))
     {
         return false;
     }
@@ -1023,25 +1043,25 @@ parse_variable_definition(Parser* parser,
 }
 
 internal Bool
-parse_assignment(Parser* parser,
+parse_assignment(Compilation_Context* context,
                  Ast_Expression* expression,
                  Ast_Assignment* assignment)
 {
     assignment->lhs = *expression;
 
-    if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_ASSIGN))
+    if (!parser_fetch_and_consume_token_with_type(context, TOKEN_ASSIGN))
     {
         return false;
     }
 
-    if (!parse_expression(parser, &assignment->rhs))
+    if (!parse_expression(context, &assignment->rhs))
     {
         return false;
     }
 
     // TODO(vlad): Move the semicolon parsing to 'parse_statement' or 'parse_expression_statement'
     //             or something more high-level.
-    if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_SEMICOLON))
+    if (!parser_fetch_and_consume_token_with_type(context, TOKEN_SEMICOLON))
     {
         return false;
     }
@@ -1050,20 +1070,20 @@ parse_assignment(Parser* parser,
 }
 
 internal Bool
-parse_assignment_or_definition_or_call(Parser* parser, Ast_Statement* statement)
+parse_assignment_or_definition_or_call(Compilation_Context* context, Ast_Statement* statement)
 {
     Ast_Expression expression = {0};
-    if (!parse_expression(parser, &expression))
+    if (!parse_expression(context, &expression))
     {
         return false;
     }
 
-    if (!parser_fetch_token(parser))
+    if (!parser_fetch_token(context))
     {
         return false;
     }
 
-    switch (parser->current_token.type)
+    switch (context->parser.current_token.type)
     {
         case TOKEN_COLON:
         {
@@ -1074,7 +1094,7 @@ parse_assignment_or_definition_or_call(Parser* parser, Ast_Statement* statement)
                 error.level = MESSAGE_LEVEL_ERROR;
                 error.location = expression.location;
                 error.text = string_view("Expected identifier, found expression.");
-                emit_diagnostic_message(parser->context, &error);
+                emit_diagnostic_message(context, &error);
 
                 return false;
             }
@@ -1082,13 +1102,13 @@ parse_assignment_or_definition_or_call(Parser* parser, Ast_Statement* statement)
             Ast_Identifier* identifier = &expression.identifier;
 
             statement->kind = AST_STATEMENT_VARIABLE_DEFINITION;
-            return parse_variable_definition(parser, identifier, &statement->variable_definition);
+            return parse_variable_definition(context, identifier, &statement->variable_definition);
         } break;
 
         case TOKEN_ASSIGN:
         {
             statement->kind = AST_STATEMENT_ASSIGNMENT;
-            return parse_assignment(parser, &expression, &statement->assignment);
+            return parse_assignment(context, &expression, &statement->assignment);
         } break;
 
         case TOKEN_SEMICOLON:
@@ -1102,7 +1122,7 @@ parse_assignment_or_definition_or_call(Parser* parser, Ast_Statement* statement)
                 //             An what if this expression's type is 'void'? We won't know that until the type system
                 //             checks.
                 error.text = string_view("Standalone expressions are not allowed.");
-                emit_diagnostic_message(parser->context, &error);
+                emit_diagnostic_message(context, &error);
 
                 return false;
             }
@@ -1110,7 +1130,7 @@ parse_assignment_or_definition_or_call(Parser* parser, Ast_Statement* statement)
             statement->kind = AST_STATEMENT_CALL;
             statement->call_statement.call_expression = expression;
 
-            ASSERT(parser_fetch_and_consume_token_with_type(parser, TOKEN_SEMICOLON));
+            ASSERT(parser_fetch_and_consume_token_with_type(context, TOKEN_SEMICOLON));
             return true;
         } break;
 
@@ -1122,17 +1142,19 @@ parse_assignment_or_definition_or_call(Parser* parser, Ast_Statement* statement)
 }
 
 internal Bool
-parse_return_statement(Parser* parser, Ast_Statement* statement)
+parse_return_statement(Compilation_Context* context, Ast_Statement* statement)
 {
+    Parser* parser = &context->parser;
+
     statement->kind = AST_STATEMENT_RETURN;
     Ast_Return_Statement* return_statement = &statement->return_statement;
 
-    if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_RETURN))
+    if (!parser_fetch_and_consume_token_with_type(context, TOKEN_RETURN))
     {
         return false;
     }
 
-    if (!parser_fetch_token(parser))
+    if (!parser_fetch_token(context))
     {
         return false;
     }
@@ -1142,7 +1164,7 @@ parse_return_statement(Parser* parser, Ast_Statement* statement)
     //             to do that here.
     if (parser->current_token.type == TOKEN_SEMICOLON)
     {
-        parser_consume_token(parser);
+        parser_consume_token(context);
         return_statement->is_empty = true;
         return_statement->empty_expression_location = parser->previous_token_location;
         return true;
@@ -1150,12 +1172,12 @@ parse_return_statement(Parser* parser, Ast_Statement* statement)
 
     return_statement->is_empty = false;
 
-    if (!parse_expression(parser, &return_statement->expression))
+    if (!parse_expression(context, &return_statement->expression))
     {
         return false;
     }
 
-    if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_SEMICOLON))
+    if (!parser_fetch_and_consume_token_with_type(context, TOKEN_SEMICOLON))
     {
         return false;
     }
@@ -1164,35 +1186,37 @@ parse_return_statement(Parser* parser, Ast_Statement* statement)
 }
 
 internal Bool
-parse_code_block(Parser* parser, Ast_Code_Block* code_block)
+parse_code_block(Compilation_Context* context, Ast_Code_Block* code_block)
 {
-    if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_LEFT_BRACE))
+    Parser* parser = &context->parser;
+
+    if (!parser_fetch_and_consume_token_with_type(context, TOKEN_LEFT_BRACE))
     {
         return false;
     }
 
-    if (!parser_fetch_token(parser))
+    if (!parser_fetch_token(context))
     {
         return false;
     }
 
     while (parser->current_token.type != TOKEN_RIGHT_BRACE)
     {
-        append_array(parser->context->ast_arena, code_block->statements, Ast_Statement, (Ast_Statement){0});
+        append_array(context->ast_arena, code_block->statements, Ast_Statement, (Ast_Statement){0});
 
         Ast_Statement* statement = &code_block->statements[code_block->statements_count - 1];
-        if (!parse_statement(parser, statement))
+        if (!parse_statement(context, statement))
         {
             return false;
         }
 
-        if (!parser_fetch_token(parser))
+        if (!parser_fetch_token(context))
         {
             return false;
         }
     }
 
-    if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_RIGHT_BRACE))
+    if (!parser_fetch_and_consume_token_with_type(context, TOKEN_RIGHT_BRACE))
     {
         return false;
     }
@@ -1203,23 +1227,23 @@ parse_code_block(Parser* parser, Ast_Code_Block* code_block)
 }
 
 internal Bool
-parse_while_statement(Parser* parser, Ast_Statement* statement)
+parse_while_statement(Compilation_Context* context, Ast_Statement* statement)
 {
     statement->kind = AST_STATEMENT_WHILE;
 
     Ast_While_Statement* while_statement = &statement->while_statement;
 
-    if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_WHILE))
+    if (!parser_fetch_and_consume_token_with_type(context, TOKEN_WHILE))
     {
         return false;
     }
 
-    if (!parse_expression(parser, &while_statement->condition))
+    if (!parse_expression(context, &while_statement->condition))
     {
         return false;
     }
 
-    if (!parse_code_block(parser, &while_statement->body))
+    if (!parse_code_block(context, &while_statement->body))
     {
         return false;
     }
@@ -1228,28 +1252,30 @@ parse_while_statement(Parser* parser, Ast_Statement* statement)
 }
 
 internal Bool
-parse_if_statement(Parser* parser, Ast_Statement* statement)
+parse_if_statement(Compilation_Context* context, Ast_Statement* statement)
 {
+    Parser* parser = &context->parser;
+
     statement->kind = AST_STATEMENT_IF;
 
     Ast_If_Statement* if_statement = &statement->if_statement;
 
-    if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_IF))
+    if (!parser_fetch_and_consume_token_with_type(context, TOKEN_IF))
     {
         return false;
     }
 
-    if (!parse_expression(parser, &if_statement->condition))
+    if (!parse_expression(context, &if_statement->condition))
     {
         return false;
     }
 
-    if (!parse_code_block(parser, &if_statement->if_statements))
+    if (!parse_code_block(context, &if_statement->if_statements))
     {
         return false;
     }
 
-    if (!parser_fetch_token(parser))
+    if (!parser_fetch_token(context))
     {
         return false;
     }
@@ -1259,12 +1285,12 @@ parse_if_statement(Parser* parser, Ast_Statement* statement)
         return true;
     }
 
-    if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_ELSE))
+    if (!parser_fetch_and_consume_token_with_type(context, TOKEN_ELSE))
     {
         return false;
     }
 
-    if (!parser_fetch_token(parser))
+    if (!parser_fetch_token(context))
     {
         return false;
     }
@@ -1274,7 +1300,7 @@ parse_if_statement(Parser* parser, Ast_Statement* statement)
         case TOKEN_IF:
         {
             Ast_Code_Block* else_statements = &if_statement->else_statements;
-            else_statements->statements = allocate(parser->context->ast_arena, Ast_Statement);
+            else_statements->statements = allocate(context->ast_arena, Ast_Statement);
             else_statements->statements_count = 1;
             else_statements->statements_capacity = 1;
 
@@ -1286,7 +1312,7 @@ parse_if_statement(Parser* parser, Ast_Statement* statement)
                 next_branch_statement->start_location.length_in_bytes = 1; // TODO(vlad): Support other encodings.
             }
 
-            if (!parse_if_statement(parser, next_branch_statement))
+            if (!parse_if_statement(context, next_branch_statement))
             {
                 return false;
             }
@@ -1294,7 +1320,7 @@ parse_if_statement(Parser* parser, Ast_Statement* statement)
 
         case TOKEN_LEFT_BRACE:
         {
-            if (!parse_code_block(parser, &if_statement->else_statements))
+            if (!parse_code_block(context, &if_statement->else_statements))
             {
                 return false;
             }
@@ -1310,9 +1336,11 @@ parse_if_statement(Parser* parser, Ast_Statement* statement)
 }
 
 internal Bool
-parse_statement(Parser* parser, Ast_Statement* statement)
+parse_statement(Compilation_Context* context, Ast_Statement* statement)
 {
-    if (!parser_fetch_token(parser))
+    Parser* parser = &context->parser;
+
+    if (!parser_fetch_token(context))
     {
         return false;
     }
@@ -1326,17 +1354,17 @@ parse_statement(Parser* parser, Ast_Statement* statement)
     {
         case TOKEN_RETURN:
         {
-            return parse_return_statement(parser, statement);
+            return parse_return_statement(context, statement);
         } break;
 
         case TOKEN_WHILE:
         {
-            return parse_while_statement(parser, statement);
+            return parse_while_statement(context, statement);
         } break;
 
         case TOKEN_IF:
         {
-            return parse_if_statement(parser, statement);
+            return parse_if_statement(context, statement);
         } break;
 
         case TOKEN_BREAK:
@@ -1344,12 +1372,12 @@ parse_statement(Parser* parser, Ast_Statement* statement)
             statement->kind = AST_STATEMENT_BREAK;
             statement->jump.token = parser->current_token;
 
-            if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_BREAK))
+            if (!parser_fetch_and_consume_token_with_type(context, TOKEN_BREAK))
             {
                 return false;
             }
 
-            if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_SEMICOLON))
+            if (!parser_fetch_and_consume_token_with_type(context, TOKEN_SEMICOLON))
             {
                 return false;
             }
@@ -1362,12 +1390,12 @@ parse_statement(Parser* parser, Ast_Statement* statement)
             statement->kind = AST_STATEMENT_CONTINUE;
             statement->jump.token = parser->current_token;
 
-            if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_CONTINUE))
+            if (!parser_fetch_and_consume_token_with_type(context, TOKEN_CONTINUE))
             {
                 return false;
             }
 
-            if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_SEMICOLON))
+            if (!parser_fetch_and_consume_token_with_type(context, TOKEN_SEMICOLON))
             {
                 return false;
             }
@@ -1377,36 +1405,36 @@ parse_statement(Parser* parser, Ast_Statement* statement)
 
         default:
         {
-            return parse_assignment_or_definition_or_call(parser, statement);
+            return parse_assignment_or_definition_or_call(context, statement);
         } break;
     }
 }
 
 internal Bool
-parse_function_definition(Parser* parser, Ast_Function_Definition* function_definition)
+parse_function_definition(Compilation_Context* context, Ast_Function_Definition* function_definition)
 {
-    if (!parse_identifier(parser, &function_definition->name))
+    if (!parse_identifier(context, &function_definition->name))
     {
         return false;
     }
 
-    if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_COLON))
+    if (!parser_fetch_and_consume_token_with_type(context, TOKEN_COLON))
     {
         return false;
     }
 
-    function_definition->type = allocate(parser->context->ast_arena, Ast_Type);
-    if (!parse_function_type(parser, function_definition->type))
+    function_definition->type = allocate(context->ast_arena, Ast_Type);
+    if (!parse_function_type(context, function_definition->type))
     {
         return false;
     }
 
-    if (!parser_fetch_and_consume_token_with_type(parser, TOKEN_ASSIGN))
+    if (!parser_fetch_and_consume_token_with_type(context, TOKEN_ASSIGN))
     {
         return false;
     }
 
-    if (!parse_code_block(parser, &function_definition->body))
+    if (!parse_code_block(context, &function_definition->body))
     {
         return false;
     }
@@ -1415,26 +1443,27 @@ parse_function_definition(Parser* parser, Ast_Function_Definition* function_defi
 }
 
 internal Bool
-parse_ast(Parser* parser)
+parse_ast(Compilation_Context* context)
 {
-    Ast* ast = &parser->context->ast;
+    Parser* parser = &context->parser;
+    Ast* ast = &context->ast;
 
     do
     {
         Ast_Function_Definition function_definition = {0};
-        if (!parse_function_definition(parser, &function_definition))
+        if (!parse_function_definition(context, &function_definition))
         {
             println("Failed to parse function definition");
             return false;
         }
 
-        append_array(parser->context->ast_arena,
+        append_array(context->ast_arena,
                      ast->function_definitions,
                      Ast_Function_Definition,
                      function_definition);
 
         // NOTE(vlad): Prefetching the next token to check if its type is EOF.
-        if (!parser_fetch_token(parser))
+        if (!parser_fetch_token(context))
         {
             return false;
         }
@@ -1442,11 +1471,4 @@ parse_ast(Parser* parser)
     while (parser->current_token.type != TOKEN_EOF);
 
     return true;
-}
-
-internal void
-destroy_parser(Parser* parser)
-{
-    // XXX(vlad): Clear errors here? Probably not.
-    UNUSED(parser);
 }

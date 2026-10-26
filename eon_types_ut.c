@@ -12,13 +12,7 @@ test_builtin_types_resolving(Test_Context* test_context)
                                                  "    var := parameter;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -113,8 +107,6 @@ test_builtin_types_resolving(Test_Context* test_context)
 
         // FIXME(vlad): Test return statement.
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -124,13 +116,7 @@ test_builtin_types_resolving(Test_Context* test_context)
                                                  "    return var;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -228,8 +214,6 @@ test_builtin_types_resolving(Test_Context* test_context)
 
         // FIXME(vlad): Test return statement.
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -243,13 +227,7 @@ test_pointers(Test_Context* test_context)
                                                  "    return var;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -337,8 +315,6 @@ test_pointers(Test_Context* test_context)
             ASSERT_TYPE_STRINGS_ARE_EQUAL(type->type_id, "* s32");
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -348,13 +324,7 @@ test_pointers(Test_Context* test_context)
                                                  "    return var;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -416,8 +386,6 @@ test_pointers(Test_Context* test_context)
             ASSERT_TYPE_STRINGS_ARE_EQUAL(type->type_id, "s32");
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -430,13 +398,7 @@ test_comparisons(Test_Context* test_context)
                                                  "    var := parameter == parameter;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -520,8 +482,6 @@ test_comparisons(Test_Context* test_context)
             ASSERT_TYPE_STRINGS_ARE_EQUAL(initial_value->type_id, "bool");
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -530,13 +490,7 @@ test_comparisons(Test_Context* test_context)
                                                  "    var := parameter != parameter;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -620,8 +574,6 @@ test_comparisons(Test_Context* test_context)
             ASSERT_TYPE_STRINGS_ARE_EQUAL(initial_value->type_id, "bool");
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -630,13 +582,7 @@ test_comparisons(Test_Context* test_context)
                                                  "    var := parameter < parameter;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -720,8 +666,6 @@ test_comparisons(Test_Context* test_context)
             ASSERT_TYPE_STRINGS_ARE_EQUAL(initial_value->type_id, "bool");
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -730,13 +674,7 @@ test_comparisons(Test_Context* test_context)
                                                  "    var := parameter <= parameter;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -820,8 +758,6 @@ test_comparisons(Test_Context* test_context)
             ASSERT_TYPE_STRINGS_ARE_EQUAL(initial_value->type_id, "bool");
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -830,13 +766,7 @@ test_comparisons(Test_Context* test_context)
                                                  "    var := parameter > parameter;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -920,8 +850,6 @@ test_comparisons(Test_Context* test_context)
             ASSERT_TYPE_STRINGS_ARE_EQUAL(initial_value->type_id, "bool");
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -930,13 +858,7 @@ test_comparisons(Test_Context* test_context)
                                                  "    var := parameter >= parameter;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1020,8 +942,6 @@ test_comparisons(Test_Context* test_context)
             ASSERT_TYPE_STRINGS_ARE_EQUAL(initial_value->type_id, "bool");
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -1034,13 +954,7 @@ test_if_statements(Test_Context* test_context)
                                                  "    if parameter == parameter {}\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1121,8 +1035,6 @@ test_if_statements(Test_Context* test_context)
             ASSERT_FALSE(type_id_is_valid(&context, if_statement->else_statements.return_type_id));
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -1138,13 +1050,7 @@ test_if_statements(Test_Context* test_context)
                                                  "    }\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1229,8 +1135,6 @@ test_if_statements(Test_Context* test_context)
 
         ASSERT_TYPE_STRINGS_ARE_EQUAL(body->return_type_id, "s32");
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -1243,13 +1147,7 @@ test_if_statements(Test_Context* test_context)
                                                  "    return parameter;"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1355,8 +1253,6 @@ test_if_statements(Test_Context* test_context)
 
         ASSERT_TYPE_STRINGS_ARE_EQUAL(body->return_type_id, "s32");
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -1369,13 +1265,7 @@ test_while_statements(Test_Context* test_context)
                                                  "    while parameter == parameter {}\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1453,8 +1343,6 @@ test_while_statements(Test_Context* test_context)
             ASSERT_FALSE(type_id_is_valid(&context, while_statement->body.return_type_id));
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -1466,13 +1354,7 @@ test_while_statements(Test_Context* test_context)
                                                  "    }\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1554,8 +1436,6 @@ test_while_statements(Test_Context* test_context)
 
         ASSERT_TYPE_STRINGS_ARE_EQUAL(body->return_type_id, "s32");
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -1567,13 +1447,7 @@ test_while_statements(Test_Context* test_context)
                                                  "    }\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1655,8 +1529,6 @@ test_while_statements(Test_Context* test_context)
 
         ASSERT_TYPE_STRINGS_ARE_EQUAL(body->return_type_id, "s32");
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -1668,13 +1540,7 @@ test_while_statements(Test_Context* test_context)
                                                  "    }\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1756,8 +1622,6 @@ test_while_statements(Test_Context* test_context)
 
         ASSERT_TYPE_STRINGS_ARE_EQUAL(body->return_type_id, "s32");
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -1771,13 +1635,7 @@ test_assignments(Test_Context* test_context)
                                                  "    a = 10;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1856,8 +1714,6 @@ test_assignments(Test_Context* test_context)
             ASSERT_TYPE_STRINGS_ARE_EQUAL(assignment->rhs.type_id, "s32");
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -1867,13 +1723,7 @@ test_assignments(Test_Context* test_context)
                                                  "    a&* = 10;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -1952,8 +1802,6 @@ test_assignments(Test_Context* test_context)
             ASSERT_TYPE_STRINGS_ARE_EQUAL(assignment->rhs.type_id, "s32");
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -1963,13 +1811,7 @@ test_assignments(Test_Context* test_context)
                                                  "    b := a;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2058,8 +1900,6 @@ test_assignments(Test_Context* test_context)
             ASSERT_TYPE_STRINGS_ARE_EQUAL(definition->initial_value.type_id, "s32");
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -2074,13 +1914,7 @@ test_pointers_to_mutable_binding(Test_Context* test_context)
                                                  "    ptr* = 10;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2186,8 +2020,6 @@ test_pointers_to_mutable_binding(Test_Context* test_context)
             ASSERT_TYPE_STRINGS_ARE_EQUAL(assignment->rhs.type_id, "s32");
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -2198,13 +2030,7 @@ test_pointers_to_mutable_binding(Test_Context* test_context)
                                                  "    bar(a&);\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2348,8 +2174,6 @@ test_pointers_to_mutable_binding(Test_Context* test_context)
             }
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -2361,13 +2185,7 @@ test_pointers_to_mutable_binding(Test_Context* test_context)
                                                  "    bar(a&);\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2511,8 +2329,6 @@ test_pointers_to_mutable_binding(Test_Context* test_context)
             }
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -2525,13 +2341,7 @@ test_calls(Test_Context* test_context)
                                                  "    return (parameter*)();\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2623,8 +2433,6 @@ test_calls(Test_Context* test_context)
             ASSERT_TYPE_STRINGS_ARE_EQUAL(identifier_symbol->type_id, "* () -> s32");
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -2633,13 +2441,7 @@ test_calls(Test_Context* test_context)
                                                  "    return (function*)(parameter);\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        parse_ast(&parser);
+        parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2743,8 +2545,6 @@ test_calls(Test_Context* test_context)
             ASSERT_TYPE_STRINGS_ARE_EQUAL(identifier_symbol->type_id, "* (s32) -> s32");
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -2754,13 +2554,7 @@ test_calls(Test_Context* test_context)
                                                  "}\n"
                                                  "bar: () -> void = {}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -2888,8 +2682,6 @@ test_calls(Test_Context* test_context)
             ASSERT_TYPE_STRINGS_ARE_EQUAL(body->return_type_id, "void");
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -2899,13 +2691,7 @@ test_calls(Test_Context* test_context)
                                                  "}\n"
                                                  "bar: () -> void = {}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -3031,8 +2817,6 @@ test_calls(Test_Context* test_context)
             ASSERT_TYPE_STRINGS_ARE_EQUAL(body->return_type_id, "void");
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -3042,13 +2826,7 @@ test_calls(Test_Context* test_context)
                                                  "    (foo_ptr*)();\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -3142,8 +2920,6 @@ test_calls(Test_Context* test_context)
             ASSERT_TYPE_STRINGS_ARE_EQUAL(dereference->operand->type_id, "* () -> void");
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -3158,13 +2934,7 @@ test_signed_integers(Test_Context* test_context)
                                                      "    return 1;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -3227,8 +2997,6 @@ test_signed_integers(Test_Context* test_context)
                 ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "s8");
             }
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
@@ -3237,13 +3005,7 @@ test_signed_integers(Test_Context* test_context)
                                                      "    return 1;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -3306,8 +3068,6 @@ test_signed_integers(Test_Context* test_context)
                 ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "s16");
             }
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
@@ -3316,13 +3076,7 @@ test_signed_integers(Test_Context* test_context)
                                                      "    return 1;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -3385,8 +3139,6 @@ test_signed_integers(Test_Context* test_context)
                 ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "s32");
             }
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
@@ -3395,13 +3147,7 @@ test_signed_integers(Test_Context* test_context)
                                                      "    return 1;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -3464,8 +3210,6 @@ test_signed_integers(Test_Context* test_context)
                 ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "s64");
             }
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
     }
@@ -3481,13 +3225,7 @@ test_unsigned_integers(Test_Context* test_context)
                                                      "    return 1;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -3550,8 +3288,6 @@ test_unsigned_integers(Test_Context* test_context)
                 ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "u8");
             }
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
@@ -3560,13 +3296,7 @@ test_unsigned_integers(Test_Context* test_context)
                                                      "    return 1;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -3629,8 +3359,6 @@ test_unsigned_integers(Test_Context* test_context)
                 ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "u16");
             }
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
@@ -3639,13 +3367,7 @@ test_unsigned_integers(Test_Context* test_context)
                                                      "    return 1;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -3708,8 +3430,6 @@ test_unsigned_integers(Test_Context* test_context)
                 ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "u32");
             }
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
@@ -3718,13 +3438,7 @@ test_unsigned_integers(Test_Context* test_context)
                                                      "    return 1;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -3787,8 +3501,6 @@ test_unsigned_integers(Test_Context* test_context)
                 ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "s64");
             }
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
     }
@@ -3804,13 +3516,7 @@ test_floats(Test_Context* test_context)
                                                      "    return 1;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -3873,8 +3579,6 @@ test_floats(Test_Context* test_context)
                 ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "f32");
             }
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
@@ -3883,13 +3587,7 @@ test_floats(Test_Context* test_context)
                                                      "    return 1;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -3952,8 +3650,6 @@ test_floats(Test_Context* test_context)
                 ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "f64");
             }
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
     }
@@ -3965,13 +3661,7 @@ test_floats(Test_Context* test_context)
                                                      "    return 1.0;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -4034,8 +3724,6 @@ test_floats(Test_Context* test_context)
                 ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "f32");
             }
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
@@ -4044,13 +3732,7 @@ test_floats(Test_Context* test_context)
                                                      "    return 1.0;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -4113,8 +3795,6 @@ test_floats(Test_Context* test_context)
                 ASSERT_TYPE_STRINGS_ARE_EQUAL(returned_expression->type_id, "f64");
             }
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
     }
@@ -4128,13 +3808,7 @@ test_floats(Test_Context* test_context)
                                                      "    a = b;\n"
                                                      "}\n");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -4235,8 +3909,6 @@ test_floats(Test_Context* test_context)
                 ASSERT_TYPE_STRINGS_ARE_EQUAL(assignment->rhs.type_id, "f64");
             }
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
     }
@@ -4286,13 +3958,7 @@ test_number_types_inference_in_arithmetic_expressions(Test_Context* test_context
 
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE(test_info.source_code);
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4392,8 +4058,6 @@ test_number_types_inference_in_arithmetic_expressions(Test_Context* test_context
             ASSERT_TYPE_STRINGS_ARE_EQUAL(binary_expression->rhs->type_id, test_info.expected_type);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -4429,13 +4093,7 @@ test_number_types_inference_in_arithmetic_expressions(Test_Context* test_context
         Number_Test_Info test_info = return_test_infos[i];
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE(test_info.source_code);
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4523,8 +4181,6 @@ test_number_types_inference_in_arithmetic_expressions(Test_Context* test_context
             ASSERT_TYPE_STRINGS_ARE_EQUAL(binary_expression->rhs->type_id, test_info.expected_type);
         }
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -4540,13 +4196,7 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                      "    return a;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -4566,8 +4216,6 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                             "    |     ^");
             ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
@@ -4576,13 +4224,7 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                      "    return parameter;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -4602,8 +4244,6 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                             "    |       ^~~~~~~~~");
             ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
@@ -4614,13 +4254,7 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                      "}\n"
                                                      "bar: () -> void = {}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -4640,8 +4274,6 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                             "    |     ^");
             ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
@@ -4656,13 +4288,7 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                      "}"
                                                      );
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -4684,8 +4310,6 @@ test_variables_of_invalid_types(Test_Context* test_context)
 
             // TODO(vlad): We should report two errors here.
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
     }
@@ -4698,13 +4322,7 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                      "    return a*;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -4724,8 +4342,6 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                             "    |     ^");
             ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
@@ -4734,13 +4350,7 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                      "    return parameter*;\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -4760,8 +4370,6 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                             "    |       ^~~~~~~~~");
             ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
 
@@ -4773,13 +4381,7 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                      "bar: () -> * void = {\n"
                                                      "}");
 
-            Lexer lexer = {0};
-            Parser parser = {0};
-
-            create_lexer(&lexer, &context);
-            create_parser(&parser, &lexer, &context);
-
-            ASSERT_TRUE(parse_ast(&parser));
+            ASSERT_TRUE(parse_ast(&context));
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             validate_ast(&context);
@@ -4801,8 +4403,6 @@ test_variables_of_invalid_types(Test_Context* test_context)
 
             // TODO(vlad): Forbid '* void' type everywhere, e.g. 'bar: () -> * void' should become invalid.
 
-            destroy_parser(&parser);
-            destroy_lexer(&lexer);
             destroy_compilation_context(&context);
         }
     }
@@ -4816,13 +4416,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    return parameter;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4844,8 +4438,6 @@ test_type_mismatches(Test_Context* test_context)
 
         // TODO(vlad): Test that some types were actually inferred.
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -4855,13 +4447,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    return variable;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4883,8 +4469,6 @@ test_type_mismatches(Test_Context* test_context)
 
         // TODO(vlad): Test that some types were actually inferred.
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -4893,13 +4477,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    return parameter;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4921,8 +4499,6 @@ test_type_mismatches(Test_Context* test_context)
 
         // TODO(vlad): Test that some types were actually inferred.
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -4932,13 +4508,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    return var;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4958,8 +4528,6 @@ test_type_mismatches(Test_Context* test_context)
                                                         "    |            ^~~~~~~~~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -4970,13 +4538,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    var := parameter*;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -4999,8 +4561,6 @@ test_type_mismatches(Test_Context* test_context)
                                                         "    | ^");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -5011,13 +4571,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    return parameter();\n"
                                                  "}\n");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5037,8 +4591,6 @@ test_type_mismatches(Test_Context* test_context)
                                                         "    |            ^~~~~~~~~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -5047,13 +4599,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    parameter();\n"
                                                  "}\n");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5073,8 +4619,6 @@ test_type_mismatches(Test_Context* test_context)
                                                         "    |     ^~~~~~~~~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -5086,13 +4630,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    return parameter;"
                                                  "}\n");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5112,8 +4650,6 @@ test_type_mismatches(Test_Context* test_context)
                                                         "    |                ^~~~~~~~~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -5125,13 +4661,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    return parameter;"
                                                  "}\n");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5151,8 +4681,6 @@ test_type_mismatches(Test_Context* test_context)
                                                         "    |            ^~~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -5160,13 +4688,7 @@ test_type_mismatches(Test_Context* test_context)
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {\n"
                                                  "}\n");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5186,8 +4708,6 @@ test_type_mismatches(Test_Context* test_context)
                                                         "    | ^");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -5198,13 +4718,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    }\n"
                                                  "}\n");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5224,8 +4738,6 @@ test_type_mismatches(Test_Context* test_context)
                                                         "    | ^");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -5234,13 +4746,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    if parameter {}\n"
                                                  "}\n");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5260,8 +4766,6 @@ test_type_mismatches(Test_Context* test_context)
                                                         "    |        ^~~~~~~~~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -5272,13 +4776,7 @@ test_type_mismatches(Test_Context* test_context)
                                                  "    a = 2.0;\n"
                                                  "}\n");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5298,8 +4796,6 @@ test_type_mismatches(Test_Context* test_context)
                                                         "    |         ^~~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -5314,13 +4810,7 @@ test_number_type_mismatches(Test_Context* test_context)
                                                  "    return a;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5340,8 +4830,6 @@ test_number_type_mismatches(Test_Context* test_context)
                                                         "    |            ^");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -5350,13 +4838,7 @@ test_number_type_mismatches(Test_Context* test_context)
                                                  "    return 10.0;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5376,8 +4858,6 @@ test_number_type_mismatches(Test_Context* test_context)
                                                         "    |            ^~~~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -5386,13 +4866,7 @@ test_number_type_mismatches(Test_Context* test_context)
                                                  "    return 128;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5415,8 +4889,6 @@ test_number_type_mismatches(Test_Context* test_context)
                                                         "    |            ^~~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -5427,13 +4899,7 @@ test_number_type_mismatches(Test_Context* test_context)
                                                  "    return a + b;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5453,8 +4919,6 @@ test_number_type_mismatches(Test_Context* test_context)
                                                         "    |            ^~~~~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -5465,13 +4929,7 @@ test_number_type_mismatches(Test_Context* test_context)
                                                  "    return ptr*;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5491,8 +4949,6 @@ test_number_type_mismatches(Test_Context* test_context)
                                                         "    |            ^~~~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -5503,13 +4959,7 @@ test_number_type_mismatches(Test_Context* test_context)
                                                  "    c := a + 2 * b;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5529,8 +4979,6 @@ test_number_type_mismatches(Test_Context* test_context)
                                                         "    |          ^~~~~~~~~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -5541,13 +4989,7 @@ test_number_type_mismatches(Test_Context* test_context)
                                                  "    c := (a + 2) * b;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5567,8 +5009,6 @@ test_number_type_mismatches(Test_Context* test_context)
                                                         "    |          ^~~~~~~~~~~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -5581,13 +5021,7 @@ test_lvalue_mismatches(Test_Context* test_context)
                                                  "    10 = 10;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5607,8 +5041,6 @@ test_lvalue_mismatches(Test_Context* test_context)
                                                         "    |     ^~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -5618,13 +5050,7 @@ test_lvalue_mismatches(Test_Context* test_context)
                                                  "    a + 1 = 10;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5644,8 +5070,6 @@ test_lvalue_mismatches(Test_Context* test_context)
                                                         "    |     ^~~~~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -5655,13 +5079,7 @@ test_lvalue_mismatches(Test_Context* test_context)
                                                  "    a& = 10;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5681,8 +5099,6 @@ test_lvalue_mismatches(Test_Context* test_context)
                                                         "    |          ^~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
@@ -5696,13 +5112,7 @@ test_mutability_mismatches(Test_Context* test_context)
                                                  "    a = 10;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5722,8 +5132,6 @@ test_mutability_mismatches(Test_Context* test_context)
                                                         "    |     ^");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -5734,13 +5142,7 @@ test_mutability_mismatches(Test_Context* test_context)
                                                  "    ptr* = 10;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5760,8 +5162,6 @@ test_mutability_mismatches(Test_Context* test_context)
                                                         "    |     ^~~~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -5772,13 +5172,7 @@ test_mutability_mismatches(Test_Context* test_context)
                                                  "    bar(a&);\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5798,8 +5192,6 @@ test_mutability_mismatches(Test_Context* test_context)
                                                         "    |         ^~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -5809,13 +5201,7 @@ test_mutability_mismatches(Test_Context* test_context)
                                                  "    ptr: * mutable _ = a&;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5835,8 +5221,6 @@ test_mutability_mismatches(Test_Context* test_context)
                                                         "    |                        ^~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -5847,13 +5231,7 @@ test_mutability_mismatches(Test_Context* test_context)
                                                  "    ptr: * mutable _ = b&;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5873,8 +5251,6 @@ test_mutability_mismatches(Test_Context* test_context)
                                                         "    |                        ^~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 
@@ -5885,13 +5261,7 @@ test_mutability_mismatches(Test_Context* test_context)
                                                  "    mutable_ptr: * mutable _ = immutable_ptr;\n"
                                                  "}");
 
-        Lexer lexer = {0};
-        Parser parser = {0};
-
-        create_lexer(&lexer, &context);
-        create_parser(&parser, &lexer, &context);
-
-        ASSERT_TRUE(parse_ast(&parser));
+        ASSERT_TRUE(parse_ast(&context));
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         validate_ast(&context);
@@ -5911,8 +5281,6 @@ test_mutability_mismatches(Test_Context* test_context)
                                                         "    |                                ^~~~~~~~~~~~~");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
-        destroy_parser(&parser);
-        destroy_lexer(&lexer);
         destroy_compilation_context(&context);
     }
 }
