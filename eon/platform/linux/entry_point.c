@@ -56,10 +56,6 @@ __asm__(".globl _start                \n"
         "    call linux_runtime_start \n"
         "    int3                     \n");
 
-#define AT_NULL   0
-#define AT_PAGESZ 6
-#define AT_RANDOM 25
-
 internal inline u64
 find_value_in_aux_vector(const u64* auxv, const u64 key)
 {
@@ -173,17 +169,7 @@ platform_entry_point(const int argc, const char* argv[])
 
         unsigned long* auxv = (unsigned long*)(envp + 1);
 
-        for (Index i = 0;
-             auxv[i] != AT_NULL;
-             i += 2)
-        {
-            if (auxv[i] == AT_PAGESZ)
-            {
-                LINUX_PAGE_SIZE = (Size)(auxv[i + 1]);
-                break;
-            }
-        }
-
+        LINUX_PAGE_SIZE = (Size)(find_value_in_aux_vector(auxv, AT_PAGESZ));
         SILENT_ASSERT(LINUX_PAGE_SIZE != 0, "Failed to get PAGE_SIZE");
     }
 

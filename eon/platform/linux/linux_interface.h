@@ -127,6 +127,10 @@ enum
     SYS_getrandom     = 318,
 };
 
+#define AT_NULL   0
+#define AT_PAGESZ 6
+#define AT_RANDOM 25
+
 #define O_RDONLY    00000000
 #define O_WRONLY    00000001
 #define O_RDWR      00000002

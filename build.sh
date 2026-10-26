@@ -5,7 +5,7 @@ mkdir -p build
 
 set -e
 
-ENABLE_ASAN=0
+ENABLE_ASAN=1
 USE_GCC=0
 
 IS_MACOS=0
