@@ -19,6 +19,8 @@ typedef enum IO_Bufferization_Policy IO_Bufferization_Policy;
 
 struct IO_State
 {
+    Bool initialized;
+
     Arena* arena;
 
     // FIXME(vlad): Change to cyclic buffer over 'mmap'-ed memory.

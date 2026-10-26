@@ -37,6 +37,8 @@ init_io_state(const Size initial_arena_size)
 
     // TODO(vlad): Commit memory only if needed (like we do that in arenas).
     platform_commit_memory(global_io_state.stdout_buffer, STDOUT_BUFFER_SIZE);
+
+    global_io_state.initialized = true;
 }
 
 internal void
@@ -118,5 +120,10 @@ print_flush_stdout(void)
 internal inline void
 INTERNAL_print_message_directly_to_stdout(const String_View message)
 {
+    if (global_io_state.initialized)
+    {
+        print_flush_stdout();
+    }
+
     write_data_to_stdout(as_bytes(message.data), message.length);
 }
