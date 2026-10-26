@@ -1521,7 +1521,7 @@ resolve_types_in_code_block(Compilation_Context* context,
     return true;
 }
 
-internal Bool
+internal void
 resolve_and_validate_types(Compilation_Context* context)
 {
     create_builtin_types(context);
@@ -1559,12 +1559,12 @@ resolve_and_validate_types(Compilation_Context* context)
         Ast_Code_Block* body = &function_definition->body;
         if (!resolve_types_in_code_block(context, body, expected_return_type_id))
         {
-            return false;
+            return;
         }
 
         if (type_id_is_invalid(context, body->return_type_id))
         {
-            return false;
+            return;
         }
 
         const Type_Id void_type_id = get_void_type_id(context);
@@ -1615,7 +1615,7 @@ resolve_and_validate_types(Compilation_Context* context)
 
                 error.text = string_view(error_text);
                 emit_diagnostic_message(context, &error);
-                return false;
+                return;
             }
             else
             {
@@ -1634,7 +1634,7 @@ resolve_and_validate_types(Compilation_Context* context)
                 error.text = string_view("Non-void function does not return a value in all control paths");
 
                 emit_diagnostic_message(context, &error);
-                return false;
+                return;
             }
 
             if (!try_to_unify_types(context, expected_return_type_id, body->return_type_id))
@@ -1657,7 +1657,7 @@ resolve_and_validate_types(Compilation_Context* context)
 
                 error.text = string_view(error_text);
                 emit_diagnostic_message(context, &error);
-                return false;
+                return;
             }
 
             if (!body->every_path_returns)
@@ -1668,12 +1668,10 @@ resolve_and_validate_types(Compilation_Context* context)
                 error.text = string_view("Non-void function does not return a value in all control paths");
 
                 emit_diagnostic_message(context, &error);
-                return false;
+                return;
             }
         }
     }
-
-    return true;
 }
 
 internal String_View
