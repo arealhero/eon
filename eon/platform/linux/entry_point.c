@@ -142,6 +142,24 @@ __stack_chk_fail(void)
     exit(127);
 }
 
+// TODO(vlad): Write a test for stack smashing: just call this function
+//
+//                 internal void
+//                 smash_stack(void)
+//                 {
+//                     volatile char buffer[8];
+//                      __asm__ volatile (
+//                         "movq  %0, %%rdi\n"
+//                         "movabsq $0x4141414141414141, %%rax\n"
+//                         "movq  %%rax, (%%rdi)\n"
+//                         "movq  %%rax, 8(%%rdi)\n"
+//                         :
+//                         : "r"(buffer)
+//                         : "rax", "rdi", "memory"
+//                     );
+//                 }
+//
+
 internal int
 platform_entry_point(const int argc, const char* argv[])
 {
