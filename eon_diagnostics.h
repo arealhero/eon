@@ -1,7 +1,8 @@
 #pragma once
 
-#include <eon/types.h>
+#include <eon/memory.h>
 #include <eon/string.h>
+#include <eon/types.h>
 
 #include "eon_forward_declarations.h"
 
