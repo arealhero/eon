@@ -217,9 +217,9 @@ eon_main(const String_View* arguments, const Size arguments_count)
     remove_unreachable_jumps(&context);
     END_TIMER(unreachable_jumps_removal, "Unreachable jumps removed");
 
-    START_TIMER(unreachable_cfg_blocks_removed_v2);
+    START_TIMER(unreachable_cfg_blocks_removed);
     remove_unreachable_cfg_blocks(&context);
-    END_TIMER(unreachable_cfg_blocks_removed_v2, "Unreachable CFG blocks removed");
+    END_TIMER(unreachable_cfg_blocks_removed, "Unreachable CFG blocks removed");
 
     {
         START_TIMER(comparing_ssa_after_constant_folding);
