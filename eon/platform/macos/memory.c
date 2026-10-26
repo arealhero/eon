@@ -2,6 +2,7 @@
 #    error Do not use this file directly. Include "<eon/platform/memory.h>" instead.
 #endif
 
+#include <eon/assert.h>
 #include <eon/io.h>
 
 #include <unistd.h>
