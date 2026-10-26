@@ -3,7 +3,7 @@
 #include <eon/io.h>
 #include <eon/containers.h>
 
-#include <stdarg.h>
+#include <eon/compiler/variadic_arguments.h>
 
 internal char*
 to_c_string(Arena* arena, const String_View string_view)

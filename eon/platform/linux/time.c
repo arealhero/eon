@@ -5,7 +5,7 @@
 #include <eon/assert.h>
 #include <eon/conversions.h>
 
-#include <time.h> // NOTE(vlad): For 'struct timespec' and 'clock_gettime'.
+#include <eon/platform/linux/linux_interface.h>
 
 internal Timestamp
 platform_get_current_monotonic_timestamp(void)

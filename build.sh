@@ -5,10 +5,17 @@ mkdir -p build
 
 set -e
 
-ENABLE_ASAN=1
+ENABLE_ASAN=0
 USE_GCC=0
 
-if [ $(uname) = "Darwin" ]; then
+IS_MACOS=0
+if [ $(uname) = "Darwin" ];
+then
+    IS_MACOS=1
+fi
+
+if [ $IS_MACOS -eq 1 ];
+then
     # NOTE(vlad): https://stackoverflow.com/a/70209891
     export MallocNanoZone=0
 
@@ -24,7 +31,7 @@ if [ $(uname) = "Darwin" ]; then
         if [ "$major" -eq 26 ] && [ "$minor" -gt 4 ] && [ "$clang_version" = "17.0.0" ]; then
             # NOTE(vlad): ASAN deadlocks on these versions. I reproduced this deadlock on Tahoe 26.5.2 (2026-07-12).
             #             @ref: https://github.com/fragcolor-xyz/shards/blob/devel/CLAUDE.md#clt-26x-addresssanitizer-deadlocks-at-startup
-            if [ "$ENABLE_ASAN" -eq 1 ]; then
+            if [ $ENABLE_ASAN -eq 1 ]; then
                 echo "ASAN is broken on this version of macOS."
                 exit 1
             fi
@@ -57,7 +64,12 @@ if [ $ENABLE_ASAN -eq 1 ];
 then
     compiler_common_flags="$compiler_common_flags -fsanitize=address -DEON_WITH_CRT=1"
 else
-    compiler_common_flags="$compiler_common_flags -ffreestanding -nostdlib -nodefaultlibs -fno-builtin -lSystem"
+    if [ $IS_MACOS -eq 1 ];
+    then
+        compiler_common_flags="$compiler_common_flags -ffreestanding -nostdlib -nodefaultlibs -fno-builtin -lSystem"
+    else
+        compiler_common_flags="$compiler_common_flags -ffreestanding -nostdlib -nodefaultlibs -nostdinc -fno-builtin"
+    fi
 fi
 
 if [ $USE_GCC -eq 1 ];

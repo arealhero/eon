@@ -18,7 +18,7 @@ internal int eon_main(const String_View* arguments, const Size arguments_count);
 #    elif OS_MAC
 #        include "common/entry_point.c"
 #    else
-#        error This OS is not supported yet.
+#        include "linux/entry_point.c"
 #    endif
 #endif
 

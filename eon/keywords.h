@@ -10,14 +10,3 @@
 
 // NOTE(vlad): This assumes that C11 is enabled.
 #define thread_local _Thread_local
-
-#if COMPILER_CLANG || COMPILER_GCC
-#    define maybe_unused __attribute__((unused))
-#    define no_return __attribute__((noreturn))
-#elif COMPILER_MSVC
-// TODO(vlad): Implement this.
-#    define maybe_unused
-#    define no_return __declspec(noreturn)
-#elif COMPILER_MSVC
-#    error Failed to define 'maybe_unused' and 'noreturn'.
-#endif

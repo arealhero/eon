@@ -2,7 +2,7 @@
 #    error Do not use this file directly. Include "<eon/platform/io.h>" instead.
 #endif
 
-#include <unistd.h> // NOTE(vlad): For 'write'.
+#include <eon/platform/linux/linux_interface.h>
 
 internal void
 write_data_to_stdout(const Byte* data, const Size data_size)

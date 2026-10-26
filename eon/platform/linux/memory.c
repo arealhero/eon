@@ -5,22 +5,15 @@
 #include <eon/assert.h>
 #include <eon/io.h>
 
-#include <unistd.h>
-#include <sys/mman.h>
+#include <eon/platform/linux/linux_interface.h>
 
 // TODO(vlad): Poison memory for address sanitizer?
 // TODO(vlad): Use calloc/free if asan is enabled because it does not track 'mmap'ed memory.
 
-internal Size
+internal inline Size
 platform_get_page_size(void)
 {
-    // STUDY(vlad): Should we cache page size here? If the answer is yes then we should make
-    //              this function thread-safe so we won't need to call it upon entering every
-    //              'main()' in every program just to initialize its local_persist variable.
-    const Size page_size = sysconf(_SC_PAGESIZE);
-    ASSERT(page_size != -1);
-    ASSERT(is_power_of_two((USize)page_size));
-    return page_size;
+    return LINUX_PAGE_SIZE;
 }
 
 internal Byte*
@@ -47,15 +40,9 @@ platform_decommit_memory(Byte* pointer, Size number_of_bytes)
 {
     // NOTE(vlad): 'posix_madvise' and 'mprotect' may fail if address is not a multiple
     //             of the page size as returned by 'sysconf()'.
-    ASSERT((Size)pointer % platform_get_page_size() == 0);
+    ASSERT((Size)(pointer) % LINUX_PAGE_SIZE == 0);
 
-    int result = posix_madvise(pointer, (USize)number_of_bytes, POSIX_MADV_DONTNEED);
-    if (result != 0)
-    {
-        return false;
-    }
-
-    result = mprotect(pointer, (USize)number_of_bytes, PROT_NONE);
+    const int result = mprotect(pointer, (USize)number_of_bytes, PROT_NONE);
     if (result != 0)
     {
         // TODO(vlad): Ignore 'ENOTSUP'.

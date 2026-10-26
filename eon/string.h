@@ -3,8 +3,9 @@
 #include <eon/build_info.h>
 #include <eon/common.h>
 #include <eon/containers.h>
-
 #include <eon/string_declarations.h>
+
+#include <eon/compiler/attributes.h>
 
 internal inline Bool
 is_ascii_letter(const char c)

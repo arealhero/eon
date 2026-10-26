@@ -24,7 +24,7 @@ eon_main(const String_View* arguments, const Size arguments_count)
     // TODO(vlad): Allocate more memory, otherwise we wouldn't be able to read files with size > 1 GiB.
     Arena* arena = create_arena("filesystem", GiB(1), MiB(1));
 
-    const String_View grammar_filename = string_view(arguments[1]);
+    const String_View grammar_filename = arguments[1];
     Read_File_Result read_result = platform_read_entire_text_file(arena, grammar_filename);
 
     if (read_result.status == READ_FILE_FAILURE)

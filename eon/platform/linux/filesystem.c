@@ -2,9 +2,7 @@
 #    error Do not use this file directly. Include "<eon/platform/filesystem.h>" instead.
 #endif
 
-#include <fcntl.h> // NOTE(vlad): For 'open'.
-#include <sys/stat.h> // NOTE(vlad): For 'fstat'.
-#include <unistd.h> // NOTE(vlad0): For 'read', 'close', and 'access'.
+#include <eon/platform/linux/linux_interface.h>
 
 #include <eon/assert.h>
 
@@ -26,7 +24,7 @@ platform_read_entire_text_file(Arena* arena, const String_View filename)
                 filename.length);
     zero_terminated_filename[filename.length] = '\0';
 
-    const int fd = open(zero_terminated_filename, O_RDONLY);
+    const int fd = open(zero_terminated_filename, O_RDONLY, 0);
     if (fd == -1)
     {
         result.status = READ_FILE_FAILURE;
@@ -77,7 +75,7 @@ platform_read_entire_binary_file(Arena* arena, const String_View filename)
     Read_Binary_File_Result result = {0};
 
     const char* zero_terminated_filename = to_c_string(arena, filename);
-    const int fd = open(zero_terminated_filename, O_RDONLY);
+    const int fd = open(zero_terminated_filename, O_RDONLY, 0);
     if (fd == -1)
     {
         result.status = READ_FILE_FAILURE;
