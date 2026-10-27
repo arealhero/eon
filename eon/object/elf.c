@@ -2,9 +2,6 @@
 
 #include <eon_compilation_context.h>
 
-// FIXME(vlad): Remove.
-#include <eon/io.h>
-
 struct Buffer
 {
     array(Byte, bytes);
