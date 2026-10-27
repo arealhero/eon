@@ -39,7 +39,12 @@ move_memory(Byte* to,
     }
     else
     {
-        copy_memory(to, from, number_of_bytes);
+        for (Index i = 0;
+             i < number_of_bytes;
+             ++i)
+        {
+            to[i] = from[i];
+        }
     }
 }
 
