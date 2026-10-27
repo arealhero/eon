@@ -1,6 +1,9 @@
 #pragma once
 
+#include <eon/memory.h>
 #include <eon/types.h>
+
+#include <eon_forward_declarations.h>
 
 typedef u16 Elf32_Half;
 typedef u16 Elf64_Half;
@@ -488,3 +491,5 @@ typedef struct Elf64_Shdr Elf64_Shdr;
 #define SHN_COMMON    0xfff2    /* Associated symbol is common */
 #define SHN_XINDEX    0xffff    /* Index is in extra table.  */
 #define SHN_HIRESERVE 0xffff    /* End of reserved indices */
+
+internal void build_elf64_object_file(struct Compilation_Context* context);

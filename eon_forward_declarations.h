@@ -65,24 +65,41 @@ typedef enum Target_Architecture Target_Architecture;
 
 enum Calling_Convention
 {
-    CALLING_CONVENTION_SYSTEM_V = 0,
+    CALLING_CONVENTION_SYSV_X64 = 0,
     CALLING_CONVENTION_MICROSOFT_X64,
 };
 typedef enum Calling_Convention Calling_Convention;
 
+enum Object_File_Type
+{
+    OBJECT_FILE_ELF = 0,
+};
+typedef enum Object_File_Type Object_File_Type;
+
 #if ARCH_X86_64
-global_variable const Target_Architecture DEFAULT_TARGET_ARCHITECTURE = TARGET_ARCH_X86_64;
+#    define DEFAULT_TARGET_ARCHITECTURE TARGET_ARCH_X86_64
 #elif ARCH_ARM64
-global_variable const Target_Architecture DEFAULT_TARGET_ARCHITECTURE = TARGET_ARCH_X86_64;
-// FIXME(vlad): Use actual target architecture.
-// global_variable const Target_Architecture DEFAULT_TARGET_ARCHITECTURE = TARGET_ARCH_AARCH64;
+#    define DEFAULT_TARGET_ARCHITECTURE TARGET_ARCH_X86_64
+// FIXME(vlad): Use the actual target architecture.
+// #    define DEFAULT_TARGET_ARCHITECTURE TARGET_ARCH_AARCH64
 #else
 #    error This architecture is not supported yet.
 #endif
 
-#if ARCH_X86_64 && OS_WINDOWS
-global_variable const Calling_Convention DEFAULT_CALLING_CONVENTION = CALLING_CONVENTION_MICROSOFT_X64;
+#if ARCH_X86_64
+#    if OS_WINDOWS
+#        define DEFAULT_CALLING_CONVENTION CALLING_CONVENTION_MICROSOFT_X64
+#    elif OS_LINUX
+#        define DEFAULT_CALLING_CONVENTION CALLING_CONVENTION_SYSV_X64
+#    else
+#        error This OS is not supported yet.
+#    endif
 #else
-// FIXME(vlad): Use actual calling convention.
-global_variable const Calling_Convention DEFAULT_CALLING_CONVENTION = CALLING_CONVENTION_MICROSOFT_X64;
+#    error This architecture is not supported yet.
+#endif
+
+#if OS_LINUX
+#    define DEFAULT_OBJECT_FILE_TYPE OBJECT_FILE_ELF
+#elif
+#    error This OS is not supported yet.
 #endif

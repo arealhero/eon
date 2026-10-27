@@ -1,9 +1,9 @@
-#include <eon/keywords.h>
-#include <eon/memory.h>
+#include "elf.h"
 
-#include <eon/platform/entry_point.h>
-#include <eon/platform/filesystem.h>
-#include <eon/platform/object/elf.h>
+#include <eon_compilation_context.h>
+
+// FIXME(vlad): Remove.
+#include <eon/io.h>
 
 struct Buffer
 {
@@ -46,16 +46,16 @@ align_to(const u64 value, const u64 alignment)
 }
 
 internal Size
-append_bytes_to_buffer(Arena* arena,
-                       Buffer* buffer,
-                       const Bytes_View bytes)
+append_bytes_to_section_buffer(Compilation_Context* context,
+                               Buffer* buffer,
+                               const Bytes_View bytes)
 {
-    ensure_array_has_enough_capacity(arena,
+    ensure_array_has_enough_capacity(context->scratch_arena,
                                      buffer->bytes,
                                      Byte,
                                      buffer->bytes_count + bytes.data_size_in_bytes);
 
-    copy_memory(as_bytes(buffer->bytes) + buffer->bytes_count,
+    copy_memory(buffer->bytes + buffer->bytes_count,
                 bytes.data,
                 bytes.data_size_in_bytes);
 
@@ -65,26 +65,41 @@ append_bytes_to_buffer(Arena* arena,
 }
 
 internal Size
-append_string_to_buffer(Arena* arena,
-                        Buffer* buffer,
-                        const String_View string_view)
+append_string_to_section_buffer(Compilation_Context* context,
+                                Buffer* buffer,
+                                const String_View string_view)
 {
     Bytes_View bytes = {0};
     bytes.data = as_bytes(string_view.data);
     bytes.data_size_in_bytes = string_view.length * size_of(*string_view.data);
 
-    const Size offset = append_bytes_to_buffer(arena, buffer, bytes);
+    const Size offset = append_bytes_to_section_buffer(context, buffer, bytes);
 
     const char zero_terminator = '\0';
-    append_bytes_to_buffer(arena, buffer, as_bytes_view(zero_terminator));
+    append_bytes_to_section_buffer(context, buffer, as_bytes_view(zero_terminator));
     return offset;
 }
 
-internal int
-eon_main(const String_View *arguments,
-         const Size arguments_count)
+internal inline void
+append_bytes_to_object_file_buffer(Compilation_Context* context,
+                                   const Bytes_View bytes)
 {
-    UNUSED(arguments, arguments_count);
+    ensure_array_has_enough_capacity(context->object_file_arena,
+                                     context->object_file_bytes,
+                                     Byte,
+                                     context->object_file_bytes_count + bytes.data_size_in_bytes);
+
+    copy_memory(context->object_file_bytes + context->object_file_bytes_count,
+                bytes.data,
+                bytes.data_size_in_bytes);
+
+    context->object_file_bytes_count += bytes.data_size_in_bytes;
+}
+
+internal void
+build_elf64_object_file(Compilation_Context* context)
+{
+    MIR* mir = &context->mir;
 
     Object_File_Section sections[NUMBER_OF_SECTIONS] = {
         [SECTION_TEXT] = {
@@ -131,43 +146,48 @@ eon_main(const String_View *arguments,
         },
     };
 
-    local_persist const Byte binary_code[] = {
-        // foo() { return 42; }
-        0xb8, 0x2a, 0x00, 0x00, 0x00, // mov eax, 42
-        0xc3,                         // ret
-
-        // bar() { external_function(); }
-        0xe8, 0x00, 0x00, 0x00, 0x00, // call external_function();
-        0xc3,                         // ret
-    };
-
-    Arena* arena = create_arena("arena", GiB(1), MiB(1));
+    // TODO(vlad): Merge for-loops over MIR functions.
 
     // NOTE(vlad): Adding binary code to .text section.
     {
-        Bytes_View binary_code_view = {0};
-        binary_code_view.data = binary_code;
-        binary_code_view.data_size_in_bytes = size_of(binary_code);
+        Buffer* text_section_buffer = &(sections[SECTION_TEXT].buffer);
 
-        append_bytes_to_buffer(arena,
-                               &(sections[SECTION_TEXT].buffer),
-                               binary_code_view);
+        for (Index function_index = 0;
+             function_index < mir->functions_count;
+             ++function_index)
+        {
+            MIR_Function* function = &mir->functions[function_index];
+
+            function->offset_of_code_in_the_object_file = text_section_buffer->bytes_count;
+
+            Bytes_View binary_code_view = {0};
+            binary_code_view.data = function->binary_code;
+            binary_code_view.data_size_in_bytes = function->binary_code_count;
+
+            append_bytes_to_section_buffer(context,
+                                           text_section_buffer,
+                                           binary_code_view);
+        }
     }
-
-    u32 foo_offset = 0;
-    u32 bar_offset = 0;
-    u32 external_function_offset = 0;
 
     // NOTE(vlad): Adding symbol names to symbol string table.
     {
-        Buffer* buffer = &(sections[SECTION_STRTAB].buffer);
+        Buffer* string_table_buffer = &(sections[SECTION_STRTAB].buffer);
 
         // NOTE(vlad): Mandatory empty symbol name.
-        append_string_to_buffer(arena, buffer, string_view(""));
+        append_string_to_section_buffer(context, string_table_buffer, string_view(""));
 
-        foo_offset = (u32)append_string_to_buffer(arena, buffer, string_view("foo"));
-        bar_offset = (u32)append_string_to_buffer(arena, buffer, string_view("bar"));
-        external_function_offset = (u32)append_string_to_buffer(arena, buffer, string_view("external_function"));
+        for (Index function_index = 0;
+             function_index < mir->functions_count;
+             ++function_index)
+        {
+            MIR_Function* function = &mir->functions[function_index];
+            const String_View function_name = function->ast_function_definition->name.token.lexeme;
+
+            function->index_of_symbol_in_the_object_file = append_string_to_section_buffer(context,
+                                                                                           string_table_buffer,
+                                                                                           function_name);
+        }
 
         for (Index section_index = 1;
              section_index < NUMBER_OF_SECTIONS;
@@ -175,56 +195,62 @@ eon_main(const String_View *arguments,
         {
             Object_File_Section* section = &sections[section_index];
 
-            section->offset_into_shstrtab = (u32)append_string_to_buffer(arena, &sections[SECTION_SHSTRTAB].buffer, section->name);
+            section->offset_into_shstrtab = (u32)append_string_to_section_buffer(context,
+                                                                                 &sections[SECTION_SHSTRTAB].buffer,
+                                                                                 section->name);
         }
-
-        ASSERT(foo_offset != 0);
-        ASSERT(bar_offset != 0);
-        ASSERT(external_function_offset != 0);
     }
 
     // NOTE(vlad): Creating symbol table.
     {
-        Elf64_Sym symbols[4] = {0};
-        symbols[1] = (Elf64_Sym){
-            .st_name = foo_offset,
-            .st_info = ELF64_ST_INFO(STB_GLOBAL, STT_FUNC),
-            .st_shndx = SECTION_TEXT,
-            .st_value = 0,
-            .st_size = 6,
-        };
-        symbols[2] = (Elf64_Sym){
-            .st_name = bar_offset,
-            .st_info = ELF64_ST_INFO(STB_GLOBAL, STT_FUNC),
-            .st_shndx = SECTION_TEXT,
-            .st_value = 6,
-            .st_size = 6,
-        };
-        symbols[3] = (Elf64_Sym){
-            .st_name = external_function_offset,
-            .st_info = ELF64_ST_INFO(STB_GLOBAL, STT_NOTYPE),
-            .st_shndx = SHN_UNDEF,
-        };
+        // NOTE(vlad): Example of external function symbol.
+        //
+        //                 (Elf64_Sym){
+        //                     .st_name = external_function_offset,
+        //                     .st_info = ELF64_ST_INFO(STB_GLOBAL, STT_NOTYPE),
+        //                     .st_shndx = SHN_UNDEF,
+        //                 };
 
-        append_bytes_to_buffer(arena, &(sections[SECTION_SYMTAB].buffer), as_bytes_view(symbols));
+        Buffer* symbol_table_buffer = &(sections[SECTION_SYMTAB].buffer);
+
+        // NOTE(vlad): Mandatory empty symbol.
+        {
+            Elf64_Sym symbol = {0};
+            append_bytes_to_section_buffer(context, symbol_table_buffer, as_bytes_view(symbol));
+        }
+
+        for (Index function_index = 0;
+             function_index < mir->functions_count;
+             ++function_index)
+        {
+            MIR_Function* function = &mir->functions[function_index];
+
+            // TODO(vlad): Use safe truncation from s64 to u32 here.
+            Elf64_Sym symbol = {0};
+            symbol.st_name = (u32)(function->index_of_symbol_in_the_object_file);
+            symbol.st_info = ELF64_ST_INFO(STB_GLOBAL, STT_FUNC);
+            symbol.st_shndx = SECTION_TEXT;
+            symbol.st_value = (u32)(function->offset_of_code_in_the_object_file);
+            symbol.st_size = (u32)(function->binary_code_count);
+
+            append_bytes_to_section_buffer(context, symbol_table_buffer, as_bytes_view(symbol));
+        }
     }
 
-    // NOTE(vlad): Filling relocations.
+    // TODO(vlad): Fill relocations if there are external symbols.
+
+    // // NOTE(vlad): Filling relocations.
+    // {
+    //     Elf64_Rela relocation = {
+    //         .r_offset = 7,
+    //         .r_info = ELF64_R_INFO(3, R_X86_64_PLT32),
+    //         .r_addend = -4,
+    //     };
+    //     append_bytes_to_buffer(context, &(sections[SECTION_RELA].buffer), as_bytes_view(relocation));
+    // }
+
+    // NOTE(vlad): Writing object file bytes.
     {
-        Elf64_Rela relocation = {
-            .r_offset = 7,
-            .r_info = ELF64_R_INFO(3, R_X86_64_PLT32),
-            .r_addend = -4,
-        };
-
-        append_bytes_to_buffer(arena, &(sections[SECTION_RELA].buffer), as_bytes_view(relocation));
-    }
-
-    const String_View object_filename = string_view("foo.o");
-    // NOTE(vlad): Writing object file.
-    {
-        const Platform_File_State file_state = platform_open_binary_file_for_writing(arena, object_filename);
-
         u64 current_section_offset = size_of(Elf64_Ehdr);
 
         // NOTE(vlad): Calculating section offsets.
@@ -269,7 +295,7 @@ eon_main(const String_View *arguments,
             header.e_shnum = NUMBER_OF_SECTIONS;
             header.e_shstrndx = SECTION_SHSTRTAB;
 
-            platform_write_binary_blob_to_file(file_state, as_bytes_view(header));
+            append_bytes_to_object_file_buffer(context, as_bytes_view(header));
             current_file_offset += size_of(header);
         }
 
@@ -287,15 +313,16 @@ eon_main(const String_View *arguments,
                      ++byte_index)
                 {
                     const char pad = 0;
-                    platform_write_binary_blob_to_file(file_state, as_bytes_view(pad));
+                    append_bytes_to_object_file_buffer(context, as_bytes_view(pad));
                 }
 
-                Bytes_View buffer = {0};
-                buffer.data = section->buffer.bytes;
-                buffer.data_size_in_bytes = section->buffer.bytes_count;
-                platform_write_binary_blob_to_file(file_state, buffer);
+                Bytes_View section_buffer_view = {0};
+                section_buffer_view.data = section->buffer.bytes;
+                section_buffer_view.data_size_in_bytes = section->buffer.bytes_count;
 
-                current_file_offset += (u64)(padding_size_in_bytes + buffer.data_size_in_bytes);
+                append_bytes_to_object_file_buffer(context, section_buffer_view);
+
+                current_file_offset += (u64)(padding_size_in_bytes + section_buffer_view.data_size_in_bytes);
             }
         }
 
@@ -307,7 +334,7 @@ eon_main(const String_View *arguments,
                  ++byte_index)
             {
                 const char pad = 0;
-                platform_write_binary_blob_to_file(file_state, as_bytes_view(pad));
+                append_bytes_to_object_file_buffer(context, as_bytes_view(pad));
             }
 
             for (Index section_index = 0;
@@ -326,18 +353,13 @@ eon_main(const String_View *arguments,
                 section_header.sh_info = section->info;
                 section_header.sh_addralign = section->alignment;
                 section_header.sh_entsize = section->entsize;
-                platform_write_binary_blob_to_file(file_state, as_bytes_view(section_header));
+
+                append_bytes_to_object_file_buffer(context, as_bytes_view(section_header));
             }
         }
-
-        platform_close_file(file_state);
-
-        println("Wrote {}", object_filename);
     }
 
-    return EXIT_SUCCESS;
-}
+    ASSERT(context->object_file_bytes_count != 0);
 
-#include <eon/io.c>
-#include <eon/memory.c>
-#include <eon/string.c>
+    request_arena_reset(context->arena_provider, context->scratch_arena);
+}

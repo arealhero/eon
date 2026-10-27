@@ -43,6 +43,7 @@ if %ENABLE_ASAN% EQU 1 (
 
 call :compile grammar\check_grammar_soundness.c build\grammar\check_grammar_soundness || exit /B 1
 call :compile utils\inspect-executable.c build\utils\inspect-executable || exit /B 1
+call :compile eon.c build\eon || exit /B 1
 
 rem build\utils\inspect-executable build\utils\inspect-executable.exe
 

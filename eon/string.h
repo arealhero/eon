@@ -59,6 +59,9 @@ internal String copy_string(struct Arena* const arena, const String_View string_
 
 internal void reverse_string(String string);
 
+internal inline String_View get_substring(const String_View string_view, const Index from, const Size length);
+internal inline void chop_string_suffix(String_View* string_view, const Size suffix_length);
+
 // TODO(vlad): Use '_Generic' to overload 'Bool' and 'Bool8'?
 #define BOOL_TO_STRING(value) string_view(((value) ? "true" : "false"))
 

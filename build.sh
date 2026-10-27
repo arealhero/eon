@@ -108,7 +108,7 @@ compile utils/inspect-executable.c -o build/utils/inspect-executable \
         $compiler_common_flags \
         $compiler_warnings
 
-compile utils/elf-emitter/elf-emitter.c -o build/utils/elf-emitter \
+compile eon.c -o build/eon \
         $compiler_common_flags \
         $compiler_warnings
 

@@ -123,6 +123,27 @@ reverse_string(String string)
     }
 }
 
+internal inline String_View
+get_substring(const String_View string_view,
+              const Index from,
+              const Size length)
+{
+    ASSERT(from < string_view.length && from + length <= string_view.length);
+
+    String_View substring = {0};
+    substring.data = string_view.data + from;
+    substring.length = length;
+
+    return substring;
+}
+
+internal inline void
+chop_string_suffix(String_View* string_view, const Size suffix_length)
+{
+    ASSERT(suffix_length <= string_view->length);
+    string_view->length -= suffix_length;
+}
+
 internal void
 create_string_builder(String_Builder* builder, struct Arena* arena)
 {

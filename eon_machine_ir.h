@@ -246,6 +246,12 @@ struct MIR_Function
 
     array(MIR_Stack_Slot, stack_slots);
     Index current_stack_offset_in_bytes;
+
+    // TODO(vlad): Rename to 'binary_code_bytes'? Otherwise 'binary_code_count' looks cursed.
+    array(Byte, binary_code);
+
+    Index offset_of_code_in_the_object_file;
+    Index index_of_symbol_in_the_object_file;
 };
 typedef struct MIR_Function MIR_Function;
 
@@ -262,3 +268,4 @@ maybe_unused internal void lower_ssa_to_mir(struct Compilation_Context* context)
 maybe_unused internal void add_isa_constraints_to_mir(struct Compilation_Context* context);
 maybe_unused internal void allocate_registers(struct Compilation_Context* context);
 maybe_unused internal void compute_layout_of_mir_blocks(struct Compilation_Context* context);
+maybe_unused internal void emit_binary_code(struct Compilation_Context* context);
