@@ -15,8 +15,7 @@ struct Phi_Node
 {
     Tac_Variable_Id destination;
 
-    Tac_Variable_Id* previous_variables;
-    Size previous_variables_count;
+    array_view(Tac_Variable_Id, previous_variables);
 };
 typedef struct Phi_Node Phi_Node;
 

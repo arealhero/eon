@@ -52,8 +52,7 @@ typedef struct Pointer_Type_Info Pointer_Type_Info;
 
 struct Function_Type_Info
 {
-    Type_Id* parameter_type_ids;
-    Size parameter_type_ids_count;
+    array_view(Type_Id, parameter_type_ids);
 
     Type_Id return_type_id;
 };

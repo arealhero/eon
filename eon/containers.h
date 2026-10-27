@@ -85,6 +85,10 @@
     }                                                   \
     while (0)
 
+#define array_view(Type, name)                  \
+    Type* name;                                 \
+    Size CONCATENATE(name, _count)
+
 #define stack(Type, name) array(Type, name)
 #define local_stack(Type, name) local_array(Type, name)
 

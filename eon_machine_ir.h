@@ -180,8 +180,7 @@ struct MIR_Instruction
             Tac_Function_Label_Id function_label_id; // TODO(vlad): This should no longer belong to TAC alone, move it
                                                      //             somewhere else.
 
-            MIR_Operand* function_arguments;
-            Size function_arguments_count;
+            array_view(MIR_Operand, function_arguments);
         };
     };
 };
@@ -189,8 +188,7 @@ typedef struct MIR_Instruction MIR_Instruction;
 
 struct MIR_Register_Bitset
 {
-    u64* words;
-    Size words_count;
+    array_view(u64, words);
 };
 typedef struct MIR_Register_Bitset MIR_Register_Bitset;
 
@@ -213,11 +211,8 @@ struct MIR_Block
     MIR_Instruction* first_instruction;
     MIR_Instruction* last_instruction;
 
-    struct MIR_Block** predecessors;
-    Size predecessors_count;
-
-    struct MIR_Block** successors;
-    Size successors_count;
+    array_view(struct MIR_Block*, predecessors);
+    array_view(struct MIR_Block*, successors);
 
     MIR_Register_Bitset live_in_registers;
     MIR_Register_Bitset live_out_registers;
@@ -228,8 +223,7 @@ typedef struct MIR_Block MIR_Block;
 
 struct MIR_Blocks_Layout
 {
-    MIR_Block** blocks;
-    Size blocks_count;
+    array_view(MIR_Block*, blocks);
 };
 typedef struct MIR_Blocks_Layout MIR_Blocks_Layout;
 
@@ -257,8 +251,7 @@ typedef struct MIR_Function MIR_Function;
 
 struct MIR
 {
-    MIR_Function* functions;
-    Size functions_count;
+    array_view(MIR_Function, functions);
 };
 typedef struct MIR MIR;
 

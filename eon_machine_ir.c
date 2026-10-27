@@ -1755,8 +1755,7 @@ add_interference_with_live_registers(Interference_Graph* graph,
 
 struct MIR_Perfect_Elimination_Order
 {
-    Index* virtual_register_indices;
-    Size virtual_register_indices_count;
+    array_view(Index, virtual_register_indices);
 };
 typedef struct MIR_Perfect_Elimination_Order MIR_Perfect_Elimination_Order;
 

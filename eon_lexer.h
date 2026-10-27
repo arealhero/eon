@@ -1,6 +1,7 @@
 #pragma once
 
 #include <eon/common.h>
+#include <eon/containers.h>
 #include <eon/string.h>
 
 #include "eon_forward_declarations.h"
@@ -67,8 +68,7 @@ struct Lexer
     Index current_line;
     Index current_column;
 
-    Keyword* keywords;
-    Size keywords_count;
+    array_view(Keyword, keywords);
 };
 typedef struct Lexer Lexer;
 
