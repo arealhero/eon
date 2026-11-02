@@ -246,7 +246,7 @@ struct IMAGE_SECTION_HEADER
 };
 typedef struct IMAGE_SECTION_HEADER IMAGE_SECTION_HEADER;
 typedef IMAGE_SECTION_HEADER* PIMAGE_SECTION_HEADER;
-#define IMAGE_SIZEOF_SECTION_HEADER 40
+STATIC_ASSERT(size_of(IMAGE_SECTION_HEADER) == 40);
 
 #define IMAGE_FIRST_SECTION(nt_headers)         \
     ((PIMAGE_SECTION_HEADER)                    \
@@ -255,6 +255,7 @@ typedef IMAGE_SECTION_HEADER* PIMAGE_SECTION_HEADER;
       ((nt_headers))->FileHeader.SizeOfOptionalHeader \
       ))
 
+#pragma pack(push, 1)
 struct IMAGE_SYMBOL
 {
     union
@@ -274,8 +275,10 @@ struct IMAGE_SYMBOL
     BYTE                    StorageClass;
     BYTE                    NumberOfAuxSymbols;
 };
+#pragma pack(pop)
 typedef struct IMAGE_SYMBOL IMAGE_SYMBOL;
-#define IMAGE_SIZEOF_SYMBOL 18
+
+STATIC_ASSERT(size_of(IMAGE_SYMBOL) == 18);
 
 //
 // Section values.

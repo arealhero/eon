@@ -64,7 +64,7 @@ build_pe64_object_file(Compilation_Context* context)
 
         Bytes_View symbol_bytes_view = {0};
         symbol_bytes_view.data = as_bytes(&symbol);
-        symbol_bytes_view.data_size_in_bytes = IMAGE_SIZEOF_SYMBOL;
+        symbol_bytes_view.data_size_in_bytes = 18;
 
         append_bytes_to_buffer(context->scratch_arena, &symbol_table_buffer, symbol_bytes_view);
         file_header.NumberOfSymbols += 1;
@@ -87,7 +87,7 @@ build_pe64_object_file(Compilation_Context* context)
 
     text_section.Misc.VirtualSize = text_section_size_in_bytes;
     text_section.SizeOfRawData = align_up(text_section_size_in_bytes, OBJECT_FILE_ALIGNMENT);
-    text_section.PointerToRawData = size_of(file_header) + IMAGE_SIZEOF_SECTION_HEADER;
+    text_section.PointerToRawData = size_of(file_header) + size_of(text_section);
     text_section.Characteristics = IMAGE_SCN_CNT_CODE | IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ;
 
     file_header.PointerToSymbolTable = text_section.PointerToRawData + text_section.SizeOfRawData;
@@ -99,7 +99,7 @@ build_pe64_object_file(Compilation_Context* context)
 
         Bytes_View text_section_header = {0};
         text_section_header.data = as_bytes(&text_section);
-        text_section_header.data_size_in_bytes = IMAGE_SIZEOF_SECTION_HEADER;
+        text_section_header.data_size_in_bytes = size_of(text_section);
 
         append_bytes_to_buffer(context->object_file_buffer_arena,
                                &context->object_file_buffer,
