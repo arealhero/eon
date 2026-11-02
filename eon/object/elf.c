@@ -2,12 +2,6 @@
 
 #include <eon_compilation_context.h>
 
-struct Buffer
-{
-    array(Byte, bytes);
-};
-typedef struct Buffer Buffer;
-
 struct Object_File_Section
 {
     String_View name;
@@ -27,21 +21,23 @@ typedef struct Object_File_Section Object_File_Section;
 
 enum
 {
-    SECTION_TEXT           = 1,
-    SECTION_RELA           = 2,
-    SECTION_SYMTAB         = 3,
-    SECTION_STRTAB         = 4,
-    SECTION_SHSTRTAB       = 5,
-    SECTION_NOTE_GNU_STACK = 6, // NOTE(vlad): .note.GNU-stack section is needed because our code needs no executable stack.
-    NUMBER_OF_SECTIONS,
+    ELF64_SECTION_TEXT           = 1,
+    ELF64_SECTION_RELA           = 2,
+    ELF64_SECTION_SYMTAB         = 3,
+    ELF64_SECTION_STRTAB         = 4,
+    ELF64_SECTION_SHSTRTAB       = 5,
+    ELF64_SECTION_NOTE_GNU_STACK = 6, // NOTE(vlad): .note.GNU-stack section is needed because our code needs no executable stack.
+    NUMBER_OF_ELF64_SECTIONS,
 };
 
+// FIXME(vlad): DELETE THIS FUNCTION. (move to memory.h)
 internal inline u64
 align_to(const u64 value, const u64 alignment)
 {
     return (value + alignment - 1) & ~(alignment - 1);
 }
 
+// FIXME(vlad): DELETE THESE FUNCTIONS.
 internal Size
 append_bytes_to_section_buffer(Compilation_Context* context,
                                Buffer* buffer,
@@ -77,66 +73,50 @@ append_string_to_section_buffer(Compilation_Context* context,
     return offset;
 }
 
-internal inline void
-append_bytes_to_object_file_buffer(Compilation_Context* context,
-                                   const Bytes_View bytes)
-{
-    ensure_array_has_enough_capacity(context->object_file_arena,
-                                     context->object_file_bytes,
-                                     Byte,
-                                     context->object_file_bytes_count + bytes.data_size_in_bytes);
-
-    copy_memory(context->object_file_bytes + context->object_file_bytes_count,
-                bytes.data,
-                bytes.data_size_in_bytes);
-
-    context->object_file_bytes_count += bytes.data_size_in_bytes;
-}
-
 internal void
 build_elf64_object_file(Compilation_Context* context)
 {
     MIR* mir = &context->mir;
 
-    Object_File_Section sections[NUMBER_OF_SECTIONS] = {
-        [SECTION_TEXT] = {
+    Object_File_Section sections[NUMBER_OF_ELF64_SECTIONS] = {
+        [ELF64_SECTION_TEXT] = {
             .name = string_view(".text"),
             .type = SHT_PROGBITS,
             .flags = SHF_ALLOC | SHF_EXECINSTR,
             .alignment = 16,
         },
 
-        [SECTION_RELA] = {
+        [ELF64_SECTION_RELA] = {
             .name = string_view(".rela.text"),
             .type = SHT_RELA,
-            .link = SECTION_SYMTAB,
-            .info = SECTION_TEXT,
+            .link = ELF64_SECTION_SYMTAB,
+            .info = ELF64_SECTION_TEXT,
             .entsize = sizeof(Elf64_Rela),
             .alignment = 8,
         },
 
-        [SECTION_SYMTAB] = {
+        [ELF64_SECTION_SYMTAB] = {
             .name = string_view(".symtab"),
             .type = SHT_SYMTAB,
-            .link = SECTION_STRTAB,
+            .link = ELF64_SECTION_STRTAB,
             .info = 1,
             .entsize = sizeof(Elf64_Sym),
             .alignment = 8,
         },
 
-        [SECTION_STRTAB] = {
+        [ELF64_SECTION_STRTAB] = {
             .name = string_view(".strtab"),
             .type = SHT_STRTAB,
             .alignment = 1,
         },
 
-        [SECTION_SHSTRTAB] = {
+        [ELF64_SECTION_SHSTRTAB] = {
             .name = string_view(".shstrtab"),
             .type = SHT_STRTAB,
             .alignment = 1,
         },
 
-        [SECTION_NOTE_GNU_STACK] = {
+        [ELF64_SECTION_NOTE_GNU_STACK] = {
             .name = string_view(".note.GNU-stack"),
             .type = SHT_PROGBITS,
             .alignment = 1,
@@ -147,7 +127,7 @@ build_elf64_object_file(Compilation_Context* context)
 
     // NOTE(vlad): Adding binary code to .text section.
     {
-        Buffer* text_section_buffer = &(sections[SECTION_TEXT].buffer);
+        Buffer* text_section_buffer = &(sections[ELF64_SECTION_TEXT].buffer);
 
         for (Index function_index = 0;
              function_index < mir->functions_count;
@@ -169,7 +149,7 @@ build_elf64_object_file(Compilation_Context* context)
 
     // NOTE(vlad): Adding symbol names to symbol string table.
     {
-        Buffer* string_table_buffer = &(sections[SECTION_STRTAB].buffer);
+        Buffer* string_table_buffer = &(sections[ELF64_SECTION_STRTAB].buffer);
 
         // NOTE(vlad): Mandatory empty symbol name.
         append_string_to_section_buffer(context, string_table_buffer, string_view(""));
@@ -187,13 +167,13 @@ build_elf64_object_file(Compilation_Context* context)
         }
 
         for (Index section_index = 1;
-             section_index < NUMBER_OF_SECTIONS;
+             section_index < NUMBER_OF_ELF64_SECTIONS;
              ++section_index)
         {
             Object_File_Section* section = &sections[section_index];
 
             section->offset_into_shstrtab = (u32)append_string_to_section_buffer(context,
-                                                                                 &sections[SECTION_SHSTRTAB].buffer,
+                                                                                 &sections[ELF64_SECTION_SHSTRTAB].buffer,
                                                                                  section->name);
         }
     }
@@ -208,7 +188,7 @@ build_elf64_object_file(Compilation_Context* context)
         //                     .st_shndx = SHN_UNDEF,
         //                 };
 
-        Buffer* symbol_table_buffer = &(sections[SECTION_SYMTAB].buffer);
+        Buffer* symbol_table_buffer = &(sections[ELF64_SECTION_SYMTAB].buffer);
 
         // NOTE(vlad): Mandatory empty symbol.
         {
@@ -226,7 +206,7 @@ build_elf64_object_file(Compilation_Context* context)
             Elf64_Sym symbol = {0};
             symbol.st_name = (u32)(function->index_of_symbol_in_the_object_file);
             symbol.st_info = ELF64_ST_INFO(STB_GLOBAL, STT_FUNC);
-            symbol.st_shndx = SECTION_TEXT;
+            symbol.st_shndx = ELF64_SECTION_TEXT;
             symbol.st_value = (u32)(function->offset_of_code_in_the_object_file);
             symbol.st_size = (u32)(function->binary_code_count);
 
@@ -254,7 +234,7 @@ build_elf64_object_file(Compilation_Context* context)
         {
             // FIXME(vlad): Remove hardcoded index.
             for (Index section_index = 1;
-                 section_index < NUMBER_OF_SECTIONS;
+                 section_index < NUMBER_OF_ELF64_SECTIONS;
                  ++section_index)
             {
                 Object_File_Section* section = &sections[section_index];
@@ -264,8 +244,8 @@ build_elf64_object_file(Compilation_Context* context)
                 }
                 else
                 {
-                    const u64 alignment = section->alignment == 0 ? 1 : section->alignment;
-                    current_section_offset = align_to(current_section_offset, alignment);
+                    ASSERT(section->alignment != 0);
+                    current_section_offset = align_to(current_section_offset, section->alignment);
                     section->file_offset = current_section_offset;
                     current_section_offset += (u64)(section->buffer.bytes_count);
                 }
@@ -289,17 +269,19 @@ build_elf64_object_file(Compilation_Context* context)
             header.e_shoff = section_header_table_offset;
             header.e_ehsize = sizeof(header);
             header.e_shentsize = sizeof(Elf64_Shdr);
-            header.e_shnum = NUMBER_OF_SECTIONS;
-            header.e_shstrndx = SECTION_SHSTRTAB;
+            header.e_shnum = NUMBER_OF_ELF64_SECTIONS;
+            header.e_shstrndx = ELF64_SECTION_SHSTRTAB;
 
-            append_bytes_to_object_file_buffer(context, as_bytes_view(header));
+            append_bytes_to_buffer(context->object_file_buffer_arena,
+                                   &context->object_file_buffer,
+                                   as_bytes_view(header));
             current_file_offset += size_of(header);
         }
 
         // NOTE(vlad): Writing sections.
         {
             for (Index section_index = 1;
-                 section_index < NUMBER_OF_SECTIONS;
+                 section_index < NUMBER_OF_ELF64_SECTIONS;
                  ++section_index)
             {
                 const Object_File_Section* section = &sections[section_index];
@@ -310,14 +292,18 @@ build_elf64_object_file(Compilation_Context* context)
                      ++byte_index)
                 {
                     const char pad = 0;
-                    append_bytes_to_object_file_buffer(context, as_bytes_view(pad));
+                    append_bytes_to_buffer(context->object_file_buffer_arena,
+                                           &context->object_file_buffer,
+                                           as_bytes_view(pad));
                 }
 
                 Bytes_View section_buffer_view = {0};
                 section_buffer_view.data = section->buffer.bytes;
                 section_buffer_view.data_size_in_bytes = section->buffer.bytes_count;
 
-                append_bytes_to_object_file_buffer(context, section_buffer_view);
+                append_bytes_to_buffer(context->object_file_buffer_arena,
+                                       &context->object_file_buffer,
+                                       section_buffer_view);
 
                 current_file_offset += (u64)(padding_size_in_bytes + section_buffer_view.data_size_in_bytes);
             }
@@ -331,11 +317,13 @@ build_elf64_object_file(Compilation_Context* context)
                  ++byte_index)
             {
                 const char pad = 0;
-                append_bytes_to_object_file_buffer(context, as_bytes_view(pad));
+                append_bytes_to_buffer(context->object_file_buffer_arena,
+                                       &context->object_file_buffer,
+                                       as_bytes_view(pad));
             }
 
             for (Index section_index = 0;
-                 section_index < NUMBER_OF_SECTIONS;
+                 section_index < NUMBER_OF_ELF64_SECTIONS;
                  ++section_index)
             {
                 const Object_File_Section* section = &sections[section_index];
@@ -351,12 +339,14 @@ build_elf64_object_file(Compilation_Context* context)
                 section_header.sh_addralign = section->alignment;
                 section_header.sh_entsize = section->entsize;
 
-                append_bytes_to_object_file_buffer(context, as_bytes_view(section_header));
+                append_bytes_to_buffer(context->object_file_buffer_arena,
+                                       &context->object_file_buffer,
+                                       as_bytes_view(section_header));
             }
         }
     }
 
-    ASSERT(context->object_file_bytes_count != 0);
+    ASSERT(context->object_file_buffer.bytes_count != 0);
 
     request_arena_reset(context->arena_provider, context->scratch_arena);
 }

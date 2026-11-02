@@ -10,6 +10,7 @@
 
 #include <eon/io.h>
 #include <eon/object/elf.h>
+#include <eon/object/pe.h>
 
 #include <eon/platform/entry_point.h>
 #include <eon/platform/filesystem.h>
@@ -51,6 +52,40 @@ struct Pipeline_Step
     void (*run)(Compilation_Context* context);
 };
 typedef struct Pipeline_Step Pipeline_Step;
+
+internal inline void
+build_object_file(Compilation_Context* context)
+{
+    switch (context->object_file_type)
+    {
+        case OBJECT_FILE_ELF64:
+        {
+            build_elf64_object_file(context);
+        } break;
+
+        case OBJECT_FILE_PE64:
+        {
+            build_pe64_object_file(context);
+        } break;
+    }
+}
+
+internal inline String_View
+get_object_file_extension(Compilation_Context* context)
+{
+    switch (context->object_file_type)
+    {
+        case OBJECT_FILE_ELF64:
+        {
+            return string_view("o");
+        } break;
+
+        case OBJECT_FILE_PE64:
+        {
+            return string_view("obj");
+        } break;
+    }
+}
 
 internal int
 eon_main(const String_View* arguments, const Size arguments_count)
@@ -110,7 +145,7 @@ eon_main(const String_View* arguments, const Size arguments_count)
         { string_view("Registers allocated"), allocate_registers },
         { string_view("Layout of MIR blocks computed"), compute_layout_of_mir_blocks },
         { string_view("Binary code emitted"), emit_binary_code },
-        { string_view("Object file built"), build_elf64_object_file }, // TODO(vlad): Remove hardcoded elf64-specific function.
+        { string_view("Object file built"), build_object_file },
     };
 
     for (Index step_index = 0;
@@ -147,17 +182,20 @@ eon_main(const String_View* arguments, const Size arguments_count)
             }
         }
 
+
+        const String_View object_file_extension = get_object_file_extension(&context);
         const String_View object_filename = string_view(format_string(context.scratch_arena,
-                                                                      "{}.o",
-                                                                      object_file_prefix));
+                                                                      "{}.{}",
+                                                                      object_file_prefix,
+                                                                      object_file_extension));
 
         // TODO(vlad): Do not pass arena here. We can construct the zero-terminated filename ourselves.
         const Platform_File_State file_state = platform_open_binary_file_for_writing(context.scratch_arena,
                                                                                      object_filename);
 
         Bytes_View object_file_view = {0};
-        object_file_view.data = context.object_file_bytes;
-        object_file_view.data_size_in_bytes = context.object_file_bytes_count;
+        object_file_view.data = context.object_file_buffer.bytes;
+        object_file_view.data_size_in_bytes = context.object_file_buffer.bytes_count;
 
         platform_write_binary_blob_to_file(file_state, object_file_view);
 
@@ -218,3 +256,4 @@ release_arena_to_provider(Arena_Provider* provider, Arena* arena)
 #include <eon/string.c>
 
 #include <eon/object/elf.c>
+#include <eon/object/pe.c>

@@ -3001,7 +3001,6 @@ emit_binary_code(Compilation_Context* context)
     MIR* mir = &context->mir;
 
     ASSERT(context->target_architecture == TARGET_ARCH_X86_64);
-    ASSERT(context->calling_convention == CALLING_CONVENTION_SYSV_X64);
 
     for (Index function_index = 0;
          function_index < mir->functions_count;

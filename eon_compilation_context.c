@@ -42,7 +42,7 @@ create_compilation_context(Compilation_Context* context,
     context->mir_block_layouts_arena = acquire_arena_from_provider(arena_provider, string_view("mir-block-layouts"), MiB(10), MiB(1));
 
     context->binary_code_arena = acquire_arena_from_provider(arena_provider, string_view("binary-code"), MiB(10), MiB(1));
-    context->object_file_arena = acquire_arena_from_provider(arena_provider, string_view("object-file"), MiB(10), MiB(1));
+    context->object_file_buffer_arena = acquire_arena_from_provider(arena_provider, string_view("object-file-buffer"), MiB(10), MiB(1));
 
     context->target_architecture = DEFAULT_TARGET_ARCHITECTURE;
     context->calling_convention = DEFAULT_CALLING_CONVENTION;
@@ -153,7 +153,7 @@ destroy_compilation_context(Compilation_Context* context)
     release_arena_to_provider(context->arena_provider, context->mir_block_layouts_arena);
 
     release_arena_to_provider(context->arena_provider, context->binary_code_arena);
-    release_arena_to_provider(context->arena_provider, context->object_file_arena);
+    release_arena_to_provider(context->arena_provider, context->object_file_buffer_arena);
 }
 
 internal Bool

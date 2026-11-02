@@ -52,6 +52,9 @@ STATIC_ASSERT(size_of(Linux_File_State) == size_of(Platform_File_State));
 #    include "macos/filesystem.c"
 #elif OS_WINDOWS
 #    include "win32/filesystem.c"
+
+STATIC_ASSERT(size_of(Win32_File_State) == size_of(Platform_File_State));
+
 #else
 #    error This OS is not supported yet.
 #endif

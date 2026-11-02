@@ -6,6 +6,12 @@
 
 #include <eon/assert.h>
 
+struct Win32_File_State
+{
+    HANDLE handle;
+};
+typedef struct Win32_File_State Win32_File_State;
+
 internal Read_File_Result
 platform_read_entire_text_file(Arena* arena, const String_View filename)
 {
@@ -149,4 +155,54 @@ platform_write_string_to_file(Arena* scratch_arena,
 
     ASSERT(bytes_written == (DWORD)content.length);
     CloseHandle(file_handle);
+}
+
+internal Platform_File_State
+platform_open_binary_file_for_writing(Arena* scratch_arena,
+                                      const String_View filename)
+{
+    const char* zero_terminated_filename = to_c_string(scratch_arena, filename);
+
+    const HANDLE handle = CreateFileA(zero_terminated_filename,
+                                      GENERIC_WRITE,
+                                      0,
+                                      NULL,
+                                      CREATE_ALWAYS,
+                                      FILE_ATTRIBUTE_NORMAL,
+                                      NULL);
+
+    if (handle == INVALID_HANDLE_VALUE)
+    {
+        FAIL("Failed to open binary file for writing");
+    }
+
+    Win32_File_State state = {0};
+    state.handle = handle;
+
+    return *(Platform_File_State*)(&state);
+}
+
+internal void
+platform_write_binary_blob_to_file(const Platform_File_State platform_file_state,
+                                   const Bytes_View blob)
+{
+    const Win32_File_State state = *(Win32_File_State*)(&platform_file_state);
+
+    DWORD number_of_bytes_written = 0;
+    WriteFile(state.handle,
+              blob.data,
+              (DWORD)(blob.data_size_in_bytes),
+              &number_of_bytes_written,
+              NULL);
+
+    ASSERT(number_of_bytes_written == blob.data_size_in_bytes);
+}
+
+internal void
+platform_close_file(const Platform_File_State platform_file_state)
+{
+    const Win32_File_State state = *(Win32_File_State*)(&platform_file_state);
+
+    // TODO(vlad): Assert that CloseHandle executed successfully.
+    CloseHandle(state.handle);
 }

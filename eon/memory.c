@@ -372,3 +372,35 @@ arena_reallocate(Arena* restrict arena,
 
     return new_memory;
 }
+
+inline void
+append_bytes_to_buffer(Arena* arena,
+                       Buffer* buffer,
+                       const Bytes_View bytes)
+{
+    ensure_array_has_enough_capacity(arena,
+                                     buffer->bytes,
+                                     Byte,
+                                     buffer->bytes_count + bytes.data_size_in_bytes);
+
+    copy_memory(buffer->bytes + buffer->bytes_count,
+                bytes.data,
+                bytes.data_size_in_bytes);
+
+    buffer->bytes_count += bytes.data_size_in_bytes;
+}
+
+inline void
+append_string_to_buffer(Arena* arena,
+                        Buffer* buffer,
+                        const String_View string_view)
+{
+    const char ZERO_TERMINATOR = '\0';
+
+    Bytes_View bytes = {0};
+    bytes.data = as_bytes(string_view.data);
+    bytes.data_size_in_bytes = string_view.length * size_of(*string_view.data);
+
+    append_bytes_to_buffer(arena, buffer, bytes);
+    append_bytes_to_buffer(arena, buffer, as_bytes_view(ZERO_TERMINATOR));
+}

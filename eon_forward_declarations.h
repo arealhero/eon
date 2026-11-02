@@ -72,7 +72,8 @@ typedef enum Calling_Convention Calling_Convention;
 
 enum Object_File_Type
 {
-    OBJECT_FILE_ELF = 0,
+    OBJECT_FILE_ELF64 = 0,
+    OBJECT_FILE_PE64,
 };
 typedef enum Object_File_Type Object_File_Type;
 
@@ -100,6 +101,8 @@ typedef enum Object_File_Type Object_File_Type;
 
 #if OS_LINUX
 #    define DEFAULT_OBJECT_FILE_TYPE OBJECT_FILE_ELF
-#elif
+#elif OS_WINDOWS
+#    define DEFAULT_OBJECT_FILE_TYPE OBJECT_FILE_PE64
+#else
 #    error This OS is not supported yet.
 #endif

@@ -55,7 +55,7 @@ struct Compilation_Context
     Arena* mir_block_layouts_arena;
 
     Arena* binary_code_arena;
-    Arena* object_file_arena;
+    Arena* object_file_buffer_arena;
 
     Target_Architecture target_architecture;
     Calling_Convention calling_convention;
@@ -79,7 +79,7 @@ struct Compilation_Context
     MIR mir;
     Index next_mir_block_sequence_number;
 
-    array(Byte, object_file_bytes);
+    Buffer object_file_buffer;
 };
 typedef struct Compilation_Context Compilation_Context;
 

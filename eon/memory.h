@@ -1,9 +1,10 @@
 #pragma once
 
 #include <eon/common.h>
+#include <eon/containers.h>
 #include <eon/conversions.h> // NOTE(vlad): Exporting 'KiB', 'MiB', etc for convenience.
-#include <eon/string.h>
 #include <eon/macros.h>
+#include <eon/string.h>
 
 internal inline void copy_memory(Byte* restrict to,
                                  const Byte* restrict from,
@@ -29,11 +30,46 @@ struct Bytes_View
 };
 typedef struct Bytes_View Bytes_View;
 
-#define as_bytes_view(object)                       \
-    (Bytes_View){                                   \
-        .data = as_bytes(&(object)),                \
-        .data_size_in_bytes = size_of(object),      \
-    }
+struct Buffer
+{
+    array(Byte, bytes);
+};
+typedef struct Buffer Buffer;
+
+internal inline Bytes_View
+INTERNAL_bytes_view_as_bytes_view(const Byte* data, const Size size)
+{
+    UNUSED(size);
+    return *(Bytes_View*)(data);
+}
+
+internal inline Bytes_View
+INTERNAL_buffer_as_bytes_view(const Byte* data, const Size size)
+{
+    UNUSED(size);
+    Buffer* buffer = (Buffer*)(data);
+
+    Bytes_View result = {0};
+    result.data = buffer->bytes;
+    result.data_size_in_bytes = buffer->bytes_count;
+    return result;
+}
+
+internal inline Bytes_View
+INTERNAL_default_as_bytes_view(const Byte* data, const Size size)
+{
+    Bytes_View result = {0};
+    result.data = data;
+    result.data_size_in_bytes = size;
+    return result;
+}
+
+#define as_bytes_view(object)                                   \
+    _Generic((object),                                          \
+                 Bytes_View: INTERNAL_bytes_view_as_bytes_view, \
+                 Buffer: INTERNAL_buffer_as_bytes_view,         \
+                 default: INTERNAL_default_as_bytes_view        \
+             )(as_bytes(&object), size_of(object))
 
 struct Arena
 {
@@ -77,3 +113,10 @@ internal Byte* arena_reallocate(Arena* restrict arena,
 #define allocate_uninitialized_array(arena, number_of_elements, Type)   \
     (Type*)(arena_push_uninitialized((arena), size_of(Type) * (number_of_elements)))
 
+internal inline void append_bytes_to_buffer(Arena* arena,
+                                            Buffer* buffer,
+                                            const Bytes_View bytes);
+
+internal inline void append_string_to_buffer(Arena* arena,
+                                             Buffer* buffer,
+                                             const String_View string_view);

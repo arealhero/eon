@@ -1,23 +1,8 @@
 #pragma once
 
+#include "types.h"
+
 #include <eon/build_info.h>
-#include <eon/types.h>
-
-typedef unsigned short WORD;
-typedef unsigned long DWORD;
-typedef long LONG;
-typedef int BOOL;
-typedef s64 LONGLONG;
-
-typedef USize SIZE_T;
-typedef USize DWORD_PTR;
-
-typedef void* HANDLE;
-typedef const char* LPCSTR;
-typedef const void* LPCVOID;
-typedef void* LPVOID;
-typedef DWORD* PDWORD;
-typedef DWORD* LPDWORD;
 
 #define TRUE  1
 #define FALSE 0
@@ -49,28 +34,37 @@ typedef DWORD* LPDWORD;
 #define PAGE_READWRITE         0x04
 #define PAGE_EXECUTE_READWRITE 0x40
 
-union LARGE_INTEGER {
-    struct {
+union LARGE_INTEGER
+{
+    struct
+    {
         DWORD LowPart;
         LONG HighPart;
     } DUMMYSTRUCTNAME;
-    struct {
+
+    struct
+    {
         DWORD LowPart;
         LONG HighPart;
     } u;
+
     LONGLONG QuadPart;
 };
 typedef union LARGE_INTEGER LARGE_INTEGER;
 typedef LARGE_INTEGER* PLARGE_INTEGER;
 
-struct SYSTEM_INFO {
-    union {
+struct SYSTEM_INFO
+{
+    union
+    {
         DWORD dwOemId; // NOTE(vlad): Deprecated, do not use.
-        struct {
+        struct
+        {
             WORD wProcessorArchitecture;
             WORD wReserved;
         } DUMMYSTRUCTNAME;
     } DUMMYUNIONNAME;
+
     DWORD dwPageSize;
     LPVOID lpMinimumApplicationAddress;
     LPVOID lpMaximumApplicationAddress;
