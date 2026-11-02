@@ -7,6 +7,8 @@
 #    include "clang/variadic_arguments.c"
 #elif COMPILER_GCC
 #    include "gcc/variadic_arguments.c"
+#elif COMPILER_MSVC
+#    include "msvc/variadic_arguments.c"
 #else
 #    error This compiler is not supported yet.
 #endif

@@ -84,6 +84,11 @@ get_object_file_extension(Compilation_Context* context)
         {
             return string_view("obj");
         } break;
+
+        default:
+        {
+            UNREACHABLE();
+        } break;
     }
 }
 
