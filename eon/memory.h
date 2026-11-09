@@ -113,6 +113,10 @@ internal Byte* arena_reallocate(Arena* restrict arena,
 #define allocate_uninitialized_array(arena, number_of_elements, Type)   \
     (Type*)(arena_push_uninitialized((arena), size_of(Type) * (number_of_elements)))
 
+internal inline void append_byte_to_buffer(Arena* arena,
+                                           Buffer* buffer,
+                                           const Byte byte);
+
 internal inline void append_bytes_to_buffer(Arena* arena,
                                             Buffer* buffer,
                                             const Bytes_View bytes);
@@ -120,3 +124,9 @@ internal inline void append_bytes_to_buffer(Arena* arena,
 internal inline void append_string_to_buffer(Arena* arena,
                                              Buffer* buffer,
                                              const String_View string_view);
+
+internal inline u64
+align_up(const u64 value, const u64 alignment)
+{
+    return (value + alignment - 1) & ~(alignment - 1);
+}

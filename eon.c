@@ -10,6 +10,7 @@
 
 #include <eon/io.h>
 #include <eon/object/elf.h>
+#include <eon/object/mach-o.h>
 #include <eon/object/pe.h>
 
 #include <eon/platform/entry_point.h>
@@ -67,6 +68,11 @@ build_object_file(Compilation_Context* context)
         {
             build_pe64_object_file(context);
         } break;
+
+        case OBJECT_FILE_MACH_O:
+        {
+            build_macho64_object_file(context);
+        } break;
     }
 }
 
@@ -83,6 +89,11 @@ get_object_file_extension(Compilation_Context* context)
         case OBJECT_FILE_PE64:
         {
             return string_view("obj");
+        } break;
+
+        case OBJECT_FILE_MACH_O:
+        {
+            return string_view("o");
         } break;
 
         default:
@@ -261,4 +272,5 @@ release_arena_to_provider(Arena_Provider* provider, Arena* arena)
 #include <eon/string.c>
 
 #include <eon/object/elf.c>
+#include <eon/object/mach-o.c>
 #include <eon/object/pe.c>

@@ -2,13 +2,6 @@
 
 #include <eon_compilation_context.h>
 
-// FIXME(vlad): DELETE THIS FUNCTION.
-internal inline DWORD
-align_up(DWORD value, DWORD alignment)
-{
-    return (value + alignment - 1) & ~(alignment - 1);
-}
-
 internal void
 build_pe64_object_file(Compilation_Context* context)
 {
@@ -62,6 +55,7 @@ build_pe64_object_file(Compilation_Context* context)
                                     function_name);
         }
 
+        // TODO(vlad): Use as_bytes_view() here.
         Bytes_View symbol_bytes_view = {0};
         symbol_bytes_view.data = as_bytes(&symbol);
         symbol_bytes_view.data_size_in_bytes = 18;
@@ -86,7 +80,7 @@ build_pe64_object_file(Compilation_Context* context)
     const DWORD text_section_size_in_bytes = (DWORD)(text_section_buffer.bytes_count);
 
     text_section.Misc.VirtualSize = text_section_size_in_bytes;
-    text_section.SizeOfRawData = align_up(text_section_size_in_bytes, OBJECT_FILE_ALIGNMENT);
+    text_section.SizeOfRawData = (DWORD)(align_up(text_section_size_in_bytes, OBJECT_FILE_ALIGNMENT));
     text_section.PointerToRawData = size_of(file_header) + size_of(text_section);
     text_section.Characteristics = IMAGE_SCN_CNT_CODE | IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ;
 

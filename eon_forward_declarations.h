@@ -74,6 +74,7 @@ enum Object_File_Type
 {
     OBJECT_FILE_ELF64 = 0,
     OBJECT_FILE_PE64,
+    OBJECT_FILE_MACH_O,
 };
 typedef enum Object_File_Type Object_File_Type;
 
@@ -95,6 +96,13 @@ typedef enum Object_File_Type Object_File_Type;
 #    else
 #        error This OS is not supported yet.
 #    endif
+#elif ARCH_ARM64
+#    if OS_MAC
+STATIC_ASSERT(DEFAULT_TARGET_ARCHITECTURE == TARGET_ARCH_X86_64);
+#        define DEFAULT_CALLING_CONVENTION CALLING_CONVENTION_SYSV_X64
+#    else
+#        error This OS is not supported yet.
+#    endif
 #else
 #    error This architecture is not supported yet.
 #endif
@@ -103,6 +111,8 @@ typedef enum Object_File_Type Object_File_Type;
 #    define DEFAULT_OBJECT_FILE_TYPE OBJECT_FILE_ELF64
 #elif OS_WINDOWS
 #    define DEFAULT_OBJECT_FILE_TYPE OBJECT_FILE_PE64
+#elif OS_MAC
+#    define DEFAULT_OBJECT_FILE_TYPE OBJECT_FILE_MACH_O
 #else
 #    error This OS is not supported yet.
 #endif

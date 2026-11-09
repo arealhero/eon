@@ -373,6 +373,14 @@ arena_reallocate(Arena* restrict arena,
     return new_memory;
 }
 
+internal inline void
+append_byte_to_buffer(Arena* arena,
+                      Buffer* buffer,
+                      const Byte byte)
+{
+    append_array(arena, buffer->bytes, Byte, byte);
+}
+
 inline void
 append_bytes_to_buffer(Arena* arena,
                        Buffer* buffer,
@@ -395,12 +403,10 @@ append_string_to_buffer(Arena* arena,
                         Buffer* buffer,
                         const String_View string_view)
 {
-    const char ZERO_TERMINATOR = '\0';
-
     Bytes_View bytes = {0};
     bytes.data = as_bytes(string_view.data);
     bytes.data_size_in_bytes = string_view.length * size_of(*string_view.data);
 
     append_bytes_to_buffer(arena, buffer, bytes);
-    append_bytes_to_buffer(arena, buffer, as_bytes_view(ZERO_TERMINATOR));
+    append_byte_to_buffer(arena, buffer, '\0');
 }

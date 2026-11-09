@@ -30,13 +30,6 @@ enum
     NUMBER_OF_ELF64_SECTIONS,
 };
 
-// FIXME(vlad): DELETE THIS FUNCTION. (move to memory.h)
-internal inline u64
-align_to(const u64 value, const u64 alignment)
-{
-    return (value + alignment - 1) & ~(alignment - 1);
-}
-
 // FIXME(vlad): DELETE THESE FUNCTIONS.
 internal Size
 append_bytes_to_section_buffer(Compilation_Context* context,
@@ -245,7 +238,7 @@ build_elf64_object_file(Compilation_Context* context)
                 else
                 {
                     ASSERT(section->alignment != 0);
-                    current_section_offset = align_to(current_section_offset, section->alignment);
+                    current_section_offset = align_up(current_section_offset, section->alignment);
                     section->file_offset = current_section_offset;
                     current_section_offset += (u64)(section->buffer.bytes_count);
                 }
@@ -253,7 +246,7 @@ build_elf64_object_file(Compilation_Context* context)
         }
 
         u64 current_file_offset = 0;
-        const u64 section_header_table_offset = align_to(current_section_offset, 8);
+        const u64 section_header_table_offset = align_up(current_section_offset, 8);
 
         // NOTE(vlad): Writing ELF header.
         {

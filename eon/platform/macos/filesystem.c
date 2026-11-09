@@ -10,6 +10,13 @@
 
 #include <eon/assert.h>
 
+struct Macos_File_State
+{
+    s32 descriptor;
+    s32 __padding;
+};
+typedef struct Macos_File_State Macos_File_State;
+
 internal Read_File_Result
 platform_read_entire_text_file(Arena* arena, const String_View filename)
 {
@@ -137,4 +144,48 @@ platform_write_string_to_file(Arena* scratch_arena,
     ASSERT(written_bytes == content.length);
 
     close(fd);
+}
+
+internal Platform_File_State
+platform_open_binary_file_for_writing(Arena* scratch_arena,
+                                      const String_View filename)
+{
+    const char* zero_terminated_filename = to_c_string(scratch_arena, filename);
+    const int fd = open(zero_terminated_filename,
+                        O_WRONLY | O_CREAT,
+                        S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    if (fd == -1)
+    {
+        FAIL("Failed to open file");
+    }
+
+    Macos_File_State state = {0};
+    state.descriptor = fd;
+    return *(Platform_File_State*)(&state);
+}
+
+internal void
+platform_write_binary_blob_to_file(const Platform_File_State platform_file_state,
+                                   const Bytes_View blob)
+{
+    const Macos_File_State state = *(Macos_File_State*)(&platform_file_state);
+
+    const Size written_bytes = write(state.descriptor, blob.data, (USize)(blob.data_size_in_bytes));
+    if (written_bytes == -1)
+    {
+        FAIL("Failed to write to a file");
+    }
+
+    ASSERT(written_bytes == blob.data_size_in_bytes);
+}
+
+internal void
+platform_close_file(const Platform_File_State platform_file_state)
+{
+    const Macos_File_State state = *(Macos_File_State*)(&platform_file_state);
+
+    if (close(state.descriptor))
+    {
+        FAIL("Failed to close file");
+    }
 }
