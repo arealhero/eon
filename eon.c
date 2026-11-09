@@ -8,6 +8,7 @@
 #include <eon_tac.h>
 #include <eon_types.h>
 
+#include <eon/default_arena_provider.h>
 #include <eon/io.h>
 #include <eon/object/elf.h>
 #include <eon/object/mach-o.h>
@@ -34,12 +35,6 @@
 #    define START_TIMER(name)
 #    define END_TIMER(name, message)
 #endif
-
-struct Arena_Provider
-{
-    s32 dummy_field;
-};
-typedef struct Arena_Provider Arena_Provider;
 
 internal inline void
 print_usage(void)
@@ -198,7 +193,6 @@ eon_main(const String_View* arguments, const Size arguments_count)
             }
         }
 
-
         const String_View object_file_extension = get_object_file_extension(&context);
         const String_View object_filename = string_view(format_string(context.scratch_arena,
                                                                       "{}.{}",
@@ -229,30 +223,6 @@ eon_main(const String_View* arguments, const Size arguments_count)
     destroy_compilation_context(&context);
 
     return (build_failed ? EXIT_FAILURE : EXIT_SUCCESS);
-}
-
-internal Arena*
-acquire_arena_from_provider(Arena_Provider* provider,
-                            const String_View arena_name,
-                            const Size number_of_bytes_to_reserve,
-                            const Size number_of_bytes_to_commit)
-{
-    UNUSED(provider);
-    return create_arena(arena_name, number_of_bytes_to_reserve, number_of_bytes_to_commit);
-}
-
-internal void
-request_arena_reset(Arena_Provider* provider, Arena* arena)
-{
-    UNUSED(provider);
-    arena_clear(arena);
-}
-
-internal void
-release_arena_to_provider(Arena_Provider* provider, Arena* arena)
-{
-    UNUSED(provider);
-    destroy_arena(arena);
 }
 
 #include <eon_ast.c>

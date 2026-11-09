@@ -1,16 +1,5 @@
 // FIXME(vlad): Rename this file to something like 'run_pipeline_test' or 'run_ir_pipeline_test'.
 
-#include <eon/common.h>
-#include <eon/diff.h>
-#include <eon/memory.h>
-#include <eon/string.h>
-
-#include <eon/platform/filesystem.h>
-#include <eon/platform/time.h>
-#include <eon/platform/entry_point.h>
-
-#include <tests/converters.h>
-
 #include <eon_cfg.h>
 #include <eon_compilation_context.h>
 #include <eon_lexer.h>
@@ -20,6 +9,18 @@
 #include <eon_ssa.h>
 #include <eon_tac.h>
 #include <eon_types.h>
+
+#include <eon/common.h>
+#include <eon/diff.h>
+#include <eon/default_arena_provider.h>
+#include <eon/memory.h>
+#include <eon/string.h>
+
+#include <eon/platform/filesystem.h>
+#include <eon/platform/time.h>
+#include <eon/platform/entry_point.h>
+
+#include <tests/converters.h>
 
 #define ENABLE_TIMER 0
 
@@ -38,12 +39,6 @@
 #    define START_TIMER(name)
 #    define END_TIMER(name, message)
 #endif
-
-struct Arena_Provider
-{
-    s32 dummy_field;
-};
-typedef struct Arena_Provider Arena_Provider;
 
 internal inline void
 print_usage(void)
@@ -375,30 +370,6 @@ cleanup:
     destroy_arena(ssa_string_arena);
 
     return test_failed ? EXIT_FAILURE : EXIT_SUCCESS;
-}
-
-internal Arena*
-acquire_arena_from_provider(Arena_Provider* provider,
-                            const String_View arena_name,
-                            const Size number_of_bytes_to_reserve,
-                            const Size number_of_bytes_to_commit)
-{
-    UNUSED(provider);
-    return create_arena(arena_name, number_of_bytes_to_reserve, number_of_bytes_to_commit);
-}
-
-internal void
-request_arena_reset(Arena_Provider* provider, Arena* arena)
-{
-    UNUSED(provider);
-    arena_clear(arena);
-}
-
-internal void
-release_arena_to_provider(Arena_Provider* provider, Arena* arena)
-{
-    UNUSED(provider);
-    destroy_arena(arena);
 }
 
 internal Bool
