@@ -547,12 +547,6 @@ lower_expression_to_tac(Compilation_Context* context,
         case AST_EXPRESSION_SUBTRACT:
         case AST_EXPRESSION_MULTIPLY:
         case AST_EXPRESSION_DIVIDE:
-        case AST_EXPRESSION_EQUAL:
-        case AST_EXPRESSION_NOT_EQUAL:
-        case AST_EXPRESSION_LESS:
-        case AST_EXPRESSION_LESS_OR_EQUAL:
-        case AST_EXPRESSION_GREATER:
-        case AST_EXPRESSION_GREATER_OR_EQUAL:
         {
             const Ast_Binary_Expression* binary_expression = &expression->binary_expression;
             const Tac_Operand lhs = lower_expression_to_tac(context, tac_function, parent_statement, binary_expression->lhs);
@@ -585,34 +579,124 @@ lower_expression_to_tac(Compilation_Context* context,
                     instruction->operation = TAC_DIVIDE;
                 } break;
 
+                default:
+                {
+                    UNREACHABLE();
+                } break;
+            }
+
+            instruction->destination = create_tac_temporary_variable(context, expression->type_id);
+            instruction->first_argument = lhs;
+            instruction->second_argument = rhs;
+
+            result = instruction->destination;
+        } break;
+
+        case AST_EXPRESSION_EQUAL:
+        case AST_EXPRESSION_NOT_EQUAL:
+        case AST_EXPRESSION_LESS:
+        case AST_EXPRESSION_LESS_OR_EQUAL:
+        case AST_EXPRESSION_GREATER:
+        case AST_EXPRESSION_GREATER_OR_EQUAL:
+        {
+            const Ast_Binary_Expression* binary_expression = &expression->binary_expression;
+            const Tac_Operand lhs = lower_expression_to_tac(context, tac_function, parent_statement, binary_expression->lhs);
+            const Tac_Operand rhs = lower_expression_to_tac(context, tac_function, parent_statement, binary_expression->rhs);
+
+            Bool comparison_is_signed = false;
+
+            {
+                const Type_Id lhs_type_id = binary_expression->lhs->type_id;
+                const Type_Id rhs_type_id = binary_expression->rhs->type_id;
+
+                const Type* lhs_type = get_type_by_id(context, lhs_type_id);
+                const Type* rhs_type = get_type_by_id(context, rhs_type_id);
+
+                ASSERT(lhs_type == rhs_type);
+
+                const Type* type = lhs_type;
+
+                if (type->kind == TYPE_NUMBER_VARIABLE)
+                {
+                    type = get_the_most_suitable_type_for_number_variable(context, &type->number_constraints);
+                }
+
+                switch (type->kind)
+                {
+                    case TYPE_UNDEFINED:
+                    case TYPE_INVALID:
+                    case TYPE_VOID:
+                    case TYPE_VARIABLE:
+                    case TYPE_FUNCTION:
+                    case TYPE_NUMBER_VARIABLE:
+                    {
+                        UNREACHABLE();
+                    } break;
+
+                    case TYPE_INTEGER:
+                    {
+                        comparison_is_signed = type->integer_info.is_signed;
+                    } break;
+
+                    case TYPE_FLOAT:
+                    {
+                        // TODO(vlad): Introduce a new floating-point comparison operation here?
+                        comparison_is_signed = true;
+                    } break;
+
+                    case TYPE_BOOLEAN:
+                    case TYPE_POINTER:
+                    {
+                        comparison_is_signed = false;
+                    } break;
+                }
+            }
+
+            Tac_Instruction* instruction = add_new_instruction_to_tac_function(context,
+                                                                               tac_function,
+                                                                               parent_statement,
+                                                                               expression);
+
+            instruction->operation = TAC_COMPARE;
+
+            switch (expression->kind)
+            {
                 case AST_EXPRESSION_EQUAL:
                 {
-                    instruction->operation = TAC_EQUAL;
+                    instruction->comparison_kind = COMPARISON_EQUAL;
                 } break;
 
                 case AST_EXPRESSION_NOT_EQUAL:
                 {
-                    instruction->operation = TAC_NOT_EQUAL;
+                    instruction->comparison_kind = COMPARISON_NOT_EQUAL;
                 } break;
 
                 case AST_EXPRESSION_LESS:
                 {
-                    instruction->operation = TAC_LESS;
+                    instruction->comparison_kind = (comparison_is_signed
+                                                    ? COMPARISON_SIGNED_LESS
+                                                    : COMPARISON_UNSIGNED_LESS);
                 } break;
 
                 case AST_EXPRESSION_LESS_OR_EQUAL:
                 {
-                    instruction->operation = TAC_LESS_OR_EQUAL;
+                    instruction->comparison_kind = (comparison_is_signed
+                                                    ? COMPARISON_SIGNED_LESS_OR_EQUAL
+                                                    : COMPARISON_UNSIGNED_LESS_OR_EQUAL);
                 } break;
 
                 case AST_EXPRESSION_GREATER:
                 {
-                    instruction->operation = TAC_GREATER;
+                    instruction->comparison_kind = (comparison_is_signed
+                                                    ? COMPARISON_SIGNED_GREATER
+                                                    : COMPARISON_UNSIGNED_GREATER);
                 } break;
 
                 case AST_EXPRESSION_GREATER_OR_EQUAL:
                 {
-                    instruction->operation = TAC_GREATER_OR_EQUAL;
+                    instruction->comparison_kind = (comparison_is_signed
+                                                    ? COMPARISON_SIGNED_GREATER_OR_EQUAL
+                                                    : COMPARISON_UNSIGNED_GREATER_OR_EQUAL);
                 } break;
 
                 default:

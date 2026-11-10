@@ -86,12 +86,7 @@ enum MIR_Opcode
     MIR_DIVIDE,
     // TODO(vlad): MIR_AND, MIR_OR, etc.
 
-    MIR_EQUAL,
-    MIR_NOT_EQUAL,
-    MIR_LESS,
-    MIR_LESS_OR_EQUAL,
-    MIR_GREATER,
-    MIR_GREATER_OR_EQUAL,
+    MIR_COMPARE,
 
     MIR_LOAD32,
     MIR_STORE32,
@@ -129,7 +124,7 @@ enum
     MAX_DEFINITIONS_IN_MIR_INSTRUCTION = 3,
     MAX_USES_IN_MIR_INSTRUCTION = 3,
 
-    MAX_IMPLICIT_DEFINITIONS_IN_MIR_INSTRUCTION = 7,
+    MAX_IMPLICIT_DEFINITIONS_IN_MIR_INSTRUCTION = 10,
     MAX_IMPLICIT_USES_IN_MIR_INSTRUCTION = 3,
 };
 
@@ -181,6 +176,12 @@ struct MIR_Instruction
                                                      //             somewhere else.
 
             array_view(MIR_Operand, function_arguments);
+        };
+
+        // NOTE(vlad): For MIR_COMPARE.
+        struct
+        {
+            Comparison_Kind comparison_kind;
         };
     };
 };

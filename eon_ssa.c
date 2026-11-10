@@ -918,12 +918,7 @@ perform_constant_folding(Compilation_Context* context)
                                                || instruction->operation == TAC_SUBTRACT
                                                || instruction->operation == TAC_MULTIPLY
                                                || instruction->operation == TAC_DIVIDE
-                                               || instruction->operation == TAC_EQUAL
-                                               || instruction->operation == TAC_NOT_EQUAL
-                                               || instruction->operation == TAC_LESS
-                                               || instruction->operation == TAC_LESS_OR_EQUAL
-                                               || instruction->operation == TAC_GREATER
-                                               || instruction->operation == TAC_GREATER_OR_EQUAL));
+                                               || instruction->operation == TAC_COMPARE));
 
                     if (!can_fold)
                     {
@@ -1041,13 +1036,26 @@ perform_constant_folding(Compilation_Context* context)
                             }                                           \
                         } break
 
-                        DECLARE_COMPARISON_CASE(TAC_EQUAL, ==);
-                        DECLARE_COMPARISON_CASE(TAC_NOT_EQUAL, !=);
+                        case TAC_COMPARE:
+                        {
+                            switch (instruction->comparison_kind)
+                            {
+                                DECLARE_COMPARISON_CASE(COMPARISON_EQUAL, ==);
+                                DECLARE_COMPARISON_CASE(COMPARISON_NOT_EQUAL, !=);
 
-                        DECLARE_COMPARISON_CASE(TAC_LESS, <);
-                        DECLARE_COMPARISON_CASE(TAC_LESS_OR_EQUAL, <=);
-                        DECLARE_COMPARISON_CASE(TAC_GREATER, >);
-                        DECLARE_COMPARISON_CASE(TAC_GREATER_OR_EQUAL, >=);
+                                DECLARE_COMPARISON_CASE(COMPARISON_UNSIGNED_LESS, <);
+                                DECLARE_COMPARISON_CASE(COMPARISON_SIGNED_LESS, <);
+
+                                DECLARE_COMPARISON_CASE(COMPARISON_UNSIGNED_GREATER_OR_EQUAL, >=);
+                                DECLARE_COMPARISON_CASE(COMPARISON_SIGNED_GREATER_OR_EQUAL, <);
+
+                                DECLARE_COMPARISON_CASE(COMPARISON_UNSIGNED_GREATER, >);
+                                DECLARE_COMPARISON_CASE(COMPARISON_SIGNED_GREATER, >);
+
+                                DECLARE_COMPARISON_CASE(COMPARISON_UNSIGNED_LESS_OR_EQUAL, <=);
+                                DECLARE_COMPARISON_CASE(COMPARISON_SIGNED_LESS_OR_EQUAL, <=);
+                            }
+                        } break;
 
 #undef DECLARE_COMPARISON_CASE
 

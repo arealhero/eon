@@ -851,7 +851,7 @@ test_calls(Test_Context* test_context)
 }
 
 internal void
-test_binary_expressions_lowering(Test_Context* test_context)
+test_arithmetic_expressions_lowering(Test_Context* test_context)
 {
     struct Number_Test_Info
     {
@@ -875,13 +875,6 @@ test_binary_expressions_lowering(Test_Context* test_context)
         DECLARE_BINARY_OPERATION_TEST_INFO("-", TAC_SUBTRACT, "s32"),
         DECLARE_BINARY_OPERATION_TEST_INFO("*", TAC_MULTIPLY, "s32"),
         DECLARE_BINARY_OPERATION_TEST_INFO("/", TAC_DIVIDE, "s32"),
-
-        DECLARE_BINARY_OPERATION_TEST_INFO("==", TAC_EQUAL, "bool"),
-        DECLARE_BINARY_OPERATION_TEST_INFO("!=", TAC_NOT_EQUAL, "bool"),
-        DECLARE_BINARY_OPERATION_TEST_INFO("<", TAC_LESS, "bool"),
-        DECLARE_BINARY_OPERATION_TEST_INFO("<=", TAC_LESS_OR_EQUAL, "bool"),
-        DECLARE_BINARY_OPERATION_TEST_INFO(">", TAC_GREATER, "bool"),
-        DECLARE_BINARY_OPERATION_TEST_INFO(">=", TAC_GREATER_OR_EQUAL, "bool"),
     };
 #undef DECLARE_BINARY_OPERATION_TEST_INFO
 
@@ -923,6 +916,160 @@ test_binary_expressions_lowering(Test_Context* test_context)
 
         {
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, test_info.expected_operation);
+
+            const Tac_Operand* destination = &instruction->destination;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_VARIABLE);
+            ASSERT_TEMPORARY_VARIABLE_HAS_TYPE(destination->variable_id, test_info.expected_type);
+
+            const Tac_Operand* first_argument = &instruction->first_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 10);
+
+            const Tac_Operand* second_argument = &instruction->second_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_CONSTANT);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(second_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 20);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
+        }
+
+        instruction = instruction->next_instruction;
+
+        {
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_ASSIGN);
+
+            const Tac_Operand* destination = &instruction->destination;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_VARIABLE);
+
+            {
+                ASSERT_EQUAL(ast_function->body.statements_count, 1);
+                const Ast_Statement* statement = &ast_function->body.statements[0];
+                ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+
+                const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
+                ASSERT_VARIABLE_POINTS_TO_SYMBOL(destination->variable_id,
+                                                 variable_definition->name.symbol_id);
+            }
+
+            const Tac_Operand* first_argument = &instruction->first_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_VARIABLE);
+            ASSERT_TEMPORARY_VARIABLE_HAS_TYPE(first_argument->variable_id, test_info.expected_type);
+            ASSERT_EQUAL(first_argument->variable_id.index,
+                         tac_function->first_instruction->destination.variable_id.index);
+
+            const Tac_Operand* second_argument = &instruction->second_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_FALSE(instruction->was_automatically_inserted);
+        }
+
+        instruction = instruction->next_instruction;
+
+        {
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
+
+            const Tac_Operand* destination = &instruction->destination;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_NONE);
+
+            const Tac_Operand* first_argument = &instruction->first_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_NONE);
+
+            const Tac_Operand* second_argument = &instruction->second_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+            ASSERT_TRUE(instruction->was_automatically_inserted);
+        }
+
+        ASSERT_POINTERS_ARE_EQUAL(instruction, tac_function->last_instruction);
+
+        // NOTE(vlad): Testing that variable symbol has a non-empty TAC instruction id.
+        {
+            ASSERT_EQUAL(ast_function->body.statements_count, 1);
+            const Ast_Statement* statement = &ast_function->body.statements[0];
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+
+            const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
+            const Symbol_Id variable_symbol_id = variable_definition->name.symbol_id;
+            const Symbol* variable_symbol = get_symbol_by_id(&context, variable_symbol_id);
+
+            ASSERT_FALSE(variable_symbol->is_a_global_function);
+            ASSERT_TRUE(variable_symbol->defined_at_tac_instruction != NULL);
+        }
+
+        destroy_compilation_context(&context);
+    }
+}
+
+internal void
+test_comparisons_lowering(Test_Context* test_context)
+{
+    struct Comparison_Test_Info
+    {
+        String_View source_code;
+        Comparison_Kind expected_comparison_kind;
+        String_View expected_type;
+    };
+    typedef struct Comparison_Test_Info Comparison_Test_Info;
+
+    // TODO(vlad): Test unsigned comparisons.
+#define DECLARE_BINARY_OPERATION_TEST_INFO(operator, comparison_kind, type) \
+    (Comparison_Test_Info){                                             \
+        .source_code = string_view("foo: () -> void = {\n"              \
+                                   "    a := 10 " operator " 20;\n"     \
+                                   "}"),                                \
+        .expected_comparison_kind = comparison_kind,                    \
+        .expected_type = string_view(type),                             \
+    }
+
+    const Comparison_Test_Info assignment_test_infos[] = {
+        DECLARE_BINARY_OPERATION_TEST_INFO("==", COMPARISON_EQUAL, "bool"),
+        DECLARE_BINARY_OPERATION_TEST_INFO("!=", COMPARISON_NOT_EQUAL, "bool"),
+
+        DECLARE_BINARY_OPERATION_TEST_INFO("<", COMPARISON_SIGNED_LESS, "bool"),
+        DECLARE_BINARY_OPERATION_TEST_INFO("<=", COMPARISON_SIGNED_LESS_OR_EQUAL, "bool"),
+        DECLARE_BINARY_OPERATION_TEST_INFO(">", COMPARISON_SIGNED_GREATER, "bool"),
+        DECLARE_BINARY_OPERATION_TEST_INFO(">=", COMPARISON_SIGNED_GREATER_OR_EQUAL, "bool"),
+    };
+#undef DECLARE_BINARY_OPERATION_TEST_INFO
+
+    for (Index i = 0;
+         i < NUMBER_OF_STATIC_ARRAY_ELEMENTS(assignment_test_infos);
+         ++i)
+    {
+        Comparison_Test_Info test_info = assignment_test_infos[i];
+
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE(test_info.source_code);
+
+        parse_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        lower_ast_to_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        const Ast* ast = &context.ast;
+        ASSERT_EQUAL(ast->function_definitions_count, 1);
+
+        const Ast_Function_Definition* ast_function = &ast->function_definitions[0];
+
+        const Tac* tac = &context.tac;
+        ASSERT_EQUAL(tac->functions_count, 1);
+
+        const Tac_Function* tac_function = &tac->functions[0];
+        ASSERT_FUNCTION_LABEL_POINTS_TO_FUNCTION(tac_function->label_id, ast_function);
+
+        const Tac_Instruction* instruction = tac_function->first_instruction;
+
+        {
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_COMPARE);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->comparison_kind, test_info.expected_comparison_kind);
 
             const Tac_Operand* destination = &instruction->destination;
             ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_VARIABLE);
@@ -1068,7 +1215,8 @@ test_while_loops_lowering(Test_Context* test_context)
         instruction = instruction->next_instruction;
 
         {
-            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_NOT_EQUAL);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_COMPARE);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->comparison_kind, COMPARISON_NOT_EQUAL);
 
             const Tac_Operand* destination = &instruction->destination;
             ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_VARIABLE);
@@ -1254,7 +1402,8 @@ test_if_statements_lowering(Test_Context* test_context)
         const Tac_Instruction* instruction = tac_function->first_instruction;
 
         {
-            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_NOT_EQUAL);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_COMPARE);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->comparison_kind, COMPARISON_NOT_EQUAL);
 
             const Tac_Operand* destination = &instruction->destination;
             ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_VARIABLE);
@@ -1490,7 +1639,8 @@ test_if_statements_lowering(Test_Context* test_context)
         const Tac_Instruction* instruction = tac_function->first_instruction;
 
         {
-            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_NOT_EQUAL);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_COMPARE);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->comparison_kind, COMPARISON_NOT_EQUAL);
 
             const Tac_Operand* destination = &instruction->destination;
             ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_VARIABLE);
@@ -2021,7 +2171,8 @@ REGISTER_TESTS(
     test_expression_lowering,
     test_return_statements_lowering,
     test_calls,
-    test_binary_expressions_lowering,
+    test_arithmetic_expressions_lowering,
+    test_comparisons_lowering,
     test_while_loops_lowering,
     test_if_statements_lowering,
     test_indirect_memory_access

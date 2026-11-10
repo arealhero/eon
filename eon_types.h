@@ -105,3 +105,6 @@ maybe_unused internal String_View convert_type_to_string(Arena* arena,
                                                          const Type_Id type_id);
 
 maybe_unused internal inline Type_Id get_void_type_id(Compilation_Context* context);
+
+maybe_unused internal inline const Type* get_the_most_suitable_type_for_number_variable(Compilation_Context* context,
+                                                                                        const Number_Constraints* constraints);

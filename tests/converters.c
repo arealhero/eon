@@ -349,84 +349,61 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
-                    case TAC_EQUAL:
+                    case TAC_COMPARE:
                     {
-                        append_string(&builder, "          EQUAL           ");
+                        // TODO(vlad): Print comparison signedness.
+                        switch (instruction->comparison_kind)
+                        {
+                            case COMPARISON_EQUAL:
+                            {
+                                append_string(&builder, "          EQUAL           ");
+                            } break;
 
-                        ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
-                        ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
-                        ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
+                            case COMPARISON_NOT_EQUAL:
+                            {
+                                append_string(&builder, "          NOT_EQUAL       ");
+                            } break;
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, ",");
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
-                        append_string(&builder, ",");
-                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
-                    } break;
+                            case COMPARISON_UNSIGNED_LESS:
+                            {
+                                append_string(&builder, "          LESS            ");
+                            } break;
 
-                    case TAC_NOT_EQUAL:
-                    {
-                        append_string(&builder, "          NOT_EQUAL       ");
+                            case COMPARISON_UNSIGNED_GREATER_OR_EQUAL:
+                            {
+                                append_string(&builder, "          GREATER_OR_EQUAL");
+                            } break;
 
-                        ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
-                        ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
-                        ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
+                            case COMPARISON_UNSIGNED_GREATER:
+                            {
+                                append_string(&builder, "          GREATER         ");
+                            } break;
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, ",");
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
-                        append_string(&builder, ",");
-                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
-                    } break;
+                            case COMPARISON_UNSIGNED_LESS_OR_EQUAL:
+                            {
+                                append_string(&builder, "          LESS_OR_EQUAL   ");
+                            } break;
 
-                    case TAC_LESS:
-                    {
-                        append_string(&builder, "          LESS            ");
+                            case COMPARISON_SIGNED_LESS:
+                            {
+                                append_string(&builder, "          LESS            ");
+                            } break;
 
-                        ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
-                        ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
-                        ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
+                            case COMPARISON_SIGNED_GREATER_OR_EQUAL:
+                            {
+                                append_string(&builder, "          GREATER_OR_EQUAL");
+                            } break;
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, ",");
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
-                        append_string(&builder, ",");
-                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
-                    } break;
+                            case COMPARISON_SIGNED_GREATER:
+                            {
+                                append_string(&builder, "          GREATER         ");
+                            } break;
 
-                    case TAC_LESS_OR_EQUAL:
-                    {
-                        append_string(&builder, "          LESS_OR_EQUAL   ");
-
-                        ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
-                        ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
-                        ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
-
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, ",");
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
-                        append_string(&builder, ",");
-                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
-                    } break;
-
-                    case TAC_GREATER:
-                    {
-                        append_string(&builder, "          GREATER         ");
-
-                        ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
-                        ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
-                        ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
-
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, ",");
-                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
-                        append_string(&builder, ",");
-                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
-                    } break;
-
-                    case TAC_GREATER_OR_EQUAL:
-                    {
-                        append_string(&builder, "          GREATER_OR_EQUAL");
+                            case COMPARISON_SIGNED_LESS_OR_EQUAL:
+                            {
+                                append_string(&builder, "          LESS_OR_EQUAL   ");
+                            } break;
+                        }
 
                         ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
                         ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
@@ -726,79 +703,61 @@ convert_mir_block_to_string(Compilation_Context* context,
                 convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[1]);
             } break;
 
-            case MIR_EQUAL:
+            case MIR_COMPARE:
             {
-                append_string(builder, "          EQUAL              ");
+                // TODO(vlad): Print comparison signedness.
+                switch (instruction->comparison_kind)
+                {
+                    case COMPARISON_EQUAL:
+                    {
+                        append_string(builder, "          EQUAL              ");
+                    } break;
 
-                ASSERT(instruction->definitions_count == 1);
-                ASSERT(instruction->uses_count == 2);
+                    case COMPARISON_NOT_EQUAL:
+                    {
+                        append_string(builder, "          NOT_EQUAL          ");
+                    } break;
 
-                convert_mir_operand_to_string(context, builder, mir_function, &instruction->definitions[0]);
-                append_string(builder, ",");
-                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
-                append_string(builder, ",");
-                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[1]);
-            } break;
+                    case COMPARISON_UNSIGNED_LESS:
+                    {
+                        append_string(builder, "          LESS               ");
+                    } break;
 
-            case MIR_NOT_EQUAL:
-            {
-                append_string(builder, "          NOT_EQUAL          ");
+                    case COMPARISON_UNSIGNED_GREATER_OR_EQUAL:
+                    {
+                        append_string(builder, "          GREATER_OR_EQUAL   ");
+                    } break;
 
-                ASSERT(instruction->definitions_count == 1);
-                ASSERT(instruction->uses_count == 2);
+                    case COMPARISON_UNSIGNED_GREATER:
+                    {
+                        append_string(builder, "          GREATER            ");
+                    } break;
 
-                convert_mir_operand_to_string(context, builder, mir_function, &instruction->definitions[0]);
-                append_string(builder, ",");
-                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
-                append_string(builder, ",");
-                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[1]);
-            } break;
+                    case COMPARISON_UNSIGNED_LESS_OR_EQUAL:
+                    {
+                        append_string(builder, "          LESS_OR_EQUAL      ");
+                    } break;
 
-            case MIR_LESS:
-            {
-                append_string(builder, "          LESS               ");
+                    case COMPARISON_SIGNED_LESS:
+                    {
+                        append_string(builder, "          LESS               ");
+                    } break;
 
-                ASSERT(instruction->definitions_count == 1);
-                ASSERT(instruction->uses_count == 2);
+                    case COMPARISON_SIGNED_GREATER_OR_EQUAL:
+                    {
+                        append_string(builder, "          GREATER_OR_EQUAL   ");
+                    } break;
 
-                convert_mir_operand_to_string(context, builder, mir_function, &instruction->definitions[0]);
-                append_string(builder, ",");
-                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
-                append_string(builder, ",");
-                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[1]);
-            } break;
+                    case COMPARISON_SIGNED_GREATER:
+                    {
+                        append_string(builder, "          GREATER            ");
+                    } break;
 
-            case MIR_LESS_OR_EQUAL:
-            {
-                append_string(builder, "          LESS_OR_EQUAL      ");
-
-                ASSERT(instruction->definitions_count == 1);
-                ASSERT(instruction->uses_count == 2);
-
-                convert_mir_operand_to_string(context, builder, mir_function, &instruction->definitions[0]);
-                append_string(builder, ",");
-                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
-                append_string(builder, ",");
-                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[1]);
-            } break;
-
-            case MIR_GREATER:
-            {
-                append_string(builder, "          GREATER            ");
-
-                ASSERT(instruction->definitions_count == 1);
-                ASSERT(instruction->uses_count == 2);
-
-                convert_mir_operand_to_string(context, builder, mir_function, &instruction->definitions[0]);
-                append_string(builder, ",");
-                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
-                append_string(builder, ",");
-                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[1]);
-            } break;
-
-            case MIR_GREATER_OR_EQUAL:
-            {
-                append_string(builder, "          GREATER_OR_EQUAL   ");
+                    case COMPARISON_SIGNED_LESS_OR_EQUAL:
+                    {
+                        append_string(builder, "          LESS_OR_EQUAL      ");
+                    } break;
+                }
 
                 ASSERT(instruction->definitions_count == 1);
                 ASSERT(instruction->uses_count == 2);

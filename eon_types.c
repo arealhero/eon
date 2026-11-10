@@ -9,6 +9,19 @@ enum
 {
     UNDEFINED_TYPE_INDEX = 0,
     INVALID_TYPE_INDEX = 1,
+
+    SIGNED_INT_8_TYPE_INDEX  = 4,
+    SIGNED_INT_16_TYPE_INDEX = 5,
+    SIGNED_INT_32_TYPE_INDEX = 6,
+    SIGNED_INT_64_TYPE_INDEX = 7,
+
+    UNSIGNED_INT_8_TYPE_INDEX  = 8,
+    UNSIGNED_INT_16_TYPE_INDEX = 9,
+    UNSIGNED_INT_32_TYPE_INDEX = 10,
+    UNSIGNED_INT_64_TYPE_INDEX = 11,
+
+    FLOAT_32_TYPE_INDEX = 12,
+    FLOAT_64_TYPE_INDEX = 13,
 };
 
 internal inline Bool
@@ -188,6 +201,48 @@ create_builtin_types(Compilation_Context* context)
 
         bind_type_id_to_a_builtin_symbol(context, builtin_type->name, float_type_id);
     }
+
+#if EON_DEBUG_BUILD
+    {
+        ASSERT(context->types[SIGNED_INT_8_TYPE_INDEX].kind == TYPE_INTEGER);
+        ASSERT(context->types[SIGNED_INT_8_TYPE_INDEX].integer_info.is_signed == true);
+        ASSERT(context->types[SIGNED_INT_8_TYPE_INDEX].integer_info.width_in_bits == 8);
+
+        ASSERT(context->types[SIGNED_INT_16_TYPE_INDEX].kind == TYPE_INTEGER);
+        ASSERT(context->types[SIGNED_INT_16_TYPE_INDEX].integer_info.is_signed == true);
+        ASSERT(context->types[SIGNED_INT_16_TYPE_INDEX].integer_info.width_in_bits == 16);
+
+        ASSERT(context->types[SIGNED_INT_32_TYPE_INDEX].kind == TYPE_INTEGER);
+        ASSERT(context->types[SIGNED_INT_32_TYPE_INDEX].integer_info.is_signed == true);
+        ASSERT(context->types[SIGNED_INT_32_TYPE_INDEX].integer_info.width_in_bits == 32);
+
+        ASSERT(context->types[SIGNED_INT_64_TYPE_INDEX].kind == TYPE_INTEGER);
+        ASSERT(context->types[SIGNED_INT_64_TYPE_INDEX].integer_info.is_signed == true);
+        ASSERT(context->types[SIGNED_INT_64_TYPE_INDEX].integer_info.width_in_bits == 64);
+
+        ASSERT(context->types[UNSIGNED_INT_8_TYPE_INDEX].kind == TYPE_INTEGER);
+        ASSERT(context->types[UNSIGNED_INT_8_TYPE_INDEX].integer_info.is_signed == false);
+        ASSERT(context->types[UNSIGNED_INT_8_TYPE_INDEX].integer_info.width_in_bits == 8);
+
+        ASSERT(context->types[UNSIGNED_INT_16_TYPE_INDEX].kind == TYPE_INTEGER);
+        ASSERT(context->types[UNSIGNED_INT_16_TYPE_INDEX].integer_info.is_signed == false);
+        ASSERT(context->types[UNSIGNED_INT_16_TYPE_INDEX].integer_info.width_in_bits == 16);
+
+        ASSERT(context->types[UNSIGNED_INT_32_TYPE_INDEX].kind == TYPE_INTEGER);
+        ASSERT(context->types[UNSIGNED_INT_32_TYPE_INDEX].integer_info.is_signed == false);
+        ASSERT(context->types[UNSIGNED_INT_32_TYPE_INDEX].integer_info.width_in_bits == 32);
+
+        ASSERT(context->types[UNSIGNED_INT_64_TYPE_INDEX].kind == TYPE_INTEGER);
+        ASSERT(context->types[UNSIGNED_INT_64_TYPE_INDEX].integer_info.is_signed == false);
+        ASSERT(context->types[UNSIGNED_INT_64_TYPE_INDEX].integer_info.width_in_bits == 64);
+
+        ASSERT(context->types[FLOAT_32_TYPE_INDEX].kind == TYPE_FLOAT);
+        ASSERT(context->types[FLOAT_32_TYPE_INDEX].float_info.width_in_bits == 32);
+
+        ASSERT(context->types[FLOAT_64_TYPE_INDEX].kind == TYPE_FLOAT);
+        ASSERT(context->types[FLOAT_64_TYPE_INDEX].float_info.width_in_bits == 64);
+    }
+#endif
 }
 
 internal u64
@@ -1687,10 +1742,16 @@ convert_type_to_string(Arena* arena,
     String_Builder builder = {0};
     create_string_builder(&builder, arena);
 
+    if (type->kind == TYPE_NUMBER_VARIABLE)
+    {
+        type = get_the_most_suitable_type_for_number_variable(context, &type->number_constraints);
+    }
+
     switch (type->kind)
     {
         case TYPE_UNDEFINED:
         case TYPE_INVALID:
+        case TYPE_NUMBER_VARIABLE:
         {
             UNREACHABLE();
         } break;
@@ -1703,75 +1764,6 @@ convert_type_to_string(Arena* arena,
         case TYPE_VARIABLE:
         {
             append_string(&builder, string_view("_"));
-        } break;
-
-        case TYPE_NUMBER_VARIABLE:
-        {
-            // TODO(vlad): Create a function that would accept 'Number_Constraints' and return a most suitable type.
-
-            const Number_Constraints* constraints = &type->number_constraints;
-
-            if (constraints->must_be_a_floating_point_number)
-            {
-                switch (constraints->min_bit_width)
-                {
-                    case 0:
-                    case 32:
-                    {
-                        append_string(&builder, string_view("f32"));
-                    } break;
-
-                    case 64:
-                    {
-                        append_string(&builder, string_view("f64"));
-                    } break;
-
-                    default:
-                    {
-                        UNREACHABLE();
-                    } break;
-                }
-            }
-            else
-            {
-                if (constraints->sign == SIGN_UNSIGNED)
-                {
-                    append_string(&builder, string_view("u"));
-                }
-                else
-                {
-                    append_string(&builder, string_view("s"));
-                }
-
-                switch (constraints->min_bit_width)
-                {
-                    case 8:
-                    {
-                        append_string(&builder, string_view("8"));
-                    } break;
-
-                    case 16:
-                    {
-                        append_string(&builder, string_view("16"));
-                    } break;
-
-                    case 0:
-                    case 32:
-                    {
-                        append_string(&builder, string_view("32"));
-                    } break;
-
-                    case 64:
-                    {
-                        append_string(&builder, string_view("64"));
-                    } break;
-
-                    default:
-                    {
-                        UNREACHABLE();
-                    } break;
-                }
-            }
         } break;
 
         case TYPE_INTEGER:
@@ -1943,4 +1935,79 @@ convert_type_to_string(Arena* arena,
     }
 
     return string_builder_to_string(&builder);
+}
+
+internal inline const Type*
+get_the_most_suitable_type_for_number_variable(Compilation_Context* context,
+                                               const Number_Constraints* constraints)
+{
+    // TODO(vlad): Accept Type* as the second parameter and link the most suitable type as its parent here?
+    if (constraints->must_be_a_floating_point_number)
+    {
+        switch (constraints->min_bit_width)
+        {
+            case 0:
+            case 32:
+            {
+                return get_type_by_id(context, (Type_Id){.index = FLOAT_32_TYPE_INDEX});
+            } break;
+
+            case 64:
+            {
+                return get_type_by_id(context, (Type_Id){.index = FLOAT_64_TYPE_INDEX});
+            } break;
+
+            default:
+            {
+                UNREACHABLE();
+            } break;
+        }
+    }
+    else
+    {
+        switch (constraints->min_bit_width)
+        {
+            case 8:
+            {
+                const Index index = (constraints->sign == SIGN_UNSIGNED
+                                     ? UNSIGNED_INT_8_TYPE_INDEX
+                                     : SIGNED_INT_8_TYPE_INDEX);
+
+                return get_type_by_id(context, (Type_Id){.index = index});
+            } break;
+
+            case 16:
+            {
+                const Index index = (constraints->sign == SIGN_UNSIGNED
+                                     ? UNSIGNED_INT_16_TYPE_INDEX
+                                     : SIGNED_INT_16_TYPE_INDEX);
+
+                return get_type_by_id(context, (Type_Id){.index = index});
+            } break;
+
+            case 0:
+            case 32:
+            {
+                const Index index = (constraints->sign == SIGN_UNSIGNED
+                                     ? UNSIGNED_INT_32_TYPE_INDEX
+                                     : SIGNED_INT_32_TYPE_INDEX);
+
+                return get_type_by_id(context, (Type_Id){.index = index});
+            } break;
+
+            case 64:
+            {
+                const Index index = (constraints->sign == SIGN_UNSIGNED
+                                     ? UNSIGNED_INT_64_TYPE_INDEX
+                                     : SIGNED_INT_64_TYPE_INDEX);
+
+                return get_type_by_id(context, (Type_Id){.index = index});
+            } break;
+
+            default:
+            {
+                UNREACHABLE();
+            } break;
+        }
+    }
 }

@@ -29,12 +29,7 @@ enum Tac_Operation
     TAC_DIVIDE,
     // FIXME(vlad): Add 'TAC_MOD'.
 
-    TAC_EQUAL,
-    TAC_NOT_EQUAL,
-    TAC_LESS,
-    TAC_LESS_OR_EQUAL,
-    TAC_GREATER,
-    TAC_GREATER_OR_EQUAL,
+    TAC_COMPARE,
 
     // FIXME(vlad): Add logical operations.
 
@@ -182,6 +177,12 @@ struct Tac_Instruction
 
     Ast_Statement* ast_statement;
     Ast_Expression* ast_expression;
+
+    union
+    {
+        // NOTE(vlad): For TAC_COMPARE.
+        Comparison_Kind comparison_kind;
+    };
 };
 typedef struct Tac_Instruction Tac_Instruction;
 

@@ -51,12 +51,7 @@ instruction_is_a_block_terminator(const MIR_Instruction* instruction)
         case MIR_SUBTRACT:
         case MIR_MULTIPLY:
         case MIR_DIVIDE:
-        case MIR_EQUAL:
-        case MIR_NOT_EQUAL:
-        case MIR_LESS:
-        case MIR_LESS_OR_EQUAL:
-        case MIR_GREATER:
-        case MIR_GREATER_OR_EQUAL:
+        case MIR_COMPARE:
         case MIR_LOAD32:
         case MIR_STORE32:
         case MIR_LOAD64:
@@ -527,12 +522,7 @@ lower_ssa_block_to_mir(Compilation_Context* context,
             case TAC_SUBTRACT:
             case TAC_MULTIPLY:
             case TAC_DIVIDE:
-            case TAC_EQUAL:
-            case TAC_NOT_EQUAL:
-            case TAC_LESS:
-            case TAC_LESS_OR_EQUAL:
-            case TAC_GREATER:
-            case TAC_GREATER_OR_EQUAL:
+            case TAC_COMPARE:
             {
                 ASSERT(ssa_destination->kind == TAC_OPERAND_VARIABLE);
                 ASSERT(ssa_first_argument->kind != TAC_OPERAND_NONE);
@@ -561,34 +551,10 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                         instruction->opcode = MIR_DIVIDE;
                     } break;
 
-                    case TAC_EQUAL:
+                    case TAC_COMPARE:
                     {
-                        instruction->opcode = MIR_EQUAL;
-                    } break;
-
-                    case TAC_NOT_EQUAL:
-                    {
-                        instruction->opcode = MIR_NOT_EQUAL;
-                    } break;
-
-                    case TAC_LESS:
-                    {
-                        instruction->opcode = MIR_LESS;
-                    } break;
-
-                    case TAC_LESS_OR_EQUAL:
-                    {
-                        instruction->opcode = MIR_LESS_OR_EQUAL;
-                    } break;
-
-                    case TAC_GREATER:
-                    {
-                        instruction->opcode = MIR_GREATER;
-                    } break;
-
-                    case TAC_GREATER_OR_EQUAL:
-                    {
-                        instruction->opcode = MIR_GREATER_OR_EQUAL;
+                        instruction->opcode = MIR_COMPARE;
+                        instruction->comparison_kind = ssa_instruction->comparison_kind;
                     } break;
 
                     default:
@@ -1232,12 +1198,7 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
                     }
                 } break;
 
-                case MIR_EQUAL:
-                case MIR_NOT_EQUAL:
-                case MIR_LESS:
-                case MIR_LESS_OR_EQUAL:
-                case MIR_GREATER:
-                case MIR_GREATER_OR_EQUAL:
+                case MIR_COMPARE:
                 {
                     // NOTE(vlad): These instructions clobber EFLAGS, but since we rematerialize them we don't
                     //             need to track them.
@@ -2935,6 +2896,43 @@ typedef struct x86_64_REX x86_64_REX;
 STATIC_ASSERT(size_of(x86_64_REX) == 1);
 #endif
 
+enum x86_Condition_Code
+{
+    X86_CC_OVERFLOW                  = 0,
+    X86_CC_NOT_OVERFLOW              = 1,
+    X86_CC_UNSIGNED_LESS             = 2,
+    X86_CC_UNSIGNED_GREATER_OR_EQUAL = 3,
+    X86_CC_EQUAL                     = 4,
+    X86_CC_NOT_EQUAL                 = 5,
+    X86_CC_UNSIGNED_LESS_OR_EQUAL    = 6,
+    X86_CC_UNSIGNED_GREATER          = 7,
+    X86_CC_NEGATIVE                  = 8,
+    X86_CC_NOT_NEGATIVE              = 9,
+    X86_CC_PARITY                    = 10,
+    X86_CC_NOT_PARITY                = 11,
+    X86_CC_SIGNED_LESS               = 12,
+    X86_CC_SIGNED_GREATER_OR_EQUAL   = 13,
+    X86_CC_SIGNED_LESS_OR_EQUAL      = 14,
+    X86_CC_SIGNED_GREATER            = 15,
+};
+typedef enum x86_Condition_Code x86_Condition_Code;
+
+static const u8 COMPARISON_KIND_TO_X86_CC[] =
+{
+    [COMPARISON_EQUAL]                     = X86_CC_EQUAL,
+    [COMPARISON_NOT_EQUAL]                 = X86_CC_NOT_EQUAL,
+
+    [COMPARISON_UNSIGNED_LESS]             = X86_CC_UNSIGNED_LESS,
+    [COMPARISON_UNSIGNED_GREATER_OR_EQUAL] = X86_CC_UNSIGNED_GREATER_OR_EQUAL,
+    [COMPARISON_UNSIGNED_GREATER]          = X86_CC_UNSIGNED_GREATER,
+    [COMPARISON_UNSIGNED_LESS_OR_EQUAL]    = X86_CC_UNSIGNED_LESS_OR_EQUAL,
+
+    [COMPARISON_SIGNED_LESS]               = X86_CC_SIGNED_LESS,
+    [COMPARISON_SIGNED_GREATER_OR_EQUAL]   = X86_CC_SIGNED_GREATER_OR_EQUAL,
+    [COMPARISON_SIGNED_GREATER]            = X86_CC_SIGNED_GREATER,
+    [COMPARISON_SIGNED_LESS_OR_EQUAL]      = X86_CC_SIGNED_LESS_OR_EQUAL,
+};
+
 internal inline Byte
 get_x86_64_register_number(const Index physical_register)
 {
@@ -3055,34 +3053,9 @@ emit_binary_code(Compilation_Context* context)
                         FAIL("[MIR] DIVIDE instruction is not supported yet.");
                     } break;
 
-                    case MIR_EQUAL:
+                    case MIR_COMPARE:
                     {
-                        FAIL("[MIR] EQUAL instruction is not supported yet.");
-                    } break;
-
-                    case MIR_NOT_EQUAL:
-                    {
-                        FAIL("[MIR] NOT_EQUAL instruction is not supported yet.");
-                    } break;
-
-                    case MIR_LESS:
-                    {
-                        FAIL("[MIR] LESS instruction is not supported yet.");
-                    } break;
-
-                    case MIR_LESS_OR_EQUAL:
-                    {
-                        FAIL("[MIR] LESS_OR_EQUAL instruction is not supported yet.");
-                    } break;
-
-                    case MIR_GREATER:
-                    {
-                        FAIL("[MIR] GREATER instruction is not supported yet.");
-                    } break;
-
-                    case MIR_GREATER_OR_EQUAL:
-                    {
-                        FAIL("[MIR] GREATER_OR_EQUAL instruction is not supported yet.");
+                        FAIL("[MIR] COMPARE instruction is not supported yet.");
                     } break;
 
                     case MIR_LOAD32:
