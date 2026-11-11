@@ -2058,7 +2058,7 @@ test_unused_ssa_assignments(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:5: error: This variable was never used\n"
                                                         "  2 |     a := 10;\n"
-                                                        "    |     ^");
+                                                        "    |     ^\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -2113,7 +2113,7 @@ test_unused_ssa_assignments(Test_Context* test_context)
         // FIXME(vlad): Highlight assignment here.
         const String_View expected_output = string_view("<test-input>:2:5: error: This assignment is unused\n"
                                                         "  2 |     a: mutable _ = 10;\n"
-                                                        "    |     ^");
+                                                        "    |     ^\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -2174,7 +2174,7 @@ test_unused_ssa_assignments(Test_Context* test_context)
         // FIXME(vlad): Highlight assignment here.
         const String_View expected_output = string_view("<test-input>:2:5: error: This assignment is unused\n"
                                                         "  2 |     a: mutable _ = 10;\n"
-                                                        "    |     ^");
+                                                        "    |     ^\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -2234,7 +2234,7 @@ test_unused_ssa_assignments(Test_Context* test_context)
         // FIXME(vlad): Highlight assignment here.
         const String_View expected_output = string_view("<test-input>:2:5: error: This variable was never used\n"
                                                         "  2 |     a: mutable _ = 10;\n"
-                                                        "    |     ^");
+                                                        "    |     ^\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -2284,7 +2284,7 @@ test_unused_ssa_assignments(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:1:7: error: This variable was never used\n"
                                                         "  1 | foo: (parameter: s32) -> void = {}\n"
-                                                        "    |       ^~~~~~~~~");
+                                                        "    |       ^~~~~~~~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -2351,7 +2351,7 @@ test_unused_ssa_assignments(Test_Context* test_context)
                                                         "    |     ^\n"
                                                         "<test-input>:10:9: error: This assignment is unused\n"
                                                         "  10 |         a = 22;\n"
-                                                        "     |         ^");
+                                                        "     |         ^\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -2421,7 +2421,7 @@ test_unused_ssa_assignments(Test_Context* test_context)
                                                         "     |             ^\n"
                                                         "<test-input>:2:5: error: This assignment is unused\n"
                                                         "  2 |     a: mutable _ = 10;\n"
-                                                        "    |     ^");
+                                                        "    |     ^\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -2486,7 +2486,7 @@ test_unused_ssa_assignments(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:5: error: This assignment is unused\n"
                                                         "  2 |     a: mutable _ = 10;\n"
-                                                        "    |     ^");
+                                                        "    |     ^\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -2554,7 +2554,7 @@ test_unreachable_jumps_elimination(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:4:9: error: This code is unreachable\n"
                                                         "  4 |         return;\n"
-                                                        "    |         ^");
+                                                        "    |         ^\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -2619,7 +2619,7 @@ test_unreachable_jumps_elimination(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:4:9: error: This code is unreachable\n"
                                                         "  4 |         return 10;\n"
-                                                        "    |         ^");
+                                                        "    |         ^\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -2684,7 +2684,7 @@ test_unreachable_jumps_elimination(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:6:5: error: This code is unreachable\n"
                                                         "  6 |     return 20;\n"
-                                                        "    |     ^");
+                                                        "    |     ^\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);

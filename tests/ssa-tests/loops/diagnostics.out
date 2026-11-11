@@ -1,6 +1,0 @@
-tests/ssa-tests/loops/main.eon:5:9: error: This code is unreachable
-  5 |         return 10;
-    |         ^
-tests/ssa-tests/loops/main.eon:18:5: error: This code is unreachable
-  18 |     return 20;
-     |     ^

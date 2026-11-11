@@ -3626,7 +3626,7 @@ test_syntax_errors(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:1:1: error: Expected identifier, found end of file\n"
                                                         "  1 | \n"
-                                                        "    | ^");
+                                                        "    | ^\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -3644,7 +3644,7 @@ test_syntax_errors(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:1:4: error: Expected ':', found end of file\n"
                                                         "  1 | foo\n"
-                                                        "    |    ^");
+                                                        "    |    ^\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -3665,7 +3665,7 @@ test_syntax_errors(Test_Context* test_context)
         // TODO(vlad): Can we produce a better error message here?
         const String_View expected_output = string_view("<test-input>:2:15: error: Expected ';', found identifier\n"
                                                         "  2 |     var := 123a;\n"
-                                                        "    |               ^");
+                                                        "    |               ^\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);

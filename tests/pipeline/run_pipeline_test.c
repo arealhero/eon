@@ -1,5 +1,3 @@
-// FIXME(vlad): Rename this file to something like 'run_pipeline_test' or 'run_ir_pipeline_test'.
-
 #include <eon_cfg.h>
 #include <eon_compilation_context.h>
 #include <eon_lexer.h>
@@ -43,7 +41,7 @@
 internal inline void
 print_usage(void)
 {
-    println("Usage: run_ssa_test <directory> [canonize]");
+    println("Usage: run_pipeline_test <directory> [canonize]");
 }
 
 internal Bool compare_outputs_and_optionally_canonize(Arena* scratch_arena,
@@ -84,7 +82,7 @@ eon_main(const String_View* arguments, const Size arguments_count)
     }
 
     Arena* source_code_arena = create_arena("source-code", MiB(10), MiB(1));
-    Arena* ssa_string_arena = create_arena("ssa-string", MiB(80), MiB(1));
+    Arena* ir_string_arena = create_arena("ir-string", MiB(80), MiB(1));
 
     Arena_Provider arena_provider = {0};
     Compilation_Context context = {0};
@@ -101,7 +99,7 @@ eon_main(const String_View* arguments, const Size arguments_count)
         if (result.status != READ_FILE_SUCCESS)
         {
             println("Error: failed to read file {}", main_filename);
-            destroy_arena(ssa_string_arena);
+            destroy_arena(ir_string_arena);
             destroy_arena(source_code_arena);
             return EXIT_FAILURE;
         }
@@ -187,17 +185,19 @@ eon_main(const String_View* arguments, const Size arguments_count)
 
     {
         START_TIMER(comparing_plain_ssa);
-        const String_View plain_ssa_string = convert_ssa_to_string(ssa_string_arena, &context);
-        const String_View plain_ssa_filename = string_view(format_string(source_code_arena, "{}/plain.ssa", test_directory));
+        const String_View plain_ssa_string = convert_ssa_to_string(ir_string_arena, &context);
+        const String_View plain_ssa_filename = string_view(format_string(source_code_arena,
+                                                                         "{}/ssa-after-construction.txt",
+                                                                         test_directory));
 
         const Bool success = compare_outputs_and_optionally_canonize(context.scratch_arena,
-                                                                     string_view("Plain SSA"),
+                                                                     string_view("SSA after construction"),
                                                                      plain_ssa_filename,
                                                                      plain_ssa_string,
                                                                      canonize_output);
         test_failed = !success;
 
-        END_TIMER(comparing_plain_ssa, "Plain SSA processed");
+        END_TIMER(comparing_plain_ssa, "SSA after construction processed");
     }
 
     START_TIMER(unused_ssa_assignments);
@@ -218,8 +218,10 @@ eon_main(const String_View* arguments, const Size arguments_count)
 
     {
         START_TIMER(comparing_ssa_after_constant_folding);
-        const String_View ssa_string_after_constant_folding = convert_ssa_to_string(ssa_string_arena, &context);
-        const String_View ssa_after_constant_folding_filename = string_view(format_string(source_code_arena, "{}/after-constant-folding.ssa", test_directory));
+        const String_View ssa_string_after_constant_folding = convert_ssa_to_string(ir_string_arena, &context);
+        const String_View ssa_after_constant_folding_filename = string_view(format_string(source_code_arena,
+                                                                                          "{}/ssa-after-constant-folding.txt",
+                                                                                          test_directory));
 
         const Bool success = compare_outputs_and_optionally_canonize(context.scratch_arena,
                                                                      string_view("SSA after constant folding"),
@@ -237,36 +239,40 @@ eon_main(const String_View* arguments, const Size arguments_count)
 
     {
         START_TIMER(comparing_mir);
-        const String_View mir_string = convert_mir_to_string(ssa_string_arena, &context);
-        const String_View mir_filename = string_view(format_string(source_code_arena, "{}/plain.mir", test_directory));
+        const String_View mir_string = convert_mir_to_string(ir_string_arena, &context);
+        const String_View mir_filename = string_view(format_string(source_code_arena,
+                                                                   "{}/mir-after-construction.txt",
+                                                                   test_directory));
 
         const Bool success = compare_outputs_and_optionally_canonize(context.scratch_arena,
-                                                                     string_view("MIR"),
+                                                                     string_view("MIR after construction"),
                                                                      mir_filename,
                                                                      mir_string,
                                                                      canonize_output);
         test_failed = !success;
 
-        END_TIMER(comparing_mir, "MIR processed");
+        END_TIMER(comparing_mir, "MIR after construction processed");
     }
 
     START_TIMER(isa_constraints_gathering);
     add_isa_constraints_to_mir(&context);
-    END_TIMER(isa_constraints_gathering, "ISA constraints added to MIR");
+    END_TIMER(isa_constraints_gathering, "ISA constraints gathered");
 
     {
         START_TIMER(comparing_mir_after_isa_constraints);
-        const String_View mir_string = convert_mir_to_string(ssa_string_arena, &context);
-        const String_View mir_filename = string_view(format_string(source_code_arena, "{}/after-isa-constraints.mir", test_directory));
+        const String_View mir_string = convert_mir_to_string(ir_string_arena, &context);
+        const String_View mir_filename = string_view(format_string(source_code_arena,
+                                                                   "{}/mir-after-gathering-isa-constraints.txt",
+                                                                   test_directory));
 
         const Bool success = compare_outputs_and_optionally_canonize(context.scratch_arena,
-                                                                     string_view("MIR"),
+                                                                     string_view("MIR after gathering ISA constraints"),
                                                                      mir_filename,
                                                                      mir_string,
                                                                      canonize_output);
         test_failed = !success;
 
-        END_TIMER(comparing_mir_after_isa_constraints, "Processed MIR after ISA constraints gathering");
+        END_TIMER(comparing_mir_after_isa_constraints, "MIR after gathering ISA constraints processed");
     }
 
     START_TIMER(register_allocation);
@@ -275,19 +281,19 @@ eon_main(const String_View* arguments, const Size arguments_count)
 
     {
         START_TIMER(comparing_mir_after_register_allocation);
-        const String_View mir_string = convert_mir_to_string(ssa_string_arena, &context);
+        const String_View mir_string = convert_mir_to_string(ir_string_arena, &context);
         const String_View mir_filename = string_view(format_string(source_code_arena,
-                                                                   "{}/after-register-allocation.mir",
+                                                                   "{}/mir-after-register-allocation.txt",
                                                                    test_directory));
 
         const Bool success = compare_outputs_and_optionally_canonize(context.scratch_arena,
-                                                                     string_view("MIR"),
+                                                                     string_view("MIR after register allocation"),
                                                                      mir_filename,
                                                                      mir_string,
                                                                      canonize_output);
         test_failed = !success;
 
-        END_TIMER(comparing_mir_after_register_allocation, "Processed MIR after register allocation");
+        END_TIMER(comparing_mir_after_register_allocation, "MIR after register allocation processed");
     }
 
     START_TIMER(mir_blocks_layout);
@@ -296,19 +302,19 @@ eon_main(const String_View* arguments, const Size arguments_count)
 
     {
         START_TIMER(comparing_mir_after_layout_is_computed);
-        const String_View mir_string = convert_mir_to_string(ssa_string_arena, &context);
+        const String_View mir_string = convert_mir_to_string(ir_string_arena, &context);
         const String_View mir_filename = string_view(format_string(source_code_arena,
-                                                                   "{}/after-blocks-layout-is-computed.mir",
+                                                                   "{}/mir-after-blocks-layout-is-computed.txt",
                                                                    test_directory));
 
         const Bool success = compare_outputs_and_optionally_canonize(context.scratch_arena,
-                                                                     string_view("MIR"),
+                                                                     string_view("MIR after blocks layout is computed"),
                                                                      mir_filename,
                                                                      mir_string,
                                                                      canonize_output);
         test_failed = !success;
 
-        END_TIMER(comparing_mir_after_layout_is_computed, "Processed MIR after blocks layout is computed");
+        END_TIMER(comparing_mir_after_layout_is_computed, "MIR after blocks layout is computed processed");
     }
 
 cleanup:
@@ -350,16 +356,16 @@ cleanup:
         const String_View diagnostic_messages = dump_diagnostic_messages(context.scratch_arena, &context, MAX_MESSAGE_LEVEL);
 #endif
 
-        const String_View diagnostics_filename = string_view(format_string(source_code_arena, "{}/diagnostics.out", test_directory));
+        const String_View diagnostics_filename = string_view(format_string(source_code_arena, "{}/expected-stdout.txt", test_directory));
 
         const Bool success = compare_outputs_and_optionally_canonize(context.scratch_arena,
-                                                                     string_view("Diagnostics"),
+                                                                     string_view("Expected stdout"),
                                                                      diagnostics_filename,
                                                                      diagnostic_messages,
                                                                      canonize_output);
         test_failed = !success;
 
-        END_TIMER(comparing_diagnostic_messages, "Diagnostic messages compared");
+        END_TIMER(comparing_diagnostic_messages, "Expected stdout compared");
     }
 
     const Timestamp test_end_timestamp = platform_get_current_monotonic_timestamp();
@@ -367,7 +373,7 @@ cleanup:
 
     destroy_compilation_context(&context);
 
-    destroy_arena(ssa_string_arena);
+    destroy_arena(ir_string_arena);
 
     return test_failed ? EXIT_FAILURE : EXIT_SUCCESS;
 }

@@ -214,8 +214,7 @@ dump_diagnostic_messages(Arena* messages_arena,
 
     String* formatted_messages = allocate_uninitialized_array(messages_arena, suitable_messages_count, String);
 
-    // NOTE(vlad): Formatted messages will be separated by a newline.
-    Index total_messages_length = suitable_messages_count - 1;
+    Index total_messages_length = suitable_messages_count;
 
     for (Index message_index = 0, formatted_messages_index = 0;
          message_index < context->diagnostic_messages_count;
@@ -243,11 +242,6 @@ dump_diagnostic_messages(Arena* messages_arena,
          formatted_message_index < suitable_messages_count;
          ++formatted_message_index)
     {
-        if (formatted_message_index != 0)
-        {
-            result.data[result_index++] = '\n';
-        }
-
         const String formatted_message = formatted_messages[formatted_message_index];
         for (Index char_index = 0;
              char_index < formatted_message.length;
@@ -255,6 +249,8 @@ dump_diagnostic_messages(Arena* messages_arena,
         {
             result.data[result_index++] = formatted_message.data[char_index];
         }
+
+        result.data[result_index++] = '\n';
     }
 
     return string_view(result);

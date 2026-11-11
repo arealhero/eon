@@ -158,12 +158,12 @@ compile_and_run_unit_test eon_tac_ut.c
 compile_and_run_unit_test eon_cfg_ut.c
 compile_and_run_unit_test eon_ssa_ut.c
 
-mkdir -p build/tests/ssa-tests
-compile tests/ssa-tests/run_ssa_test.c -o build/tests/ssa-tests/run_ssa_test \
+mkdir -p build/tests/pipeline
+compile tests/pipeline/run_pipeline_test.c -o build/tests/pipeline/run_pipeline_test \
         $compiler_common_flags \
         $compiler_warnings
 
-run_ssa_test()
+run_pipeline_test()
 {
     test_directory="$1"
 
@@ -173,19 +173,19 @@ run_ssa_test()
     test_name=$(basename "$test_directory")
 
     echo
-    echo "Running SSA test '$test_name'"
-    "build/tests/ssa-tests/run_ssa_test" "$test_directory" $additional_flags
+    echo "Running pipeline test '$test_name'"
+    "build/tests/pipeline/run_pipeline_test" "$test_directory" $additional_flags
 }
 
 echo
-echo " === Running SSA tests ==="
+echo " === Running pipeline tests ==="
 
-run_ssa_test tests/ssa-tests/general-cases
-run_ssa_test tests/ssa-tests/constant-folding
-run_ssa_test tests/ssa-tests/loops
-run_ssa_test tests/ssa-tests/parallel-copy
+run_pipeline_test tests/pipeline/general-cases
+run_pipeline_test tests/pipeline/constant-folding
+run_pipeline_test tests/pipeline/loops
+run_pipeline_test tests/pipeline/parallel-copy
 
-run_ssa_test tests/ssa-tests/regression-if-statement-with-return
-run_ssa_test tests/ssa-tests/regression-nested-if-statement
-run_ssa_test tests/ssa-tests/regression-while-loop-with-break-and-continue
-run_ssa_test tests/ssa-tests/regression-while-loop-with-dead-code-before-it
+run_pipeline_test tests/pipeline/regression-if-statement-with-return
+run_pipeline_test tests/pipeline/regression-nested-if-statement
+run_pipeline_test tests/pipeline/regression-while-loop-with-break-and-continue
+run_pipeline_test tests/pipeline/regression-while-loop-with-dead-code-before-it

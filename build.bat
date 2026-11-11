@@ -67,18 +67,18 @@ call :compile_and_run_unit_test eon_tac_ut.c || exit /B 1
 call :compile_and_run_unit_test eon_cfg_ut.c || exit /B 1
 call :compile_and_run_unit_test eon_ssa_ut.c || exit /B 1
 
-if not exist build\tests\ssa-tests mkdir build\tests\ssa-tests
-call :compile tests\ssa-tests\run_ssa_test.c build\tests\ssa-tests\run_ssa_test || exit /B 1
+if not exist build\tests\pipeline mkdir build\tests\pipeline
+call :compile tests\pipeline\run_pipeline_test.c build\tests\pipeline\run_pipeline_test || exit /B 1
 
-call :run_ssa_test tests\ssa-tests\general-cases || exit /B 1
-call :run_ssa_test tests\ssa-tests\constant-folding || exit /B 1
-call :run_ssa_test tests\ssa-tests\loops || exit /B 1
-call :run_ssa_test tests\ssa-tests\parallel-copy || exit /B 1
+call :run_pipeline_test tests\pipeline\general-cases || exit /B 1
+call :run_pipeline_test tests\pipeline\constant-folding || exit /B 1
+call :run_pipeline_test tests\pipeline\loops || exit /B 1
+call :run_pipeline_test tests\pipeline\parallel-copy || exit /B 1
 
-call :run_ssa_test tests\ssa-tests\regression-if-statement-with-return || exit /B 1
-call :run_ssa_test tests\ssa-tests\regression-nested-if-statement || exit /B 1
-call :run_ssa_test tests\ssa-tests\regression-while-loop-with-break-and-continue || exit /B 1
-call :run_ssa_test tests\ssa-tests\regression-while-loop-with-dead-code-before-it || exit /B 1
+call :run_pipeline_test tests\pipeline\regressions\if-statement-with-return || exit /B 1
+call :run_pipeline_test tests\pipeline\regressions\nested-if-statement || exit /B 1
+call :run_pipeline_test tests\pipeline\regressions\while-loop-with-break-and-continue || exit /B 1
+call :run_pipeline_test tests\pipeline\regressions\while-loop-with-dead-code-before-it || exit /B 1
 
 exit /B %ERRORLEVEL%
 
@@ -155,8 +155,8 @@ endlocal
 
 goto :eof
 
-REM Usage: call :run_ssa_test <test-directory>.
-:run_ssa_test
+REM Usage: call :run_pipeline_test <test-directory>.
+:run_pipeline_test
 setlocal
 
 set test_directory=%~1
@@ -168,11 +168,11 @@ if "%test_directory:~-1%"=="\" set "test_directory=%test_directory:~0,-1%"
 for %%I in ("%test_directory:\=" "%") do set "test_name=%%~I"
 
 echo.
-echo Running SSA test '%test_name%'
+echo Running pipeline test '%test_name%'
 
-build\tests\ssa-tests\run_ssa_test.exe %test_directory% || exit /B 1
+build\tests\pipeline\run_pipeline_test.exe %test_directory% || exit /B 1
 
 endlocal
 
 goto :eof
-REM NOTE: End of ':run_ssa_test'.
+REM NOTE: End of ':run_pipeline_test'.

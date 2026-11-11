@@ -389,7 +389,7 @@ test_invalid_break_and_continue_statements(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:5: error: 'break' statement outside of loop statements is not allowed\n"
                                                         "  2 |     break;\n"
-                                                        "    |     ^~~~~");
+                                                        "    |     ^~~~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -411,7 +411,7 @@ test_invalid_break_and_continue_statements(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:5: error: 'continue' statement outside of loop statements is not allowed\n"
                                                         "  2 |     continue;\n"
-                                                        "    |     ^~~~~~~~");
+                                                        "    |     ^~~~~~~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -436,7 +436,7 @@ test_invalid_break_and_continue_statements(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:4:9: error: 'continue' statement outside of loop statements is not allowed\n"
                                                         "  4 |         continue;\n"
-                                                        "    |         ^~~~~~~~");
+                                                        "    |         ^~~~~~~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -462,8 +462,8 @@ test_invalid_break_and_continue_statements(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:5:9: error: 'continue' statement outside of loop statements is not allowed\n"
                                                         "  5 |         continue;\n"
-                                                        "    |         ^~~~~~~~");
-        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+                                                        "    |         ^~~~~~~~\n");
+            ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
     }

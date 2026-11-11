@@ -1749,7 +1749,7 @@ test_uses_of_undeclared_identifiers(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:12: error: Use of undeclared identifier 'a'\n"
                                                         "  2 |     var := a;\n"
-                                                        "    |            ^");
+                                                        "    |            ^\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -1758,7 +1758,7 @@ test_uses_of_undeclared_identifiers(Test_Context* test_context)
     {
         CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
                                                  "    var := bar();\n"
-                                                 "}");
+                                                 "}\n");
 
         parse_ast(&context);
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
@@ -1774,7 +1774,7 @@ test_uses_of_undeclared_identifiers(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:12: error: Use of undeclared identifier 'bar'\n"
                                                         "  2 |     var := bar();\n"
-                                                        "    |            ^~~");
+                                                        "    |            ^~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -1798,7 +1798,7 @@ test_uses_of_undeclared_identifiers(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:1:12: error: Use of undeclared identifier 'Undeclared_Type'\n"
                                                         "  1 | foo: () -> Undeclared_Type = {\n"
-                                                        "    |            ^~~~~~~~~~~~~~~");
+                                                        "    |            ^~~~~~~~~~~~~~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -1823,7 +1823,7 @@ test_uses_of_undeclared_identifiers(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:24: error: Use of undeclared identifier 'Whatever'\n"
                                                         "  2 |     var: * (parameter: Whatever) -> void;\n"
-                                                        "    |                        ^~~~~~~~");
+                                                        "    |                        ^~~~~~~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -1851,7 +1851,7 @@ test_uses_of_undeclared_identifiers(Test_Context* test_context)
                                                         "    |          ^~~~~~~~~~~~~~~\n"
                                                         "<test-input>:2:28: error: Use of undeclared identifier 'bar'\n"
                                                         "  2 |     var: Undeclared_Type = bar();\n"
-                                                        "    |                            ^~~");
+                                                        "    |                            ^~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -1882,7 +1882,7 @@ test_redefinitions(Test_Context* test_context)
                                                         "    | ^~~\n"
                                                         "<test-input>:1:1: note: Previously defined here\n"
                                                         "  1 | foo: () -> void = {}\n"
-                                                        "    | ^~~");
+                                                        "    | ^~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -1911,7 +1911,7 @@ test_redefinitions(Test_Context* test_context)
                                                         "    |     ^~~\n"
                                                         "<test-input>:2:5: note: Previously defined here\n"
                                                         "  2 |     var := 10;\n"
-                                                        "    |     ^~~");
+                                                        "    |     ^~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);

@@ -992,7 +992,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                                                                          MAX_MESSAGE_LEVEL);
             const String_View expected_output = string_view("<test-input>:3:5: error: This code is unreachable\n"
                                                             "  3 |     a := 10;\n"
-                                                            "    |     ^");
+                                                            "    |     ^\n");
             ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
         }
 
@@ -1081,7 +1081,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                                                                          MAX_MESSAGE_LEVEL);
             const String_View expected_output = string_view("<test-input>:3:5: error: This code is unreachable\n"
                                                             "  3 |     a := 10;\n"
-                                                            "    |     ^");
+                                                            "    |     ^\n");
             ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
         }
 
@@ -1207,7 +1207,7 @@ test_unreachable_blocks_removal(Test_Context* test_context)
                                                                          MAX_MESSAGE_LEVEL);
             const String_View expected_output = string_view("<test-input>:5:9: error: This code is unreachable\n"
                                                             "  5 |         a := 10;\n"
-                                                            "    |         ^");
+                                                            "    |         ^\n");
             ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
         }
 

@@ -739,7 +739,7 @@ test_errors(Test_Context* test_context)
 
         const String_View expected_output = string_view("<test-input>:1:1: error: Unexpected character encountered\n"
                                                         "  1 | ?\n"
-                                                        "    | ^");
+                                                        "    | ^\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);

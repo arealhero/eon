@@ -4213,7 +4213,7 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                                          MAX_MESSAGE_LEVEL);
             const String_View expected_output = string_view("<test-input>:2:5: error: Variable cannot have a 'void' type\n"
                                                             "  2 |     a: void;\n"
-                                                            "    |     ^");
+                                                            "    |     ^\n");
             ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
             destroy_compilation_context(&context);
@@ -4241,7 +4241,7 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                                          MAX_MESSAGE_LEVEL);
             const String_View expected_output = string_view("<test-input>:1:7: error: Variable cannot have a 'void' type\n"
                                                             "  1 | foo: (parameter: void) -> void = {\n"
-                                                            "    |       ^~~~~~~~~");
+                                                            "    |       ^~~~~~~~~\n");
             ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
             destroy_compilation_context(&context);
@@ -4271,7 +4271,7 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                                          MAX_MESSAGE_LEVEL);
             const String_View expected_output = string_view("<test-input>:2:5: error: Variable cannot have a 'void' type\n"
                                                             "  2 |     a := bar();\n"
-                                                            "    |     ^");
+                                                            "    |     ^\n");
             ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
             destroy_compilation_context(&context);
@@ -4305,7 +4305,7 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                                          MAX_MESSAGE_LEVEL);
             const String_View expected_output = string_view("<test-input>:2:5: error: Variable cannot have a 'void' type\n"
                                                             "  2 |     a := bar();\n"
-                                                            "    |     ^");
+                                                            "    |     ^\n");
             ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
             // TODO(vlad): We should report two errors here.
@@ -4339,7 +4339,7 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                                          MAX_MESSAGE_LEVEL);
             const String_View expected_output = string_view("<test-input>:2:5: error: Variable cannot have a '* void' type, use '* byte' instead\n"
                                                             "  2 |     a: * void;\n"
-                                                            "    |     ^");
+                                                            "    |     ^\n");
             ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
             destroy_compilation_context(&context);
@@ -4367,7 +4367,7 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                                          MAX_MESSAGE_LEVEL);
             const String_View expected_output = string_view("<test-input>:1:7: error: Variable cannot have a '* void' type, use '* byte' instead\n"
                                                             "  1 | foo: (parameter: * void) -> void = {\n"
-                                                            "    |       ^~~~~~~~~");
+                                                            "    |       ^~~~~~~~~\n");
             ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
             destroy_compilation_context(&context);
@@ -4398,7 +4398,7 @@ test_variables_of_invalid_types(Test_Context* test_context)
                                                                          MAX_MESSAGE_LEVEL);
             const String_View expected_output = string_view("<test-input>:2:5: error: Variable cannot have a '* void' type, use '* byte' instead\n"
                                                             "  2 |     a := bar();\n"
-                                                            "    |     ^");
+                                                            "    |     ^\n");
             ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
             // TODO(vlad): Forbid '* void' type everywhere, e.g. 'bar: () -> * void' should become invalid.
@@ -4433,7 +4433,7 @@ test_type_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:12: error: Return type mismatch: expected 's32', got 's64'\n"
                                                         "  2 |     return parameter;\n"
-                                                        "    |            ^~~~~~~~~");
+                                                        "    |            ^~~~~~~~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         // TODO(vlad): Test that some types were actually inferred.
@@ -4464,7 +4464,7 @@ test_type_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:3:12: error: Return type mismatch: expected 's32', got 's64'\n"
                                                         "  3 |     return variable;\n"
-                                                        "    |            ^~~~~~~~");
+                                                        "    |            ^~~~~~~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         // TODO(vlad): Test that some types were actually inferred.
@@ -4494,7 +4494,7 @@ test_type_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:12: error: Return type mismatch: expected 's32', got '* s32'\n"
                                                         "  2 |     return parameter;\n"
-                                                        "    |            ^~~~~~~~~");
+                                                        "    |            ^~~~~~~~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         // TODO(vlad): Test that some types were actually inferred.
@@ -4525,7 +4525,7 @@ test_type_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:12: error: Cannot dereference a non-pointer type 's32'\n"
                                                         "  2 |     var := parameter*;\n"
-                                                        "    |            ^~~~~~~~~");
+                                                        "    |            ^~~~~~~~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -4558,7 +4558,7 @@ test_type_mismatches(Test_Context* test_context)
                                                         "    |            ^~~~~~~~~\n"
                                                         "<test-input>:4:1: error: Non-void function does not return a value in all control paths\n"
                                                         "  4 | }\n"
-                                                        "    | ^");
+                                                        "    | ^\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -4588,7 +4588,7 @@ test_type_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:12: error: Expression of type 's32' is not callable\n"
                                                         "  2 |     return parameter();\n"
-                                                        "    |            ^~~~~~~~~");
+                                                        "    |            ^~~~~~~~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -4616,7 +4616,7 @@ test_type_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:5: error: Expression of type 's32' is not callable\n"
                                                         "  2 |     parameter();\n"
-                                                        "    |     ^~~~~~~~~");
+                                                        "    |     ^~~~~~~~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -4647,7 +4647,7 @@ test_type_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:16: error: Passing expression of type 's32' to parameter of type 's64'\n"
                                                         "  2 |     return bar(parameter);\n"
-                                                        "    |                ^~~~~~~~~");
+                                                        "    |                ^~~~~~~~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -4678,7 +4678,7 @@ test_type_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:12: error: Too many arguments provided to a function call, expected 1, got 2\n"
                                                         "  2 |     return bar(parameter, parameter);\n"
-                                                        "    |            ^~~");
+                                                        "    |            ^~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -4705,7 +4705,7 @@ test_type_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:1: error: Non-void function does not return a value in all control paths\n"
                                                         "  2 | }\n"
-                                                        "    | ^");
+                                                        "    | ^\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -4735,7 +4735,7 @@ test_type_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:5:1: error: Non-void function does not return a value in all control paths\n"
                                                         "  5 | }\n"
-                                                        "    | ^");
+                                                        "    | ^\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -4763,7 +4763,7 @@ test_type_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:8: error: Implicit conversion from 's32' to 'bool' is forbidden.\n"
                                                         "  2 |     if parameter {}\n"
-                                                        "    |        ^~~~~~~~~");
+                                                        "    |        ^~~~~~~~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -4793,7 +4793,7 @@ test_type_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:3:9: error: Type mismatch: expected 's32', got 'f32'\n"
                                                         "  3 |     a = 2.0;\n"
-                                                        "    |         ^~~");
+                                                        "    |         ^~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -4827,7 +4827,7 @@ test_number_type_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:4:12: error: Return type mismatch: expected 's32', got 'f32'\n"
                                                         "  4 |     return a;\n"
-                                                        "    |            ^");
+                                                        "    |            ^\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -4855,7 +4855,7 @@ test_number_type_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:12: error: Return type mismatch: expected 's32', got 'f32'\n"
                                                         "  2 |     return 10.0;\n"
-                                                        "    |            ^~~~");
+                                                        "    |            ^~~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -4886,7 +4886,7 @@ test_number_type_mismatches(Test_Context* test_context)
         //              more sophisticated than 'Bool' from 'try_to_unify_types()'.
         const String_View expected_output = string_view("<test-input>:2:12: error: Return type mismatch: expected 's8', got 's32'\n"
                                                         "  2 |     return 128;\n"
-                                                        "    |            ^~~");
+                                                        "    |            ^~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -4916,7 +4916,7 @@ test_number_type_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:4:12: error: Cannot add expressions of different types 's8' and 's32'\n"
                                                         "  4 |     return a + b;\n"
-                                                        "    |            ^~~~~");
+                                                        "    |            ^~~~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -4946,7 +4946,7 @@ test_number_type_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:4:12: error: Return type mismatch: expected 's32', got 's8'\n"
                                                         "  4 |     return ptr*;\n"
-                                                        "    |            ^~~~");
+                                                        "    |            ^~~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -4976,7 +4976,7 @@ test_number_type_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:4:10: error: Cannot add expressions of different types 's8' and 'f32'\n"
                                                         "  4 |     c := a + 2 * b;\n"
-                                                        "    |          ^~~~~~~~~");
+                                                        "    |          ^~~~~~~~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -5006,7 +5006,7 @@ test_number_type_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:4:10: error: Cannot multiply expressions of different types 's8' and 'f32'\n"
                                                         "  4 |     c := (a + 2) * b;\n"
-                                                        "    |          ^~~~~~~~~~~");
+                                                        "    |          ^~~~~~~~~~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -5038,7 +5038,7 @@ test_lvalue_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:2:5: error: lvalue is required as a LHS of assignment\n"
                                                         "  2 |     10 = 10;\n"
-                                                        "    |     ^~");
+                                                        "    |     ^~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -5067,7 +5067,7 @@ test_lvalue_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:3:5: error: lvalue is required as a LHS of assignment\n"
                                                         "  3 |     a + 1 = 10;\n"
-                                                        "    |     ^~~~~");
+                                                        "    |     ^~~~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -5096,7 +5096,7 @@ test_lvalue_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:3:10: error: Type mismatch: expected '* s32', got 's32'\n"
                                                         "  3 |     a& = 10;\n"
-                                                        "    |          ^~");
+                                                        "    |          ^~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -5129,7 +5129,7 @@ test_mutability_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:3:5: error: Read-only location is not assignable\n"
                                                         "  3 |     a = 10;\n"
-                                                        "    |     ^");
+                                                        "    |     ^\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -5159,7 +5159,7 @@ test_mutability_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:4:5: error: Read-only location is not assignable\n"
                                                         "  4 |     ptr* = 10;\n"
-                                                        "    |     ^~~~");
+                                                        "    |     ^~~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -5189,7 +5189,7 @@ test_mutability_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:3:9: error: Passing expression of type '* s32' to parameter of type '* mutable s32'\n"
                                                         "  3 |     bar(a&);\n"
-                                                        "    |         ^~");
+                                                        "    |         ^~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -5218,7 +5218,7 @@ test_mutability_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:3:24: error: Cannot initialise variable of type '* mutable _' with expression of type '* s32'\n"
                                                         "  3 |     ptr: * mutable _ = a&;\n"
-                                                        "    |                        ^~");
+                                                        "    |                        ^~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -5248,7 +5248,7 @@ test_mutability_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:4:24: error: Cannot initialise variable of type '* mutable _' with expression of type '* s32'\n"
                                                         "  4 |     ptr: * mutable _ = b&;\n"
-                                                        "    |                        ^~");
+                                                        "    |                        ^~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
@@ -5278,7 +5278,7 @@ test_mutability_mismatches(Test_Context* test_context)
                                                                      MAX_MESSAGE_LEVEL);
         const String_View expected_output = string_view("<test-input>:4:32: error: Cannot initialise variable of type '* mutable _' with expression of type '* s32'\n"
                                                         "  4 |     mutable_ptr: * mutable _ = immutable_ptr;\n"
-                                                        "    |                                ^~~~~~~~~~~~~");
+                                                        "    |                                ^~~~~~~~~~~~~\n");
         ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
 
         destroy_compilation_context(&context);
