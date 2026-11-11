@@ -11,6 +11,7 @@ struct MIR_Block;
 
 enum
 {
+    // FIXME(vlad): Change to -1.
     NO_REGISTER = 0,
     SPILLED_TO_STACK = -1,
 };
@@ -156,6 +157,8 @@ struct MIR_Instruction
     MIR_Operand implicit_uses[MAX_IMPLICIT_USES_IN_MIR_INSTRUCTION];
     Size implicit_uses_count;
 
+    Size binary_code_size;
+
     union
     {
         // NOTE(vlad): For MIR_PHI.
@@ -219,6 +222,8 @@ struct MIR_Block
     MIR_Register_Bitset live_out_registers;
 
     array(MIR_Parallel_Copy, parallel_copies);
+
+    Size offset_from_the_function_start;
 };
 typedef struct MIR_Block MIR_Block;
 
