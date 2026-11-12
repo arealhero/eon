@@ -51,6 +51,8 @@ compiler_warnings="
   -Wno-error=unused-function
   -Wno-error=unused-variable
   -Wno-error=unused-parameter
+
+  -Wno-variadic-macro-arguments-omitted
 "
 compiler_common_flags="
   -std=gnu11
@@ -75,10 +77,9 @@ fi
 
 if [ $USE_GCC -eq 1 ];
 then
-    compiler_warnings="$compiler_warnings -Wno-type-limits -Wno-variadic-macro-arguments-omitted"
+    compiler_warnings="$compiler_warnings -Wno-type-limits"
 else
     compiler_common_flags="$compiler_common_flags -ferror-limit=0"
-    compiler_warnings="$compiler_warnings -Wno-variadic-macro-arguments-omitted"
 fi
 
 compile()
