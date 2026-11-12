@@ -52,6 +52,7 @@ build\grammar\check_grammar_soundness.exe grammar\eon-grammar || exit /B 1
 call :compile_and_run_unit_test eon\memory_ut.c || exit /B 1
 call :compile_and_run_unit_test eon\containers_ut.c || exit /B 1
 call :compile_and_run_unit_test eon\string_ut.c || exit /B 1
+call :compile_and_run_unit_test eon\arguments_parser_ut.c || exit /B 1
 call :compile_and_run_unit_test eon\diff_ut.c || exit /B 1
 
 if %ENABLE_ASAN% EQU 1 (
