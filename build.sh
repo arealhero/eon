@@ -88,29 +88,27 @@ compile()
 
     if [ $USE_GCC -eq 1 ];
     then
-        time gcc $@
+        time gcc $compiler_common_flags $compiler_warnings $@
     else
-        time clang $@
+        time clang $compiler_common_flags $compiler_warnings $@
     fi
 }
 
 mkdir -p build/grammar
-
-compile grammar/check_grammar_soundness.c -o build/grammar/check_grammar_soundness \
-        $compiler_common_flags \
-        $compiler_warnings
+compile grammar/check_grammar_soundness.c -o build/grammar/check_grammar_soundness
 
 ./build/grammar/check_grammar_soundness grammar/eon-grammar
 
 mkdir -p build/utils
+compile utils/inspect-executable.c -o build/utils/inspect-executable
 
-compile utils/inspect-executable.c -o build/utils/inspect-executable \
-        $compiler_common_flags \
-        $compiler_warnings
+compile eon.c -o build/eon
 
-compile eon.c -o build/eon \
-        $compiler_common_flags \
-        $compiler_warnings
+# build/eon foo.eon
+# SDK="$(xcrun --sdk macosx --show-sdk-path)"
+# ld -arch x86_64 foo.o -syslibroot "$SDK" -lSystem -o foo
+# ./foo
+# exit
 
 compile_and_run_unit_test()
 {
@@ -124,8 +122,6 @@ compile_and_run_unit_test()
     mkdir -p "build/tests/$test_dir"
 
     compile "$test_filename" -o "build/tests/$test_dir/$test_name" \
-            $compiler_common_flags \
-            $compiler_warnings \
             $additional_flags
 
     if [ "$test_dir" = "." ];
@@ -159,9 +155,7 @@ compile_and_run_unit_test eon_cfg_ut.c
 compile_and_run_unit_test eon_ssa_ut.c
 
 mkdir -p build/tests/pipeline
-compile tests/pipeline/run_pipeline_test.c -o build/tests/pipeline/run_pipeline_test \
-        $compiler_common_flags \
-        $compiler_warnings
+compile tests/pipeline/run_pipeline_test.c -o build/tests/pipeline/run_pipeline_test
 
 run_pipeline_test()
 {
