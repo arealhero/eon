@@ -74,7 +74,7 @@ fi
 
 if [ $USE_GCC -eq 1 ];
 then
-    compiler_warnings="$compiler_warnings -Wno-type-limits"
+    compiler_warnings="$compiler_warnings -Wno-type-limits -Wno-variadic-macro-arguments-omitted"
 else
     compiler_common_flags="$compiler_common_flags -ferror-limit=0"
     compiler_warnings="$compiler_warnings -Wno-variadic-macro-arguments-omitted"
