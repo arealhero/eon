@@ -185,7 +185,7 @@ run_pipeline_test tests/pipeline/constant-folding
 run_pipeline_test tests/pipeline/loops
 run_pipeline_test tests/pipeline/parallel-copy
 
-run_pipeline_test tests/pipeline/regression-if-statement-with-return
-run_pipeline_test tests/pipeline/regression-nested-if-statement
-run_pipeline_test tests/pipeline/regression-while-loop-with-break-and-continue
-run_pipeline_test tests/pipeline/regression-while-loop-with-dead-code-before-it
+run_pipeline_test tests/pipeline/regressions/if-statement-with-return
+run_pipeline_test tests/pipeline/regressions/nested-if-statement
+run_pipeline_test tests/pipeline/regressions/while-loop-with-break-and-continue
+run_pipeline_test tests/pipeline/regressions/while-loop-with-dead-code-before-it
