@@ -66,6 +66,7 @@ then
 else
     if [ $IS_MACOS -eq 1 ];
     then
+        # TODO(vlad): Enable '-nostdinc' flag here.
         compiler_common_flags="$compiler_common_flags -ffreestanding -nostdlib -nodefaultlibs -fno-builtin -lSystem"
     else
         compiler_common_flags="$compiler_common_flags -ffreestanding -nostdlib -nodefaultlibs -nostdinc -fno-builtin"
