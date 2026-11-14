@@ -1,9 +1,9 @@
 #include <eon/unit_test.h>
 
-#include "arguments_parser.h"
+#include "argument_parser.h"
 
 internal inline void
-reset_parser(Arguments_Parser* parser)
+reset_parser(Argument_Parser* parser)
 {
     fill_with_zeros(parser->option_was_set, parser->options_count, Bool);
 
@@ -45,9 +45,9 @@ test_example_compiler_arguments_parsing(Test_Context* test_context)
         },
     };
 
-    Arguments_Parser parser = create_arguments_parser(test_context->arena,
-                                                      options,
-                                                      NUMBER_OF_STATIC_ARRAY_ELEMENTS(options));
+    Argument_Parser parser = create_argument_parser(test_context->arena,
+                                                    options,
+                                                    NUMBER_OF_STATIC_ARRAY_ELEMENTS(options));
 
     {
         const String_View arguments[] = {
@@ -146,4 +146,4 @@ REGISTER_TESTS(
     test_example_compiler_arguments_parsing
 )
 
-#include "arguments_parser.c"
+#include "argument_parser.c"

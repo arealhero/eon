@@ -140,7 +140,7 @@ compile_and_run_unit_test()
 compile_and_run_unit_test eon/memory_ut.c
 compile_and_run_unit_test eon/containers_ut.c
 compile_and_run_unit_test eon/string_ut.c
-compile_and_run_unit_test eon/arguments_parser_ut.c
+compile_and_run_unit_test eon/argument_parser_ut.c
 compile_and_run_unit_test eon/diff_ut.c
 
 if [ $ENABLE_ASAN -eq 1 ];

@@ -33,7 +33,7 @@ struct Argument_Option
 };
 typedef struct Argument_Option Argument_Option;
 
-struct Arguments_Parser
+struct Argument_Parser
 {
     Arena* arena;
 
@@ -42,12 +42,12 @@ struct Arguments_Parser
 
     array(const String_View*, free_arguments);
 };
-typedef struct Arguments_Parser Arguments_Parser;
+typedef struct Argument_Parser Argument_Parser;
 
-internal inline Arguments_Parser create_arguments_parser(Arena* arena,
-                                                         const Argument_Option* options,
-                                                         const Size options_count);
+internal inline Argument_Parser create_argument_parser(Arena* arena,
+                                                       const Argument_Option* options,
+                                                       const Size options_count);
 
-internal void parse_arguments(Arguments_Parser* parser,
+internal void parse_arguments(Argument_Parser* parser,
                               const String_View* arguments,
                               const Size arguments_count);

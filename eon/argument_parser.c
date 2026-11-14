@@ -1,11 +1,11 @@
-#include "arguments_parser.h"
+#include "argument_parser.h"
 
 #include <eon/build_info.h>
 
-internal inline Arguments_Parser
-create_arguments_parser(Arena* arena, const Argument_Option* options, const Size options_count)
+internal inline Argument_Parser
+create_argument_parser(Arena* arena, const Argument_Option* options, const Size options_count)
 {
-    Arguments_Parser parser = {0};
+    Argument_Parser parser = {0};
     parser.arena = arena;
     parser.options = options;
     parser.options_count = options_count;
@@ -15,7 +15,7 @@ create_arguments_parser(Arena* arena, const Argument_Option* options, const Size
 
 // TODO(vlad): Improve error reporting here.
 internal void
-parse_arguments(Arguments_Parser* parser,
+parse_arguments(Argument_Parser* parser,
                 const String_View* arguments,
                 const Size arguments_count)
 {
