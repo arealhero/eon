@@ -274,4 +274,30 @@ maybe_unused internal void lower_ssa_to_mir(struct Compilation_Context* context)
 maybe_unused internal void add_isa_constraints_to_mir(struct Compilation_Context* context);
 maybe_unused internal void allocate_registers(struct Compilation_Context* context);
 maybe_unused internal void compute_layout_of_mir_blocks(struct Compilation_Context* context);
-maybe_unused internal void emit_binary_code(struct Compilation_Context* context);
+
+enum
+{
+    // NOTE(vlad): We treat rsp and rbp as an implicit hardware state so the SSA form is not violated.
+    X86_64_RAX = 1,
+    X86_64_RBX = 2,
+    X86_64_RCX = 3,
+    X86_64_RDX = 4,
+    X86_64_RSI = 5,
+    X86_64_RDI = 6,
+    X86_64_R8  = 7,
+    X86_64_R9  = 8,
+    X86_64_R10 = 9,
+    X86_64_R11 = 10,
+    X86_64_R12 = 11,
+    X86_64_R13 = 12,
+    X86_64_R14 = 13,
+    X86_64_R15 = 14,
+
+    X86_64_GPR_COUNT,
+
+    // TODO(vlad): Add X86_64_RBP for optimized builds because we can omit frame pointers in that case and use RBP as a
+    //             15th GPR. We should also consider supporting the '-fno-omit-frame-pointer' compilation option.
+
+    // TODO(vlad): Add 32, 16, and 8-bit registers.
+    // TODO(vlad): Add aarch64.
+};

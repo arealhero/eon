@@ -1,4 +1,5 @@
 #include <eon_cfg.h>
+#include <eon_code_generation.h>
 #include <eon_compilation_context.h>
 #include <eon_lexer.h>
 #include <eon_lexical_scopes.h>
@@ -227,6 +228,7 @@ eon_main(const String_View* arguments, const Size arguments_count)
 
 #include <eon_ast.c>
 #include <eon_cfg.c>
+#include <eon_code_generation.c>
 #include <eon_compilation_context.c>
 #include <eon_diagnostics.c>
 #include <eon_lexer.c>
