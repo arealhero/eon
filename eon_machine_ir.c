@@ -1763,7 +1763,7 @@ copy_register_bitset(Compilation_Context* context,
     return copy;
 }
 
-#define FOR_EACH_REGISTER_IN_SET(bitset, register_index)                \
+#define FOR_EACH_REGISTER_IN_SET_IMPL(bitset, register_index, word_index, word) \
     for (Index word_index = 0;                                          \
          word_index < (bitset)->words_count;                            \
          ++word_index)                                                  \
@@ -1771,8 +1771,11 @@ copy_register_bitset(Compilation_Context* context,
              word != 0;                                                 \
              word &= word - 1)                                          \
             if (((register_index) = (word_index * (size_of((bitset)->words[0]) * 8) \
-                                      + count_trailing_zero_bits(word))), \
+                                     + count_trailing_zero_bits(word))), \
                 true)
+
+#define FOR_EACH_REGISTER_IN_SET(bitset, register_index) \
+    FOR_EACH_REGISTER_IN_SET_IMPL(bitset, register_index, CONCATENATE(word_index_, __LINE__), CONCATENATE(word_, __LINE__))
 
 struct Interference_Graph
 {
@@ -2230,6 +2233,7 @@ allocate_registers(Compilation_Context* context)
             }
 
             Bool* color_was_used = allocate_array(context->scratch_arena, available_registers_count, Bool);
+            Bool* neighbour_color_was_used = allocate_array(context->scratch_arena, available_registers_count, Bool);
 
             for (Index order_index = perfect_elimination_order.virtual_register_indices_count - 1;
                  order_index >= 0;
@@ -2248,6 +2252,8 @@ allocate_registers(Compilation_Context* context)
                         Virtual_Register* neighbour = &function->virtual_registers[neighbour_index];
                         if (neighbour->assigned_physical_register != NO_REGISTER)
                         {
+                            // NOTE(vlad): Multiple neighbours can use the same color if they do not interfere with each
+                            //             other, so do not ASSERT that 'color_was_used[...] = false' here.
                             color_was_used[neighbour->assigned_physical_register] = true;
                         }
                     }
@@ -2269,54 +2275,83 @@ allocate_registers(Compilation_Context* context)
                     // NOTE(vlad): The specified register is not available so we need to find the
                     //             neighbour that aquired it and try to recolor him.
 
-                    Index neighbour_index = 0;
-                    FOR_EACH_REGISTER_IN_SET(&graph.adjacent_registers_set[this_register_index], neighbour_index)
+                    Index our_neighbour_index = 0;
+                    FOR_EACH_REGISTER_IN_SET(&graph.adjacent_registers_set[this_register_index], our_neighbour_index)
                     {
-                        Virtual_Register* neighbour = &function->virtual_registers[neighbour_index];
-                        if (neighbour->assigned_physical_register == forced_color)
+                        Virtual_Register* our_neighbour = &function->virtual_registers[our_neighbour_index];
+                        if (our_neighbour->assigned_physical_register != forced_color)
                         {
-                            // NOTE(vlad): We have a conflict here, trying to recolor the neighbour.
+                            continue;
+                        }
 
-                            if (neighbour->assigned_physical_register == neighbour->fixed_physical_register)
+                        // NOTE(vlad): We found the neighbour that conflicts with us.
+
+                        if (our_neighbour->fixed_physical_register == our_neighbour->assigned_physical_register)
+                        {
+                            // NOTE(vlad): Uh-oh, we cannot recolor the neighbour because the ISA forced us
+                            //             to pick this color. That means that the spilling is unavoidable, so
+                            //             we leave the neighbour alone.
+                            this_register->fixed_physical_register = SPILLED_TO_STACK;
+                            registers_were_spilled = true;
+                            goto color_next_virtual_register;
+                        }
+
+                        // NOTE(vlad): Sanity check: if the ISA forces us to choose the physical register
+                        //             then we MUST choose it.
+                        ASSERT(our_neighbour->fixed_physical_register == NO_REGISTER);
+
+                        neighbour_color_was_used[NO_REGISTER] = true;
+                        neighbour_color_was_used[forced_color] = true; // NOTE(vlad): We will take the forced color ourselves.
+
+                        // NOTE(vlad): Computing what colors are used by the neighbours of our neighbour.
+                        {
+                            Index his_neighbour_index = 0;
+                            FOR_EACH_REGISTER_IN_SET(&graph.adjacent_registers_set[our_neighbour_index], his_neighbour_index)
                             {
-                                // NOTE(vlad): Uh-oh, we cannot recolor the neighbour because the ISA forced us
-                                //             to pick this color. That means that the spilling is unavoidable, so
-                                //             we leave the neighbour alone.
-                                this_register->fixed_physical_register = SPILLED_TO_STACK;
-                                registers_were_spilled = true;
-                                goto color_next_virtual_register;
+                                Virtual_Register* his_neighbour = &function->virtual_registers[his_neighbour_index];
+                                if (his_neighbour->assigned_physical_register != NO_REGISTER)
+                                {
+                                    // NOTE(vlad): Multiple neighbours can use the same color
+                                    //             if they do not interfere with each other, so do not ASSERT that
+                                    //             'neighbour_color_was_used[...] = false' here.
+                                    neighbour_color_was_used[his_neighbour->assigned_physical_register] = true;
+                                }
                             }
+                        }
 
-                            // NOTE(vlad): Sanity check: if the ISA forces us to choose the physical register
-                            //             then we MUST choose it.
-                            ASSERT(neighbour->fixed_physical_register == NO_REGISTER);
-
-                            Index new_color_of_neighbour = NO_REGISTER;
+                        // NOTE(vlad): Recoloring our neighbour.
+                        {
+                            Index new_color_of_our_neighbour = NO_REGISTER;
                             for (Index color_index = 0;
                                  color_index < available_registers_count;
                                  ++color_index)
                             {
-                                if (!color_was_used[color_index])
+                                if (!neighbour_color_was_used[color_index])
                                 {
                                     // TODO(vlad): Check that this color can be chosen: for example, we cannot just use the GPR64 if we MUST use FP64.
 
-                                    new_color_of_neighbour = color_index;
+                                    new_color_of_our_neighbour = color_index;
                                     break;
                                 }
                             }
 
-                            if (new_color_of_neighbour == NO_REGISTER)
+                            ASSERT(new_color_of_our_neighbour != forced_color);
+
+                            if (new_color_of_our_neighbour == NO_REGISTER)
                             {
                                 // NOTE(vlad): We have to spill here because there are no available physical registers
                                 //             left for the neighbour.
-                                neighbour->assigned_physical_register = SPILLED_TO_STACK;
+                                our_neighbour->assigned_physical_register = SPILLED_TO_STACK;
                                 registers_were_spilled = true;
                             }
                             else
                             {
-                                neighbour->assigned_physical_register = new_color_of_neighbour;
+                                our_neighbour->assigned_physical_register = new_color_of_our_neighbour;
                             }
                         }
+
+                        fill_memory_with_zeros(as_bytes(neighbour_color_was_used),
+                                               size_of(neighbour_color_was_used[0]) * available_registers_count);
                     }
 
                     // NOTE(vlad): We can safely assign the forced color because all conflicting neighbours were
@@ -2388,7 +2423,8 @@ allocate_registers(Compilation_Context* context)
                 }
 
         color_next_virtual_register:
-                fill_memory_with_zeros(as_bytes(color_was_used), size_of(color_was_used[0]) * available_registers_count);
+                fill_memory_with_zeros(as_bytes(color_was_used),
+                                       size_of(color_was_used[0]) * available_registers_count);
             }
         }
 
