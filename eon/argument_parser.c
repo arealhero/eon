@@ -10,21 +10,12 @@ create_argument_parser(Arena* arena, const Argument_Option* options, const Size 
     parser.options = options;
     parser.options_count = options_count;
     parser.option_was_set = allocate_array(arena, options_count, Bool);
-    return parser;
-}
 
-// TODO(vlad): Improve error reporting here.
-internal void
-parse_arguments(Argument_Parser* parser,
-                const String_View* arguments,
-                const Size arguments_count)
-{
-#if EON_SLOW_BUILD
     for (Index option_index = 0;
-         option_index < parser->options_count;
+         option_index < parser.options_count;
          ++option_index)
     {
-        const Argument_Option* option = &parser->options[option_index];
+        const Argument_Option* option = &parser.options[option_index];
 
         // NOTE(vlad): Validating option name.
         {
@@ -50,12 +41,12 @@ parse_arguments(Argument_Parser* parser,
         }
 
         for (Index another_option_index = 0;
-             another_option_index < parser->options_count;
+             another_option_index < parser.options_count;
              ++another_option_index)
         {
             if (option_index != another_option_index)
             {
-                const Argument_Option* another_option = &parser->options[another_option_index];
+                const Argument_Option* another_option = &parser.options[another_option_index];
 
                 if (strings_are_equal(option->name, another_option->name))
                 {
@@ -64,8 +55,16 @@ parse_arguments(Argument_Parser* parser,
             }
         }
     }
-#endif
 
+    return parser;
+}
+
+// TODO(vlad): Improve error reporting here.
+internal void
+parse_arguments(Argument_Parser* parser,
+                const String_View* arguments,
+                const Size arguments_count)
+{
     for (Index argument_index = 0;
          argument_index < arguments_count;
          ++argument_index)
@@ -113,10 +112,17 @@ parse_arguments(Argument_Parser* parser,
 
         if (!option_was_handled)
         {
-            append_array(parser->arena,
-                         parser->free_arguments,
-                         const String_View*,
-                         arguments + argument_index);
+            if (argument_index == 0)
+            {
+                parser->executable_name = arguments[argument_index];
+            }
+            else
+            {
+                append_array(parser->arena,
+                             parser->free_arguments,
+                             const String_View*,
+                             arguments + argument_index);
+            }
         }
     }
 
@@ -148,3 +154,4 @@ parse_arguments(Argument_Parser* parser,
         }
     }
 }
+

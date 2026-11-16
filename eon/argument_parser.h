@@ -41,6 +41,8 @@ struct Argument_Parser
     Bool* option_was_set;
 
     array(const String_View*, free_arguments);
+
+    String_View executable_name;
 };
 typedef struct Argument_Parser Argument_Parser;
 

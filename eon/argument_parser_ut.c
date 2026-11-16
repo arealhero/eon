@@ -51,6 +51,7 @@ test_example_compiler_arguments_parsing(Test_Context* test_context)
 
     {
         const String_View arguments[] = {
+            string_view("executable-name"),
             string_view("filename"),
             string_view("--arch"),
             string_view("x86_64"),
@@ -66,6 +67,8 @@ test_example_compiler_arguments_parsing(Test_Context* test_context)
 
         parse_arguments(&parser, arguments, arguments_count);
 
+        ASSERT_STRINGS_ARE_EQUAL(parser.executable_name, "executable-name");
+
         ASSERT_EQUAL(configuration.verbose, true);
         ASSERT_STRINGS_ARE_EQUAL(configuration.arch, "x86_64");
         ASSERT_STRINGS_ARE_EQUAL(configuration.object_file_type, "elf64");
@@ -76,6 +79,7 @@ test_example_compiler_arguments_parsing(Test_Context* test_context)
 
     {
         const String_View arguments[] = {
+            string_view("executable-name"),
             string_view("--verbose"),
             string_view("--object-file-type"),
             string_view("elf64"),
@@ -89,6 +93,8 @@ test_example_compiler_arguments_parsing(Test_Context* test_context)
 
         parse_arguments(&parser, arguments, arguments_count);
 
+        ASSERT_STRINGS_ARE_EQUAL(parser.executable_name, "executable-name");
+
         ASSERT_EQUAL(configuration.verbose, true);
         ASSERT_STRINGS_ARE_EQUAL(configuration.arch, "x86_64");
         ASSERT_STRINGS_ARE_EQUAL(configuration.object_file_type, "elf64");
@@ -99,6 +105,7 @@ test_example_compiler_arguments_parsing(Test_Context* test_context)
 
     {
         const String_View arguments[] = {
+            string_view("executable-name"),
             string_view("--arch"),
             string_view("aarch64"),
             string_view("--object-file-type"),
@@ -113,6 +120,8 @@ test_example_compiler_arguments_parsing(Test_Context* test_context)
 
         parse_arguments(&parser, arguments, arguments_count);
 
+        ASSERT_STRINGS_ARE_EQUAL(parser.executable_name, "executable-name");
+
         ASSERT_EQUAL(configuration.verbose, false);
         ASSERT_STRINGS_ARE_EQUAL(configuration.arch, "aarch64");
         ASSERT_STRINGS_ARE_EQUAL(configuration.object_file_type, "pe64");
@@ -123,6 +132,7 @@ test_example_compiler_arguments_parsing(Test_Context* test_context)
 
     {
         const String_View arguments[] = {
+            string_view("executable-name"),
             string_view("filename"),
         };
         const Size arguments_count = NUMBER_OF_STATIC_ARRAY_ELEMENTS(arguments);
@@ -132,6 +142,8 @@ test_example_compiler_arguments_parsing(Test_Context* test_context)
         configuration = (Test_Configuration){0};
 
         parse_arguments(&parser, arguments, arguments_count);
+
+        ASSERT_STRINGS_ARE_EQUAL(parser.executable_name, "executable-name");
 
         ASSERT_EQUAL(configuration.verbose, false);
         ASSERT_STRINGS_ARE_EQUAL(configuration.arch, "x86_64");
