@@ -128,23 +128,6 @@ emit_imm64(Compilation_Context* context,
     }
 }
 
-// NOTE(vlad): Hardware sign-extends to 64 bits, so we need to check if
-//             sign-extended lower byte of value == value.
-internal inline Bool
-x86_fits_imm8(const u64 value)
-{
-    const u64 sign_bit = 1 << 7;
-    return value == (((value & 0xFF) ^ sign_bit) - sign_bit);
-}
-
-// NOTE(vlad): Same idea as 'x86_fits_imm8', but 32-bit wide.
-internal inline Bool
-x86_fits_imm32(const u64 value)
-{
-    const u64 sign_bit = 1u << 31;
-    return value == (((value & 0xFFFFFFFF) ^ sign_bit) - sign_bit);
-}
-
 internal void
 emit_binary_code(Compilation_Context* context)
 {
@@ -191,13 +174,68 @@ emit_binary_code(Compilation_Context* context)
                         } break;
 
                         case MIR_ADD:
-                        {
-                            FAIL("[MIR] ADD instruction is not supported yet.");
-                        } break;
-
                         case MIR_SUBTRACT:
                         {
-                            FAIL("[MIR] SUBTRACT instruction is not supported yet.");
+                            ASSERT(instruction->definitions_count == 1);
+                            ASSERT(instruction->uses_count == 2);
+
+                            ASSERT(instruction->implicit_definitions_count == 0);
+                            ASSERT(instruction->implicit_uses_count == 0);
+
+                            const MIR_Operand* destination = &instruction->definitions[0];
+                            const MIR_Operand* lhs = &instruction->uses[0];
+                            const MIR_Operand* rhs = &instruction->uses[1];
+
+                            Size binary_code_size = 0;
+
+                            ASSERT(destination->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+                            const Virtual_Register* destination_register
+                                = &function->virtual_registers[destination->virtual_register_index];
+
+                            ASSERT(lhs->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+                            const Virtual_Register* lhs_register
+                                = &function->virtual_registers[lhs->virtual_register_index];
+
+                            if (destination_register->assigned_physical_register != lhs_register->assigned_physical_register)
+                            {
+                                // NOTE(vlad): We need to move the lhs value into the destination register first
+                                //             because add/sub instructions are two-address on x86.
+                                binary_code_size += 3;
+                            }
+
+                            switch (rhs->kind)
+                            {
+                                case MIR_OPERAND_NONE:
+                                case MIR_OPERAND_BLOCK:
+                                case MIR_OPERAND_STACK_SLOT:
+                                {
+                                    UNREACHABLE();
+                                } break;
+
+                                case MIR_OPERAND_VIRTUAL_REGISTER:
+                                {
+                                    // NOTE(vlad): REX + add/sub opcode + modrm.
+                                    binary_code_size += 3;
+                                } break;
+
+                                case MIR_OPERAND_IMMEDIATE_VALUE:
+                                {
+                                    if (x86_fits_imm8(rhs->immediate_value))
+                                    {
+                                        // NOTE(vlad): REX + add/sub opcode + modrm + imm8.
+                                        binary_code_size += 4;
+                                    }
+                                    else
+                                    {
+                                        ASSERT(x86_fits_imm32(rhs->immediate_value));
+
+                                        // NOTE(vlad): REX + add/sub opcode + modrm + imm32.
+                                        binary_code_size += 7;
+                                    }
+                                } break;
+                            }
+
+                            instruction->binary_code_size = binary_code_size;
                         } break;
 
                         case MIR_MULTIPLY:
@@ -442,7 +480,7 @@ emit_binary_code(Compilation_Context* context)
         {
             const MIR_Block* block = layout->blocks[block_index];
 
-            for (MIR_Instruction* instruction = block->first_instruction;
+            for (const MIR_Instruction* instruction = block->first_instruction;
                  instruction != NULL;
                  instruction = instruction->next_instruction)
             {
@@ -462,13 +500,144 @@ emit_binary_code(Compilation_Context* context)
                     } break;
 
                     case MIR_ADD:
-                    {
-                        FAIL("[MIR] ADD instruction is not supported yet.");
-                    } break;
-
                     case MIR_SUBTRACT:
                     {
-                        FAIL("[MIR] SUBTRACT instruction is not supported yet.");
+                        ASSERT(instruction->definitions_count == 1);
+                        ASSERT(instruction->uses_count == 2);
+
+                        ASSERT(instruction->implicit_definitions_count == 0);
+                        ASSERT(instruction->implicit_uses_count == 0);
+
+                        const MIR_Operand* destination = &instruction->definitions[0];
+                        const MIR_Operand* lhs = &instruction->uses[0];
+                        const MIR_Operand* rhs = &instruction->uses[1];
+
+                        ASSERT(destination->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+                        const Virtual_Register* destination_virtual_register
+                            = &function->virtual_registers[destination->virtual_register_index];
+
+                        ASSERT(lhs->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+                        const Virtual_Register* lhs_virtual_register
+                            = &function->virtual_registers[lhs->virtual_register_index];
+
+                        const Index destination_register = destination_virtual_register->assigned_physical_register;
+                        const Index lhs_register = lhs_virtual_register->assigned_physical_register;
+
+                        ASSERT(destination_register != NO_REGISTER);
+                        ASSERT(lhs_register != NO_REGISTER);
+
+                        const Index destination_register_number = get_x86_64_register_number(destination_register);
+                        const Index lhs_register_number = get_x86_64_register_number(lhs_register);
+
+                        if (destination_register != lhs_register)
+                        {
+                            x86_64_REX rex = {0};
+                            rex.w = true;
+
+                            if (destination_register >= X86_64_R8)
+                            {
+                                rex.r = true;
+                            }
+
+                            if (lhs_register >= X86_64_R8)
+                            {
+                                rex.b = true;
+                            }
+
+                            emit_x86_64_rex_byte(context, function, rex);
+                            emit_byte(context, function, 0x89); // NOTE(vlad): mov r64, r64.
+
+                            Byte modrm = 0xC0;
+                            modrm |= (lhs_register_number & 0x07) << 3;
+                            modrm |= (destination_register_number & 0x07);
+                            emit_byte(context, function, modrm);
+                        }
+
+                        switch (rhs->kind)
+                        {
+                            case MIR_OPERAND_NONE:
+                            case MIR_OPERAND_BLOCK:
+                            case MIR_OPERAND_STACK_SLOT:
+                            {
+                                UNREACHABLE();
+                            } break;
+
+                            case MIR_OPERAND_VIRTUAL_REGISTER:
+                            {
+                                ASSERT(lhs->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+                                const Virtual_Register* rhs_virtual_register
+                                    = &function->virtual_registers[rhs->virtual_register_index];
+
+                                const Index rhs_register = rhs_virtual_register->assigned_physical_register;
+                                ASSERT(rhs_register != NO_REGISTER);
+
+                                const Index rhs_register_number = get_x86_64_register_number(rhs_register);
+
+                                x86_64_REX rex = {0};
+                                rex.w = true;
+
+                                if (destination_register >= X86_64_R8)
+                                {
+                                    rex.r = true;
+                                }
+
+                                if (rhs_register >= X86_64_R8)
+                                {
+                                    rex.b = true;
+                                }
+
+                                const Byte operation_opcode = (instruction->opcode == MIR_ADD) ? 0x03 : 0x2B;
+
+                                emit_x86_64_rex_byte(context, function, rex);
+                                emit_byte(context, function, operation_opcode);
+
+                                Byte modrm = 0xC0;
+                                modrm |= (destination_register_number & 0x07) << 3;
+                                modrm |= (rhs_register_number & 0x07);
+                                emit_byte(context, function, modrm);
+                            } break;
+
+                            case MIR_OPERAND_IMMEDIATE_VALUE:
+                            {
+                                x86_64_REX rex = {0};
+                                rex.w = true;
+
+                                if (destination_register >= X86_64_R8)
+                                {
+                                    rex.b = true;
+                                }
+
+                                emit_x86_64_rex_byte(context, function, rex);
+
+                                const u64 value = rhs->immediate_value;
+                                const Byte alu_operation = (instruction->opcode == MIR_ADD) ? 0 : 5;
+
+                                if (x86_fits_imm8(value))
+                                {
+                                    emit_byte(context, function, 0x83);
+
+                                    Byte modrm = 0xC0;
+                                    modrm |= alu_operation << 3;
+                                    modrm |= (destination_register_number & 0x07);
+
+                                    emit_byte(context, function, modrm);
+                                    emit_byte(context, function, (Byte)(value));
+                                }
+                                else
+                                {
+                                    ASSERT(x86_fits_imm32(value));
+
+                                    emit_byte(context, function, 0x81);
+
+                                    Byte modrm = 0xC0;
+                                    modrm |= alu_operation << 3;
+                                    modrm |= (destination_register_number & 0x07);
+
+                                    emit_byte(context, function, modrm);
+                                    emit_imm32(context, function, (u32)(value));
+                                }
+                            } break;
+                        }
                     } break;
 
                     case MIR_MULTIPLY:

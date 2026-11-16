@@ -301,3 +301,21 @@ enum
     // TODO(vlad): Add 32, 16, and 8-bit registers.
     // TODO(vlad): Add aarch64.
 };
+
+// NOTE(vlad): Hardware sign-extends to 64 bits, so we need to check if
+//             sign-extended lower byte of value == value.
+internal inline Bool
+x86_fits_imm8(const u64 value)
+{
+    const u64 sign_bit = 1 << 7;
+    return value == (((value & 0xFF) ^ sign_bit) - sign_bit);
+}
+
+// NOTE(vlad): Same idea as 'x86_fits_imm8', but 32-bit wide.
+internal inline Bool
+x86_fits_imm32(const u64 value)
+{
+    const u64 sign_bit = 1u << 31;
+    return value == (((value & 0xFFFFFFFF) ^ sign_bit) - sign_bit);
+}
+

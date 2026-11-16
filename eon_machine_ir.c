@@ -1018,9 +1018,7 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
                     // NOTE(vlad): 'nop' instruction has no constraints.
                 } break;
 
-                case MIR_ADD:
                 case MIR_SHRINK_STACK:
-                case MIR_SUBTRACT:
                 case MIR_GROW_STACK:
                 {
                     // NOTE(vlad): These instructions clobber EFLAGS, but since we rematerialize them before
@@ -1028,6 +1026,76 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
                     //
                     //             But note that this will not be true if we would implement the peephole optimization
                     //             pass, so be careful.
+                } break;
+
+                case MIR_ADD:
+                case MIR_SUBTRACT:
+                {
+                    ASSERT(instruction->definitions_count == 1);
+                    ASSERT(instruction->uses_count == 2);
+
+                    MIR_Operand* destination = &instruction->definitions[0];
+                    ASSERT(destination->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+
+                    MIR_Operand* first_argument = &instruction->uses[0];
+                    MIR_Operand* second_argument = &instruction->uses[1];
+
+                    if (first_argument->kind == MIR_OPERAND_IMMEDIATE_VALUE
+                        && second_argument->kind == MIR_OPERAND_IMMEDIATE_VALUE)
+                    {
+                        FAIL("[MIR] Found instruction with both arguments being immediage values. "
+                             "Seems like we have a bug in the constant folding pass.");
+                    }
+
+                    switch (first_argument->kind)
+                    {
+                        case MIR_OPERAND_NONE:
+                        case MIR_OPERAND_BLOCK:
+                        case MIR_OPERAND_STACK_SLOT:
+                        {
+                            UNREACHABLE();
+                        } break;
+
+                        case MIR_OPERAND_VIRTUAL_REGISTER:
+                        {
+                            // NOTE(vlad): On x86, destination and first argument must match because add/sub
+                            //             instructions are two-address. That said, we need to prefer coloring
+                            //             the destination and the first argument the same.
+
+                            add_coalescing_hint_to_instruction(context,
+                                                               instruction,
+                                                               instruction->definitions[0].virtual_register_index,
+                                                               first_argument->virtual_register_index);
+                        } break;
+
+                        case MIR_OPERAND_IMMEDIATE_VALUE:
+                        {
+                            FAIL("[MIR] Should we swap first and second arguments here?");
+                        } break;
+                    }
+
+                    if (second_argument->kind == MIR_OPERAND_IMMEDIATE_VALUE
+                        && !x86_fits_imm32(second_argument->immediate_value))
+                    {
+                        // NOTE(vlad): 'add/sub r64, imm' supports at most a sign-extended imm32,
+                        //             so we need to materialize imm64 into a fresh virtual register.
+
+                        MIR_Instruction* move_instruction = prepend_instruction(context, block, instruction);
+                        move_instruction->opcode = MIR_MOVE;
+
+                        const Index temp_register_index = create_virtual_register(function);
+
+                        MIR_Operand* temp_operand = add_new_def_operand(move_instruction);
+                        temp_operand->kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                        temp_operand->virtual_register_index = temp_register_index;
+
+                        MIR_Operand* immediate_value_operand = add_new_use_operand(move_instruction);
+                        *immediate_value_operand = *second_argument;
+
+                        add_isa_constraints_to_mir_instruction(context, function, block, move_instruction);
+
+                        *second_argument = *temp_operand;
+                    }
                 } break;
 
                 case MIR_MULTIPLY:
