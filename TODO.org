@@ -1,0 +1,3 @@
+* 2026-11 [0/2]
+- [ ] Add general test cases for the ~eon~ compiler executable.
+- [ ] ~Argument_Parser~: improve error handling.
