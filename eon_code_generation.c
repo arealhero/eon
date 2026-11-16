@@ -448,7 +448,14 @@ emit_binary_code(Compilation_Context* context)
 
                         case MIR_JUMP:
                         {
-                            FAIL("[MIR] JUMP instruction is not supported yet.");
+                            ASSERT(instruction->definitions_count == 0);
+                            ASSERT(instruction->uses_count == 1);
+
+                            ASSERT(instruction->implicit_definitions_count == 0);
+                            ASSERT(instruction->implicit_uses_count == 0);
+
+                            // NOTE(vlad): jmp opcode + rel32 offset.
+                            instruction->binary_code_size = 1 + 4;
                         } break;
 
                         case MIR_JUMP_IF_FALSE:
@@ -997,7 +1004,27 @@ emit_binary_code(Compilation_Context* context)
 
                     case MIR_JUMP:
                     {
-                        FAIL("[MIR] JUMP instruction is not supported yet.");
+                        ASSERT(instruction->definitions_count == 0);
+                        ASSERT(instruction->uses_count == 1);
+
+                        ASSERT(instruction->implicit_definitions_count == 0);
+                        ASSERT(instruction->implicit_uses_count == 0);
+
+                        const MIR_Operand* destination_operand = &instruction->uses[0];
+                        ASSERT(destination_operand->kind == MIR_OPERAND_BLOCK);
+
+                        const Size JMP_INSTRUCTION_SIZE = 5;
+
+                        const MIR_Block* destination_block = destination_operand->block;
+                        const Size destination_offset = destination_block->offset_from_the_function_start;
+                        const Size current_offset = function->binary_code_count;
+
+                        // TODO(vlad): Implement the near-jump optimization when the relative offset fits into the imm8.
+                        // NOTE(vlad): We can do the arithmetic in u32 because it does not matter bitwise.
+                        const u32 relative_offset = (u32)(destination_offset - (current_offset + JMP_INSTRUCTION_SIZE));
+
+                        emit_byte(context, function, 0xE9);
+                        emit_imm32(context, function, relative_offset);
                     } break;
 
                     case MIR_JUMP_IF_FALSE:
