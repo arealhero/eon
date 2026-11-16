@@ -536,12 +536,12 @@ emit_binary_code(Compilation_Context* context)
 
                             if (destination_register >= X86_64_R8)
                             {
-                                rex.r = true;
+                                rex.b = true;
                             }
 
                             if (lhs_register >= X86_64_R8)
                             {
-                                rex.b = true;
+                                rex.r = true;
                             }
 
                             emit_x86_64_rex_byte(context, function, rex);
