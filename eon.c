@@ -9,6 +9,7 @@
 #include <eon_tac.h>
 #include <eon_types.h>
 
+#include <eon/argument_parser.h>
 #include <eon/default_arena_provider.h>
 #include <eon/io.h>
 #include <eon/object/elf.h>
@@ -99,16 +100,59 @@ get_object_file_extension(Compilation_Context* context)
     }
 }
 
+struct Configuration
+{
+    String_View filename;
+    String_View output_filename;
+};
+typedef struct Configuration Configuration;
+
 internal int
 eon_main(const String_View* arguments, const Size arguments_count)
 {
-    if (arguments_count != 2)
-    {
-        print_usage();
-        return EXIT_FAILURE;
-    }
+    Configuration configuration = {0};
 
-    const String_View filename = arguments[1];
+    Arena* command_line_parser_arena = create_arena("command-line-parser", MiB(1), MiB(1));
+
+    {
+        const Argument_Option options[] = {
+            {
+                .name = string_view("--output"),
+                .kind = OPTION_WITH_STRING_ARGUMENT,
+                .argument_name = string_view("filename"),
+                .description = string_view("Output object filename"),
+                .string = &configuration.output_filename,
+            },
+        };
+
+        Argument_Parser parser = create_argument_parser(command_line_parser_arena,
+                                                        options,
+                                                        NUMBER_OF_STATIC_ARRAY_ELEMENTS(options));
+
+        parse_command_line_arguments(&parser, arguments, arguments_count);
+
+        if (parser.free_arguments_count == 0)
+        {
+            println("Error: source file was not provided.");
+            print_usage();
+            return EXIT_FAILURE;
+        }
+        else if (parser.free_arguments_count > 1)
+        {
+            print("Error: unknown arguments encountered:");
+            for (Index argument_index = 1;
+                 argument_index < parser.free_arguments_count;
+                 ++argument_index)
+            {
+                print(" {}", *parser.free_arguments[argument_index]);
+            }
+            println("");
+            print_usage();
+            return EXIT_FAILURE;
+        }
+
+        configuration.filename = *parser.free_arguments[0];
+    }
 
     Arena* source_code_arena = create_arena("source-code", MiB(10), MiB(1));
 
@@ -119,18 +163,18 @@ eon_main(const String_View* arguments, const Size arguments_count)
 
     {
         START_TIMER(reading_file);
-        const Read_File_Result result = platform_read_entire_text_file(source_code_arena, filename);
+        const Read_File_Result result = platform_read_entire_text_file(source_code_arena, configuration.filename);
         END_TIMER(reading_file, "File read");
 
         if (result.status != READ_FILE_SUCCESS)
         {
-            println("Error: failed to read file {}", filename);
+            println("Error: failed to read file {}", configuration.filename);
             destroy_arena(source_code_arena);
             return EXIT_FAILURE;
         }
 
         Source_File source_file = {0};
-        source_file.filename = filename;
+        source_file.filename = configuration.filename;
         source_file.code = string_view(result.content);
 
         START_TIMER(context_created);
@@ -180,25 +224,31 @@ eon_main(const String_View* arguments, const Size arguments_count)
     if (!has_diagnostic_messages(&context))
     {
         START_TIMER(object_file_writing);
-        String_View object_file_prefix = filename;
+        String_View object_filename = configuration.output_filename;
 
-        if (filename.length > 4)
+        if (strings_are_equal(object_filename, ""))
         {
-            String_View possible_extension = get_substring(object_file_prefix,
-                                                           object_file_prefix.length - 4,
-                                                           4);
+            String_View object_file_prefix = configuration.filename;
 
-            if (strings_are_equal(possible_extension, ".eon"))
+            if (configuration.filename.length > 4)
             {
-                chop_string_suffix(&object_file_prefix, 4);
-            }
-        }
+                String_View possible_extension = get_substring(object_file_prefix,
+                                                               object_file_prefix.length - 4,
+                                                               4);
 
-        const String_View object_file_extension = get_object_file_extension(&context);
-        const String_View object_filename = string_view(format_string(context.scratch_arena,
-                                                                      "{}.{}",
-                                                                      object_file_prefix,
-                                                                      object_file_extension));
+                if (strings_are_equal(possible_extension, ".eon"))
+                {
+                    chop_string_suffix(&object_file_prefix, 4);
+                }
+            }
+
+            const String_View object_file_extension = get_object_file_extension(&context);
+
+            object_filename = string_view(format_string(context.scratch_arena,
+                                                        "{}.{}",
+                                                        object_file_prefix,
+                                                        object_file_extension));
+        }
 
         // TODO(vlad): Do not pass arena here. We can construct the zero-terminated filename ourselves.
         const Platform_File_State file_state = platform_open_binary_file_for_writing(context.scratch_arena,
@@ -239,6 +289,7 @@ eon_main(const String_View* arguments, const Size arguments_count)
 #include <eon_tac.c>
 #include <eon_types.c>
 
+#include <eon/argument_parser.c>
 #include <eon/io.c>
 #include <eon/memory.c>
 #include <eon/string.c>
