@@ -50,6 +50,6 @@ internal inline Argument_Parser create_argument_parser(Arena* arena,
                                                        const Argument_Option* options,
                                                        const Size options_count);
 
-internal void parse_arguments(Argument_Parser* parser,
-                              const String_View* arguments,
-                              const Size arguments_count);
+internal void parse_command_line_arguments(Argument_Parser* parser,
+                                           const String_View* arguments,
+                                           const Size arguments_count);

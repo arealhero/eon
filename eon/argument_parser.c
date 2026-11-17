@@ -61,9 +61,9 @@ create_argument_parser(Arena* arena, const Argument_Option* options, const Size 
 
 // TODO(vlad): Improve error reporting here.
 internal void
-parse_arguments(Argument_Parser* parser,
-                const String_View* arguments,
-                const Size arguments_count)
+parse_command_line_arguments(Argument_Parser* parser,
+                             const String_View* arguments,
+                             const Size arguments_count)
 {
     for (Index argument_index = 0;
          argument_index < arguments_count;

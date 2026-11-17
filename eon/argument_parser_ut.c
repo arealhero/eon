@@ -65,7 +65,7 @@ test_example_compiler_arguments_parsing(Test_Context* test_context)
 
         configuration = (Test_Configuration){0};
 
-        parse_arguments(&parser, arguments, arguments_count);
+        parse_command_line_arguments(&parser, arguments, arguments_count);
 
         ASSERT_STRINGS_ARE_EQUAL(parser.executable_name, "executable-name");
 
@@ -91,7 +91,7 @@ test_example_compiler_arguments_parsing(Test_Context* test_context)
 
         configuration = (Test_Configuration){0};
 
-        parse_arguments(&parser, arguments, arguments_count);
+        parse_command_line_arguments(&parser, arguments, arguments_count);
 
         ASSERT_STRINGS_ARE_EQUAL(parser.executable_name, "executable-name");
 
@@ -118,7 +118,7 @@ test_example_compiler_arguments_parsing(Test_Context* test_context)
 
         configuration = (Test_Configuration){0};
 
-        parse_arguments(&parser, arguments, arguments_count);
+        parse_command_line_arguments(&parser, arguments, arguments_count);
 
         ASSERT_STRINGS_ARE_EQUAL(parser.executable_name, "executable-name");
 
@@ -141,7 +141,7 @@ test_example_compiler_arguments_parsing(Test_Context* test_context)
 
         configuration = (Test_Configuration){0};
 
-        parse_arguments(&parser, arguments, arguments_count);
+        parse_command_line_arguments(&parser, arguments, arguments_count);
 
         ASSERT_STRINGS_ARE_EQUAL(parser.executable_name, "executable-name");
 
