@@ -23,6 +23,14 @@ struct Argument_Option
         String_View* string;
     };
 
+    union
+    {
+        // NOTE(vlad): Should fill this in if this option accepts an argument.
+        String_View argument_name;
+    };
+
+    String_View description;
+
     Bool required;
 
     union

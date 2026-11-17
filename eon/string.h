@@ -184,6 +184,7 @@ internal inline Format_Type_Info INTERNAL_format_tag_f64(const f64 number);
 FOR_EACH_INTEGER_TYPE(DECLARE_FORMAT_TAG_FOR_INTEGER)
 #undef DECLARE_FORMAT_TAG_FOR_INTEGER
 
+// TODO(vlad): Change the return type to 'String_View'?
 internal String format_string_impl(struct Arena* const arena,
                                    const String_View format,
                                    const Size number_of_arguments,

@@ -1,0 +1,18 @@
+main: () -> s32 =
+{
+    n: mutable _ = 12;
+
+    prev: mutable _ = 0;
+    cur: mutable _ = 1;
+
+    while n != 0
+    {
+        sum := prev + cur;
+        prev = cur;
+        cur = sum;
+
+        n = n - 1;
+    }
+
+    return prev;
+}

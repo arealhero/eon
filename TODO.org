@@ -1,3 +1,5 @@
-* 2026-11 [0/2]
+* 2026-11 [0/4]
 - [ ] Add general test cases for the ~eon~ compiler executable.
 - [ ] ~Argument_Parser~: improve error handling.
+- [ ] Move test utils from ~tests/~ to ~eon/test-utils/~
+- [ ] Move ~diff.h~ to ~eon/test-utils/~

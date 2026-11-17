@@ -9,6 +9,7 @@
 #endif
 
 #include <eon/build_info.h>
+#include <eon/io.h>
 #include <eon/string.h>
 
 int

@@ -10,15 +10,21 @@ typedef u32 DWORD;
 typedef s32 LONG;
 typedef s64 LONGLONG;
 typedef u64 ULONGLONG;
+typedef u64 ULONG_PTR;
 
 typedef s32 BOOL;
 
 typedef Byte BYTE;
 
+typedef BYTE* PBYTE; // TODO(vlad): Add 'near' attribute?
+typedef BYTE* LPBYTE; // TODO(vlad): Add 'far' attribute?
+
 typedef USize SIZE_T;
 typedef USize DWORD_PTR;
 
 typedef void* HANDLE;
+typedef HANDLE* PHANDLE;
+typedef char* LPSTR;
 typedef const char* LPCSTR;
 typedef const void* LPCVOID;
 typedef void* LPVOID;

@@ -4,6 +4,7 @@
 #include <eon/common.h>
 #include <eon/keywords.h>
 
+// FIXME(vlad): Add the 'platform_' prefix.
 internal void write_data_to_stdout(const Byte* data, const Size data_size);
 
 #if OS_LINUX

@@ -68,6 +68,9 @@ call :compile_and_run_unit_test eon_tac_ut.c || exit /B 1
 call :compile_and_run_unit_test eon_cfg_ut.c || exit /B 1
 call :compile_and_run_unit_test eon_ssa_ut.c || exit /B 1
 
+echo.
+echo === Running pipeline tests ===
+
 if not exist build\tests\pipeline mkdir build\tests\pipeline
 call :compile tests\pipeline\run_pipeline_test.c build\tests\pipeline\run_pipeline_test || exit /B 1
 
@@ -80,6 +83,14 @@ call :run_pipeline_test tests\pipeline\regressions\if-statement-with-return || e
 call :run_pipeline_test tests\pipeline\regressions\nested-if-statement || exit /B 1
 call :run_pipeline_test tests\pipeline\regressions\while-loop-with-break-and-continue || exit /B 1
 call :run_pipeline_test tests\pipeline\regressions\while-loop-with-dead-code-before-it || exit /B 1
+
+echo.
+echo === Running general tests ===
+
+if not exist build\tests\general mkdir build\tests\general
+call :compile tests\general\run_general_test.c build\tests\general\run_general_test || exit /B 1
+
+call :run_general_test tests\general\fibonacci-without-recursion || exit /B 1
 
 exit /B %ERRORLEVEL%
 
@@ -177,3 +188,27 @@ endlocal
 
 goto :eof
 REM NOTE: End of ':run_pipeline_test'.
+
+REM Usage: call :run_general_test <test-directory>.
+:run_general_test
+setlocal
+
+set test_directory=%~1
+
+:: Remove trailing backslash if it exists
+if "%test_directory:~-1%"=="\" set "test_directory=%test_directory:~0,-1%"
+
+:: Extract the last folder
+for %%I in ("%test_directory:\=" "%") do set "test_name=%%~I"
+
+echo.
+echo Running general test '%test_name%'
+
+if not exist build\%test_directory% mkdir build\%test_directory%
+
+build\tests\general\run_general_test.exe --compiler build\eon %test_directory% || exit /B 1
+
+endlocal
+
+goto :eof
+REM NOTE: End of ':run_general_test'.

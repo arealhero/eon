@@ -28,4 +28,5 @@
 -include eon/platform/filesystem.h
 -include eon/platform/io.h
 -include eon/platform/memory.h
+-include eon/platform/subprocess.h
 -include eon/platform/time.h
