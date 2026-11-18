@@ -1,0 +1,60 @@
+fibonacci:
+       |
+       | LABEL_1:
+     1 |           PUSH                RSI
+     2 |           PUSH                RBX
+     3 |           MOVE                RBX, RCX
+     4 |           EQUAL               RAX, RBX, IMM 0
+     5 |           JUMP_IF_FALSE       RAX, LABEL_2
+     6 |           JUMP                LABEL_7
+       |
+       | LABEL_7:
+     7 |           MOVE                RAX, IMM 0
+     8 |           POP                 RBX
+     9 |           POP                 RSI
+    10 |           RETURN
+       |
+       | LABEL_2:
+    11 |           JUMP                LABEL_3
+       |
+       | LABEL_3:
+    12 |           EQUAL               RAX, RBX, IMM 1
+    13 |           JUMP_IF_FALSE       RAX, LABEL_4
+    14 |           JUMP                LABEL_6
+       |
+       | LABEL_6:
+    15 |           MOVE                RAX, IMM 1
+    16 |           POP                 RBX
+    17 |           POP                 RSI
+    18 |           RETURN
+       |
+       | LABEL_4:
+    19 |           JUMP                LABEL_5
+       |
+       | LABEL_5:
+    20 |           MOVE                RCX, RBX
+    21 |           SUBTRACT            RCX, RCX, IMM 1
+    22 |           GROW_STACK          IMM 40
+    23 |           CALL                fibonacci
+    24 |           MOVE                RSI, RAX
+    25 |           SHRINK_STACK        IMM 40
+    26 |           MOVE                RCX, RBX
+    27 |           SUBTRACT            RCX, RCX, IMM 2
+    28 |           GROW_STACK          IMM 40
+    29 |           CALL                fibonacci
+    30 |           MOVE                RBX, RAX
+    31 |           SHRINK_STACK        IMM 40
+    32 |           MOVE                RAX, RSI
+    33 |           ADD                 RAX, RAX, RBX
+    34 |           POP                 RBX
+    35 |           POP                 RSI
+    36 |           RETURN
+
+main:
+       |
+       | LABEL_8:
+     1 |           MOVE                RCX, IMM 12
+     2 |           GROW_STACK          IMM 40
+     3 |           CALL                fibonacci
+     4 |           SHRINK_STACK        IMM 40
+     5 |           RETURN

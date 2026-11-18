@@ -11,6 +11,33 @@ struct MIR_Block;
 
 enum
 {
+    // NOTE(vlad): We treat rsp and rbp as an implicit hardware state so the SSA form is not violated.
+    X86_64_RAX = 1,
+    X86_64_RBX = 2,
+    X86_64_RCX = 3,
+    X86_64_RDX = 4,
+    X86_64_RSI = 5,
+    X86_64_RDI = 6,
+    X86_64_R8  = 7,
+    X86_64_R9  = 8,
+    X86_64_R10 = 9,
+    X86_64_R11 = 10,
+    X86_64_R12 = 11,
+    X86_64_R13 = 12,
+    X86_64_R14 = 13,
+    X86_64_R15 = 14,
+
+    X86_64_GPR_COUNT,
+
+    // TODO(vlad): Add X86_64_RBP for optimized builds because we can omit frame pointers in that case and use RBP as a
+    //             15th GPR. We should also consider supporting the '-fno-omit-frame-pointer' compilation option.
+
+    // TODO(vlad): Add 32, 16, and 8-bit registers.
+    // TODO(vlad): Add aarch64.
+};
+
+enum
+{
     // FIXME(vlad): Change to -1.
     NO_REGISTER = 0,
     SPILLED_TO_STACK = -1,
@@ -43,11 +70,12 @@ enum MIR_Operand_Kind
 {
     MIR_OPERAND_NONE = 0,
     MIR_OPERAND_VIRTUAL_REGISTER,
+    MIR_OPERAND_PHYSICAL_REGISTER,
     MIR_OPERAND_IMMEDIATE_VALUE,
     MIR_OPERAND_BLOCK,
     MIR_OPERAND_STACK_SLOT,
 
-    // TODO(vlad): Add PHYSICAL_REGISTER, MEMORY, GLOBAL, FLAGS, etc.
+    // TODO(vlad): Add MEMORY, GLOBAL, FLAGS, etc.
 };
 typedef enum MIR_Operand_Kind MIR_Operand_Kind;
 
@@ -64,12 +92,35 @@ struct MIR_Operand
 
     union
     {
-        Index virtual_register_index;
-        u64 immediate_value;
+        // NOTE(vlad): For MIR_OPERAND_VIRTUAL_REGISTER.
+        struct
+        {
+            Index virtual_register_index;
+        };
 
-        struct MIR_Block* block;
+        // NOTE(vlad): For MIR_OPERAND_PHYSICAL_REGISTER.
+        struct
+        {
+            Index physical_register;
+        };
 
-        Index stack_slot_index;
+        // NOTE(vlad): For MIR_OPERAND_IMMEDIATE_VALUE.
+        struct
+        {
+            u64 immediate_value;
+        };
+
+        // NOTE(vlad): For MIR_OPERAND_BLOCK.
+        struct
+        {
+            struct MIR_Block* block;
+        };
+
+        // NOTE(vlad): For MIR_OPERAND_STACK_SLOT.
+        struct
+        {
+            Index stack_slot_index;
+        };
     };
 };
 typedef struct MIR_Operand MIR_Operand;
@@ -96,6 +147,9 @@ enum MIR_Opcode
     MIR_STORE64,
 
     MIR_GET_ADDRESS,
+
+    MIR_PUSH_REGISTER_ON_STACK,
+    MIR_POP_REGISTER_FROM_STACK,
 
     MIR_GROW_STACK,
     MIR_SHRINK_STACK,
@@ -173,6 +227,8 @@ struct MIR_Instruction
         struct
         {
             Bool has_return_value;
+            struct MIR_Instruction* return_value_retrieving_instruction;
+
             MIR_Operand return_operand;
 
             Tac_Function_Label_Id function_label_id; // TODO(vlad): This should no longer belong to TAC alone, move it
@@ -185,6 +241,12 @@ struct MIR_Instruction
         struct
         {
             Comparison_Kind comparison_kind;
+        };
+
+        // NOTE(vlad): For MIR_PUSH_REGISTER_ON_STACK and MIR_POP_REGISTER_FROM_STACK.
+        struct
+        {
+            Index physical_register;
         };
     };
 };
@@ -241,6 +303,8 @@ struct MIR_Function
     const Ast_Function_Definition* ast_function_definition;
     const struct Tac_Function* tac_function;
 
+    Calling_Convention calling_convention;
+
     Bool blocks_layout_computed;
     union
     {
@@ -256,7 +320,7 @@ struct MIR_Function
     // TODO(vlad): Rename to 'binary_code_bytes'? Otherwise 'binary_code_count' looks cursed.
     array(Byte, binary_code);
 
-    Index offset_of_code_in_the_object_file;
+    Index offset_of_code_in_the_text_section;
     Index index_of_symbol_in_the_object_file;
 };
 typedef struct MIR_Function MIR_Function;
@@ -266,41 +330,6 @@ struct MIR
     array_view(MIR_Function, functions);
 };
 typedef struct MIR MIR;
-
-maybe_unused internal String_View physical_register_to_string(struct Compilation_Context* context,
-                                                              const Index physical_register);
-
-maybe_unused internal void lower_ssa_to_mir(struct Compilation_Context* context);
-maybe_unused internal void add_isa_constraints_to_mir(struct Compilation_Context* context);
-maybe_unused internal void allocate_registers(struct Compilation_Context* context);
-maybe_unused internal void compute_layout_of_mir_blocks(struct Compilation_Context* context);
-
-enum
-{
-    // NOTE(vlad): We treat rsp and rbp as an implicit hardware state so the SSA form is not violated.
-    X86_64_RAX = 1,
-    X86_64_RBX = 2,
-    X86_64_RCX = 3,
-    X86_64_RDX = 4,
-    X86_64_RSI = 5,
-    X86_64_RDI = 6,
-    X86_64_R8  = 7,
-    X86_64_R9  = 8,
-    X86_64_R10 = 9,
-    X86_64_R11 = 10,
-    X86_64_R12 = 11,
-    X86_64_R13 = 12,
-    X86_64_R14 = 13,
-    X86_64_R15 = 14,
-
-    X86_64_GPR_COUNT,
-
-    // TODO(vlad): Add X86_64_RBP for optimized builds because we can omit frame pointers in that case and use RBP as a
-    //             15th GPR. We should also consider supporting the '-fno-omit-frame-pointer' compilation option.
-
-    // TODO(vlad): Add 32, 16, and 8-bit registers.
-    // TODO(vlad): Add aarch64.
-};
 
 // NOTE(vlad): Hardware sign-extends to 64 bits, so we need to check if
 //             sign-extended lower byte of value == value.
@@ -318,4 +347,12 @@ x86_fits_imm32(const u64 value)
     const u64 sign_bit = 1u << 31;
     return value == (((value & 0xFFFFFFFF) ^ sign_bit) - sign_bit);
 }
+
+maybe_unused internal String_View physical_register_to_string(struct Compilation_Context* context,
+                                                              const Index physical_register);
+
+maybe_unused internal void lower_ssa_to_mir(struct Compilation_Context* context);
+maybe_unused internal void add_isa_constraints_to_mir(struct Compilation_Context* context);
+maybe_unused internal void allocate_registers(struct Compilation_Context* context);
+maybe_unused internal void compute_layout_of_mir_blocks(struct Compilation_Context* context);
 

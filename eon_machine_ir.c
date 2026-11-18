@@ -30,6 +30,8 @@ instruction_is_a_block_terminator(const MIR_Instruction* instruction)
         case MIR_LOAD64:
         case MIR_STORE64:
         case MIR_GET_ADDRESS:
+        case MIR_PUSH_REGISTER_ON_STACK:
+        case MIR_POP_REGISTER_FROM_STACK:
         case MIR_GROW_STACK:
         case MIR_SHRINK_STACK:
         case MIR_GET_PARAMETER:
@@ -829,6 +831,7 @@ lower_ssa_to_mir(Compilation_Context* context)
 
         mir_function->ast_function_definition = tac_function->ast_function_definition;
         mir_function->tac_function = tac_function;
+        mir_function->calling_convention = context->calling_convention;
 
         mir_function->virtual_registers_arena = acquire_arena_from_provider(context->arena_provider,
                                                                             string_view("mir-function-virtual-registers"),
@@ -874,14 +877,6 @@ lower_ssa_to_mir(Compilation_Context* context)
     request_arena_reset(context->arena_provider, context->scratch_arena);
 }
 
-internal inline Calling_Convention
-get_calling_convention_for_the_function(Compilation_Context* context, MIR_Function* function)
-{
-    // TODO(vlad): Support calling convention attribute for functions (especially for foreign ones).
-    UNUSED(function);
-    return context->calling_convention;
-}
-
 struct Calling_Convention_Info
 {
     // FIXME(vlad): Support floating point numbers.
@@ -893,6 +888,7 @@ struct Calling_Convention_Info
 };
 typedef struct Calling_Convention_Info Calling_Convention_Info;
 
+// FIXME(vlad): Make the calling convention info static.
 internal inline Calling_Convention_Info
 get_calling_convention_info(const Calling_Convention calling_convention)
 {
@@ -999,8 +995,7 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
                                        MIR_Block* block,
                                        MIR_Instruction* instruction)
 {
-    const Calling_Convention calling_convention = get_calling_convention_for_the_function(context, function);
-    const Calling_Convention_Info calling_convention_info = get_calling_convention_info(calling_convention);
+    const Calling_Convention_Info calling_convention_info = get_calling_convention_info(function->calling_convention);
 
     switch (context->target_architecture)
     {
@@ -1016,6 +1011,15 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
                 case MIR_NOP:
                 {
                     // NOTE(vlad): 'nop' instruction has no constraints.
+                } break;
+
+                case MIR_PUSH_REGISTER_ON_STACK:
+                case MIR_POP_REGISTER_FROM_STACK:
+                {
+                    // NOTE(vlad): These instructions must be unreachable here because we decide what registers
+                    //             should be pushed/popped only after register allocation.
+                    FAIL("[MIR] Push/pop register instruction encountered before register allocation."
+                         " This is probably a bug in the compiler.");
                 } break;
 
                 case MIR_SHRINK_STACK:
@@ -1050,6 +1054,7 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
                     switch (first_argument->kind)
                     {
                         case MIR_OPERAND_NONE:
+                        case MIR_OPERAND_PHYSICAL_REGISTER:
                         case MIR_OPERAND_BLOCK:
                         case MIR_OPERAND_STACK_SLOT:
                         {
@@ -1058,14 +1063,33 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
 
                         case MIR_OPERAND_VIRTUAL_REGISTER:
                         {
-                            // NOTE(vlad): On x86, destination and first argument must match because add/sub
-                            //             instructions are two-address. That said, we need to prefer coloring
-                            //             the destination and the first argument the same.
+                            // NOTE(vlad): Converting
+                            //
+                            //                 VREG1 = VREG2 + ARG
+                            //
+                            //             into
+                            //
+                            //                 VREG1 = VREG2
+                            //                 VREG1 += ARG
+                            //
+                            //             due to the two-address nature of the add/sub instructions on x86.
 
-                            add_coalescing_hint_to_instruction(context,
-                                                               instruction,
-                                                               instruction->definitions[0].virtual_register_index,
-                                                               first_argument->virtual_register_index);
+                            {
+                                MIR_Instruction* move_instruction = prepend_instruction(context, block, instruction);
+                                move_instruction->opcode = MIR_MOVE;
+
+                                MIR_Operand* move_destination_operand = add_new_def_operand(move_instruction);
+                                *move_destination_operand = *destination;
+
+                                MIR_Operand* move_source_operand = add_new_use_operand(move_instruction);
+                                *move_source_operand = *first_argument;
+
+                                add_isa_constraints_to_mir_instruction(context, function, block, move_instruction);
+                            }
+
+                            {
+                                *first_argument = *destination;
+                            }
                         } break;
 
                         case MIR_OPERAND_IMMEDIATE_VALUE:
@@ -1419,24 +1443,6 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
                     // TODO(vlad): Handle stack arguments. We need to emit 'STORE SLOT, operand' here.
                     //             We will need a new MIR_OPERAND_STACK_SLOT kind of operand here.
 
-                    // TODO(vlad): Align stack to 16 bytes.
-                    // TODO(vlad): We would want to use function->current_stack_offset for that but it is not
-                    //             possible until the registers are allocated because we have no idea when and
-                    //             what will be spilled on the stack. That said, we need to emit a GROW_STACK
-                    //             instruction here and patch it after register allocation is complete.
-
-                    // NOTE(vlad): Allocating shadow space.
-                    {
-                        MIR_Instruction* grow_instruction = prepend_instruction(context, block, instruction);
-                        grow_instruction->opcode = MIR_GROW_STACK;
-
-                        MIR_Operand* amount_operand = add_new_use_operand(grow_instruction);
-                        amount_operand->kind = MIR_OPERAND_IMMEDIATE_VALUE;
-                        amount_operand->immediate_value = 32;
-
-                        add_isa_constraints_to_mir_instruction(context, function, block, grow_instruction);
-                    }
-
                     MIR_Operand* return_value_operand = NULL;
 
                     // NOTE(vlad): Treat caller-saved registers as clobbered.
@@ -1462,43 +1468,28 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
                         }
                     }
 
-                    MIR_Instruction* last_instruction = instruction;
-
                     if (instruction->has_return_value)
                     {
                         // NOTE(vlad): Retrieving returned value.
-                        MIR_Instruction* move_instruction = append_instruction(context, block, instruction);
+                        MIR_Instruction* return_value_retrieving_instruction = append_instruction(context,
+                                                                                                  block,
+                                                                                                  instruction);
+                        return_value_retrieving_instruction->opcode = MIR_MOVE;
 
                         const MIR_Operand* return_operand = &instruction->return_operand;
 
-                        move_instruction->opcode = MIR_MOVE;
-
-                        MIR_Operand* move_destination = add_new_def_operand(move_instruction);
+                        MIR_Operand* move_destination = add_new_def_operand(return_value_retrieving_instruction);
                         *move_destination = *return_operand;
 
-                        MIR_Operand* move_argument = add_new_use_operand(move_instruction);
+                        MIR_Operand* move_argument = add_new_use_operand(return_value_retrieving_instruction);
                         *move_argument = *return_value_operand;
 
-                        add_isa_constraints_to_mir_instruction(context, function, block, move_instruction);
+                        add_isa_constraints_to_mir_instruction(context,
+                                                               function,
+                                                               block,
+                                                               return_value_retrieving_instruction);
 
-                        last_instruction = move_instruction;
-
-                        // NOTE(vlad): We already added an implicit def for RAX as a caller-saved register.
-                        instruction->has_return_value = false;
-                    }
-
-                    ASSERT(calling_convention == CALLING_CONVENTION_MICROSOFT_X64);
-
-                    // NOTE(vlad): Deallocating shadow space.
-                    {
-                        MIR_Instruction* shrink_instruction = append_instruction(context, block, last_instruction);
-                        shrink_instruction->opcode = MIR_SHRINK_STACK;
-
-                        MIR_Operand* amount_operand = add_new_use_operand(shrink_instruction);
-                        amount_operand->kind = MIR_OPERAND_IMMEDIATE_VALUE;
-                        amount_operand->immediate_value = 32;
-
-                        add_isa_constraints_to_mir_instruction(context, function, block, shrink_instruction);
+                        instruction->return_value_retrieving_instruction = return_value_retrieving_instruction;
                     }
                 } break;
 
@@ -2428,6 +2419,24 @@ allocate_registers(Compilation_Context* context)
             }
         }
 
+        Bool* physical_register_was_used_in_this_function = allocate_array(context->scratch_arena,
+                                                                           available_registers_count,
+                                                                           Bool);
+        physical_register_was_used_in_this_function[NO_REGISTER] = true;
+
+        for (Index virtual_register_index = 0;
+             virtual_register_index < function->virtual_registers_count;
+             ++virtual_register_index)
+        {
+            const Virtual_Register* virtual_register = &function->virtual_registers[virtual_register_index];
+            const Index assigned_physical_register = virtual_register->assigned_physical_register;
+
+            if (assigned_physical_register != NO_REGISTER && assigned_physical_register != SPILLED_TO_STACK)
+            {
+                physical_register_was_used_in_this_function[assigned_physical_register] = true;
+            }
+        }
+
         if (registers_were_spilled)
         {
             FAIL("[MIR] Spilled virtual registers are not supported yet.");
@@ -2816,6 +2825,155 @@ allocate_registers(Compilation_Context* context)
                     }
 
                     block->parallel_copies_count = 0;
+                }
+            }
+        }
+
+        local_array(Index, used_callee_saved_registers);
+
+        // NOTE(vlad): Filling in callee-saved registers.
+        {
+            const Calling_Convention_Info calling_convention_info = get_calling_convention_info(function->calling_convention);
+
+            for (Index register_index = 0;
+                 register_index < calling_convention_info.callee_saved_registers_count;
+                 ++register_index)
+            {
+                const Index callee_saved_register = calling_convention_info.callee_saved_registers[register_index];
+
+                if (physical_register_was_used_in_this_function[callee_saved_register])
+                {
+                    append_array(context->scratch_arena,
+                                 used_callee_saved_registers,
+                                 Index,
+                                 callee_saved_register);
+                }
+            }
+        }
+
+        u64 stack_size_after_prologue = 0;
+
+        // NOTE(vlad): Emitting function's prologue and epilogue if necessary.
+        if (used_callee_saved_registers_count != 0)
+        {
+            // NOTE(vlad): Emitting the prologue.
+            {
+                MIR_Block* entry_block = function->entry_block;
+
+                for (Index register_index = 0;
+                     register_index < used_callee_saved_registers_count;
+                     ++register_index)
+                {
+                    const Index callee_saved_register = used_callee_saved_registers[register_index];
+
+                    MIR_Instruction* push_instruction = prepend_instruction(context,
+                                                                            entry_block,
+                                                                            entry_block->first_instruction);
+                    push_instruction->opcode = MIR_PUSH_REGISTER_ON_STACK;
+
+                    MIR_Operand* register_operand = add_new_use_operand(push_instruction);
+                    register_operand->kind = MIR_OPERAND_PHYSICAL_REGISTER;
+                    register_operand->physical_register = callee_saved_register;
+
+                    stack_size_after_prologue += 8;
+                }
+            }
+
+            // NOTE(vlad): Emitting the epilogue for every terminal MIR block.
+            {
+                // NOTE(vlad): Again, the order does not matter, thus we use the RPO.
+                for (Index block_index = 0;
+                     block_index < reverse_post_order.blocks_count;
+                     ++block_index)
+                {
+                    MIR_Block* block = reverse_post_order.blocks[block_index];
+
+                    if (block->successors_count == 0)
+                    {
+                        MIR_Instruction* last_instruction = block->last_instruction;
+                        ASSERT(last_instruction != NULL);
+                        ASSERT(last_instruction->opcode == MIR_RETURN);
+
+                        // NOTE(vlad): Popping the registers in reverse order.
+                        for (Index register_index = 0;
+                             register_index < used_callee_saved_registers_count;
+                             ++register_index)
+                        {
+                            const Index callee_saved_register = used_callee_saved_registers[register_index];
+
+                            MIR_Instruction* pop_instruction = prepend_instruction(context,
+                                                                                   block,
+                                                                                   last_instruction);
+                            pop_instruction->opcode = MIR_POP_REGISTER_FROM_STACK;
+
+                            MIR_Operand* register_operand = add_new_use_operand(pop_instruction);
+                            register_operand->kind = MIR_OPERAND_PHYSICAL_REGISTER;
+                            register_operand->physical_register = callee_saved_register;
+                        }
+                    }
+                }
+            }
+        }
+
+        ASSERT(function->calling_convention == CALLING_CONVENTION_MICROSOFT_X64);
+
+        // NOTE(vlad): Allocating shadow space and aligning the stack according to the calling convention.
+        // FIXME(vlad): This has nothing to do with the register allocation so we need to move it somewhere else.
+        //              This is also true for the prologue and epilogue emission.
+        {
+            for (Index block_index = 0;
+                 block_index < reverse_post_order.blocks_count;
+                 ++block_index)
+            {
+                MIR_Block* block = reverse_post_order.blocks[block_index];
+
+                for (MIR_Instruction* instruction = block->first_instruction;
+                     instruction != NULL;
+                     instruction = instruction->next_instruction)
+                {
+                    if (instruction->opcode != MIR_CALL)
+                    {
+                        continue;
+                    }
+
+                    MIR_Instruction* instruction_to_restore_after = instruction;
+                    if (instruction->has_return_value)
+                    {
+                        ASSERT(instruction->return_value_retrieving_instruction != NULL);
+                        instruction_to_restore_after = instruction->return_value_retrieving_instruction;
+                    }
+
+                    const u64 stack_size_before_this_call = stack_size_after_prologue;
+
+                    // NOTE(vlad): Allocating shadow space (32 bytes) and aligning the stack to 16 bytes.
+                    //             Also we need to take into account the 8 byte that will be allocated for the return
+                    //             address.
+                    const u64 stack_space_to_allocate = 32 + ((8 + stack_size_before_this_call) % 16);
+
+                    // NOTE(vlad): Sanity checks.
+                    ASSERT(stack_space_to_allocate >= 32);
+                    ASSERT((8 + stack_size_before_this_call + stack_space_to_allocate) % 16 == 0);
+
+                    {
+                        MIR_Instruction* grow_instruction = prepend_instruction(context, block, instruction);
+                        grow_instruction->opcode = MIR_GROW_STACK;
+
+                        MIR_Operand* amount_operand = add_new_use_operand(grow_instruction);
+                        amount_operand->kind = MIR_OPERAND_IMMEDIATE_VALUE;
+                        amount_operand->immediate_value = stack_space_to_allocate;
+                    }
+
+                    // NOTE(vlad): Restoring the stack pointer.
+                    {
+                        MIR_Instruction* shrink_instruction = append_instruction(context,
+                                                                                 block,
+                                                                                 instruction_to_restore_after);
+                        shrink_instruction->opcode = MIR_SHRINK_STACK;
+
+                        MIR_Operand* amount_operand = add_new_use_operand(shrink_instruction);
+                        amount_operand->kind = MIR_OPERAND_IMMEDIATE_VALUE;
+                        amount_operand->immediate_value = stack_space_to_allocate;
+                    }
                 }
             }
         }

@@ -128,7 +128,7 @@ build_elf64_object_file(Compilation_Context* context)
         {
             MIR_Function* function = &mir->functions[function_index];
 
-            function->offset_of_code_in_the_object_file = text_section_buffer->bytes_count;
+            ASSERT(function->offset_of_code_in_the_text_section == text_section_buffer->bytes_count);
 
             Bytes_View binary_code_view = {0};
             binary_code_view.data = function->binary_code;
@@ -200,7 +200,7 @@ build_elf64_object_file(Compilation_Context* context)
             symbol.st_name = (u32)(function->index_of_symbol_in_the_object_file);
             symbol.st_info = ELF64_ST_INFO(STB_GLOBAL, STT_FUNC);
             symbol.st_shndx = ELF64_SECTION_TEXT;
-            symbol.st_value = (u32)(function->offset_of_code_in_the_object_file);
+            symbol.st_value = (u32)(function->offset_of_code_in_the_text_section);
             symbol.st_size = (u32)(function->binary_code_count);
 
             append_bytes_to_section_buffer(context, symbol_table_buffer, as_bytes_view(symbol));

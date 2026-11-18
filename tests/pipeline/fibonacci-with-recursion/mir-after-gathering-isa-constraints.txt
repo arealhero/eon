@@ -1,0 +1,51 @@
+fibonacci:
+       |
+       | LABEL_1:
+     1 |           MOVE                VREG 1, RCX
+     2 |           EQUAL               VREG 2, VREG 1, IMM 0
+     3 |           JUMP_IF_FALSE       VREG 2, LABEL_2
+     4 |           JUMP                LABEL_7
+       |
+       | LABEL_7:
+     5 |           MOVE                RAX, IMM 0
+     6 |           RETURN
+       |
+       | LABEL_2:
+     7 |           JUMP                LABEL_3
+       |
+       | LABEL_3:
+     8 |           EQUAL               VREG 3, VREG 1, IMM 1
+     9 |           JUMP_IF_FALSE       VREG 3, LABEL_4
+    10 |           JUMP                LABEL_6
+       |
+       | LABEL_6:
+    11 |           MOVE                RAX, IMM 1
+    12 |           RETURN
+       |
+       | LABEL_4:
+    13 |           JUMP                LABEL_5
+       |
+       | LABEL_5:
+    14 |           MOVE                VREG 4, VREG 1
+    15 |           SUBTRACT            VREG 4, VREG 4, IMM 1
+    16 |           MOVE                RCX, VREG 4
+    17 |           CALL                fibonacci
+    18 |           MOVE                VREG 5, RAX
+    19 |           MOVE                VREG 6, VREG 1
+    20 |           SUBTRACT            VREG 6, VREG 6, IMM 2
+    21 |           MOVE                RCX, VREG 6
+    22 |           CALL                fibonacci
+    23 |           MOVE                VREG 7, RAX
+    24 |           MOVE                VREG 8, VREG 5
+    25 |           ADD                 VREG 8, VREG 8, VREG 7
+    26 |           MOVE                RAX, VREG 8
+    27 |           RETURN
+
+main:
+       |
+       | LABEL_8:
+     1 |           MOVE                RCX, IMM 12
+     2 |           CALL                fibonacci
+     3 |           MOVE                VREG 1, RAX
+     4 |           MOVE                RAX, VREG 1
+     5 |           RETURN

@@ -37,6 +37,8 @@ build_macho64_object_file(Compilation_Context* context)
         const MIR_Function* function = &mir->functions[function_index];
         const String_View function_name = function->ast_function_definition->name.token.lexeme;
 
+        ASSERT(function->offset_of_code_in_the_text_section == text_section_buffer.bytes_count);
+
         // TODO(vlad): Introduce functions for safe truncation.
         struct nlist_64 symbol = {0};
         symbol.n_un.n_strx = (u32)(string_table_buffer.bytes_count);

@@ -1,0 +1,38 @@
+fibonacci:
+       |
+       | LABEL_1:
+     1 |           GET_PARAMETER       VREG 1, IMM 0
+     2 |           EQUAL               VREG 2, VREG 1, IMM 0
+     3 |           JUMP_IF_FALSE       VREG 2, LABEL_2
+     4 |           JUMP                LABEL_7
+       |
+       | LABEL_7:
+     5 |           RETURN              IMM 0
+       |
+       | LABEL_2:
+     6 |           JUMP                LABEL_3
+       |
+       | LABEL_3:
+     7 |           EQUAL               VREG 3, VREG 1, IMM 1
+     8 |           JUMP_IF_FALSE       VREG 3, LABEL_4
+     9 |           JUMP                LABEL_6
+       |
+       | LABEL_6:
+    10 |           RETURN              IMM 1
+       |
+       | LABEL_4:
+    11 |           JUMP                LABEL_5
+       |
+       | LABEL_5:
+    12 |           SUBTRACT            VREG 4, VREG 1, IMM 1
+    13 |           CALL                VREG 5, fibonacci, VREG 4
+    14 |           SUBTRACT            VREG 6, VREG 1, IMM 2
+    15 |           CALL                VREG 7, fibonacci, VREG 6
+    16 |           ADD                 VREG 8, VREG 5, VREG 7
+    17 |           RETURN              VREG 8
+
+main:
+       |
+       | LABEL_8:
+     1 |           CALL                VREG 1, fibonacci, IMM 12
+     2 |           RETURN              VREG 1

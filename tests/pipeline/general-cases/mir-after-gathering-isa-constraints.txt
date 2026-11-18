@@ -56,28 +56,21 @@ conditional_assignment_of_multiple_variables:
        | LABEL_10:
      6 |           PHI                 VREG 4, VREG 3
      7 |           PHI                 VREG 7, VREG 5
-     8 |           ADD                 VREG 9, VREG 4, VREG 7
-     9 |           MOVE                RAX, VREG 9
-    10 |           RETURN
+     8 |           MOVE                VREG 9, VREG 4
+     9 |           ADD                 VREG 9, VREG 9, VREG 7
+    10 |           MOVE                RAX, VREG 9
+    11 |           RETURN
 
 function_calls:
        |
        | LABEL_11:
-     1 |           GROW_STACK          IMM 32
-     2 |           CALL                simple_reassignment
-     3 |           SHRINK_STACK        IMM 32
-     4 |           GROW_STACK          IMM 32
-     5 |           CALL                returning_value_from_a_function
-     6 |           MOVE                VREG 1, RAX
-     7 |           SHRINK_STACK        IMM 32
-     8 |           MOVE                VREG 2, VREG 1
-     9 |           MOVE                RCX, VREG 2
-    10 |           GROW_STACK          IMM 32
-    11 |           CALL                parameter_reassignment
-    12 |           SHRINK_STACK        IMM 32
-    13 |           GROW_STACK          IMM 32
-    14 |           CALL                returning_value_from_a_function
-    15 |           MOVE                VREG 3, RAX
-    16 |           SHRINK_STACK        IMM 32
-    17 |           MOVE                RAX, VREG 3
-    18 |           RETURN
+     1 |           CALL                simple_reassignment
+     2 |           CALL                returning_value_from_a_function
+     3 |           MOVE                VREG 1, RAX
+     4 |           MOVE                VREG 2, VREG 1
+     5 |           MOVE                RCX, VREG 2
+     6 |           CALL                parameter_reassignment
+     7 |           CALL                returning_value_from_a_function
+     8 |           MOVE                VREG 3, RAX
+     9 |           MOVE                RAX, VREG 3
+    10 |           RETURN

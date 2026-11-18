@@ -1,23 +1,26 @@
 regression_while_loop_with_break_and_continue:
        |
        | LABEL_1:
-     1 |           MOVE                RBX, IMM 20
+     1 |           PUSH                RBX
+     2 |           MOVE                RBX, IMM 20
        |
        | LABEL_2:
        |
        | LABEL_4:
-     2 |           SUBTRACT            RAX, RBX, IMM 1
-     3 |           MOVE                RBX, RAX
-     4 |           GREATER_OR_EQUAL    RAX, RBX, IMM 0
-     5 |           JUMP_IF_FALSE       RAX, LABEL_5
+     3 |           MOVE                RAX, RBX
+     4 |           SUBTRACT            RAX, RAX, IMM 1
+     5 |           MOVE                RBX, RAX
+     6 |           GREATER_OR_EQUAL    RAX, RBX, IMM 0
+     7 |           JUMP_IF_FALSE       RAX, LABEL_5
        |
        | LABEL_3:
-     6 |           JUMP                LABEL_2
+     8 |           JUMP                LABEL_2
        |
        | LABEL_5:
        |
        | LABEL_6:
-     7 |           MOVE                RAX, RBX
+     9 |           MOVE                RAX, RBX
        |
        | LABEL_7:
-     8 |           RETURN
+    10 |           POP                 RBX
+    11 |           RETURN

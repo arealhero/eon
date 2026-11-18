@@ -31,6 +31,8 @@ build_pe64_object_file(Compilation_Context* context)
 
         IMAGE_SYMBOL symbol = {0};
 
+        ASSERT(function->offset_of_code_in_the_text_section == text_section_buffer.bytes_count);
+
         // NOTE(vlad): Offset of this function inside .text section.
         symbol.Value = (DWORD)(text_section_buffer.bytes_count);
         symbol.SectionNumber = 1;

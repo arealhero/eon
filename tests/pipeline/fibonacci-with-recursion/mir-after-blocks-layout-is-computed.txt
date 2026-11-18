@@ -1,0 +1,56 @@
+fibonacci:
+       |
+       | LABEL_1:
+     1 |           PUSH                RSI
+     2 |           PUSH                RBX
+     3 |           MOVE                RBX, RCX
+     4 |           EQUAL               RAX, RBX, IMM 0
+     5 |           JUMP_IF_FALSE       RAX, LABEL_2
+       |
+       | LABEL_7:
+     6 |           MOVE                RAX, IMM 0
+     7 |           POP                 RBX
+     8 |           POP                 RSI
+     9 |           RETURN
+       |
+       | LABEL_2:
+       |
+       | LABEL_3:
+    10 |           EQUAL               RAX, RBX, IMM 1
+    11 |           JUMP_IF_FALSE       RAX, LABEL_4
+       |
+       | LABEL_6:
+    12 |           MOVE                RAX, IMM 1
+    13 |           POP                 RBX
+    14 |           POP                 RSI
+    15 |           RETURN
+       |
+       | LABEL_4:
+       |
+       | LABEL_5:
+    16 |           MOVE                RCX, RBX
+    17 |           SUBTRACT            RCX, RCX, IMM 1
+    18 |           GROW_STACK          IMM 40
+    19 |           CALL                fibonacci
+    20 |           MOVE                RSI, RAX
+    21 |           SHRINK_STACK        IMM 40
+    22 |           MOVE                RCX, RBX
+    23 |           SUBTRACT            RCX, RCX, IMM 2
+    24 |           GROW_STACK          IMM 40
+    25 |           CALL                fibonacci
+    26 |           MOVE                RBX, RAX
+    27 |           SHRINK_STACK        IMM 40
+    28 |           MOVE                RAX, RSI
+    29 |           ADD                 RAX, RAX, RBX
+    30 |           POP                 RBX
+    31 |           POP                 RSI
+    32 |           RETURN
+
+main:
+       |
+       | LABEL_8:
+     1 |           MOVE                RCX, IMM 12
+     2 |           GROW_STACK          IMM 40
+     3 |           CALL                fibonacci
+     4 |           SHRINK_STACK        IMM 40
+     5 |           RETURN

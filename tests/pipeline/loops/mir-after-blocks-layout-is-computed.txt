@@ -17,54 +17,61 @@ redundant_while_loop:
 redundant_continue:
        |
        | LABEL_5:
-     1 |           MOVE                RBX, IMM 10
+     1 |           PUSH                RBX
+     2 |           MOVE                RBX, IMM 10
        |
        | LABEL_6:
-     2 |           GREATER             RAX, RBX, IMM 0
-     3 |           JUMP_IF_FALSE       RAX, LABEL_8
+     3 |           GREATER             RAX, RBX, IMM 0
+     4 |           JUMP_IF_FALSE       RAX, LABEL_8
        |
        | LABEL_7:
-     4 |           SUBTRACT            RAX, RBX, IMM 1
-     5 |           MOVE                RBX, RAX
-     6 |           JUMP                LABEL_6
+     5 |           MOVE                RAX, RBX
+     6 |           SUBTRACT            RAX, RAX, IMM 1
+     7 |           MOVE                RBX, RAX
+     8 |           JUMP                LABEL_6
        |
        | LABEL_8:
-     7 |           RETURN
+     9 |           POP                 RBX
+    10 |           RETURN
 
 while_loops:
        |
        | LABEL_9:
+     1 |           PUSH                RBX
        |
        | LABEL_10:
-     1 |           MOVE                RBX, IMM 10
+     2 |           MOVE                RBX, IMM 10
        |
        | LABEL_11:
-     2 |           GREATER             RAX, RBX, IMM 0
-     3 |           JUMP_IF_FALSE       RAX, LABEL_13
+     3 |           GREATER             RAX, RBX, IMM 0
+     4 |           JUMP_IF_FALSE       RAX, LABEL_13
        |
        | LABEL_12:
-     4 |           SUBTRACT            RAX, RBX, IMM 1
-     5 |           MOVE                RBX, RAX
-     6 |           JUMP                LABEL_11
+     5 |           MOVE                RAX, RBX
+     6 |           SUBTRACT            RAX, RAX, IMM 1
+     7 |           MOVE                RBX, RAX
+     8 |           JUMP                LABEL_11
        |
        | LABEL_13:
-     7 |           MOVE                RBX, IMM 20
+     9 |           MOVE                RBX, IMM 20
        |
        | LABEL_14:
        |
        | LABEL_16:
-     8 |           SUBTRACT            RAX, RBX, IMM 1
-     9 |           MOVE                RBX, RAX
-    10 |           LESS                RAX, RBX, IMM 0
-    11 |           JUMP_IF_FALSE       RAX, LABEL_17
+    10 |           MOVE                RAX, RBX
+    11 |           SUBTRACT            RAX, RAX, IMM 1
+    12 |           MOVE                RBX, RAX
+    13 |           LESS                RAX, RBX, IMM 0
+    14 |           JUMP_IF_FALSE       RAX, LABEL_17
        |
        | LABEL_18:
-    12 |           MOVE                RAX, RBX
+    15 |           MOVE                RAX, RBX
        |
        | LABEL_19:
-    13 |           RETURN
+    16 |           POP                 RBX
+    17 |           RETURN
        |
        | LABEL_17:
        |
        | LABEL_15:
-    14 |           JUMP                LABEL_14
+    18 |           JUMP                LABEL_14

@@ -558,6 +558,14 @@ convert_mir_operand_to_string(Compilation_Context* context,
             }
         } break;
 
+        case MIR_OPERAND_PHYSICAL_REGISTER:
+        {
+            const Index physical_register = operand->physical_register;
+
+            append_string(builder, " ");
+            append_string(builder, physical_register_to_string(context, physical_register));
+        } break;
+
         case MIR_OPERAND_IMMEDIATE_VALUE:
         {
             const u64 value = operand->immediate_value;
@@ -794,6 +802,26 @@ convert_mir_block_to_string(Compilation_Context* context,
                 FAIL("[MIR] GET_ADDRESS is not supported yet.");
             } break;
 
+            case MIR_PUSH_REGISTER_ON_STACK:
+            {
+                append_string(builder, "          PUSH               ");
+
+                ASSERT(instruction->definitions_count == 0);
+                ASSERT(instruction->uses_count == 1);
+
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
+            } break;
+
+            case MIR_POP_REGISTER_FROM_STACK:
+            {
+                append_string(builder, "          POP                ");
+
+                ASSERT(instruction->definitions_count == 0);
+                ASSERT(instruction->uses_count == 1);
+
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
+            } break;
+
             case MIR_GROW_STACK:
             {
                 append_string(builder, "          GROW_STACK         ");
@@ -897,7 +925,7 @@ convert_mir_block_to_string(Compilation_Context* context,
             {
                 append_string(builder, "          CALL               ");
 
-                if (instruction->has_return_value)
+                if (instruction->has_return_value && instruction->return_value_retrieving_instruction == NULL)
                 {
                     convert_mir_operand_to_string(context,
                                                   builder,

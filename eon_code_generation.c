@@ -135,6 +135,396 @@ emit_binary_code(Compilation_Context* context)
 
     ASSERT(context->target_architecture == TARGET_ARCH_X86_64);
 
+    // NOTE(vlad): Calculating each function's size and the offset in the .text section.
+    {
+        Size current_text_section_offset = 0;
+
+        for (Index function_index = 0;
+             function_index < mir->functions_count;
+             ++function_index)
+        {
+            MIR_Function* function = &mir->functions[function_index];
+            function->offset_of_code_in_the_text_section = current_text_section_offset;
+
+            ASSERT(function->blocks_layout_computed);
+
+            const MIR_Blocks_Layout* layout = &function->blocks_layout;
+
+            // NOTE(vlad): Computing blocks' offsets.
+            {
+                Size current_offset_of_block_in_function = 0;
+
+                for (Index block_index = 0;
+                     block_index < layout->blocks_count;
+                     ++block_index)
+                {
+                    MIR_Block* block = layout->blocks[block_index];
+                    block->offset_from_the_function_start = current_offset_of_block_in_function;
+
+                    for (MIR_Instruction* instruction = block->first_instruction;
+                         instruction != NULL;
+                         instruction = instruction->next_instruction)
+                    {
+                        switch (instruction->opcode)
+                        {
+                            case MIR_UNDEFINED:
+                            case MIR_PHI:
+                            {
+                                UNREACHABLE();
+                            } break;
+
+                            case MIR_NOP:
+                            {
+                                FAIL("[MIR] NOP instruction is not supported yet.");
+                            } break;
+
+                            case MIR_ADD:
+                            case MIR_SUBTRACT:
+                            {
+                                ASSERT(instruction->definitions_count == 1);
+                                ASSERT(instruction->uses_count == 2);
+
+                                ASSERT(instruction->implicit_definitions_count == 0);
+                                ASSERT(instruction->implicit_uses_count == 0);
+
+                                const MIR_Operand* destination = &instruction->definitions[0];
+                                const MIR_Operand* lhs = &instruction->uses[0];
+                                const MIR_Operand* rhs = &instruction->uses[1];
+
+                                Size binary_code_size = 0;
+
+                                ASSERT(destination->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+                                const Virtual_Register* destination_register
+                                    = &function->virtual_registers[destination->virtual_register_index];
+
+                                ASSERT(lhs->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+                                const Virtual_Register* lhs_register
+                                    = &function->virtual_registers[lhs->virtual_register_index];
+
+                                ASSERT(destination_register->assigned_physical_register == lhs_register->assigned_physical_register);
+
+                                switch (rhs->kind)
+                                {
+                                    case MIR_OPERAND_NONE:
+                                    case MIR_OPERAND_PHYSICAL_REGISTER:
+                                    case MIR_OPERAND_BLOCK:
+                                    case MIR_OPERAND_STACK_SLOT:
+                                    {
+                                        UNREACHABLE();
+                                    } break;
+
+                                    case MIR_OPERAND_VIRTUAL_REGISTER:
+                                    {
+                                        // NOTE(vlad): REX + add/sub opcode + modrm.
+                                        binary_code_size += 3;
+                                    } break;
+
+                                    case MIR_OPERAND_IMMEDIATE_VALUE:
+                                    {
+                                        if (x86_fits_imm8(rhs->immediate_value))
+                                        {
+                                            // NOTE(vlad): REX + add/sub opcode + modrm + imm8.
+                                            binary_code_size += 4;
+                                        }
+                                        else
+                                        {
+                                            ASSERT(x86_fits_imm32(rhs->immediate_value));
+
+                                            // NOTE(vlad): REX + add/sub opcode + modrm + imm32.
+                                            binary_code_size += 7;
+                                        }
+                                    } break;
+                                }
+
+                                instruction->binary_code_size = binary_code_size;
+                            } break;
+
+                            case MIR_MULTIPLY:
+                            {
+                                FAIL("[MIR] MULTIPLY instruction is not supported yet.");
+                            } break;
+
+                            case MIR_DIVIDE:
+                            {
+                                FAIL("[MIR] DIVIDE instruction is not supported yet.");
+                            } break;
+
+                            case MIR_COMPARE:
+                            {
+                                ASSERT(instruction->definitions_count == 1);
+                                ASSERT(instruction->uses_count == 2);
+
+                                ASSERT(instruction->implicit_definitions_count == 0);
+                                ASSERT(instruction->implicit_uses_count == 0);
+
+                                const MIR_Operand* destination_operand = &instruction->definitions[0];
+                                ASSERT(destination_operand->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+
+                                const Virtual_Register* destination_virtual_register
+                                    = &function->virtual_registers[destination_operand->virtual_register_index];
+                                const Index destination_register = destination_virtual_register->assigned_physical_register;
+                                ASSERT(destination_register != NO_REGISTER);
+                                const Byte destination_register_number = get_x86_64_register_number(destination_register);
+
+                                const MIR_Operand* source_operand = &instruction->uses[0];
+                                if (source_operand->kind == MIR_OPERAND_VIRTUAL_REGISTER)
+                                {
+                                    const Virtual_Register* source_virtual_register
+                                        = &function->virtual_registers[source_operand->virtual_register_index];
+
+                                    const Index source_register = source_virtual_register->assigned_physical_register;
+
+                                    ASSERT(source_register != NO_REGISTER);
+
+                                    if (source_register == destination_register)
+                                    {
+                                        // NOTE(vlad): Calculating the size of cmp instruction.
+                                        {
+                                            const MIR_Operand* second_argument_operand = &instruction->uses[1];
+                                            if (second_argument_operand->kind != MIR_OPERAND_IMMEDIATE_VALUE)
+                                            {
+                                                FAIL("[MIR] Register-register comparisons are not supported yet.");
+                                            }
+
+                                            const u64 value_to_compare_with = second_argument_operand->immediate_value;
+                                            if (x86_fits_imm8(value_to_compare_with))
+                                            {
+                                                instruction->binary_code_size += 4;
+                                            }
+                                            else if (x86_fits_imm32(value_to_compare_with))
+                                            {
+                                                instruction->binary_code_size += 7;
+                                            }
+                                            else
+                                            {
+                                                FAIL("[MIR] Comparisons with 64-bit values are not supported yet.");
+                                            }
+                                        }
+
+                                        // NOTE(vlad): setcc.
+                                        {
+                                            instruction->binary_code_size += 3;
+
+                                            // FIXME(vlad): Replace this '4' with an RSP number.
+                                            const Bool will_emit_rex_byte_for_setcc = (destination_register_number >= 4);
+                                            instruction->binary_code_size += will_emit_rex_byte_for_setcc;
+                                        }
+
+                                        // NOTE(vlad): movzx.
+                                        {
+                                            instruction->binary_code_size += 3;
+
+                                            // FIXME(vlad): Replace this '4' with an RSP number.
+                                            const Bool will_emit_rex_byte_for_movzx = ((source_register >= X86_64_R8)
+                                                                                       || (destination_register_number >= 4));
+                                            instruction->binary_code_size += will_emit_rex_byte_for_movzx;
+                                        }
+
+                                        break;
+                                    }
+                                }
+
+                                Size binary_code_size = 0;
+
+                                // NOTE(vlad): Clearing the destination register using xor.
+                                binary_code_size += 3;
+
+                                // NOTE(vlad): Calculating the size of cmp instruction.
+                                {
+                                    const MIR_Operand* second_argument_operand = &instruction->uses[1];
+                                    if (second_argument_operand->kind != MIR_OPERAND_IMMEDIATE_VALUE)
+                                    {
+                                        FAIL("[MIR] Register-register comparisons are not supported yet.");
+                                    }
+
+                                    const u64 value_to_compare_with = second_argument_operand->immediate_value;
+                                    if (x86_fits_imm8(value_to_compare_with))
+                                    {
+                                        binary_code_size += 4;
+                                    }
+                                    else if (x86_fits_imm32(value_to_compare_with))
+                                    {
+                                        binary_code_size += 7;
+                                    }
+                                    else
+                                    {
+                                        FAIL("[MIR] Comparisons with 64-bit values are not supported yet.");
+                                    }
+                                }
+
+                                // NOTE(vlad): Calculating the size of setCC instruction.
+                                {
+                                    // FIXME(vlad): Replace this '4' with an RSP number.
+                                    if (destination_register_number >= 4)
+                                    {
+                                        // NOTE(vlad): We need to emit the REX byte here.
+                                        binary_code_size += 1;
+                                    }
+
+                                    binary_code_size += 3;
+                                }
+
+                                instruction->binary_code_size = binary_code_size;
+                            } break;
+
+                            case MIR_LOAD32:
+                            {
+                                FAIL("[MIR] LOAD32 instruction is not supported yet.");
+                            } break;
+
+                            case MIR_STORE32:
+                            {
+                                FAIL("[MIR] STORE32 instruction is not supported yet.");
+                            } break;
+
+                            case MIR_LOAD64:
+                            {
+                                FAIL("[MIR] LOAD64 instruction is not supported yet.");
+                            } break;
+
+                            case MIR_STORE64:
+                            {
+                                FAIL("[MIR] STORE64 instruction is not supported yet.");
+                            } break;
+
+                            case MIR_GET_ADDRESS:
+                            {
+                                FAIL("[MIR] GET_ADDRESS instruction is not supported yet.");
+                            } break;
+
+                            case MIR_PUSH_REGISTER_ON_STACK:
+                            case MIR_POP_REGISTER_FROM_STACK:
+                            {
+                                ASSERT(instruction->definitions_count == 0);
+                                ASSERT(instruction->uses_count == 1);
+
+                                MIR_Operand* register_operand = &instruction->uses[0];
+                                ASSERT(register_operand->kind == MIR_OPERAND_PHYSICAL_REGISTER);
+
+                                const Index physical_register = register_operand->physical_register;
+
+                                if (physical_register >= X86_64_R8)
+                                {
+                                    // NOTE(vlad): REX.B + push/pop.
+                                    instruction->binary_code_size = 1 + 1;
+                                }
+                                else
+                                {
+                                    // NOTE(vlad): push/pop without the REX byte.
+                                    instruction->binary_code_size = 1;
+                                }
+                            } break;
+
+                            case MIR_GROW_STACK:
+                            case MIR_SHRINK_STACK:
+                            {
+                                ASSERT(instruction->definitions_count == 0);
+                                ASSERT(instruction->uses_count == 1);
+
+                                ASSERT(instruction->implicit_definitions_count == 0);
+                                ASSERT(instruction->implicit_uses_count == 0);
+
+                                const MIR_Operand* amount_operand = &instruction->uses[0];
+                                ASSERT(amount_operand->kind == MIR_OPERAND_IMMEDIATE_VALUE);
+
+                                const u64 amount = amount_operand->immediate_value;
+
+                                if (x86_fits_imm8(amount))
+                                {
+                                    instruction->binary_code_size = 4;
+                                }
+                                else
+                                {
+                                    ASSERT(x86_fits_imm32(amount));
+                                    instruction->binary_code_size = 7;
+                                }
+                            } break;
+
+                            case MIR_GET_PARAMETER:
+                            {
+                                FAIL("[MIR] GET_PARAMETER instruction is not supported yet.");
+                            } break;
+
+                            case MIR_MOVE:
+                            {
+                                ASSERT(instruction->definitions_count == 1);
+                                ASSERT(instruction->uses_count == 1);
+
+                                ASSERT(instruction->implicit_definitions_count == 0);
+                                ASSERT(instruction->implicit_uses_count == 0);
+
+                                const MIR_Operand* source_operand = &instruction->uses[0];
+                                const MIR_Operand* destination_operand = &instruction->definitions[0];
+
+                                ASSERT(destination_operand->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+                                if (source_operand->kind == MIR_OPERAND_VIRTUAL_REGISTER)
+                                {
+                                    const Virtual_Register* source_virtual_register
+                                        = &function->virtual_registers[source_operand->virtual_register_index];
+
+                                    const Virtual_Register* destination_virtual_register
+                                        = &function->virtual_registers[destination_operand->virtual_register_index];
+
+                                    const Index source_register = source_virtual_register->assigned_physical_register;
+                                    const Index destination_register = destination_virtual_register->assigned_physical_register;
+
+                                    ASSERT(source_register != NO_REGISTER);
+                                    ASSERT(destination_register != NO_REGISTER);
+
+                                    ASSERT(source_register != destination_register);
+
+                                    // NOTE(vlad): REX + opcode + modrm.
+                                    instruction->binary_code_size = 1 + 1 + 1;
+                                }
+                                else
+                                {
+                                    ASSERT(source_operand->kind == MIR_OPERAND_IMMEDIATE_VALUE);
+
+                                    // NOTE(vlad): REX + opcode + imm64.
+                                    instruction->binary_code_size = 1 + 1 + 8;
+                                }
+                            } break;
+
+                            case MIR_JUMP:
+                            {
+                                ASSERT(instruction->definitions_count == 0);
+                                ASSERT(instruction->uses_count == 1);
+
+                                ASSERT(instruction->implicit_definitions_count == 0);
+                                ASSERT(instruction->implicit_uses_count == 0);
+
+                                // NOTE(vlad): jmp opcode + rel32 offset.
+                                instruction->binary_code_size = 1 + 4;
+                            } break;
+
+                            case MIR_JUMP_IF_FALSE:
+                            {
+                                // NOTE(vlad): test + Jcc.
+                                instruction->binary_code_size = 3 + 6;
+                            } break;
+
+                            case MIR_CALL:
+                            {
+                                // NOTE(vlad): call + rel32.
+                                instruction->binary_code_size = 5;
+                            } break;
+
+                            case MIR_RETURN:
+                            {
+                                instruction->binary_code_size = 1;
+                            } break;
+                        }
+
+                        ASSERT(instruction->binary_code_size != 0);
+                        current_offset_of_block_in_function += instruction->binary_code_size;
+                    }
+                }
+
+                current_text_section_offset += current_offset_of_block_in_function;
+            }
+        }
+    }
+
     for (Index function_index = 0;
          function_index < mir->functions_count;
          ++function_index)
@@ -144,342 +534,6 @@ emit_binary_code(Compilation_Context* context)
         ASSERT(function->blocks_layout_computed);
 
         const MIR_Blocks_Layout* layout = &function->blocks_layout;
-
-        // NOTE(vlad): Computing blocks' offsets.
-        {
-            Size current_offset = 0;
-
-            for (Index block_index = 0;
-                 block_index < layout->blocks_count;
-                 ++block_index)
-            {
-                MIR_Block* block = layout->blocks[block_index];
-                block->offset_from_the_function_start = current_offset;
-
-                for (MIR_Instruction* instruction = block->first_instruction;
-                     instruction != NULL;
-                     instruction = instruction->next_instruction)
-                {
-                    switch (instruction->opcode)
-                    {
-                        case MIR_UNDEFINED:
-                        case MIR_PHI:
-                        {
-                            UNREACHABLE();
-                        } break;
-
-                        case MIR_NOP:
-                        {
-                            FAIL("[MIR] NOP instruction is not supported yet.");
-                        } break;
-
-                        case MIR_ADD:
-                        case MIR_SUBTRACT:
-                        {
-                            ASSERT(instruction->definitions_count == 1);
-                            ASSERT(instruction->uses_count == 2);
-
-                            ASSERT(instruction->implicit_definitions_count == 0);
-                            ASSERT(instruction->implicit_uses_count == 0);
-
-                            const MIR_Operand* destination = &instruction->definitions[0];
-                            const MIR_Operand* lhs = &instruction->uses[0];
-                            const MIR_Operand* rhs = &instruction->uses[1];
-
-                            Size binary_code_size = 0;
-
-                            ASSERT(destination->kind == MIR_OPERAND_VIRTUAL_REGISTER);
-                            const Virtual_Register* destination_register
-                                = &function->virtual_registers[destination->virtual_register_index];
-
-                            ASSERT(lhs->kind == MIR_OPERAND_VIRTUAL_REGISTER);
-                            const Virtual_Register* lhs_register
-                                = &function->virtual_registers[lhs->virtual_register_index];
-
-                            if (destination_register->assigned_physical_register != lhs_register->assigned_physical_register)
-                            {
-                                // NOTE(vlad): We need to move the lhs value into the destination register first
-                                //             because add/sub instructions are two-address on x86.
-                                binary_code_size += 3;
-                            }
-
-                            switch (rhs->kind)
-                            {
-                                case MIR_OPERAND_NONE:
-                                case MIR_OPERAND_BLOCK:
-                                case MIR_OPERAND_STACK_SLOT:
-                                {
-                                    UNREACHABLE();
-                                } break;
-
-                                case MIR_OPERAND_VIRTUAL_REGISTER:
-                                {
-                                    // NOTE(vlad): REX + add/sub opcode + modrm.
-                                    binary_code_size += 3;
-                                } break;
-
-                                case MIR_OPERAND_IMMEDIATE_VALUE:
-                                {
-                                    if (x86_fits_imm8(rhs->immediate_value))
-                                    {
-                                        // NOTE(vlad): REX + add/sub opcode + modrm + imm8.
-                                        binary_code_size += 4;
-                                    }
-                                    else
-                                    {
-                                        ASSERT(x86_fits_imm32(rhs->immediate_value));
-
-                                        // NOTE(vlad): REX + add/sub opcode + modrm + imm32.
-                                        binary_code_size += 7;
-                                    }
-                                } break;
-                            }
-
-                            instruction->binary_code_size = binary_code_size;
-                        } break;
-
-                        case MIR_MULTIPLY:
-                        {
-                            FAIL("[MIR] MULTIPLY instruction is not supported yet.");
-                        } break;
-
-                        case MIR_DIVIDE:
-                        {
-                            FAIL("[MIR] DIVIDE instruction is not supported yet.");
-                        } break;
-
-                        case MIR_COMPARE:
-                        {
-                            ASSERT(instruction->definitions_count == 1);
-                            ASSERT(instruction->uses_count == 2);
-
-                            ASSERT(instruction->implicit_definitions_count == 0);
-                            ASSERT(instruction->implicit_uses_count == 0);
-
-                            const MIR_Operand* destination_operand = &instruction->definitions[0];
-                            ASSERT(destination_operand->kind == MIR_OPERAND_VIRTUAL_REGISTER);
-
-                            const Virtual_Register* destination_virtual_register
-                                = &function->virtual_registers[destination_operand->virtual_register_index];
-                            const Index destination_register = destination_virtual_register->assigned_physical_register;
-                            ASSERT(destination_register != NO_REGISTER);
-                            const Byte destination_register_number = get_x86_64_register_number(destination_register);
-
-                            const MIR_Operand* source_operand = &instruction->uses[0];
-                            if (source_operand->kind == MIR_OPERAND_VIRTUAL_REGISTER)
-                            {
-                                const Virtual_Register* source_virtual_register
-                                    = &function->virtual_registers[source_operand->virtual_register_index];
-
-                                const Index source_register = source_virtual_register->assigned_physical_register;
-
-                                ASSERT(source_register != NO_REGISTER);
-
-                                if (source_register == destination_register)
-                                {
-                                    // NOTE(vlad): Calculating the size of cmp instruction.
-                                    {
-                                        const MIR_Operand* second_argument_operand = &instruction->uses[1];
-                                        if (second_argument_operand->kind != MIR_OPERAND_IMMEDIATE_VALUE)
-                                        {
-                                            FAIL("[MIR] Register-register comparisons are not supported yet.");
-                                        }
-
-                                        const u64 value_to_compare_with = second_argument_operand->immediate_value;
-                                        if (x86_fits_imm8(value_to_compare_with))
-                                        {
-                                            instruction->binary_code_size += 4;
-                                        }
-                                        else if (x86_fits_imm32(value_to_compare_with))
-                                        {
-                                            instruction->binary_code_size += 7;
-                                        }
-                                        else
-                                        {
-                                            FAIL("[MIR] Comparisons with 64-bit values are not supported yet.");
-                                        }
-                                    }
-
-                                    // NOTE(vlad): setcc.
-                                    {
-                                        instruction->binary_code_size += 3;
-
-                                        // FIXME(vlad): Replace this '4' with an RSP number.
-                                        const Bool will_emit_rex_byte_for_setcc = (destination_register_number >= 4);
-                                        instruction->binary_code_size += will_emit_rex_byte_for_setcc;
-                                    }
-
-                                    // NOTE(vlad): movzx.
-                                    {
-                                        instruction->binary_code_size += 3;
-
-                                        // FIXME(vlad): Replace this '4' with an RSP number.
-                                        const Bool will_emit_rex_byte_for_movzx = ((source_register >= X86_64_R8)
-                                                                                   || (destination_register_number >= 4));
-                                        instruction->binary_code_size += will_emit_rex_byte_for_movzx;
-                                    }
-
-                                    break;
-                                }
-                            }
-
-                            Size binary_code_size = 0;
-
-                            // NOTE(vlad): Clearing the destination register using xor.
-                            binary_code_size += 3;
-
-                            // NOTE(vlad): Calculating the size of cmp instruction.
-                            {
-                                const MIR_Operand* second_argument_operand = &instruction->uses[1];
-                                if (second_argument_operand->kind != MIR_OPERAND_IMMEDIATE_VALUE)
-                                {
-                                    FAIL("[MIR] Register-register comparisons are not supported yet.");
-                                }
-
-                                const u64 value_to_compare_with = second_argument_operand->immediate_value;
-                                if (x86_fits_imm8(value_to_compare_with))
-                                {
-                                    binary_code_size += 4;
-                                }
-                                else if (x86_fits_imm32(value_to_compare_with))
-                                {
-                                    binary_code_size += 7;
-                                }
-                                else
-                                {
-                                    FAIL("[MIR] Comparisons with 64-bit values are not supported yet.");
-                                }
-                            }
-
-                            // NOTE(vlad): Calculating the size of setCC instruction.
-                            {
-                                // FIXME(vlad): Replace this '4' with an RSP number.
-                                if (destination_register_number >= 4)
-                                {
-                                    // NOTE(vlad): We need to emit the REX byte here.
-                                    binary_code_size += 1;
-                                }
-
-                                binary_code_size += 3;
-                            }
-
-                            instruction->binary_code_size = binary_code_size;
-                        } break;
-
-                        case MIR_LOAD32:
-                        {
-                            FAIL("[MIR] LOAD32 instruction is not supported yet.");
-                        } break;
-
-                        case MIR_STORE32:
-                        {
-                            FAIL("[MIR] STORE32 instruction is not supported yet.");
-                        } break;
-
-                        case MIR_LOAD64:
-                        {
-                            FAIL("[MIR] LOAD64 instruction is not supported yet.");
-                        } break;
-
-                        case MIR_STORE64:
-                        {
-                            FAIL("[MIR] STORE64 instruction is not supported yet.");
-                        } break;
-
-                        case MIR_GET_ADDRESS:
-                        {
-                            FAIL("[MIR] GET_ADDRESS instruction is not supported yet.");
-                        } break;
-
-                        case MIR_GROW_STACK:
-                        {
-                            FAIL("[MIR] GROW_STACK instruction is not supported yet.");
-                        } break;
-
-                        case MIR_SHRINK_STACK:
-                        {
-                            FAIL("[MIR] SHRINK_STACK instruction is not supported yet.");
-                        } break;
-
-                        case MIR_GET_PARAMETER:
-                        {
-                            FAIL("[MIR] GET_PARAMETER instruction is not supported yet.");
-                        } break;
-
-                        case MIR_MOVE:
-                        {
-                            ASSERT(instruction->definitions_count == 1);
-                            ASSERT(instruction->uses_count == 1);
-
-                            ASSERT(instruction->implicit_definitions_count == 0);
-                            ASSERT(instruction->implicit_uses_count == 0);
-
-                            const MIR_Operand* source_operand = &instruction->uses[0];
-                            const MIR_Operand* destination_operand = &instruction->definitions[0];
-
-                            ASSERT(destination_operand->kind == MIR_OPERAND_VIRTUAL_REGISTER);
-                            if (source_operand->kind == MIR_OPERAND_VIRTUAL_REGISTER)
-                            {
-                                const Virtual_Register* source_virtual_register
-                                    = &function->virtual_registers[source_operand->virtual_register_index];
-
-                                const Virtual_Register* destination_virtual_register
-                                    = &function->virtual_registers[destination_operand->virtual_register_index];
-
-                                const Index source_register = source_virtual_register->assigned_physical_register;
-                                const Index destination_register = destination_virtual_register->assigned_physical_register;
-
-                                ASSERT(source_register != NO_REGISTER);
-                                ASSERT(destination_register != NO_REGISTER);
-
-                                ASSERT(source_register != destination_register);
-
-                                // NOTE(vlad): REX + opcode + modrm.
-                                instruction->binary_code_size = 1 + 1 + 1;
-                            }
-                            else
-                            {
-                                ASSERT(source_operand->kind == MIR_OPERAND_IMMEDIATE_VALUE);
-
-                                // NOTE(vlad): REX + opcode + imm64.
-                                instruction->binary_code_size = 1 + 1 + 8;
-                            }
-                        } break;
-
-                        case MIR_JUMP:
-                        {
-                            ASSERT(instruction->definitions_count == 0);
-                            ASSERT(instruction->uses_count == 1);
-
-                            ASSERT(instruction->implicit_definitions_count == 0);
-                            ASSERT(instruction->implicit_uses_count == 0);
-
-                            // NOTE(vlad): jmp opcode + rel32 offset.
-                            instruction->binary_code_size = 1 + 4;
-                        } break;
-
-                        case MIR_JUMP_IF_FALSE:
-                        {
-                            // NOTE(vlad): test + Jcc.
-                            instruction->binary_code_size = 3 + 6;
-                        } break;
-
-                        case MIR_CALL:
-                        {
-                            FAIL("[MIR] CALL instruction is not supported yet.");
-                        } break;
-
-                        case MIR_RETURN:
-                        {
-                            instruction->binary_code_size = 1;
-                        } break;
-                    }
-
-                    ASSERT(instruction->binary_code_size != 0);
-                    current_offset += instruction->binary_code_size;
-                }
-            }
-        }
 
         for (Index block_index = 0;
              block_index < layout->blocks_count;
@@ -533,36 +587,14 @@ emit_binary_code(Compilation_Context* context)
                         ASSERT(destination_register != NO_REGISTER);
                         ASSERT(lhs_register != NO_REGISTER);
 
+                        ASSERT(destination_register == lhs_register);
+
                         const Index destination_register_number = get_x86_64_register_number(destination_register);
-                        const Index lhs_register_number = get_x86_64_register_number(lhs_register);
-
-                        if (destination_register != lhs_register)
-                        {
-                            x86_64_REX rex = {0};
-                            rex.w = true;
-
-                            if (destination_register >= X86_64_R8)
-                            {
-                                rex.b = true;
-                            }
-
-                            if (lhs_register >= X86_64_R8)
-                            {
-                                rex.r = true;
-                            }
-
-                            emit_x86_64_rex_byte(context, function, rex);
-                            emit_byte(context, function, 0x89); // NOTE(vlad): mov r64, r64.
-
-                            Byte modrm = 0xC0;
-                            modrm |= (lhs_register_number & 0x07) << 3;
-                            modrm |= (destination_register_number & 0x07);
-                            emit_byte(context, function, modrm);
-                        }
 
                         switch (rhs->kind)
                         {
                             case MIR_OPERAND_NONE:
+                            case MIR_OPERAND_PHYSICAL_REGISTER:
                             case MIR_OPERAND_BLOCK:
                             case MIR_OPERAND_STACK_SLOT:
                             {
@@ -577,6 +609,7 @@ emit_binary_code(Compilation_Context* context)
 
                                 const Index rhs_register = rhs_virtual_register->assigned_physical_register;
                                 ASSERT(rhs_register != NO_REGISTER);
+                                ASSERT(destination_register != rhs_register);
 
                                 const Index rhs_register_number = get_x86_64_register_number(rhs_register);
 
@@ -898,14 +931,70 @@ emit_binary_code(Compilation_Context* context)
                         FAIL("[MIR] GET_ADDRESS instruction is not supported yet.");
                     } break;
 
-                    case MIR_GROW_STACK:
+                    case MIR_PUSH_REGISTER_ON_STACK:
+                    case MIR_POP_REGISTER_FROM_STACK:
                     {
-                        FAIL("[MIR] GROW_STACK instruction is not supported yet.");
+                        ASSERT(instruction->definitions_count == 0);
+                        ASSERT(instruction->uses_count == 1);
+
+                        const MIR_Operand* register_operand = &instruction->uses[0];
+                        ASSERT(register_operand->kind == MIR_OPERAND_PHYSICAL_REGISTER);
+
+                        const Index physical_register = register_operand->physical_register;
+
+                        if (physical_register >= X86_64_R8)
+                        {
+                            x86_64_REX rex = {0};
+                            rex.b = true;
+
+                            emit_x86_64_rex_byte(context, function, rex);
+                        }
+
+                        const Byte opcode = (instruction->opcode == MIR_PUSH_REGISTER_ON_STACK) ? 0x50 : 0x58;
+
+                        const Byte physical_register_number = get_x86_64_register_number(physical_register);
+                        emit_byte(context, function, opcode + (physical_register_number & 0x07));
                     } break;
 
+                    case MIR_GROW_STACK:
                     case MIR_SHRINK_STACK:
                     {
-                        FAIL("[MIR] SHRINK_STACK instruction is not supported yet.");
+                        ASSERT(instruction->definitions_count == 0);
+                        ASSERT(instruction->uses_count == 1);
+
+                        ASSERT(instruction->implicit_definitions_count == 0);
+                        ASSERT(instruction->implicit_uses_count == 0);
+
+                        const MIR_Operand* amount_operand = &instruction->uses[0];
+                        ASSERT(amount_operand->kind == MIR_OPERAND_IMMEDIATE_VALUE);
+
+                        const u64 amount = amount_operand->immediate_value;
+
+                        x86_64_REX rex = {0};
+                        rex.w = true;
+                        emit_x86_64_rex_byte(context, function, rex);
+
+                        // NOTE(vlad): /5 => SUB (grow), /0 => ADD (shrink).
+                        const Byte opcode_extension = (instruction->opcode == MIR_GROW_STACK) ? 5 : 0;
+
+                        Byte modrm = 0xC0;
+                        modrm |= opcode_extension << 3;
+                        modrm |= 4; // TODO(vlad): Change to the RSP register number.
+
+                        if (x86_fits_imm8(amount))
+                        {
+                            emit_byte(context, function, 0x83);
+                            emit_byte(context, function, modrm);
+                            emit_byte(context, function, (Byte)(amount));
+                        }
+                        else
+                        {
+                            ASSERT(x86_fits_imm32(amount));
+
+                            emit_byte(context, function, 0x81);
+                            emit_byte(context, function, modrm);
+                            emit_imm32(context, function, (u32)(amount));
+                        }
                     } break;
 
                     case MIR_GET_PARAMETER:
@@ -935,6 +1024,7 @@ emit_binary_code(Compilation_Context* context)
                         switch (source_operand->kind)
                         {
                             case MIR_OPERAND_NONE:
+                            case MIR_OPERAND_PHYSICAL_REGISTER:
                             case MIR_OPERAND_BLOCK:
                             case MIR_OPERAND_STACK_SLOT:
                             {
@@ -1091,7 +1181,24 @@ emit_binary_code(Compilation_Context* context)
 
                     case MIR_CALL:
                     {
-                        FAIL("[MIR] CALL instruction is not supported yet.");
+                        ASSERT(instruction->definitions_count == 0);
+                        ASSERT(instruction->uses_count == 0);
+
+                        const Tac_Function_Label_Id callee_function_label_id = instruction->function_label_id;
+
+                        // NOTE(vlad): TAC function indices start with 1.
+                        const MIR_Function* callee_function = &context->mir.functions[callee_function_label_id.index - 1];
+
+                        const Size CALL_INSTRUCTION_SIZE = 5;
+
+                        const Size call_site_offset = function->offset_of_code_in_the_text_section + function->binary_code_count;
+
+                        // NOTE(vlad): We can do the arithmetic in u32 because it does not matter bitwise.
+                        const u32 callee_relative_offset = (u32)(callee_function->offset_of_code_in_the_text_section
+                                                                 - (call_site_offset + CALL_INSTRUCTION_SIZE));
+
+                        emit_byte(context, function, 0xE8);
+                        emit_imm32(context, function, callee_relative_offset);
                     } break;
 
                     case MIR_RETURN:
