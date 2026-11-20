@@ -470,6 +470,7 @@ lower_ssa_block_to_mir(Compilation_Context* context,
 
                     case TAC_OPERAND_NONE:
                     case TAC_OPERAND_FUNCTION_LABEL:
+                    case TAC_OPERAND_FOREIGN_FUNCTION:
                     case TAC_OPERAND_LABEL:
                     case TAC_OPERAND_PARAMETER_INDEX:
                     case TAC_OPERAND_NUMBER_OF_ARGUMENTS:
@@ -562,6 +563,7 @@ lower_ssa_block_to_mir(Compilation_Context* context,
 
                         case TAC_OPERAND_NONE:
                         case TAC_OPERAND_FUNCTION_LABEL:
+                        case TAC_OPERAND_FOREIGN_FUNCTION:
                         case TAC_OPERAND_LABEL:
                         case TAC_OPERAND_PARAMETER_INDEX:
                         case TAC_OPERAND_NUMBER_OF_ARGUMENTS:
@@ -589,6 +591,7 @@ lower_ssa_block_to_mir(Compilation_Context* context,
 
                         case TAC_OPERAND_NONE:
                         case TAC_OPERAND_FUNCTION_LABEL:
+                        case TAC_OPERAND_FOREIGN_FUNCTION:
                         case TAC_OPERAND_LABEL:
                         case TAC_OPERAND_PARAMETER_INDEX:
                         case TAC_OPERAND_NUMBER_OF_ARGUMENTS:
@@ -667,6 +670,7 @@ lower_ssa_block_to_mir(Compilation_Context* context,
 
                     case TAC_OPERAND_NONE:
                     case TAC_OPERAND_FUNCTION_LABEL:
+                    case TAC_OPERAND_FOREIGN_FUNCTION:
                     case TAC_OPERAND_LABEL:
                     case TAC_OPERAND_PARAMETER_INDEX:
                     case TAC_OPERAND_NUMBER_OF_ARGUMENTS:
@@ -701,7 +705,8 @@ lower_ssa_block_to_mir(Compilation_Context* context,
 
             case TAC_CALL:
             {
-                ASSERT(ssa_first_argument->kind == TAC_OPERAND_FUNCTION_LABEL);
+                ASSERT(ssa_first_argument->kind == TAC_OPERAND_FUNCTION_LABEL
+                       || ssa_first_argument->kind == TAC_OPERAND_FOREIGN_FUNCTION);
                 ASSERT(ssa_second_argument->kind == TAC_OPERAND_NUMBER_OF_ARGUMENTS);
 
                 MIR_Instruction* instruction = add_new_instruction_to_mir_block(context, this_block);
@@ -717,7 +722,16 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                         = get_virtual_register_index_for_ssa_variable(context, ssa_destination->variable_id);
                 }
 
-                instruction->function_label_id = ssa_first_argument->function_label_id;
+                if (ssa_first_argument->kind == TAC_OPERAND_FUNCTION_LABEL)
+                {
+                    instruction->is_a_foreign_function = false;
+                    instruction->function_label_id = ssa_first_argument->function_label_id;
+                }
+                else if (ssa_first_argument->kind == TAC_OPERAND_FOREIGN_FUNCTION)
+                {
+                    instruction->is_a_foreign_function = true;
+                    instruction->foreign_function_symbol_id = ssa_first_argument->foreign_function_symbol_id;
+                }
 
                 const Size number_of_arguments = ssa_second_argument->number_of_arguments;
                 if (number_of_arguments > parameters_stack_count)
@@ -770,6 +784,7 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                     } break;
 
                     case TAC_OPERAND_FUNCTION_LABEL:
+                    case TAC_OPERAND_FOREIGN_FUNCTION:
                     case TAC_OPERAND_LABEL:
                     case TAC_OPERAND_PARAMETER_INDEX:
                     case TAC_OPERAND_NUMBER_OF_ARGUMENTS:

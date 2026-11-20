@@ -36,6 +36,8 @@ enum Token_Type
     TOKEN_BREAK, TOKEN_CONTINUE,
     TOKEN_WILDCARD,
 
+    TOKEN_FOREIGN,
+
     // NOTE(vlad): Type qualifiers.
     TOKEN_MUTABLE,
 

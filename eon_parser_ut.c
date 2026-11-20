@@ -12,6 +12,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
@@ -39,6 +40,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
@@ -66,6 +68,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
@@ -105,6 +108,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
@@ -138,6 +142,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
@@ -177,6 +182,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
@@ -233,6 +239,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 2);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         {
             const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
@@ -293,6 +300,7 @@ test_function_definitions_parsing(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
@@ -322,6 +330,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+            ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
             const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
@@ -379,6 +388,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+            ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
             const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
@@ -434,6 +444,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+            ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
             const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
@@ -491,6 +502,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+            ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
             const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
@@ -520,6 +532,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+            ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
             const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
@@ -553,6 +566,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+            ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
             const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
@@ -586,6 +600,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+            ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
             const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
@@ -619,6 +634,7 @@ test_function_definitions_parsing(Test_Context* test_context)
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+            ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
             const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
@@ -663,6 +679,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
@@ -709,6 +726,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -759,6 +777,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -809,6 +828,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -874,6 +894,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -924,6 +945,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -990,6 +1012,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -1040,6 +1063,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -1094,6 +1118,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+            ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
             const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
@@ -1139,6 +1164,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+            ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
             const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -1188,6 +1214,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+            ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
             const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -1237,6 +1264,7 @@ test_variable_definitions_parsing(Test_Context* test_context)
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+            ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
             const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
             ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
@@ -1291,6 +1319,7 @@ test_return_statement_parsing(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
@@ -1329,6 +1358,7 @@ test_return_statement_parsing(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
@@ -1376,6 +1406,7 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
@@ -1432,6 +1463,7 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
@@ -1510,6 +1542,7 @@ test_if_statement_parsing(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "foo");
@@ -1604,6 +1637,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -1719,6 +1753,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+            ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
             const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -1814,6 +1849,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 2);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         {
             const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
@@ -1902,6 +1938,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 2);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         {
             const Ast_Function_Definition* function_definition = &context.ast.function_definitions[1];
@@ -1971,6 +2008,7 @@ test_expressions(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         {
             const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
@@ -2076,6 +2114,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+            ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
             const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -2129,6 +2168,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+            ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
             const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -2214,6 +2254,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+            ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
             const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -2290,6 +2331,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+            ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
             const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -2379,6 +2421,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+            ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
             const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -2467,6 +2510,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+            ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
             const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -2527,6 +2571,7 @@ test_expressions(Test_Context* test_context)
             ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
             ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+            ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
             const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
             ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -2611,6 +2656,7 @@ test_operator_precedence(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -2679,6 +2725,7 @@ test_operator_precedence(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -2748,6 +2795,7 @@ test_operator_precedence(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -2818,6 +2866,7 @@ test_assignments(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -2886,6 +2935,7 @@ test_assignments(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -2965,6 +3015,7 @@ test_assignments(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -3048,6 +3099,7 @@ test_assignments(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -3116,6 +3168,7 @@ test_while_statements(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -3211,6 +3264,7 @@ test_while_statements(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -3278,6 +3332,7 @@ test_while_statements(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -3348,6 +3403,7 @@ test_while_statements(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -3451,6 +3507,7 @@ test_while_statements(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -3562,6 +3619,7 @@ test_call_statements(Test_Context* test_context)
         ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
 
         ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
 
         const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
         ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
@@ -3606,6 +3664,42 @@ test_call_statements(Test_Context* test_context)
                 ASSERT_FALSE(argument->number.is_a_floating_point_number);
             }
         }
+
+        destroy_compilation_context(&context);
+    }
+}
+
+internal void
+test_foreign_function_interface(Test_Context* test_context)
+{
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = #foreign \"lib\";");
+
+        parse_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        ASSERT_EQUAL(context.ast.function_definitions_count, 0);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 1);
+
+        const Ast_Foreign_Function* foreign_function = &context.ast.foreign_functions[0];
+        ASSERT_STRINGS_ARE_EQUAL(foreign_function->name.token.lexeme, "foo");
+
+        const Ast_Type* function_type = foreign_function->type;
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        ASSERT_FALSE(function_type->is_mutable);
+        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location,
+                                          "() -> void");
+
+        ASSERT_EQUAL(function_type->function.parameters_count, 0);
+
+        const Ast_Type* return_type = function_type->function.return_type;
+        ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
+        ASSERT_FALSE(return_type->is_mutable);
+        ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
+        ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
+
+        ASSERT_STRINGS_ARE_EQUAL(foreign_function->library_name.value, "lib");
+        ASSERT_STRINGS_ARE_EQUAL(foreign_function->library_name.token.lexeme, "\"lib\"");
 
         destroy_compilation_context(&context);
     }
@@ -3682,6 +3776,7 @@ REGISTER_TESTS(
     test_assignments,
     test_while_statements,
     test_call_statements,
+    test_foreign_function_interface,
     test_syntax_errors
 )
 

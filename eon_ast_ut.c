@@ -469,9 +469,34 @@ test_invalid_break_and_continue_statements(Test_Context* test_context)
     }
 }
 
+internal void
+test_invalid_foreign_function_declarations(Test_Context* test_context)
+{
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = #foreign \"\";");
+
+        parse_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
+        ASSERT_TRUE(has_compilation_errors(&context));
+
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:1:28: error: Foreign function's library name cannot be empty\n"
+                                                        "  1 | foo: () -> void = #foreign \"\";\n"
+                                                        "    |                            ^~\n");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_compilation_context(&context);
+    }
+}
+
 REGISTER_TESTS(
     test_break_and_continue_statements_validation,
-    test_invalid_break_and_continue_statements
+    test_invalid_break_and_continue_statements,
+    test_invalid_foreign_function_declarations
 )
 
 #include "eon_ast.c"

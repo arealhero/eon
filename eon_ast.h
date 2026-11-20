@@ -299,9 +299,19 @@ struct Ast_Function_Definition
 };
 typedef struct Ast_Function_Definition Ast_Function_Definition;
 
+struct Ast_Foreign_Function
+{
+    Ast_Identifier name;
+    Ast_Type* type;
+
+    Ast_String_Literal library_name;
+};
+typedef struct Ast_Foreign_Function Ast_Foreign_Function;
+
 struct Ast
 {
     array(Ast_Function_Definition, function_definitions);
+    array(Ast_Foreign_Function, foreign_functions);
 };
 typedef struct Ast Ast;
 

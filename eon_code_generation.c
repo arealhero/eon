@@ -1184,21 +1184,35 @@ emit_binary_code(Compilation_Context* context)
                         ASSERT(instruction->definitions_count == 0);
                         ASSERT(instruction->uses_count == 0);
 
-                        const Tac_Function_Label_Id callee_function_label_id = instruction->function_label_id;
-
-                        // NOTE(vlad): TAC function indices start with 1.
-                        const MIR_Function* callee_function = &context->mir.functions[callee_function_label_id.index - 1];
-
-                        const Size CALL_INSTRUCTION_SIZE = 5;
-
                         const Size call_site_offset = function->offset_of_code_in_the_text_section + function->binary_code_count;
 
-                        // NOTE(vlad): We can do the arithmetic in u32 because it does not matter bitwise.
-                        const u32 callee_relative_offset = (u32)(callee_function->offset_of_code_in_the_text_section
-                                                                 - (call_site_offset + CALL_INSTRUCTION_SIZE));
+                        if (instruction->is_a_foreign_function)
+                        {
+                            emit_byte(context, function, 0xE8);
+                            emit_imm32(context, function, 0);
 
-                        emit_byte(context, function, 0xE8);
-                        emit_imm32(context, function, callee_relative_offset);
+                            MIR_Relocation relocation = {0};
+                            relocation.offset_of_displacement_in_the_text_section = call_site_offset + 1; // NOTE(vlad): Skipping the call opcode.
+                            relocation.foreign_function_symbol_id = instruction->foreign_function_symbol_id;
+
+                            append_array(context->relocations_arena, function->relocations, MIR_Relocation, relocation);
+                        }
+                        else
+                        {
+                            const Tac_Function_Label_Id callee_function_label_id = instruction->function_label_id;
+
+                            // NOTE(vlad): TAC function indices start with 1.
+                            const MIR_Function* callee_function = &context->mir.functions[callee_function_label_id.index - 1];
+
+                            const Size CALL_INSTRUCTION_SIZE = 5;
+
+                            // NOTE(vlad): We can do the arithmetic in u32 because it does not matter bitwise.
+                            const u32 callee_relative_offset = (u32)(callee_function->offset_of_code_in_the_text_section
+                                                                     - (call_site_offset + CALL_INSTRUCTION_SIZE));
+
+                            emit_byte(context, function, 0xE8);
+                            emit_imm32(context, function, callee_relative_offset);
+                        }
                     } break;
 
                     case MIR_RETURN:

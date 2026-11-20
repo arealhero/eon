@@ -102,4 +102,39 @@ validate_ast(Compilation_Context* context)
         // NOTE(vlad): Validating that 'break' and 'continue' statements occur only inside loops.
         validate_ast_jumps_in_code_block(context, NULL, &function->body);
     }
+
+    for (Index function_index = 0;
+         function_index < ast->foreign_functions_count;
+         ++function_index)
+    {
+        const Ast_Foreign_Function* function = &ast->foreign_functions[function_index];
+
+        {
+            const Ast_Type* type = function->type;
+
+            if (type->is_mutable)
+            {
+                Diagnostic_Message error = {0};
+                error.level = MESSAGE_LEVEL_ERROR;
+                error.location = type->location;
+                error.text = string_view("Foreign functions cannot be mutable");
+
+                emit_diagnostic_message(context, &error);
+            }
+        }
+
+        {
+            const Ast_String_Literal* library_name = &function->library_name;
+
+            if (strings_are_equal(library_name->value, ""))
+            {
+                Diagnostic_Message error = {0};
+                error.level = MESSAGE_LEVEL_ERROR;
+                error.location = library_name->token.location;
+                error.text = string_view("Foreign function's library name cannot be empty");
+
+                emit_diagnostic_message(context, &error);
+            }
+        }
+    }
 }

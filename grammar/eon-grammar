@@ -29,10 +29,14 @@ identifier_body: letter | digit | "_";
 
 code_block: "{" statements "}";
 
-program: function_definitions;
+program: global_statements;
 
-function_definitions: EOF | function_definition function_definitions;
+global_statements: EOF
+                   | function_definition global_statements
+                   | foreign_function_declaration global_statements;
+
 function_definition: identifier ":" function_type "=" code_block;
+foreign_function_declaration: identifier ":" function_type "=" "#foreign" string_literal ";";
 
 statements: EPS | statement statements;
 statement: variable_definition

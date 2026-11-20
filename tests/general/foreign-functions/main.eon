@@ -1,0 +1,17 @@
+// TODO(vlad): Change calling convention to __stdcall.
+//             @ref: https://learn.microsoft.com/en-us/cpp/cpp/stdcall?view=msvc-170
+GetCommandLineA: () -> u64 = #foreign "kernel32.lib";
+
+main: () -> s32 =
+{
+    arguments := GetCommandLineA();
+
+    if arguments == 0
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}

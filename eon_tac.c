@@ -107,7 +107,7 @@ get_tac_function_by_label(Tac* tac, const Tac_Function_Label_Id label_id)
         }
     }
 
-    UNREACHABLE();
+    FAIL("[TAC] Failed to find TAC function by the label.");
 }
 
 internal inline Tac_Function_Label*
@@ -522,10 +522,16 @@ lower_expression_to_tac(Compilation_Context* context,
                 break;
             }
 
-            if (identifier_symbol->is_a_global_function)
+            if (identifier_symbol->kind == SYMBOL_GLOBAL_FUNCTION)
             {
                 result.kind = TAC_OPERAND_FUNCTION_LABEL;
                 result.function_label_id = identifier_symbol->tac_function_label_id;
+                break;
+            }
+            else if (identifier_symbol->kind == SYMBOL_FOREIGN_FUNCTION)
+            {
+                result.kind = TAC_OPERAND_FOREIGN_FUNCTION;
+                result.foreign_function_symbol_id = identifier->symbol_id;
                 break;
             }
 
@@ -1171,7 +1177,8 @@ lower_ast_to_tac(Compilation_Context* context)
             ASSERT(operand.function_label_id.index != INVALID_TAC_INDEX);
 
             Symbol* function_symbol = get_symbol_by_id(context, ast_function->name.symbol_id);
-            ASSERT(function_symbol->is_a_global_function);
+            ASSERT(function_symbol->kind == SYMBOL_GLOBAL_FUNCTION);
+
             function_symbol->tac_function_label_id = operand.function_label_id;
         }
     }
@@ -1192,7 +1199,7 @@ lower_ast_to_tac(Compilation_Context* context)
 
         {
             const Symbol* function_symbol = get_symbol_by_id(context, ast_function->name.symbol_id);
-            ASSERT(function_symbol->is_a_global_function);
+            ASSERT(function_symbol->kind == SYMBOL_GLOBAL_FUNCTION);
             ASSERT(function_symbol->tac_function_label_id.index != INVALID_TAC_INDEX);
 
             tac_function->label_id = function_symbol->tac_function_label_id;

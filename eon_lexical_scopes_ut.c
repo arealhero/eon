@@ -36,7 +36,7 @@ test_function_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
 
                 const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_GLOBAL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_FALSE(symbol->binding_is_mutable);
             }
@@ -104,7 +104,7 @@ test_function_scopes(Test_Context* test_context)
                 ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
 
                 const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_GLOBAL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_FALSE(symbol->binding_is_mutable);
             }
@@ -209,7 +209,7 @@ test_function_scopes(Test_Context* test_context)
                 ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
 
                 const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_GLOBAL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_FALSE(symbol->binding_is_mutable);
             }
@@ -296,7 +296,7 @@ test_function_pointers(Test_Context* test_context)
                 ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
 
                 const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_GLOBAL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_FALSE(symbol->binding_is_mutable);
             }
@@ -411,7 +411,7 @@ test_function_pointers(Test_Context* test_context)
                 ASSERT_EQUAL(function_definition->name.symbol_id, symbol_id);
 
                 const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_GLOBAL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_FALSE(symbol->binding_is_mutable);
             }
@@ -561,7 +561,7 @@ test_if_statements_scopes(Test_Context* test_context)
                 ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
 
                 const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_GLOBAL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_FALSE(symbol->binding_is_mutable);
             }
@@ -685,7 +685,7 @@ test_if_statements_scopes(Test_Context* test_context)
                 ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
 
                 const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_GLOBAL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_FALSE(symbol->binding_is_mutable);
             }
@@ -811,7 +811,7 @@ test_while_loops_scopes(Test_Context* test_context)
                 ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
 
                 const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_GLOBAL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_FALSE(symbol->binding_is_mutable);
             }
@@ -913,7 +913,7 @@ test_while_loops_scopes(Test_Context* test_context)
                 ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
 
                 const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_GLOBAL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_FALSE(symbol->binding_is_mutable);
             }
@@ -1028,7 +1028,7 @@ test_while_loops_scopes(Test_Context* test_context)
                 ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
 
                 const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_GLOBAL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_FALSE(symbol->binding_is_mutable);
             }
@@ -1141,7 +1141,7 @@ test_while_loops_scopes(Test_Context* test_context)
                 ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
 
                 const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_GLOBAL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_FALSE(symbol->binding_is_mutable);
             }
@@ -1232,7 +1232,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
                 ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
 
                 const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_GLOBAL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_FALSE(symbol->binding_is_mutable);
             }
@@ -1361,7 +1361,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
                 ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
 
                 const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
-                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_GLOBAL_FUNCTION);
                 ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
                 ASSERT_FALSE(symbol->binding_is_mutable);
             }
@@ -1548,7 +1548,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
             ASSERT_EQUAL(foo_definition->name.symbol_id, foo_symbol_id);
 
             const Symbol* symbol = get_symbol_by_id(&context, foo_symbol_id);
-            ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_GLOBAL_FUNCTION);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
             ASSERT_FALSE(symbol->binding_is_mutable);
         }
@@ -1557,7 +1557,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
             ASSERT_EQUAL(bar_definition->name.symbol_id, bar_symbol_id);
 
             const Symbol* symbol = get_symbol_by_id(&context, bar_symbol_id);
-            ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_GLOBAL_FUNCTION);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "bar");
             ASSERT_FALSE(symbol->binding_is_mutable);
         }
@@ -1566,7 +1566,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
             ASSERT_EQUAL(baz_definition->name.symbol_id, baz_symbol_id);
 
             const Symbol* symbol = get_symbol_by_id(&context, baz_symbol_id);
-            ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_GLOBAL_FUNCTION);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "baz");
             ASSERT_FALSE(symbol->binding_is_mutable);
         }
@@ -1661,7 +1661,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
             ASSERT_EQUAL(foo_definition->name.symbol_id, foo_symbol_id);
 
             const Symbol* symbol = get_symbol_by_id(&context, foo_symbol_id);
-            ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_GLOBAL_FUNCTION);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
             ASSERT_FALSE(symbol->binding_is_mutable);
         }
@@ -1670,7 +1670,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
             ASSERT_EQUAL(bar_definition->name.symbol_id, bar_symbol_id);
 
             const Symbol* symbol = get_symbol_by_id(&context, bar_symbol_id);
-            ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_GLOBAL_FUNCTION);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "bar");
             ASSERT_FALSE(symbol->binding_is_mutable);
         }
@@ -1679,7 +1679,7 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
             ASSERT_EQUAL(baz_definition->name.symbol_id, baz_symbol_id);
 
             const Symbol* symbol = get_symbol_by_id(&context, baz_symbol_id);
-            ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_FUNCTION);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_GLOBAL_FUNCTION);
             ASSERT_STRINGS_ARE_EQUAL(symbol->name, "baz");
             ASSERT_FALSE(symbol->binding_is_mutable);
         }
@@ -1721,6 +1721,255 @@ test_that_every_identifier_has_symbol_id_in_expressions(Test_Context* test_conte
             ASSERT_ENUM_VALUES_ARE_EQUAL(add_expression->rhs->kind, AST_EXPRESSION_CALL);
             ASSERT_ENUM_VALUES_ARE_EQUAL(add_expression->rhs->call.called_expression->kind, AST_EXPRESSION_IDENTIFIER);
             ASSERT_EQUAL(add_expression->rhs->call.called_expression->identifier.symbol_id, bar_symbol_id);
+        }
+
+        destroy_compilation_context(&context);
+    }
+}
+
+internal void
+test_foreign_functions(Test_Context* test_context)
+{
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    var := bar();"
+                                                 "}"
+                                                 "bar: () -> s32 = #foreign \"lib\";");
+
+        parse_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 1);
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        const Ast_Function_Definition* foo_definition = &context.ast.function_definitions[0];
+        const Ast_Foreign_Function* bar_declaration = &context.ast.foreign_functions[0];
+
+        ASSERT_EQUAL(foo_definition->body.lexical_scope_id, GLOBAL_LEXICAL_SCOPE_ID + 1);
+
+        const Lexical_Scope* global_scope = &context.lexical_scopes[GLOBAL_LEXICAL_SCOPE_ID];
+        ASSERT_EQUAL(global_scope->parent_lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
+
+        const Symbol_Id foo_symbol_id = find_symbol_id(&context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       foo_definition->name.token.lexeme);
+        const Symbol_Id bar_symbol_id = find_symbol_id(&context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       bar_declaration->name.token.lexeme);
+
+        ASSERT_NOT_EQUAL(foo_symbol_id, UNDEFINED_SYMBOL_ID);
+        ASSERT_NOT_EQUAL(bar_symbol_id, UNDEFINED_SYMBOL_ID);
+
+        {
+            ASSERT_EQUAL(foo_definition->name.symbol_id, foo_symbol_id);
+
+            const Symbol* symbol = get_symbol_by_id(&context, foo_symbol_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_GLOBAL_FUNCTION);
+            ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
+            ASSERT_FALSE(symbol->binding_is_mutable);
+        }
+
+        {
+            ASSERT_EQUAL(bar_declaration->name.symbol_id, bar_symbol_id);
+
+            const Symbol* symbol = get_symbol_by_id(&context, bar_symbol_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_FOREIGN_FUNCTION);
+            ASSERT_STRINGS_ARE_EQUAL(symbol->name, "bar");
+            ASSERT_FALSE(symbol->binding_is_mutable);
+        }
+
+        const Lexical_Scope_Id foo_lexical_scope_id = foo_definition->body.lexical_scope_id;
+
+        const Lexical_Scope* scope = &context.lexical_scopes[foo_lexical_scope_id];
+        ASSERT_EQUAL(scope->parent_lexical_scope_id, GLOBAL_LEXICAL_SCOPE_ID);
+        ASSERT_EQUAL(scope->symbol_ids_count, 1);
+
+        const Symbol_Id var_symbol_id = scope->symbol_ids[0];
+
+        {
+            const Symbol* var_symbol = get_symbol_by_id(&context, var_symbol_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(var_symbol->kind, SYMBOL_VARIABLE);
+            ASSERT_STRINGS_ARE_EQUAL(var_symbol->name, "var");
+            ASSERT_FALSE(var_symbol->binding_is_mutable);
+        }
+
+        ASSERT_EQUAL(foo_definition->body.statements_count, 1);
+
+        {
+            const Ast_Statement* statement = &foo_definition->body.statements[0];
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+
+            const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
+            ASSERT_EQUAL(variable_definition->name.symbol_id, var_symbol_id);
+
+            ASSERT_TRUE(variable_definition->has_initial_value);
+
+            const Ast_Expression* initial_value = &variable_definition->initial_value;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(initial_value->kind, AST_EXPRESSION_CALL);
+
+            const Ast_Call* call_expression = &initial_value->call;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(call_expression->called_expression->kind, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_EQUAL(call_expression->called_expression->identifier.symbol_id, bar_symbol_id);
+        }
+
+        {
+            ASSERT_ENUM_VALUES_ARE_EQUAL(bar_declaration->type->kind, AST_TYPE_FUNCTION);
+            const Ast_Function_Type* function_type = &bar_declaration->type->function;
+
+            ASSERT_EQUAL(function_type->parameters_count, 0);
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->return_type->kind, AST_TYPE_NAME);
+
+            {
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           function_type->return_type->named_type.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
+                ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
+
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_TYPE);
+                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "s32");
+                ASSERT_FALSE(symbol->binding_is_mutable);
+                ASSERT_TRUE(symbol->is_builtin);
+            }
+        }
+
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {"
+                                                 "    var := bar(10);"
+                                                 "}"
+                                                 "bar: (parameter: s32) -> s32 = #foreign \"lib\";");
+
+        parse_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        ASSERT_EQUAL(context.ast.foreign_functions_count, 1);
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        const Ast_Function_Definition* foo_definition = &context.ast.function_definitions[0];
+        const Ast_Foreign_Function* bar_declaration = &context.ast.foreign_functions[0];
+
+        ASSERT_EQUAL(foo_definition->body.lexical_scope_id, GLOBAL_LEXICAL_SCOPE_ID + 1);
+
+        const Lexical_Scope* global_scope = &context.lexical_scopes[GLOBAL_LEXICAL_SCOPE_ID];
+        ASSERT_EQUAL(global_scope->parent_lexical_scope_id, INVALID_LEXICAL_SCOPE_ID);
+
+        const Symbol_Id foo_symbol_id = find_symbol_id(&context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       foo_definition->name.token.lexeme);
+        const Symbol_Id bar_symbol_id = find_symbol_id(&context,
+                                                       GLOBAL_LEXICAL_SCOPE_ID,
+                                                       bar_declaration->name.token.lexeme);
+
+        ASSERT_NOT_EQUAL(foo_symbol_id, UNDEFINED_SYMBOL_ID);
+        ASSERT_NOT_EQUAL(bar_symbol_id, UNDEFINED_SYMBOL_ID);
+
+        {
+            ASSERT_EQUAL(foo_definition->name.symbol_id, foo_symbol_id);
+
+            const Symbol* symbol = get_symbol_by_id(&context, foo_symbol_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_GLOBAL_FUNCTION);
+            ASSERT_STRINGS_ARE_EQUAL(symbol->name, "foo");
+            ASSERT_FALSE(symbol->binding_is_mutable);
+        }
+
+        {
+            ASSERT_EQUAL(bar_declaration->name.symbol_id, bar_symbol_id);
+
+            const Symbol* symbol = get_symbol_by_id(&context, bar_symbol_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_FOREIGN_FUNCTION);
+            ASSERT_STRINGS_ARE_EQUAL(symbol->name, "bar");
+            ASSERT_FALSE(symbol->binding_is_mutable);
+        }
+
+        const Lexical_Scope_Id foo_lexical_scope_id = foo_definition->body.lexical_scope_id;
+
+        const Lexical_Scope* scope = &context.lexical_scopes[foo_lexical_scope_id];
+        ASSERT_EQUAL(scope->parent_lexical_scope_id, GLOBAL_LEXICAL_SCOPE_ID);
+        ASSERT_EQUAL(scope->symbol_ids_count, 1);
+
+        const Symbol_Id var_symbol_id = scope->symbol_ids[0];
+
+        {
+            const Symbol* var_symbol = get_symbol_by_id(&context, var_symbol_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(var_symbol->kind, SYMBOL_VARIABLE);
+            ASSERT_STRINGS_ARE_EQUAL(var_symbol->name, "var");
+            ASSERT_FALSE(var_symbol->binding_is_mutable);
+        }
+
+        ASSERT_EQUAL(foo_definition->body.statements_count, 1);
+
+        {
+            const Ast_Statement* statement = &foo_definition->body.statements[0];
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+
+            const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
+            ASSERT_EQUAL(variable_definition->name.symbol_id, var_symbol_id);
+
+            ASSERT_TRUE(variable_definition->has_initial_value);
+
+            const Ast_Expression* initial_value = &variable_definition->initial_value;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(initial_value->kind, AST_EXPRESSION_CALL);
+
+            const Ast_Call* call_expression = &initial_value->call;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(call_expression->called_expression->kind, AST_EXPRESSION_IDENTIFIER);
+            ASSERT_EQUAL(call_expression->called_expression->identifier.symbol_id, bar_symbol_id);
+        }
+
+        {
+            ASSERT_ENUM_VALUES_ARE_EQUAL(bar_declaration->type->kind, AST_TYPE_FUNCTION);
+            const Ast_Function_Type* function_type = &bar_declaration->type->function;
+
+            ASSERT_EQUAL(function_type->parameters_count, 1);
+
+            const Ast_Function_Parameter* parameter = &function_type->parameters[0];
+            ASSERT_ENUM_VALUES_ARE_EQUAL(parameter->type->kind, AST_TYPE_NAME);
+
+            {
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           parameter->type->named_type.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
+                ASSERT_EQUAL(parameter->type->symbol_id, symbol_id);
+
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_TYPE);
+                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "s32");
+                ASSERT_FALSE(symbol->binding_is_mutable);
+                ASSERT_TRUE(symbol->is_builtin);
+            }
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->return_type->kind, AST_TYPE_NAME);
+
+            {
+                const Symbol_Id symbol_id = find_symbol_id(&context,
+                                                           GLOBAL_LEXICAL_SCOPE_ID,
+                                                           function_type->return_type->named_type.token.lexeme);
+                ASSERT_NOT_EQUAL(symbol_id, UNDEFINED_SYMBOL_ID);
+                ASSERT_EQUAL(function_type->return_type->symbol_id, symbol_id);
+
+                const Symbol* symbol = get_symbol_by_id(&context, symbol_id);
+                ASSERT_ENUM_VALUES_ARE_EQUAL(symbol->kind, SYMBOL_TYPE);
+                ASSERT_STRINGS_ARE_EQUAL(symbol->name, "s32");
+                ASSERT_FALSE(symbol->binding_is_mutable);
+                ASSERT_TRUE(symbol->is_builtin);
+            }
         }
 
         destroy_compilation_context(&context);
@@ -1924,6 +2173,7 @@ REGISTER_TESTS(
     test_if_statements_scopes,
     test_while_loops_scopes,
     test_that_every_identifier_has_symbol_id_in_expressions,
+    test_foreign_functions,
     test_uses_of_undeclared_identifiers,
     test_redefinitions
 )

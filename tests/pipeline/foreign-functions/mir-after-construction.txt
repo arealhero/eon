@@ -1,0 +1,5 @@
+main:
+       |
+       | LABEL_1:
+     1 |           CALL                VREG 1, external_function FROM "mylib"
+     2 |           RETURN              VREG 1

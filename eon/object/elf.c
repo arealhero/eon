@@ -129,6 +129,7 @@ build_elf64_object_file(Compilation_Context* context)
             MIR_Function* function = &mir->functions[function_index];
 
             ASSERT(function->offset_of_code_in_the_text_section == text_section_buffer->bytes_count);
+            ASSERT(function->relocations_count == 0);
 
             Bytes_View binary_code_view = {0};
             binary_code_view.data = function->binary_code;

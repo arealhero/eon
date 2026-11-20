@@ -224,6 +224,7 @@ struct MIR_Instruction
         };
 
         // NOTE(vlad): For MIR_CALL.
+        // TODO(vlad): Move this out to the 'MIR_Call_Info' struct or something.
         struct
         {
             Bool has_return_value;
@@ -231,8 +232,22 @@ struct MIR_Instruction
 
             MIR_Operand return_operand;
 
-            Tac_Function_Label_Id function_label_id; // TODO(vlad): This should no longer belong to TAC alone, move it
-                                                     //             somewhere else.
+            Bool is_a_foreign_function;
+            union
+            {
+                // NOTE(vlad): For internal functions.
+                struct
+                {
+                    Tac_Function_Label_Id function_label_id; // TODO(vlad): This should no longer belong to TAC alone,
+                                                             //             move it somewhere else.
+                };
+
+                // NOTE(vlad): For foreign functions.
+                struct
+                {
+                    Symbol_Id foreign_function_symbol_id;
+                };
+            };
 
             array_view(MIR_Operand, function_arguments);
         };
@@ -295,6 +310,13 @@ struct MIR_Blocks_Layout
 };
 typedef struct MIR_Blocks_Layout MIR_Blocks_Layout;
 
+struct MIR_Relocation
+{
+    Index offset_of_displacement_in_the_text_section;
+    Symbol_Id foreign_function_symbol_id;
+};
+typedef struct MIR_Relocation MIR_Relocation;
+
 struct MIR_Function
 {
     Arena* virtual_registers_arena;
@@ -319,6 +341,7 @@ struct MIR_Function
 
     // TODO(vlad): Rename to 'binary_code_bytes'? Otherwise 'binary_code_count' looks cursed.
     array(Byte, binary_code);
+    array(MIR_Relocation, relocations);
 
     Index offset_of_code_in_the_text_section;
     Index index_of_symbol_in_the_object_file;

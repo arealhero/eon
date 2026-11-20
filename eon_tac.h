@@ -50,6 +50,8 @@ enum Tac_Operand_Kind
     TAC_OPERAND_NONE = 0,
 
     TAC_OPERAND_FUNCTION_LABEL,
+    TAC_OPERAND_FOREIGN_FUNCTION,
+
     TAC_OPERAND_VARIABLE,
     TAC_OPERAND_LABEL,
     TAC_OPERAND_CONSTANT,
@@ -153,12 +155,47 @@ struct Tac_Operand
 
     union
     {
-        Tac_Function_Label_Id function_label_id;
-        Tac_Variable_Id variable_id;
-        Tac_Constant_Id constant_id;
-        Tac_Label_Id label_id;
-        Tac_Parameter_Index parameter_index;
-        Size number_of_arguments;
+        // NOTE(vlad): For 'TAC_OPERAND_FUNCTION_LABEL'.
+        struct
+        {
+            Tac_Function_Label_Id function_label_id;
+        };
+
+        // NOTE(vlad): For 'TAC_OPERAND_FOREIGN_FUNCTION'.
+        struct
+        {
+            Symbol_Id foreign_function_symbol_id;
+        };
+
+        // NOTE(vlad): For 'TAC_OPERAND_VARIABLE'.
+        struct
+        {
+            Tac_Variable_Id variable_id;
+        };
+
+        // NOTE(vlad): For 'TAC_OPERAND_LABEL'.
+        struct
+        {
+            Tac_Label_Id label_id;
+        };
+
+        // NOTE(vlad): For 'TAC_OPERAND_CONSTANT'.
+        struct
+        {
+            Tac_Constant_Id constant_id;
+        };
+
+        // NOTE(vlad): For 'TAC_OPERAND_PARAMETER_INDEX'.
+        struct
+        {
+            Tac_Parameter_Index parameter_index;
+        };
+
+        // NOTE(vlad): For 'TAC_OPERAND_NUMBER_OF_ARGUMENTS'.
+        struct
+        {
+            Size number_of_arguments;
+        };
     };
 };
 typedef struct Tac_Operand Tac_Operand;

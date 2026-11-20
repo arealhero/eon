@@ -38,6 +38,7 @@ build_macho64_object_file(Compilation_Context* context)
         const String_View function_name = function->ast_function_definition->name.token.lexeme;
 
         ASSERT(function->offset_of_code_in_the_text_section == text_section_buffer.bytes_count);
+        ASSERT(function->relocations_count == 0);
 
         // TODO(vlad): Introduce functions for safe truncation.
         struct nlist_64 symbol = {0};

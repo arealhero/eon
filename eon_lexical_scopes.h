@@ -16,6 +16,9 @@ enum Symbol_Kind
     SYMBOL_FUNCTION,
     SYMBOL_VARIABLE,
     SYMBOL_TYPE,
+
+    SYMBOL_GLOBAL_FUNCTION,
+    SYMBOL_FOREIGN_FUNCTION,
 };
 typedef enum Symbol_Kind Symbol_Kind;
 
@@ -30,11 +33,28 @@ struct Symbol
     Bool binding_is_mutable;
     Bool is_builtin;
 
-    Bool is_a_global_function; // TODO(vlad): Can we do better than this?
     union
     {
-        struct Tac_Instruction* defined_at_tac_instruction;
-        Tac_Function_Label_Id tac_function_label_id;
+        struct
+        {
+            struct Tac_Instruction* defined_at_tac_instruction;
+        };
+
+        // NOTE(vlad): For 'SYMBOL_GLOBAL_FUNCTION'.
+        struct
+        {
+            Tac_Function_Label_Id tac_function_label_id;
+        };
+
+        // NOTE(vlad): For 'SYMBOL_FOREIGN_FUNCTION'.
+        struct
+        {
+            const Ast_String_Literal* library_name;
+
+            // TODO(vlad): Move these to the 'pe.c'.
+            Bool symbol_was_emitted;
+            Index symbol_table_index;
+        };
     };
 };
 typedef struct Symbol Symbol;

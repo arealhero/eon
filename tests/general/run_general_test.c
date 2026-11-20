@@ -161,6 +161,8 @@ eon_main(const String_View* arguments, const Size arguments_count)
             object_filename,
             string_view("-o"),
             executable_filename,
+            string_view("-Wl,/ENTRY:main"),
+            string_view("-Wl,/SUBSYSTEM:CONSOLE"),
         };
 
         const Spawn_Process_Result linker_process_result = platform_spawn_subprocess_and_wait_until_done(test_arena,

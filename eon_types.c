@@ -1598,6 +1598,20 @@ resolve_and_validate_types(Compilation_Context* context)
             function_definition->type->type_id = function_type_id;
             bind_type_id_to_a_symbol(context, function_definition->name.symbol_id, function_type_id);
         }
+
+        for (Index function_index = 0;
+             function_index < context->ast.foreign_functions_count;
+             ++function_index)
+        {
+            Ast_Foreign_Function* foreign_function = &context->ast.foreign_functions[function_index];
+
+            ASSERT(foreign_function->type->kind == AST_TYPE_FUNCTION);
+
+            const Type_Id function_type_id = resolve_type_by_ast_type(context, foreign_function->type);
+
+            foreign_function->type->type_id = function_type_id;
+            bind_type_id_to_a_symbol(context, foreign_function->name.symbol_id, function_type_id);
+        }
     }
 
     for (Index function_definition_index = 0;

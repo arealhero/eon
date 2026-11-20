@@ -1,0 +1,7 @@
+main:
+       |
+       | LABEL_1:
+     1 |           CALL                external_function FROM "mylib"
+     2 |           MOVE                VREG 1, RAX
+     3 |           MOVE                RAX, VREG 1
+     4 |           RETURN

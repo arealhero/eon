@@ -117,7 +117,7 @@ get_next_token(Compilation_Context* context, Token* token)
         // FIXME(vlad): Do not advance here?
         const char current_char = consume_current_character(lexer);
 
-        if (is_ascii_letter(current_char) || current_char == '_')
+        if (is_ascii_letter(current_char) || current_char == '_' || current_char == '#')
         {
             consume_characters_while_preciate_is_true(lexer,
                                                       is_a_part_of_identifier_tail);

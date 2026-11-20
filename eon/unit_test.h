@@ -253,15 +253,31 @@ registry_register_test(Arena* arena,
                       __FILE__,                 \
                       __LINE__)
 
-#define ASSERT_BOOLS_ARE_EQUAL(actual, expected)        \
+#define ASSERT_BOOLS_ARE_EQUAL_IMPL(actual, expected)   \
     ASSERT_EQUAL_IMPL((actual) == (expected),           \
                       BOOL_TO_STRING(actual),           \
                       BOOL_TO_STRING(expected),         \
                       DEFAULT_COMMENT,                  \
                       __FILE__,                         \
                       __LINE__)
-#define ASSERT_TRUE(expression) ASSERT_BOOLS_ARE_EQUAL(expression, true)
-#define ASSERT_FALSE(expression) ASSERT_BOOLS_ARE_EQUAL(expression, false)
+
+// TODO(vlad): Improve error reporting here: we should print the expression instead
+//             of the 'result' variable name.
+#define ASSERT_TRUE(expression)                                         \
+    do                                                                  \
+    {                                                                   \
+        const Bool CONCATENATE(result, __LINE__) = (expression);        \
+        ASSERT_BOOLS_ARE_EQUAL_IMPL(CONCATENATE(result, __LINE__), true); \
+    }                                                                   \
+    while (0)
+
+#define ASSERT_FALSE(expression)                                        \
+    do                                                                  \
+    {                                                                   \
+        const Bool CONCATENATE(result, __LINE__) = (expression);        \
+        ASSERT_BOOLS_ARE_EQUAL_IMPL(CONCATENATE(result, __LINE__), false); \
+    }                                                                   \
+    while (0)
 
 #define ASSERT_STRINGS_ARE_EQUAL(actual, expected)              \
     ASSERT_EQUAL_IMPL(strings_are_equal((actual), (expected)),  \

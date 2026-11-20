@@ -79,6 +79,7 @@ call :run_pipeline_test tests\pipeline\constant-folding || exit /B 1
 call :run_pipeline_test tests\pipeline\loops || exit /B 1
 call :run_pipeline_test tests\pipeline\parallel-copy || exit /B 1
 call :run_pipeline_test tests\pipeline\fibonacci-with-recursion || exit /B 1
+call :run_pipeline_test tests\pipeline\foreign-functions || exit /B 1
 
 call :run_pipeline_test tests\pipeline\regressions\if-statement-with-return || exit /B 1
 call :run_pipeline_test tests\pipeline\regressions\nested-if-statement || exit /B 1
@@ -93,6 +94,7 @@ call :compile tests\general\run_general_test.c build\tests\general\run_general_t
 
 call :run_general_test tests\general\fibonacci-with-recursion || exit /B 1
 call :run_general_test tests\general\fibonacci-without-recursion || exit /B 1
+call :run_general_test tests\general\foreign-functions || exit /B 1
 
 exit /B %ERRORLEVEL%
 

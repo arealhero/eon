@@ -1,0 +1,7 @@
+main:
+       |
+       | LABEL_1:
+     1 |           GROW_STACK          IMM 40
+     2 |           CALL                external_function FROM "mylib"
+     3 |           SHRINK_STACK        IMM 40
+     4 |           RETURN

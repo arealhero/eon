@@ -504,11 +504,36 @@ create_lexical_scopes(Compilation_Context* context)
 
                 {
                     Symbol* symbol = get_symbol_by_id(context, symbol_id);
-                    symbol->kind = SYMBOL_FUNCTION;
+                    symbol->kind = SYMBOL_GLOBAL_FUNCTION;
                     symbol->name = function_definition->name.token.lexeme;
                     symbol->location = function_definition->name.token.location;
                     symbol->binding_is_mutable = function_definition->type->is_mutable;
-                    symbol->is_a_global_function = true;
+                }
+
+                add_symbol_id_to_lexical_scope(context, global_scope_id, symbol_id);
+            }
+        }
+
+        for (Index foreign_function_index = 0;
+             foreign_function_index < context->ast.foreign_functions_count;
+             ++foreign_function_index)
+        {
+            Ast_Foreign_Function* foreign_function = &context->ast.foreign_functions[foreign_function_index];
+
+            // FIXME(vlad): Remove this code duplication.
+            {
+                const Symbol_Id symbol_id = create_symbol(context);
+                ASSERT(symbol_id != UNDEFINED_SYMBOL_ID && symbol_id != INVALID_SYMBOL_ID);
+
+                foreign_function->name.symbol_id = symbol_id;
+
+                {
+                    Symbol* symbol = get_symbol_by_id(context, symbol_id);
+                    symbol->kind = SYMBOL_FOREIGN_FUNCTION;
+                    symbol->name = foreign_function->name.token.lexeme;
+                    symbol->location = foreign_function->name.token.location;
+                    symbol->binding_is_mutable = foreign_function->type->is_mutable;
+                    symbol->library_name = &foreign_function->library_name;
                 }
 
                 add_symbol_id_to_lexical_scope(context, global_scope_id, symbol_id);
@@ -516,44 +541,88 @@ create_lexical_scopes(Compilation_Context* context)
         }
     }
 
-    for (Index function_definition_index = 0;
-         function_definition_index < context->ast.function_definitions_count;
-         ++function_definition_index)
+    // NOTE(vlad): Creating scopes for internal functions.
     {
-        Ast_Function_Definition* function_definition = &context->ast.function_definitions[function_definition_index];
-        Ast_Code_Block* function_body = &function_definition->body;
-
-        const Lexical_Scope_Id function_scope_id = create_new_lexical_scope_with_parent(context, global_scope_id);
-        function_body->lexical_scope_id = function_scope_id;
-
-        ASSERT(function_definition->type->kind == AST_TYPE_FUNCTION);
-
-        set_symbol_ids_for_identifiers_in_type(context, function_definition->type, function_scope_id);
-
-        Ast_Function_Type* function_type = &function_definition->type->function;
-
-        for (Index parameter_index = 0;
-             parameter_index < function_type->parameters_count;
-             ++parameter_index)
+        for (Index function_definition_index = 0;
+             function_definition_index < context->ast.function_definitions_count;
+             ++function_definition_index)
         {
-            Ast_Function_Parameter* parameter = &function_type->parameters[parameter_index];
+            Ast_Function_Definition* function_definition = &context->ast.function_definitions[function_definition_index];
+            Ast_Code_Block* function_body = &function_definition->body;
 
-            const Symbol_Id symbol_id = create_symbol(context);
-            ASSERT(symbol_id != UNDEFINED_SYMBOL_ID && symbol_id != INVALID_SYMBOL_ID);
+            const Lexical_Scope_Id function_scope_id = create_new_lexical_scope_with_parent(context, global_scope_id);
+            function_body->lexical_scope_id = function_scope_id;
 
-            parameter->name.symbol_id = symbol_id;
+            ASSERT(function_definition->type->kind == AST_TYPE_FUNCTION);
 
+            set_symbol_ids_for_identifiers_in_type(context, function_definition->type, function_scope_id);
+
+            Ast_Function_Type* function_type = &function_definition->type->function;
+
+            for (Index parameter_index = 0;
+                 parameter_index < function_type->parameters_count;
+                 ++parameter_index)
             {
-                Symbol* symbol = get_symbol_by_id(context, symbol_id);
-                symbol->kind = SYMBOL_VARIABLE;
-                symbol->name = parameter->name.token.lexeme;
-                symbol->location = parameter->name.token.location;
-                symbol->binding_is_mutable = parameter->type->is_mutable;
+                Ast_Function_Parameter* parameter = &function_type->parameters[parameter_index];
+
+                const Symbol_Id symbol_id = create_symbol(context);
+                ASSERT(symbol_id != UNDEFINED_SYMBOL_ID && symbol_id != INVALID_SYMBOL_ID);
+
+                parameter->name.symbol_id = symbol_id;
+
+                {
+                    Symbol* symbol = get_symbol_by_id(context, symbol_id);
+                    symbol->kind = SYMBOL_VARIABLE;
+                    symbol->name = parameter->name.token.lexeme;
+                    symbol->location = parameter->name.token.location;
+                    symbol->binding_is_mutable = parameter->type->is_mutable;
+                }
+
+                add_symbol_id_to_lexical_scope(context, function_scope_id, symbol_id);
             }
 
-            add_symbol_id_to_lexical_scope(context, function_scope_id, symbol_id);
+            create_lexical_scopes_for_code_block(context, function_body);
         }
+    }
 
-        create_lexical_scopes_for_code_block(context, function_body);
+    // NOTE(vlad): Creating scopes for foreign functions.
+    {
+        for (Index foreign_function_index = 0;
+             foreign_function_index < context->ast.foreign_functions_count;
+             ++foreign_function_index)
+        {
+            Ast_Foreign_Function* foreign_function = &context->ast.foreign_functions[foreign_function_index];
+
+            ASSERT(foreign_function->type->kind == AST_TYPE_FUNCTION);
+
+            const Lexical_Scope_Id function_scope_id = create_new_lexical_scope_with_parent(context, global_scope_id);
+            set_symbol_ids_for_identifiers_in_type(context, foreign_function->type, function_scope_id);
+
+            // TODO(vlad): Should we store this scope in 'Ast_Foreign_Function'?
+
+            Ast_Function_Type* function_type = &foreign_function->type->function;
+
+            for (Index parameter_index = 0;
+                 parameter_index < function_type->parameters_count;
+                 ++parameter_index)
+            {
+                Ast_Function_Parameter* parameter = &function_type->parameters[parameter_index];
+
+                const Symbol_Id symbol_id = create_symbol(context);
+                ASSERT(symbol_id != UNDEFINED_SYMBOL_ID && symbol_id != INVALID_SYMBOL_ID);
+
+                parameter->name.symbol_id = symbol_id;
+
+                {
+                    Symbol* symbol = get_symbol_by_id(context, symbol_id);
+                    symbol->kind = SYMBOL_VARIABLE;
+                    symbol->name = parameter->name.token.lexeme;
+                    symbol->location = parameter->name.token.location;
+                    symbol->binding_is_mutable = parameter->type->is_mutable;
+                }
+
+                add_symbol_id_to_lexical_scope(context, function_scope_id, symbol_id);
+            }
+        }
     }
 }

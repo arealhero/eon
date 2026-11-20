@@ -125,7 +125,6 @@ test_function_parameters_lowering(Test_Context* test_context)
         {
             const Ast_Function_Parameter* parameter = &ast_function->type->function.parameters[0];
             const Symbol* parameter_symbol = get_symbol_by_id(&context, parameter->name.symbol_id);
-            ASSERT_FALSE(parameter_symbol->is_a_global_function);
             ASSERT_TRUE(parameter_symbol->defined_at_tac_instruction != NULL);
         }
 
@@ -225,7 +224,6 @@ test_expression_lowering(Test_Context* test_context)
             const Symbol_Id variable_symbol_id = variable_definition->name.symbol_id;
             const Symbol* variable_symbol = get_symbol_by_id(&context, variable_symbol_id);
 
-            ASSERT_FALSE(variable_symbol->is_a_global_function);
             ASSERT_TRUE(variable_symbol->defined_at_tac_instruction != NULL);
         }
 
@@ -337,7 +335,6 @@ test_expression_lowering(Test_Context* test_context)
         // NOTE(vlad): Testing that variable symbol has a non-empty TAC instruction id.
         {
             const Symbol* variable_symbol = get_symbol_by_id(&context, variable_symbol_id);
-            ASSERT_FALSE(variable_symbol->is_a_global_function);
             ASSERT_TRUE(variable_symbol->defined_at_tac_instruction != NULL);
         }
 
@@ -611,7 +608,6 @@ test_return_statements_lowering(Test_Context* test_context)
         // NOTE(vlad): Testing that variable symbol has a non-empty TAC instruction id.
         {
             const Symbol* variable_symbol = get_symbol_by_id(&context, variable_symbol_id);
-            ASSERT_FALSE(variable_symbol->is_a_global_function);
             ASSERT_TRUE(variable_symbol->defined_at_tac_instruction != NULL);
         }
 
@@ -698,7 +694,6 @@ test_calls(Test_Context* test_context)
                 {
                     const Ast_Function_Definition* foo_definition = &ast->function_definitions[0];
                     const Symbol* foo_symbol = get_symbol_by_id(&context, foo_definition->name.symbol_id);
-                    ASSERT_TRUE(foo_symbol->is_a_global_function);
                     ASSERT_EQUAL(first_argument->function_label_id.index,
                                  foo_symbol->tac_function_label_id.index);
                 }
@@ -814,9 +809,94 @@ test_calls(Test_Context* test_context)
                 {
                     const Ast_Function_Definition* foo_definition = &ast->function_definitions[0];
                     const Symbol* foo_symbol = get_symbol_by_id(&context, foo_definition->name.symbol_id);
-                    ASSERT_TRUE(foo_symbol->is_a_global_function);
                     ASSERT_EQUAL(first_argument->function_label_id.index,
                                  foo_symbol->tac_function_label_id.index);
+                }
+
+                const Tac_Operand* second_argument = &instruction->second_argument;
+                ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NUMBER_OF_ARGUMENTS);
+                ASSERT_EQUAL(second_argument->number_of_arguments, 0);
+
+                ASSERT_FALSE(instruction->was_automatically_inserted);
+            }
+
+            instruction = instruction->next_instruction;
+
+            {
+                ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_RETURN);
+
+                const Tac_Operand* destination = &instruction->destination;
+                ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_NONE);
+
+                const Tac_Operand* first_argument = &instruction->first_argument;
+                ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_NONE);
+
+                const Tac_Operand* second_argument = &instruction->second_argument;
+                ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+
+                ASSERT_TRUE(instruction->was_automatically_inserted);
+            }
+
+            ASSERT_POINTERS_ARE_EQUAL(instruction, tac_bar_function->last_instruction);
+        }
+
+        destroy_compilation_context(&context);
+    }
+
+    // NOTE(vlad): Testing foreign function call.
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = #foreign \"lib\";"
+                                                 "bar: () -> void = {"
+                                                 "    foo();"
+                                                 "}");
+
+        parse_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        lower_ast_to_tac(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        const Ast* ast = &context.ast;
+        ASSERT_EQUAL(ast->function_definitions_count, 1);
+        ASSERT_EQUAL(ast->foreign_functions_count, 1);
+
+        const Tac* tac = &context.tac;
+        ASSERT_EQUAL(tac->functions_count, 1);
+
+        {
+            const Ast_Function_Definition* ast_bar_function = &ast->function_definitions[0];
+
+            const Tac_Function* tac_bar_function = &tac->functions[0];
+            ASSERT_FUNCTION_LABEL_POINTS_TO_FUNCTION(tac_bar_function->label_id, ast_bar_function);
+
+            const Tac_Instruction* instruction = tac_bar_function->first_instruction;
+
+            {
+                ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_CALL);
+
+                const Tac_Operand* destination = &instruction->destination;
+                ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_VARIABLE);
+                ASSERT_TEMPORARY_VARIABLE_HAS_TYPE(destination->variable_id, "s32");
+
+                const Tac_Operand* first_argument = &instruction->first_argument;
+                ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_FOREIGN_FUNCTION);
+                {
+                    const Ast_Foreign_Function* foo_declaration = &ast->foreign_functions[0];
+                    ASSERT_EQUAL(first_argument->foreign_function_symbol_id, foo_declaration->name.symbol_id);
+
+                    const Symbol* foo_symbol = get_symbol_by_id(&context, foo_declaration->name.symbol_id);
+
+                    ASSERT(foo_symbol->kind == SYMBOL_FOREIGN_FUNCTION);
+                    ASSERT_POINTERS_ARE_EQUAL(&foo_declaration->library_name, foo_symbol->library_name);
                 }
 
                 const Tac_Operand* second_argument = &instruction->second_argument;
@@ -991,7 +1071,6 @@ test_arithmetic_expressions_lowering(Test_Context* test_context)
             const Symbol_Id variable_symbol_id = variable_definition->name.symbol_id;
             const Symbol* variable_symbol = get_symbol_by_id(&context, variable_symbol_id);
 
-            ASSERT_FALSE(variable_symbol->is_a_global_function);
             ASSERT_TRUE(variable_symbol->defined_at_tac_instruction != NULL);
         }
 
@@ -1145,7 +1224,6 @@ test_comparisons_lowering(Test_Context* test_context)
             const Symbol_Id variable_symbol_id = variable_definition->name.symbol_id;
             const Symbol* variable_symbol = get_symbol_by_id(&context, variable_symbol_id);
 
-            ASSERT_FALSE(variable_symbol->is_a_global_function);
             ASSERT_TRUE(variable_symbol->defined_at_tac_instruction != NULL);
         }
 

@@ -720,6 +720,25 @@ test_keywords_and_digraphs(Test_Context* test_context)
 
         destroy_compilation_context(&context);
     }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("#foreign");
+
+        Token token = {0};
+
+        ASSERT_TRUE(get_next_token(&context, &token));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+        ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_FOREIGN);
+        ASSERT_STRINGS_ARE_EQUAL(token.lexeme, "#foreign");
+        ASSERT_EQUAL(token.location.line, 0);
+        ASSERT_EQUAL(token.location.column, 0);
+
+        ASSERT_TRUE(get_next_token(&context, &token));
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+        ASSERT_ENUM_VALUES_ARE_EQUAL(token.type, TOKEN_EOF);
+
+        destroy_compilation_context(&context);
+    }
 }
 
 internal void

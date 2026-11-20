@@ -5,6 +5,53 @@
 
 #include <eon_forward_declarations.h>
 
+internal void build_pe64_object_file(struct Compilation_Context* context);
+
+//
+// For compilers that don't support nameless unions/structs
+//
+#ifndef DUMMYUNIONNAME
+#if defined(NONAMELESSUNION) || !defined(_MSC_EXTENSIONS)
+#define DUMMYUNIONNAME   u
+#define DUMMYUNIONNAME2  u2
+#define DUMMYUNIONNAME3  u3
+#define DUMMYUNIONNAME4  u4
+#define DUMMYUNIONNAME5  u5
+#define DUMMYUNIONNAME6  u6
+#define DUMMYUNIONNAME7  u7
+#define DUMMYUNIONNAME8  u8
+#define DUMMYUNIONNAME9  u9
+#else
+#define DUMMYUNIONNAME
+#define DUMMYUNIONNAME2
+#define DUMMYUNIONNAME3
+#define DUMMYUNIONNAME4
+#define DUMMYUNIONNAME5
+#define DUMMYUNIONNAME6
+#define DUMMYUNIONNAME7
+#define DUMMYUNIONNAME8
+#define DUMMYUNIONNAME9
+#endif
+#endif // DUMMYUNIONNAME
+
+#ifndef DUMMYSTRUCTNAME
+#if defined(NONAMELESSUNION) || !defined(_MSC_EXTENSIONS)
+#define DUMMYSTRUCTNAME  s
+#define DUMMYSTRUCTNAME2 s2
+#define DUMMYSTRUCTNAME3 s3
+#define DUMMYSTRUCTNAME4 s4
+#define DUMMYSTRUCTNAME5 s5
+#define DUMMYSTRUCTNAME6 s6
+#else
+#define DUMMYSTRUCTNAME
+#define DUMMYSTRUCTNAME2
+#define DUMMYSTRUCTNAME3
+#define DUMMYSTRUCTNAME4
+#define DUMMYSTRUCTNAME5
+#define DUMMYSTRUCTNAME6
+#endif
+#endif // DUMMYSTRUCTNAME
+
 #define IMAGE_DOS_SIGNATURE    (WORD)(0x5A4D) // MZ
 #define IMAGE_OS2_SIGNATURE    (WORD)(0x454E) // NE
 #define IMAGE_OS2_SIGNATURE_LE (WORD)(0x454C) // LE
@@ -128,6 +175,9 @@ typedef u32 Image_Section_Characteristics;
 #define IMAGE_SCN_CNT_CODE               0x00000020 // Section contains code.
 #define IMAGE_SCN_CNT_INITIALIZED_DATA   0x00000040 // Section contains initialized data.
 #define IMAGE_SCN_CNT_UNINITIALIZED_DATA 0x00000080 // Section contains uninitialized data.
+#define IMAGE_SCN_LNK_INFO               0x00000200 // Section contains comments or some other type of information.
+#define IMAGE_SCN_LNK_REMOVE             0x00000800 // Section contents will not become part of image.
+#define IMAGE_SCN_LNK_COMDAT             0x00001000 // Section contents comdat.
 #define IMAGE_SCN_LNK_NRELOC_OVFL        0x01000000 // Section contains extended relocations.
 #define IMAGE_SCN_MEM_DISCARDABLE        0x02000000 // Section can be discarded.
 #define IMAGE_SCN_MEM_NOT_CACHED         0x04000000 // Section is not cachable.
@@ -136,6 +186,23 @@ typedef u32 Image_Section_Characteristics;
 #define IMAGE_SCN_MEM_EXECUTE            0x20000000 // Section is executable.
 #define IMAGE_SCN_MEM_READ               0x40000000 // Section is readable.
 #define IMAGE_SCN_MEM_WRITE              0x80000000 // Section is writeable.
+
+#define IMAGE_SCN_ALIGN_1BYTES               0x00100000  //
+#define IMAGE_SCN_ALIGN_2BYTES               0x00200000  //
+#define IMAGE_SCN_ALIGN_4BYTES               0x00300000  //
+#define IMAGE_SCN_ALIGN_8BYTES               0x00400000  //
+#define IMAGE_SCN_ALIGN_16BYTES              0x00500000  // Default alignment if no others are specified.
+#define IMAGE_SCN_ALIGN_32BYTES              0x00600000  //
+#define IMAGE_SCN_ALIGN_64BYTES              0x00700000  //
+#define IMAGE_SCN_ALIGN_128BYTES             0x00800000  //
+#define IMAGE_SCN_ALIGN_256BYTES             0x00900000  //
+#define IMAGE_SCN_ALIGN_512BYTES             0x00A00000  //
+#define IMAGE_SCN_ALIGN_1024BYTES            0x00B00000  //
+#define IMAGE_SCN_ALIGN_2048BYTES            0x00C00000  //
+#define IMAGE_SCN_ALIGN_4096BYTES            0x00D00000  //
+#define IMAGE_SCN_ALIGN_8192BYTES            0x00E00000  //
+// Unused                                    0x00F00000
+#define IMAGE_SCN_ALIGN_MASK                 0x00F00000
 
 struct IMAGE_DOS_HEADER
 {
@@ -359,4 +426,81 @@ STATIC_ASSERT(size_of(IMAGE_SYMBOL) == 18);
 
 #define IMAGE_SYM_CLASS_CLR_TOKEN           0x006B
 
-internal void build_pe64_object_file(struct Compilation_Context* context);
+// FIXME(vlad): Refactor this.
+#if defined(_M_MRX000) || defined(_M_ALPHA) || defined(_M_PPC) || defined(_M_IA64) || defined(_M_AMD64) || defined(_M_ARM) || defined(_M_ARM64)
+#define ALIGNMENT_MACHINE
+#define UNALIGNED __unaligned
+#if defined(_WIN64)
+#define UNALIGNED64 __unaligned
+#else
+#define UNALIGNED64
+#endif
+#else
+#undef ALIGNMENT_MACHINE
+#define UNALIGNED
+#define UNALIGNED64
+#endif
+
+struct IMAGE_RELOCATION
+{
+    union
+    {
+        DWORD VirtualAddress;
+        DWORD RelocCount; // Set to the real count when IMAGE_SCN_LNK_NRELOC_OVFL is set
+    } DUMMYUNIONNAME;
+
+    DWORD SymbolTableIndex;
+    WORD  Type;
+};
+typedef struct IMAGE_RELOCATION IMAGE_RELOCATION;
+typedef IMAGE_RELOCATION UNALIGNED* PIMAGE_RELOCATION;
+
+STATIC_ASSERT(size_of(IMAGE_RELOCATION) == 12);
+
+//
+// I386 relocation types.
+//
+#define IMAGE_REL_I386_ABSOLUTE 0x0000 // Reference is absolute, no relocation is necessary
+#define IMAGE_REL_I386_DIR16    0x0001 // Direct 16-bit reference to the symbols virtual address
+#define IMAGE_REL_I386_REL16    0x0002 // PC-relative 16-bit reference to the symbols virtual address
+#define IMAGE_REL_I386_DIR32    0x0006 // Direct 32-bit reference to the symbols virtual address
+#define IMAGE_REL_I386_DIR32NB  0x0007 // Direct 32-bit reference to the symbols virtual address, base not included
+#define IMAGE_REL_I386_SEG12    0x0009 // Direct 16-bit reference to the segment-selector bits of a 32-bit virtual address
+#define IMAGE_REL_I386_SECTION  0x000A
+#define IMAGE_REL_I386_SECREL   0x000B
+#define IMAGE_REL_I386_TOKEN    0x000C // clr token
+#define IMAGE_REL_I386_SECREL7  0x000D // 7 bit offset from base of section containing target
+#define IMAGE_REL_I386_REL32    0x0014 // PC-relative 32-bit reference to the symbols virtual address
+
+//
+// x64 relocations
+//
+#define IMAGE_REL_AMD64_ABSOLUTE     0x0000 // Reference is absolute, no relocation is necessary
+#define IMAGE_REL_AMD64_ADDR64       0x0001 // 64-bit address (VA).
+#define IMAGE_REL_AMD64_ADDR32       0x0002 // 32-bit address (VA).
+#define IMAGE_REL_AMD64_ADDR32NB     0x0003 // 32-bit address w/o image base (RVA).
+#define IMAGE_REL_AMD64_REL32        0x0004 // 32-bit relative address from byte following reloc
+#define IMAGE_REL_AMD64_REL32_1      0x0005 // 32-bit relative address from byte distance 1 from reloc
+#define IMAGE_REL_AMD64_REL32_2      0x0006 // 32-bit relative address from byte distance 2 from reloc
+#define IMAGE_REL_AMD64_REL32_3      0x0007 // 32-bit relative address from byte distance 3 from reloc
+#define IMAGE_REL_AMD64_REL32_4      0x0008 // 32-bit relative address from byte distance 4 from reloc
+#define IMAGE_REL_AMD64_REL32_5      0x0009 // 32-bit relative address from byte distance 5 from reloc
+#define IMAGE_REL_AMD64_SECTION      0x000A // Section index
+#define IMAGE_REL_AMD64_SECREL       0x000B // 32 bit offset from base of section containing target
+#define IMAGE_REL_AMD64_SECREL7      0x000C // 7 bit unsigned offset from base of section containing target
+#define IMAGE_REL_AMD64_TOKEN        0x000D // 32 bit metadata token
+#define IMAGE_REL_AMD64_SREL32       0x000E // 32 bit signed span-dependent value emitted into object
+#define IMAGE_REL_AMD64_PAIR         0x000F
+#define IMAGE_REL_AMD64_SSPAN32      0x0010 // 32 bit signed span-dependent value applied at link time
+#define IMAGE_REL_AMD64_EHANDLER     0x0011
+#define IMAGE_REL_AMD64_IMPORT_BR    0x0012 // Indirect branch to an import
+#define IMAGE_REL_AMD64_IMPORT_CALL  0x0013 // Indirect call to an import
+#define IMAGE_REL_AMD64_CFG_BR       0x0014 // Indirect branch to a CFG check
+#define IMAGE_REL_AMD64_CFG_BR_REX   0x0015 // Indirect branch to a CFG check, with REX.W prefix
+#define IMAGE_REL_AMD64_CFG_CALL     0x0016 // Indirect call to a CFG check
+#define IMAGE_REL_AMD64_INDIR_BR     0x0017 // Indirect branch to a target in RAX (no CFG)
+#define IMAGE_REL_AMD64_INDIR_BR_REX 0x0018 // Indirect branch to a target in RAX, with REX.W prefix (no CFG)
+#define IMAGE_REL_AMD64_INDIR_CALL   0x0019 // Indirect call to a target in RAX (no CFG)
+
+#define IMAGE_REL_AMD64_INDIR_BR_SWITCHTABLE_FIRST 0x0020 // Indirect branch for a switch table using Reg 0 (RAX)
+#define IMAGE_REL_AMD64_INDIR_BR_SWITCHTABLE_LAST  0x002F // Indirect branch for a switch table using Reg 15 (R15)

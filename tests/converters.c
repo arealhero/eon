@@ -34,6 +34,18 @@ convert_tac_operand_to_string(Compilation_Context* context,
             append_string(builder, function->ast_function_definition->name.token.lexeme);
         } break;
 
+        case TAC_OPERAND_FOREIGN_FUNCTION:
+        {
+            const Symbol* symbol = get_symbol_by_id(context, operand->foreign_function_symbol_id);
+
+            ASSERT(symbol->kind == SYMBOL_FOREIGN_FUNCTION);
+
+            append_string(builder, " ");
+            append_string(builder, symbol->name);
+            append_string(builder, " FROM ");
+            append_string(builder, symbol->library_name->token.lexeme);
+        } break;
+
         case TAC_OPERAND_VARIABLE:
         {
             const Tac_Variable_Id variable_id = operand->variable_id;
@@ -478,7 +490,8 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                     case TAC_CALL:
                     {
                         append_string(&builder, "          CALL            ");
-                        ASSERT(instruction->first_argument.kind == TAC_OPERAND_FUNCTION_LABEL);
+                        ASSERT(instruction->first_argument.kind == TAC_OPERAND_FUNCTION_LABEL
+                               || instruction->first_argument.kind == TAC_OPERAND_FOREIGN_FUNCTION);
                         ASSERT(instruction->second_argument.kind == TAC_OPERAND_NUMBER_OF_ARGUMENTS);
 
                         if (instruction->destination.kind != TAC_OPERAND_NONE)
@@ -938,9 +951,20 @@ convert_mir_block_to_string(Compilation_Context* context,
                     append_string(builder, " ");
                 }
 
-                const Tac_Function* called_function = get_tac_function_by_label(&context->tac,
-                                                                                instruction->function_label_id);
-                append_string(builder, called_function->ast_function_definition->name.token.lexeme);
+                if (instruction->is_a_foreign_function)
+                {
+                    const Symbol* symbol = get_symbol_by_id(context, instruction->foreign_function_symbol_id);
+
+                    append_string(builder, symbol->name);
+                    append_string(builder, " FROM ");
+                    append_string(builder, symbol->library_name->token.lexeme);
+                }
+                else
+                {
+                    const Tac_Function* called_function = get_tac_function_by_label(&context->tac,
+                                                                                    instruction->function_label_id);
+                    append_string(builder, called_function->ast_function_definition->name.token.lexeme);
+                }
 
                 for (Index argument_index = 0;
                      argument_index < instruction->function_arguments_count;

@@ -1,0 +1,6 @@
+external_function: () -> s32 = #foreign "mylib";
+
+main: () -> s32 =
+{
+    return external_function();
+}

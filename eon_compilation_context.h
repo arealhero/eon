@@ -55,6 +55,7 @@ struct Compilation_Context
     Arena* mir_block_layouts_arena;
 
     Arena* binary_code_arena;
+    Arena* relocations_arena;
     Arena* object_file_buffer_arena;
 
     Target_Architecture target_architecture;

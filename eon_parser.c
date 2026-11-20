@@ -56,6 +56,7 @@ token_type_to_string(const Token_Type type)
         ADD_TOKEN(TOKEN_BREAK, "'break'");
         ADD_TOKEN(TOKEN_CONTINUE, "'continue'");
         ADD_TOKEN(TOKEN_WILDCARD, "wildcard ('_')");
+        ADD_TOKEN(TOKEN_FOREIGN, "'#foreign'");
 
         ADD_TOKEN(TOKEN_MUTABLE, "'mutable'");
 
@@ -1436,9 +1437,14 @@ parse_statement(Compilation_Context* context, Ast_Statement* statement)
 }
 
 internal Bool
-parse_function_definition(Compilation_Context* context, Ast_Function_Definition* function_definition)
+parse_global_statement(Compilation_Context* context)
 {
-    if (!parse_identifier(context, &function_definition->name))
+    Parser* parser = &context->parser;
+    Ast* ast = &context->ast;
+
+    Ast_Identifier identifier = {0};
+
+    if (!parse_identifier(context, &identifier))
     {
         return false;
     }
@@ -1448,8 +1454,9 @@ parse_function_definition(Compilation_Context* context, Ast_Function_Definition*
         return false;
     }
 
-    function_definition->type = allocate(context->ast_arena, Ast_Type);
-    if (!parse_function_type(context, function_definition->type))
+    Ast_Type* type = allocate(context->ast_arena, Ast_Type);
+
+    if (!parse_function_type(context, type))
     {
         return false;
     }
@@ -1459,9 +1466,101 @@ parse_function_definition(Compilation_Context* context, Ast_Function_Definition*
         return false;
     }
 
-    if (!parse_code_block(context, &function_definition->body))
+    if (!parser_fetch_token(context))
     {
         return false;
+    }
+
+    switch (parser->current_token.type)
+    {
+        case TOKEN_LEFT_BRACE:
+        {
+            // NOTE(vlad): Function definition.
+            Ast_Function_Definition function_definition = {0};
+            function_definition.name = identifier;
+            function_definition.type = type;
+
+            if (!parse_code_block(context, &function_definition.body))
+            {
+                return false;
+            }
+
+            append_array(context->ast_arena,
+                         ast->function_definitions,
+                         Ast_Function_Definition,
+                         function_definition);
+
+            return true;
+        } break;
+
+        case TOKEN_FOREIGN:
+        {
+            // NOTE(vlad): Foreign function declaration.
+            parser_consume_token(context);
+
+            Ast_Foreign_Function foreign_function = {0};
+            foreign_function.name = identifier;
+            foreign_function.type = type;
+
+            if (!parser_fetch_token(context))
+            {
+                return false;
+            }
+
+            if (parser->current_token.type == TOKEN_STRING)
+            {
+                foreign_function.library_name.token = parser->current_token;
+
+                foreign_function.library_name.value = foreign_function.library_name.token.lexeme;
+                foreign_function.library_name.value.data += 1;
+                foreign_function.library_name.value.length -= 2;
+
+                parser_consume_token(context);
+
+                if (!parser_fetch_and_consume_token_with_type(context, TOKEN_SEMICOLON))
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                const String error_message_text = format_string(context->diagnostic_message_texts_arena,
+                                                                "Failed to parse foreign function declaration: expected library name, got {}",
+                                                                token_type_to_string(parser->current_token.type));
+
+                Diagnostic_Message error = {0};
+                error.level = MESSAGE_LEVEL_ERROR;
+                error.location = parser->current_token.location;
+                error.text = string_view(error_message_text);
+
+                emit_diagnostic_message(context, &error);
+
+                return false;
+            }
+
+            append_array(context->ast_arena,
+                         ast->foreign_functions,
+                         Ast_Foreign_Function,
+                         foreign_function);
+
+            return true;
+        } break;
+
+        default:
+        {
+            const String error_message_text = format_string(context->diagnostic_message_texts_arena,
+                                                            "Failed to parse global statement: unexpected token type {} encountered",
+                                                            token_type_to_string(parser->current_token.type));
+
+            Diagnostic_Message error = {0};
+            error.level = MESSAGE_LEVEL_ERROR;
+            error.location = parser->current_token.location;
+            error.text = string_view(error_message_text);
+
+            emit_diagnostic_message(context, &error);
+
+            return false;
+        };
     }
 
     return true;
@@ -1471,21 +1570,14 @@ internal void
 parse_ast(Compilation_Context* context)
 {
     Parser* parser = &context->parser;
-    Ast* ast = &context->ast;
 
     do
     {
-        Ast_Function_Definition function_definition = {0};
-        if (!parse_function_definition(context, &function_definition))
+        if (!parse_global_statement(context))
         {
-            // TODO(vlad): Try to parse other functions.
+            // TODO(vlad): Try to parse other statements.
             return;
         }
-
-        append_array(context->ast_arena,
-                     ast->function_definitions,
-                     Ast_Function_Definition,
-                     function_definition);
 
         // NOTE(vlad): Prefetching the next token to check if its type is EOF.
         if (!parser_fetch_token(context))
