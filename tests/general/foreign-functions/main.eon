@@ -1,17 +1,7 @@
-// TODO(vlad): Change calling convention to __stdcall.
-//             @ref: https://learn.microsoft.com/en-us/cpp/cpp/stdcall?view=msvc-170
-GetCommandLineA: () -> u64 = #foreign "kernel32.lib";
+// XXX(vlad): Be aware that on 32-bit Windows this function has the '__stdcall' calling convention.
+ExitProcess: (exit_code: s32) -> void = #foreign "kernel32.lib";
 
-main: () -> s32 =
+main: () -> void =
 {
-    arguments := GetCommandLineA();
-
-    if arguments == 0
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
+    ExitProcess(42);
 }
