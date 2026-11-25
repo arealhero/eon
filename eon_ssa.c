@@ -17,13 +17,7 @@ compute_postorder_indices(Compilation_Context* context,
     };
     typedef struct Block_Info Block_Info;
 
-    struct Traversal_Stack
-    {
-        stack(Block_Info, infos);
-    };
-    typedef struct Traversal_Stack Traversal_Stack;
-
-    Traversal_Stack stack = {0};
+    local_stack(Block_Info, blocks_to_visit);
     Bool* block_was_visited = allocate_array(context->scratch_arena, tac_function->cfg_blocks_count, Bool);
 
     Index postorder_index = 0;
@@ -34,14 +28,14 @@ compute_postorder_indices(Compilation_Context* context,
         Block_Info entry_block_info = {0};
         entry_block_info.id = entry_block_id;
         entry_block_info.next_unvisited_edge_index = 0;
-        stack_push(context->scratch_arena, stack.infos, Block_Info, entry_block_info);
+        stack_push(context->scratch_arena, blocks_to_visit, Block_Info, entry_block_info);
 
         block_was_visited[entry_block_id.index] = true;
     }
 
-    while (stack.infos_count > 0)
+    while (blocks_to_visit_count > 0)
     {
-        Block_Info* this_block_info = stack_top(stack.infos);
+        Block_Info* this_block_info = stack_top(blocks_to_visit);
 
         Cfg_Block* this_block = get_cfg_block_by_id(tac_function, this_block_info->id);
         if (this_block_info->next_unvisited_edge_index < this_block->edges_count)
@@ -56,7 +50,7 @@ compute_postorder_indices(Compilation_Context* context,
                 next_block_info.id = next_block_id;
                 next_block_info.next_unvisited_edge_index = 0;
 
-                stack_push(context->scratch_arena, stack.infos, Block_Info, next_block_info);
+                stack_push(context->scratch_arena, blocks_to_visit, Block_Info, next_block_info);
             }
         }
         else
@@ -65,7 +59,7 @@ compute_postorder_indices(Compilation_Context* context,
             this_block->postorder_index = postorder_index;
             postorder_index += 1;
 
-            stack_pop(stack.infos);
+            stack_pop(blocks_to_visit);
         }
     }
 
@@ -277,15 +271,9 @@ insert_phi_nodes(Compilation_Context* context)
                 }
             }
 
-            struct Block_Ids_Stack
-            {
-                stack(Cfg_Block_Id, ids);
-            };
-            typedef struct Block_Ids_Stack Block_Ids_Stack;
-
-            Block_Ids_Stack blocks_that_need_phi_nodes = {0};
+            local_stack(Cfg_Block_Id, blocks_that_need_phi_nodes);
             ensure_array_has_enough_capacity(context->scratch_arena,
-                                             blocks_that_need_phi_nodes.ids,
+                                             blocks_that_need_phi_nodes,
                                              Cfg_Block_Id,
                                              tac_function->cfg_blocks_count);
 
@@ -305,7 +293,7 @@ insert_phi_nodes(Compilation_Context* context)
                     if (instruction->destination.kind == TAC_OPERAND_VARIABLE
                         && instruction->destination.variable_id.index == variable_index)
                     {
-                        stack_push(context->scratch_arena, blocks_that_need_phi_nodes.ids, Cfg_Block_Id, block_id);
+                        stack_push(context->scratch_arena, blocks_that_need_phi_nodes, Cfg_Block_Id, block_id);
                         break;
                     }
                 }
@@ -315,10 +303,10 @@ insert_phi_nodes(Compilation_Context* context)
                                                                         tac_function->cfg_blocks_count,
                                                                         Bool);
 
-            while (blocks_that_need_phi_nodes.ids_count > 0)
+            while (blocks_that_need_phi_nodes_count > 0)
             {
-                const Cfg_Block_Id this_block_id = *stack_top(blocks_that_need_phi_nodes.ids);
-                stack_pop(blocks_that_need_phi_nodes.ids);
+                const Cfg_Block_Id this_block_id = *stack_top(blocks_that_need_phi_nodes);
+                stack_pop(blocks_that_need_phi_nodes);
 
                 Cfg_Block* this_block = get_cfg_block_by_id(tac_function, this_block_id);
 
@@ -353,7 +341,7 @@ insert_phi_nodes(Compilation_Context* context)
 
                     block_has_phi_node_for_this_variable[frontier_block_id.index] = true;
 
-                    stack_push(context->scratch_arena, blocks_that_need_phi_nodes.ids, Cfg_Block_Id, frontier_block_id);
+                    stack_push(context->scratch_arena, blocks_that_need_phi_nodes, Cfg_Block_Id, frontier_block_id);
                 }
             }
         }
@@ -452,10 +440,7 @@ set_tac_variable_versions_in_cfg_block(Compilation_Context* context,
                                        Tac_Function* tac_function,
                                        Cfg_Block_Id this_block_id)
 {
-    struct
-    {
-        stack(Tac_Variable_Id, encountered_variable_ids);
-    } encountered_variables = {0};
+    local_stack(Tac_Variable_Id, encountered_variable_ids);
 
     Cfg_Block* block = get_cfg_block_by_id(tac_function, this_block_id);
 
@@ -474,7 +459,7 @@ set_tac_variable_versions_in_cfg_block(Compilation_Context* context,
         const Index version = push_new_tac_variable_version(renaming_info, phi_node->destination);
         phi_node->destination.ssa_version = version;
         stack_push(context->scratch_arena,
-                   encountered_variables.encountered_variable_ids,
+                   encountered_variable_ids,
                    Tac_Variable_Id,
                    phi_node->destination);
     }
@@ -498,7 +483,7 @@ set_tac_variable_versions_in_cfg_block(Compilation_Context* context,
             const Index version = push_new_tac_variable_version(renaming_info, instruction->destination.variable_id);
             instruction->destination.variable_id.ssa_version = version;
             stack_push(context->scratch_arena,
-                       encountered_variables.encountered_variable_ids,
+                       encountered_variable_ids,
                        Tac_Variable_Id,
                        instruction->destination.variable_id);
         }
@@ -551,10 +536,10 @@ set_tac_variable_versions_in_cfg_block(Compilation_Context* context,
         set_tac_variable_versions_in_cfg_block(context, renaming_info, tac_function, dominated_block_id);
     }
 
-    while (encountered_variables.encountered_variable_ids_count > 0)
+    while (encountered_variable_ids_count > 0)
     {
-        const Tac_Variable_Id encountered_variable_id = *stack_top(encountered_variables.encountered_variable_ids);
-        stack_pop(encountered_variables.encountered_variable_ids);
+        const Tac_Variable_Id encountered_variable_id = *stack_top(encountered_variable_ids);
+        stack_pop(encountered_variable_ids);
 
         pop_tac_variable_version(renaming_info, encountered_variable_id);
     }
