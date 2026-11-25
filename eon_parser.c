@@ -3,6 +3,7 @@
 #include "eon_compilation_context.h"
 
 // FIXME(vlad): Report syntax errors here.
+// FIXME(vlad): Fix the start/end location mess.
 
 // TODO(vlad): Move to 'eon_lexer.h'?
 internal String_View
@@ -59,6 +60,8 @@ token_type_to_string(const Token_Type type)
         ADD_TOKEN(TOKEN_FOREIGN, "'#foreign'");
 
         ADD_TOKEN(TOKEN_MUTABLE, "'mutable'");
+
+        ADD_TOKEN(TOKEN_AS, "'as'");
 
         ADD_TOKEN(TOKEN_EOF, "end of file");
     }
@@ -457,6 +460,7 @@ parse_primary_expression(Compilation_Context* context, Ast_Expression* expressio
             expression->kind = AST_EXPRESSION_NUMBER;
             expression->number.token = parser->current_token;
             expression->number.is_a_floating_point_number = false;
+            expression->location = parser->current_token.location;
 
             for (Index i = 0;
                  i < expression->number.token.lexeme.length;
@@ -548,9 +552,6 @@ parse_call_expression(Compilation_Context* context, Ast_Expression* expression)
     {
         return false;
     }
-
-    // TODO(vlad): Test that the primary expression is callable. Although we should
-    //             probably do it after parsing (e.g. in the type system).
 
     if (parser->current_token.type != TOKEN_LEFT_PAREN)
     {
@@ -693,6 +694,50 @@ parse_prefix_unary_expression(Compilation_Context* context, Ast_Expression* expr
 }
 
 internal Bool
+parse_cast_expression(Compilation_Context* context, Ast_Expression* expression)
+{
+    Parser* parser = &context->parser;
+
+    if (!parse_prefix_unary_expression(context, expression))
+    {
+        return false;
+    }
+
+    while (true)
+    {
+        if (!parser_fetch_token(context))
+        {
+            return false;
+        }
+
+        if (parser->current_token.type != TOKEN_AS)
+        {
+            return true;
+        }
+
+        end_expression(parser, expression);
+        parser_consume_token(context);
+
+        Ast_Type* type = allocate(context->ast_arena, Ast_Type);
+        if (!parse_type(context, type))
+        {
+            return false;
+        }
+
+        Ast_Expression* operand = allocate(context->ast_arena, Ast_Expression);
+        *operand = *expression;
+
+        expression->kind = AST_EXPRESSION_CAST;
+
+        {
+            Ast_Cast* cast = &expression->cast;
+            cast->casted_expression = operand;
+            cast->resulting_type = type;
+        }
+    }
+}
+
+internal Bool
 parse_multiplicative_expression(Compilation_Context* context, Ast_Expression* expression)
 {
     Parser* parser = &context->parser;
@@ -701,7 +746,7 @@ parse_multiplicative_expression(Compilation_Context* context, Ast_Expression* ex
     Ast_Expression* lhs = allocate(context->ast_arena, Ast_Expression);
 
     start_expression(parser, lhs);
-    if (!parse_prefix_unary_expression(context, lhs))
+    if (!parse_cast_expression(context, lhs))
     {
         return false;
     }

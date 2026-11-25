@@ -1,0 +1,18 @@
+number_literal_cast: () -> s32 =
+{
+    return 123 as s32;
+}
+
+inferred_integer_to_s64_cast: () -> s64 =
+{
+    a := 10;
+    b := a as s64;
+    return b;
+}
+
+s64_to_u8_cast: () -> u8 =
+{
+    a: s64 = 256;
+    b := a as u8;
+    return b;
+}

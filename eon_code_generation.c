@@ -367,6 +367,11 @@ emit_binary_code(Compilation_Context* context)
                                 instruction->binary_code_size = binary_code_size;
                             } break;
 
+                            case MIR_CAST:
+                            {
+                                FAIL("[MIR] CAST instruction is not supported yet.");
+                            } break;
+
                             case MIR_LOAD32:
                             {
                                 FAIL("[MIR] LOAD32 instruction is not supported yet.");
@@ -904,6 +909,11 @@ emit_binary_code(Compilation_Context* context)
                             modrm |= (destination_register_number & 0x07);
                             emit_byte(context, function, modrm);
                         }
+                    } break;
+
+                    case MIR_CAST:
+                    {
+                        FAIL("[MIR] CAST instruction is not supported yet.");
                     } break;
 
                     case MIR_LOAD32:

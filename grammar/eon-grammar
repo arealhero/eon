@@ -96,10 +96,13 @@ optional_additive_expression_tail: EPS
                                  | "+" additive_expression
                                  | "-" additive_expression;
 
-multiplicative_expression: prefix_unary_expression optional_multiplicative_expression_tail;
+multiplicative_expression: cast_expression optional_multiplicative_expression_tail;
 optional_multiplicative_expression_tail: EPS
                                        | "*" multiplicative_expression
                                        | "/" multiplicative_expression;
+
+cast_expression: prefix_unary_expression optional_cast_expression_tail;
+optional_cast_expression_tail: EPS | "as" type cast_expression;
 
 prefix_unary_expression: optional_prefix_unary_expression_head postfix_unary_expression;
 optional_prefix_unary_expression_head: EPS | "-" prefix_unary_expression;

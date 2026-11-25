@@ -75,6 +75,7 @@ create_compilation_context(Compilation_Context* context,
             { .type = TOKEN_FOREIGN, .lexeme = string_view("#foreign"), },
 
             { .type = TOKEN_MUTABLE, .lexeme = string_view("mutable"), },
+            { .type = TOKEN_AS, .lexeme = string_view("as"), },
         };
 
         lexer->keywords_count = NUMBER_OF_STATIC_ARRAY_ELEMENTS(keywords);

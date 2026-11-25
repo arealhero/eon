@@ -1,0 +1,19 @@
+number_literal_cast:
+       |
+       | LABEL_1:
+     1 |           MOVE                RAX, IMM 123
+     2 |           RETURN
+
+inferred_integer_to_s64_cast:
+       |
+       | LABEL_2:
+     1 |           MOVE                RAX, IMM 10
+     2 |           CAST                SIGN EXTEND RAX, RAX
+     3 |           RETURN
+
+s64_to_u8_cast:
+       |
+       | LABEL_3:
+     1 |           MOVE                RAX, IMM 256
+     2 |           CAST                TRUNCATE RAX, RAX
+     3 |           RETURN

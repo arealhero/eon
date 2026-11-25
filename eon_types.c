@@ -1,6 +1,7 @@
 #include "eon_types.h"
 
 #include "eon_builtin_types.h"
+#include "eon_compilation_context.h"
 #include "eon_lexical_scopes.h"
 
 #include <eon/string.h>
@@ -22,6 +23,31 @@ enum
 
     FLOAT_32_TYPE_INDEX = 12,
     FLOAT_64_TYPE_INDEX = 13,
+};
+
+enum Cast_Legality
+{
+    CAST_ILLEGAL = 0,
+    CAST_LEGAL,
+    // CAST_BITWISE, // TODO(vlad): Implement this to support pointer-to-integer cast, integer-to-float cast, etc.
+};
+typedef enum Cast_Legality Cast_Legality;
+
+// NOTE(vlad):                           FROM             TO
+global_variable const Cast_Legality CAST_RULES[TYPE_KIND_COUNT][TYPE_KIND_COUNT] = {
+    [TYPE_INTEGER] = {
+        [TYPE_INTEGER] = CAST_LEGAL,
+    },
+
+    // TODO(vlad): Make this legal when we will support floating-point numbers.
+    // [TYPE_FLOAT] = {
+    //     [TYPE_FLOAT] = CAST_LEGAL,
+    // },
+
+    // TODO(vlad): Make this legal when we will support pointers.
+    // [TYPE_POINTER] = {
+    //     [TYPE_POINTER] = CAST_LEGAL,
+    // },
 };
 
 internal inline Bool
@@ -267,10 +293,10 @@ get_max_integer_value(const Integer_Type_Info* type_info)
     {
         switch (type_info->width_in_bits)
         {
-            case 8:  return MAX_VALUE(s8);
-            case 16: return MAX_VALUE(s16);
-            case 32: return MAX_VALUE(s32);
-            case 64: return MAX_VALUE(s64);
+            case 8:  return MAX_VALUE(u8);
+            case 16: return MAX_VALUE(u16);
+            case 32: return MAX_VALUE(u32);
+            case 64: return MAX_VALUE(u64);
 
             default:
             {
@@ -409,6 +435,7 @@ try_to_unify_types(Compilation_Context* context,
     {
         case TYPE_UNDEFINED:
         case TYPE_INVALID:
+        case TYPE_KIND_COUNT:
         {
             UNREACHABLE();
         } break;
@@ -499,6 +526,7 @@ types_are_equal(Compilation_Context* context,
     {
         case TYPE_UNDEFINED:
         case TYPE_INVALID:
+        case TYPE_KIND_COUNT:
         {
             UNREACHABLE();
         } break;
@@ -708,6 +736,7 @@ resolve_type_by_ast_type(Compilation_Context* context,
         {
             case TYPE_UNDEFINED:
             case TYPE_INVALID:
+            case TYPE_KIND_COUNT:
             {
                 UNREACHABLE();
             } break;
@@ -831,6 +860,7 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
                 {
                     // NOTE(vlad): We know that the only u64 can fit this value, but it might as well be a
                     //             floating-point number thus we are not inferring the concrete type here.
+                    constraints->sign = SIGN_UNSIGNED;
                     constraints->min_bit_width = 64;
                 }
                 else if (value > MAX_VALUE(u32))
@@ -941,6 +971,7 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
             {
                 case TYPE_UNDEFINED:
                 case TYPE_INVALID:
+                case TYPE_KIND_COUNT:
                 {
                     UNREACHABLE();
                 } break;
@@ -1030,6 +1061,7 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
             {
                 case TYPE_UNDEFINED:
                 case TYPE_INVALID:
+                case TYPE_KIND_COUNT:
                 {
                     UNREACHABLE();
                 } break;
@@ -1251,6 +1283,157 @@ resolve_types_in_expression(Compilation_Context* context, Ast_Expression* expres
 
             expression->type_id = return_type_id;
             result.type_id = return_type_id;
+        } break;
+
+        case AST_EXPRESSION_CAST:
+        {
+            Ast_Cast* cast = &expression->cast;
+
+            const Expression_Result casted_expression = resolve_types_in_expression(context, cast->casted_expression);
+
+            const Type_Id resulting_type_id = resolve_type_by_ast_type(context, cast->resulting_type);
+            const Type* resulting_type = get_type_by_id(context, resulting_type_id);
+
+            // NOTE(vlad): Validating cast's resulting type.
+            {
+                switch (resulting_type->kind)
+                {
+                    case TYPE_UNDEFINED:
+                    case TYPE_NUMBER_VARIABLE:
+                    case TYPE_KIND_COUNT:
+                    {
+                        UNREACHABLE();
+                    } break;
+
+                    case TYPE_VARIABLE:
+                    {
+                        Diagnostic_Message error = {0};
+                        error.level = MESSAGE_LEVEL_ERROR;
+                        error.location = cast->resulting_type->location;
+
+                        error.text = string_view("Resulting type of the cast expression must be concrete");
+                        emit_diagnostic_message(context, &error);
+
+                        expression->type_id.index = INVALID_TYPE_INDEX;
+                        result.type_id.index = INVALID_TYPE_INDEX;
+                        return result;
+                    } break;
+
+                    case TYPE_INVALID:
+                    case TYPE_VOID:
+                    case TYPE_INTEGER:
+                    case TYPE_FLOAT:
+                    case TYPE_BOOLEAN:
+                    case TYPE_POINTER:
+                    case TYPE_FUNCTION:
+                    {
+                    } break;
+                }
+            }
+
+            // NOTE(vlad): Validating casted expression's type.
+            {
+                Type* casted_expression_type = get_type_by_id(context, casted_expression.type_id);
+
+                switch (casted_expression_type->kind)
+                {
+                    case TYPE_UNDEFINED:
+                    case TYPE_KIND_COUNT:
+                    case TYPE_VARIABLE:
+                    {
+                        UNREACHABLE();
+                    } break;
+
+                    case TYPE_INVALID:
+                    {
+                    } break;
+
+                    case TYPE_NUMBER_VARIABLE:
+                    {
+                        // NOTE(vlad): We unify number literals only. Otherwise we could incorrectly infer types in
+                        //             cases like this:
+                        //
+                        //             foo: () -> s32 = {
+                        //                 a := 10;
+                        //                 b := a as s64;
+                        //                 return a; // <-- return type mismatch: s64 vs s32.
+                        //             }
+                        //
+                        //             bar: () -> u8 = {
+                        //                 n: mutable _ = 10;
+                        //                 while n >= 0 { n = n - 1; };
+                        //                 return n as u8; // <-- If we infer 'u8' as the type of 'n' then the loop
+                        //                                 //     above will break.
+                        //             }
+                        //
+                        if (cast->casted_expression->kind == AST_EXPRESSION_NUMBER)
+                        {
+                            if (!try_to_unify_types(context, casted_expression.type_id, resulting_type_id))
+                            {
+                                Diagnostic_Message error = {0};
+                                error.level = MESSAGE_LEVEL_ERROR;
+                                error.location = cast->casted_expression->location;
+
+                                const String_View casted_expression_string = source_location_to_string(context, &cast->casted_expression->location);
+                                const String_View resulting_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                                                 context,
+                                                                                                 resulting_type_id);
+
+                                const String error_text = format_string(context->diagnostic_message_texts_arena,
+                                                                        "Cannot cast expression '{}' to type '{}'",
+                                                                        casted_expression_string,
+                                                                        resulting_type_string);
+
+                                error.text = string_view(error_text);
+                                emit_diagnostic_message(context, &error);
+
+                                expression->type_id.index = INVALID_TYPE_INDEX;
+                                result.type_id.index = INVALID_TYPE_INDEX;
+                                return result;
+                            }
+                        }
+                    } break;
+
+                    case TYPE_VOID:
+                    case TYPE_INTEGER:
+                    case TYPE_FLOAT:
+                    case TYPE_BOOLEAN:
+                    case TYPE_POINTER:
+                    case TYPE_FUNCTION:
+                    {
+                        const Cast_Legality legality = CAST_RULES[casted_expression_type->kind][resulting_type->kind];
+
+                        if (legality == CAST_ILLEGAL)
+                        {
+                            Diagnostic_Message error = {0};
+                            error.level = MESSAGE_LEVEL_ERROR;
+                            error.location = cast->casted_expression->location;
+
+                            const String_View casted_expression_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                                                     context,
+                                                                                                     casted_expression.type_id);
+                            const String_View resulting_type_string = convert_type_to_string(context->diagnostic_message_texts_arena,
+                                                                                             context,
+                                                                                             resulting_type_id);
+
+                            const String error_text = format_string(context->diagnostic_message_texts_arena,
+                                                                    "Cannot cast expression of type '{}' to type '{}'",
+                                                                    casted_expression_type_string,
+                                                                    resulting_type_string);
+
+                            error.text = string_view(error_text);
+                            emit_diagnostic_message(context, &error);
+
+                            expression->type_id.index = INVALID_TYPE_INDEX;
+                            result.type_id.index = INVALID_TYPE_INDEX;
+                            return result;
+                        }
+                    } break;
+                }
+            }
+
+            expression->type_id = resulting_type_id;
+            result.type_id = resulting_type_id;
         } break;
     }
 
@@ -1750,22 +1933,22 @@ convert_type_to_string(Arena* arena,
 {
     // FIXME(vlad): Remove unnecessary allocations and copies.
 
-    const Type_Id root_type_id = find_root_type_id(context, type_id);
-    const Type* type = get_type_by_id(context, root_type_id);
+    const Type* type = get_type_by_id(context, type_id);
+    if (type->kind == TYPE_NUMBER_VARIABLE)
+    {
+        set_the_most_suitable_type_for_number_variable(context, type_id);
+        type = get_type_by_id(context, type_id);
+    }
 
     String_Builder builder = {0};
     create_string_builder(&builder, arena);
-
-    if (type->kind == TYPE_NUMBER_VARIABLE)
-    {
-        type = get_the_most_suitable_type_for_number_variable(context, &type->number_constraints);
-    }
 
     switch (type->kind)
     {
         case TYPE_UNDEFINED:
         case TYPE_INVALID:
         case TYPE_NUMBER_VARIABLE:
+        case TYPE_KIND_COUNT:
         {
             UNREACHABLE();
         } break;
@@ -1951,11 +2134,16 @@ convert_type_to_string(Arena* arena,
     return string_builder_to_string(&builder);
 }
 
-internal inline const Type*
-get_the_most_suitable_type_for_number_variable(Compilation_Context* context,
-                                               const Number_Constraints* constraints)
+internal inline void
+set_the_most_suitable_type_for_number_variable(struct Compilation_Context* context,
+                                               const Type_Id type_id)
 {
-    // TODO(vlad): Accept Type* as the second parameter and link the most suitable type as its parent here?
+    const Type* type = get_type_by_id(context, type_id);
+    ASSERT(type->kind == TYPE_NUMBER_VARIABLE);
+
+    const Number_Constraints* constraints = &type->number_constraints;
+
+    Type_Id most_suitable_type_id = {0};
     if (constraints->must_be_a_floating_point_number)
     {
         switch (constraints->min_bit_width)
@@ -1963,12 +2151,12 @@ get_the_most_suitable_type_for_number_variable(Compilation_Context* context,
             case 0:
             case 32:
             {
-                return get_type_by_id(context, (Type_Id){.index = FLOAT_32_TYPE_INDEX});
+                most_suitable_type_id = (Type_Id){.index = FLOAT_32_TYPE_INDEX};
             } break;
 
             case 64:
             {
-                return get_type_by_id(context, (Type_Id){.index = FLOAT_64_TYPE_INDEX});
+                most_suitable_type_id = (Type_Id){.index = FLOAT_64_TYPE_INDEX};
             } break;
 
             default:
@@ -1987,7 +2175,7 @@ get_the_most_suitable_type_for_number_variable(Compilation_Context* context,
                                      ? UNSIGNED_INT_8_TYPE_INDEX
                                      : SIGNED_INT_8_TYPE_INDEX);
 
-                return get_type_by_id(context, (Type_Id){.index = index});
+                most_suitable_type_id = (Type_Id){.index = index};
             } break;
 
             case 16:
@@ -1996,7 +2184,7 @@ get_the_most_suitable_type_for_number_variable(Compilation_Context* context,
                                      ? UNSIGNED_INT_16_TYPE_INDEX
                                      : SIGNED_INT_16_TYPE_INDEX);
 
-                return get_type_by_id(context, (Type_Id){.index = index});
+                most_suitable_type_id = (Type_Id){.index = index};
             } break;
 
             case 0:
@@ -2006,7 +2194,7 @@ get_the_most_suitable_type_for_number_variable(Compilation_Context* context,
                                      ? UNSIGNED_INT_32_TYPE_INDEX
                                      : SIGNED_INT_32_TYPE_INDEX);
 
-                return get_type_by_id(context, (Type_Id){.index = index});
+                most_suitable_type_id = (Type_Id){.index = index};
             } break;
 
             case 64:
@@ -2015,13 +2203,60 @@ get_the_most_suitable_type_for_number_variable(Compilation_Context* context,
                                      ? UNSIGNED_INT_64_TYPE_INDEX
                                      : SIGNED_INT_64_TYPE_INDEX);
 
-                return get_type_by_id(context, (Type_Id){.index = index});
+                most_suitable_type_id = (Type_Id){.index = index};
             } break;
 
             default:
             {
                 UNREACHABLE();
             } break;
+        }
+    }
+
+    ASSERT(most_suitable_type_id.index != 0);
+    if (!try_to_unify_types(context, type_id, most_suitable_type_id))
+    {
+        FAIL("[types] Failed to unify types.");
+    }
+}
+
+internal Cast_Kind
+classify_cast(struct Compilation_Context* context,
+              const Type_Id from_type_id,
+              const Type_Id to_type_id)
+{
+    if (type_ids_are_equal(context, from_type_id, to_type_id))
+    {
+        return CAST_TRIVIAL;
+    }
+
+    const Type* from_type = get_type_by_id(context, from_type_id);
+    const Type* to_type = get_type_by_id(context, to_type_id);
+
+    ASSERT(CAST_RULES[from_type->kind][to_type->kind] == CAST_LEGAL);
+
+    ASSERT(from_type->kind == TYPE_INTEGER && to_type->kind == TYPE_INTEGER);
+
+    const Integer_Type_Info* from_info = &from_type->integer_info;
+    const Integer_Type_Info* to_info = &to_type->integer_info;
+
+    if (to_info->width_in_bits == from_info->width_in_bits)
+    {
+        return CAST_TRIVIAL;
+    }
+    else if (to_info->width_in_bits < from_info->width_in_bits)
+    {
+        return CAST_TRUNCATE;
+    }
+    else
+    {
+        if (from_info->is_signed)
+        {
+            return CAST_SIGN_EXTEND;
+        }
+        else
+        {
+            return CAST_ZERO_EXTEND;
         }
     }
 }

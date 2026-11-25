@@ -37,12 +37,12 @@
     }                                                                   \
     while (0)
 
-#define ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(constant_id, expected_kind, field_name, expected_value) \
+#define ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(constant_id, expected_type, field_name, expected_value) \
     do                                                                  \
     {                                                                   \
         ASSERT_NOT_EQUAL(constant_id.index, 0);                         \
         const Tac_Constant* constant = get_tac_constant_by_id(&context.tac, constant_id); \
-        ASSERT_ENUM_VALUES_ARE_EQUAL(constant->kind, expected_kind);    \
+        ASSERT_TYPE_STRINGS_ARE_EQUAL(constant->type_id, expected_type); \
         ASSERT_EQUAL(constant->field_name, expected_value);             \
     }                                                                   \
     while (0)
@@ -187,7 +187,7 @@ test_expression_lowering(Test_Context* test_context)
 
             const Tac_Operand* first_argument = &instruction->first_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
-            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 10);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", integer_value, 10);
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
@@ -284,7 +284,7 @@ test_expression_lowering(Test_Context* test_context)
 
             const Tac_Operand* first_argument = &instruction->first_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
-            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 10);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", integer_value, 10);
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
@@ -305,7 +305,7 @@ test_expression_lowering(Test_Context* test_context)
 
             const Tac_Operand* first_argument = &instruction->first_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
-            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 20);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", integer_value, 20);
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
@@ -508,7 +508,7 @@ test_return_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* first_argument = &instruction->first_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
-            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 10);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", integer_value, 10);
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
@@ -575,7 +575,7 @@ test_return_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* first_argument = &instruction->first_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
-            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 10);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", integer_value, 10);
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
@@ -663,7 +663,7 @@ test_calls(Test_Context* test_context)
 
                 const Tac_Operand* first_argument = &instruction->first_argument;
                 ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
-                ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 10);
+                ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", integer_value, 10);
 
                 const Tac_Operand* second_argument = &instruction->second_argument;
                 ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
@@ -778,7 +778,7 @@ test_calls(Test_Context* test_context)
 
                 const Tac_Operand* first_argument = &instruction->first_argument;
                 ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
-                ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 10);
+                ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", integer_value, 10);
 
                 const Tac_Operand* second_argument = &instruction->second_argument;
                 ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
@@ -1003,11 +1003,11 @@ test_arithmetic_expressions_lowering(Test_Context* test_context)
 
             const Tac_Operand* first_argument = &instruction->first_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
-            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 10);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", integer_value, 10);
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_CONSTANT);
-            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(second_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 20);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(second_argument->constant_id, "s32", integer_value, 20);
 
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
@@ -1156,11 +1156,11 @@ test_comparisons_lowering(Test_Context* test_context)
 
             const Tac_Operand* first_argument = &instruction->first_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
-            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 10);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", integer_value, 10);
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_CONSTANT);
-            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(second_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 20);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(second_argument->constant_id, "s32", integer_value, 20);
 
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
@@ -1302,11 +1302,11 @@ test_while_loops_lowering(Test_Context* test_context)
 
             const Tac_Operand* first_argument = &instruction->first_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
-            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 1);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", integer_value, 1);
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_CONSTANT);
-            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(second_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 2);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(second_argument->constant_id, "s32", integer_value, 2);
 
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
@@ -1361,7 +1361,7 @@ test_while_loops_lowering(Test_Context* test_context)
 
             const Tac_Operand* first_argument = &instruction->first_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
-            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 10);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", integer_value, 10);
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
@@ -1489,11 +1489,11 @@ test_if_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* first_argument = &instruction->first_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
-            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 1);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", integer_value, 1);
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_CONSTANT);
-            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(second_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 2);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(second_argument->constant_id, "s32", integer_value, 2);
 
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
@@ -1549,7 +1549,7 @@ test_if_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* first_argument = &instruction->first_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
-            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 10);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", integer_value, 10);
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
@@ -1628,7 +1628,7 @@ test_if_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* first_argument = &instruction->first_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
-            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 20);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", integer_value, 20);
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
@@ -1726,11 +1726,11 @@ test_if_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* first_argument = &instruction->first_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
-            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 1);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", integer_value, 1);
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_CONSTANT);
-            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(second_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 2);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(second_argument->constant_id, "s32", integer_value, 2);
 
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }
@@ -1786,7 +1786,7 @@ test_if_statements_lowering(Test_Context* test_context)
 
             const Tac_Operand* first_argument = &instruction->first_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
-            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 10);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", integer_value, 10);
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
@@ -1941,7 +1941,7 @@ test_indirect_memory_access(Test_Context* test_context)
 
             const Tac_Operand* first_argument = &instruction->first_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
-            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 10);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", integer_value, 10);
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
@@ -2118,7 +2118,7 @@ test_indirect_memory_access(Test_Context* test_context)
 
             const Tac_Operand* first_argument = &instruction->first_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
-            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 10);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", integer_value, 10);
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
@@ -2204,7 +2204,7 @@ test_indirect_memory_access(Test_Context* test_context)
 
             const Tac_Operand* first_argument = &instruction->first_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
-            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, TAC_CONSTANT_INT32, integer_value, 20);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", integer_value, 20);
 
             const Tac_Operand* second_argument = &instruction->second_argument;
             ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);

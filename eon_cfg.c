@@ -296,6 +296,7 @@ tac_operation_is_a_cfg_block_terminator(const Tac_Operation operation)
         case TAC_MULTIPLY:
         case TAC_DIVIDE:
         case TAC_COMPARE:
+        case TAC_CAST:
         case TAC_LABEL:
         case TAC_SET_PARAMETER:
         case TAC_GET_PARAMETER:
@@ -460,6 +461,7 @@ construct_cfg_from_tac(Compilation_Context* context)
                 case TAC_MULTIPLY:
                 case TAC_DIVIDE:
                 case TAC_COMPARE:
+                case TAC_CAST:
                 case TAC_LABEL:
                 case TAC_SET_PARAMETER:
                 case TAC_GET_PARAMETER:

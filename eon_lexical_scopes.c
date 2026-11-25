@@ -267,6 +267,13 @@ set_symbol_ids_for_identifiers_in_expression(Compilation_Context* context,
             Ast_Call* call = &expression->call;
             set_symbol_ids_for_identifiers_in_call_expression(context, call, this_lexical_scope_id);
         } break;
+
+        case AST_EXPRESSION_CAST:
+        {
+            Ast_Cast* cast = &expression->cast;
+            set_symbol_ids_for_identifiers_in_expression(context, cast->casted_expression, this_lexical_scope_id);
+            set_symbol_ids_for_identifiers_in_type(context, cast->resulting_type, this_lexical_scope_id);
+        } break;
     }
 }
 

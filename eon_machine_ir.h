@@ -6,6 +6,7 @@
 
 #include "eon_ast.h"
 #include "eon_forward_declarations.h"
+#include "eon_types.h"
 
 struct MIR_Block;
 
@@ -32,7 +33,6 @@ enum
     // TODO(vlad): Add X86_64_RBP for optimized builds because we can omit frame pointers in that case and use RBP as a
     //             15th GPR. We should also consider supporting the '-fno-omit-frame-pointer' compilation option.
 
-    // TODO(vlad): Add 32, 16, and 8-bit registers.
     // TODO(vlad): Add aarch64.
 };
 
@@ -139,6 +139,7 @@ enum MIR_Opcode
     // TODO(vlad): MIR_AND, MIR_OR, etc.
 
     MIR_COMPARE,
+    MIR_CAST,
 
     MIR_LOAD32,
     MIR_STORE32,
@@ -262,6 +263,14 @@ struct MIR_Instruction
         struct
         {
             Index physical_register;
+        };
+
+        // NOTE(vlad): For MIR_CAST.
+        struct
+        {
+            Cast_Kind cast_kind;
+            Size from_width_in_bits;
+            Size to_width_in_bits;
         };
     };
 };

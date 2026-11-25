@@ -73,7 +73,11 @@ convert_tac_operand_to_string(Compilation_Context* context,
                 name = symbol->name;
             }
 
-            append_string(builder, format_string(context->scratch_arena, " VARIABLE {}@{}", name, variable_id.ssa_version));
+            append_string(builder, format_string(context->scratch_arena,
+                                                 " VARIABLE {} {}@{}",
+                                                 convert_type_to_string(context->scratch_arena, context, variable->type_id),
+                                                 name,
+                                                 variable_id.ssa_version));
         } break;
 
         case TAC_OPERAND_LABEL:
@@ -90,58 +94,72 @@ convert_tac_operand_to_string(Compilation_Context* context,
 
             append_string(builder, " CONSTANT ");
 
-            String_View constant_string = {0};
+            const Type* type = get_type_by_id(context, constant->type_id);
 
-            switch (constant->kind)
+            switch (type->kind)
             {
-                case TAC_CONSTANT_UNDEFINED:
-                {
-                    UNREACHABLE();
-                } break;
-
-                case TAC_CONSTANT_BOOLEAN:
+                case TYPE_BOOLEAN:
                 {
                     if (constant->boolean_value)
                     {
-                        constant_string = string_view("bool TRUE");
+                        append_string(builder, "bool TRUE");
                     }
                     else
                     {
-                        constant_string = string_view("bool FALSE");
+                        append_string(builder, "bool FALSE");
                     }
                 } break;
 
-#define DECLARE_INTEGER_CASE(kind, Type)                                \
-                case kind:                                              \
-                {                                                       \
-                    constant_string = string_view(format_string(context->scratch_arena, #Type " {}", constant->integer_value)); \
-                } break
-
-                DECLARE_INTEGER_CASE(TAC_CONSTANT_INT8,  s8);
-                DECLARE_INTEGER_CASE(TAC_CONSTANT_INT16, s16);
-                DECLARE_INTEGER_CASE(TAC_CONSTANT_INT32, s32);
-                DECLARE_INTEGER_CASE(TAC_CONSTANT_INT64, s64);
-
-                DECLARE_INTEGER_CASE(TAC_CONSTANT_UINT8,  u8);
-                DECLARE_INTEGER_CASE(TAC_CONSTANT_UINT16, u16);
-                DECLARE_INTEGER_CASE(TAC_CONSTANT_UINT32, u32);
-                DECLARE_INTEGER_CASE(TAC_CONSTANT_UINT64, u64);
-
-                case TAC_CONSTANT_FLOAT32:
+                case TYPE_INTEGER:
                 {
-                    constant_string = string_view(format_string(context->scratch_arena, "f32 {}", constant->float32_value));
+                    const Integer_Type_Info* info = &type->integer_info;
+
+                    if (info->is_signed)
+                    {
+                        append_string(builder, "s");
+                    }
+                    else
+                    {
+                        append_string(builder, "u");
+                    }
+
+                    const String suffix = format_string(context->scratch_arena,
+                                                        "{} {}",
+                                                        (info->width_in_bits == 0 ? 32 : info->width_in_bits),
+                                                        constant->integer_value);
+
+                    append_string(builder, suffix);
                 } break;
 
-                case TAC_CONSTANT_FLOAT64:
+                case TYPE_FLOAT:
                 {
-                    constant_string = string_view(format_string(context->scratch_arena, "f64 {}", constant->float64_value));
+                    const Float_Type_Info* info = &type->float_info;
+
+                    if (info->width_in_bits == 0 || info->width_in_bits == 32)
+                    {
+                        const String constant_string = format_string(context->scratch_arena,
+                                                                     "f32 {}",
+                                                                     constant->float32_value);
+                        append_string(builder, constant_string);
+                    }
+                    else if (info->width_in_bits == 64)
+                    {
+                        const String constant_string = format_string(context->scratch_arena,
+                                                                     "f64 {}",
+                                                                     constant->float64_value);
+                        append_string(builder, constant_string);
+                    }
+                    else
+                    {
+                        UNREACHABLE();
+                    }
+                } break;
+
+                default:
+                {
+                    UNREACHABLE();
                 } break;
             }
-
-            // TODO(vlad): Change this to 'ASSERT(constant_string.length != 0)'?
-            ASSERT(!strings_are_equal(constant_string, ""));
-
-            append_string(builder, constant_string);
         } break;
 
         case TAC_OPERAND_PARAMETER_INDEX:
@@ -426,6 +444,42 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                         convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                         append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
+                    } break;
+
+                    case TAC_CAST:
+                    {
+                        ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
+                        ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
+                        ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
+
+                        append_string(&builder, "          CAST            ");
+
+                        switch (instruction->cast_kind)
+                        {
+                            case CAST_TRIVIAL:
+                            {
+                                UNREACHABLE();
+                            } break;
+
+                            case CAST_TRUNCATE:
+                            {
+                                append_string(&builder, " TRUNCATE");
+                            } break;
+
+                            case CAST_ZERO_EXTEND:
+                            {
+                                append_string(&builder, " ZERO EXTEND");
+                            } break;
+
+                            case CAST_SIGN_EXTEND:
+                            {
+                                append_string(&builder, " SIGN EXTEND");
+                            } break;
+                        }
+
+                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
+                        append_string(&builder, ",");
+                        convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
                     } break;
 
                     case TAC_LABEL:
@@ -788,6 +842,41 @@ convert_mir_block_to_string(Compilation_Context* context,
                 convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
                 append_string(builder, ",");
                 convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[1]);
+            } break;
+
+            case MIR_CAST:
+            {
+                ASSERT(instruction->definitions_count == 1);
+                ASSERT(instruction->uses_count == 1);
+
+                append_string(builder, "          CAST               ");
+
+                switch (instruction->cast_kind)
+                {
+                    case CAST_TRIVIAL:
+                    {
+                        UNREACHABLE();
+                    } break;
+
+                    case CAST_TRUNCATE:
+                    {
+                        append_string(builder, " TRUNCATE");
+                    } break;
+
+                    case CAST_ZERO_EXTEND:
+                    {
+                        append_string(builder, " ZERO EXTEND");
+                    } break;
+
+                    case CAST_SIGN_EXTEND:
+                    {
+                        append_string(builder, " SIGN EXTEND");
+                    } break;
+                }
+
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->definitions[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
             } break;
 
             case MIR_LOAD32:

@@ -3,7 +3,7 @@ setlocal
 
 set ERROR_ON=1
 
-set ENABLE_ASAN=1
+set ENABLE_ASAN=0
 set USE_CLANG=1
 
 REM FIXME: Remove no-c23-extensions suppression. AFAIK we only need to remove __VA_OPT__ in 'macros.h'.
@@ -80,6 +80,7 @@ call :run_pipeline_test tests\pipeline\loops || exit /B 1
 call :run_pipeline_test tests\pipeline\parallel-copy || exit /B 1
 call :run_pipeline_test tests\pipeline\fibonacci-with-recursion || exit /B 1
 call :run_pipeline_test tests\pipeline\foreign-functions || exit /B 1
+call :run_pipeline_test tests\pipeline\casts || exit /B 1
 
 call :run_pipeline_test tests\pipeline\regressions\if-statement-with-return || exit /B 1
 call :run_pipeline_test tests\pipeline\regressions\nested-if-statement || exit /B 1

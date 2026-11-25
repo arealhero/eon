@@ -1,13 +1,13 @@
 regression_if_statement_with_return:
-     1 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
-     2 |           NOT_EQUAL        VARIABLE <temp_1>@1, CONSTANT s32 1, CONSTANT s32 2
-     3 |           JUMP_IF_FALSE    LABEL_1, VARIABLE <temp_1>@1
+     1 |           ASSIGN           VARIABLE s32 a@1, CONSTANT s32 10
+     2 |           NOT_EQUAL        VARIABLE bool <temp_1>@1, CONSTANT s32 1, CONSTANT s32 2
+     3 |           JUMP_IF_FALSE    LABEL_1, VARIABLE bool <temp_1>@1
      4 |           JUMP             LABEL_3
      5 | LABEL_3:
-     6 |           ASSIGN           VARIABLE a@2, CONSTANT s32 21
-     7 |           RETURN           VARIABLE a@2
+     6 |           ASSIGN           VARIABLE s32 a@2, CONSTANT s32 21
+     7 |           RETURN           VARIABLE s32 a@2
      8 | LABEL_1:
-     9 |           ASSIGN           VARIABLE a@3, CONSTANT s32 22
+     9 |           ASSIGN           VARIABLE s32 a@3, CONSTANT s32 22
     10 |           JUMP             LABEL_2
     11 | LABEL_2:
     12 |           RETURN           CONSTANT s32 30

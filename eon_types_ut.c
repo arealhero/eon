@@ -4318,6 +4318,200 @@ test_number_types_inference_in_arithmetic_expressions(Test_Context* test_context
 }
 
 internal void
+test_casts(Test_Context* test_context)
+{
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {\n"
+                                                 "    a := 10;\n"
+                                                 "    b := a as s64;\n"
+                                                 "    return a;\n"
+                                                 "}\n");
+
+        parse_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+
+        const Type_Id function_type_id = function_definition->type->type_id;
+        ASSERT_TYPE_IS_VALID(function_type_id);
+
+        const Type* function_type = get_type_by_id(&context, function_type_id);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, TYPE_FUNCTION);
+        ASSERT_TYPE_STRINGS_ARE_EQUAL(function_type_id, "() -> s32");
+
+        const Function_Type_Info* info = &function_type->function_info;
+        ASSERT_EQUAL(info->parameter_type_ids_count, 0);
+
+        {
+            const Type_Id return_type_id = info->return_type_id;
+            ASSERT_TYPE_IS_VALID(return_type_id);
+            const Type* return_type = get_type_by_id(&context, return_type_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_INTEGER);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(return_type_id, "s32");
+        }
+
+        {
+            const Symbol* function_symbol = get_symbol_for_identifier(&context, &function_definition->name);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_GLOBAL_FUNCTION);
+            ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, function_definition->name.token.lexeme);
+            ASSERT_TYPE_IDS_ARE_EQUAL(function_type_id, function_symbol->type_id);
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            ASSERT_EQUAL(function_definition->type->function.parameters_count, 0);
+        }
+
+        const Ast_Code_Block* body = &function_definition->body;
+
+        ASSERT_EQUAL(body->statements_count, 3);
+        ASSERT_EQUAL(body->every_path_returns, true);
+
+        {
+            const Ast_Statement* definition_of_a_statement = &body->statements[0];
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition_of_a_statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+            const Ast_Variable_Definition* definition_of_a = &definition_of_a_statement->variable_definition;
+
+            const Ast_Identifier* variable = &definition_of_a->name;
+            const Symbol* variable_symbol = get_symbol_for_identifier(&context, variable);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(variable_symbol->type_id, "s32");
+
+            ASSERT_TRUE(definition_of_a->has_initial_value);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(definition_of_a->initial_value.type_id, "s32");
+        }
+
+        {
+            const Ast_Statement* definition_of_b_statement = &body->statements[1];
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition_of_b_statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+            const Ast_Variable_Definition* definition_of_b = &definition_of_b_statement->variable_definition;
+
+            const Ast_Identifier* variable = &definition_of_b->name;
+            const Symbol* variable_symbol = get_symbol_for_identifier(&context, variable);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(variable_symbol->type_id, "s64");
+
+            ASSERT_TRUE(definition_of_b->has_initial_value);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(definition_of_b->initial_value.type_id, "s64");
+        }
+
+        {
+            const Ast_Statement* return_statement = &body->statements[2];
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_statement->kind, AST_STATEMENT_RETURN);
+            ASSERT_FALSE(return_statement->return_statement.is_empty);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(return_statement->return_statement.expression.type_id, "s32");
+        }
+
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s64 = {\n"
+                                                 "    a: s32 = 123;\n"
+                                                 "    b := a as s64;"
+                                                 "    return b;\n"
+                                                 "}\n");
+
+        parse_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+
+        const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+
+        const Type_Id function_type_id = function_definition->type->type_id;
+        ASSERT_TYPE_IS_VALID(function_type_id);
+
+        const Type* function_type = get_type_by_id(&context, function_type_id);
+        ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, TYPE_FUNCTION);
+        ASSERT_TYPE_STRINGS_ARE_EQUAL(function_type_id, "() -> s64");
+
+        const Function_Type_Info* info = &function_type->function_info;
+        ASSERT_EQUAL(info->parameter_type_ids_count, 0);
+
+        {
+            const Type_Id return_type_id = info->return_type_id;
+            ASSERT_TYPE_IS_VALID(return_type_id);
+            const Type* return_type = get_type_by_id(&context, return_type_id);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, TYPE_INTEGER);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(return_type_id, "s64");
+        }
+
+        {
+            const Symbol* function_symbol = get_symbol_for_identifier(&context, &function_definition->name);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_symbol->kind, SYMBOL_GLOBAL_FUNCTION);
+            ASSERT_STRINGS_ARE_EQUAL(function_symbol->name, function_definition->name.token.lexeme);
+            ASSERT_TYPE_IDS_ARE_EQUAL(function_type_id, function_symbol->type_id);
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_definition->type->kind, AST_TYPE_FUNCTION);
+            ASSERT_EQUAL(function_definition->type->function.parameters_count, 0);
+        }
+
+        const Ast_Code_Block* body = &function_definition->body;
+
+        ASSERT_EQUAL(body->statements_count, 3);
+        ASSERT_EQUAL(body->every_path_returns, true);
+
+        {
+            const Ast_Statement* definition_of_a_statement = &body->statements[0];
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition_of_a_statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+            const Ast_Variable_Definition* definition_of_a = &definition_of_a_statement->variable_definition;
+
+            const Ast_Identifier* variable = &definition_of_a->name;
+            const Symbol* variable_symbol = get_symbol_for_identifier(&context, variable);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(variable_symbol->type_id, "s32");
+
+            ASSERT_TRUE(definition_of_a->has_initial_value);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(definition_of_a->initial_value.type_id, "s32");
+        }
+
+        {
+            const Ast_Statement* definition_of_b_statement = &body->statements[1];
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition_of_b_statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+            const Ast_Variable_Definition* definition_of_b = &definition_of_b_statement->variable_definition;
+
+            const Ast_Identifier* variable = &definition_of_b->name;
+            const Symbol* variable_symbol = get_symbol_for_identifier(&context, variable);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(variable_symbol->type_id, "s64");
+
+            ASSERT_TRUE(definition_of_b->has_initial_value);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(definition_of_b->initial_value.type_id, "s64");
+        }
+
+        {
+            const Ast_Statement* return_statement = &body->statements[2];
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_statement->kind, AST_STATEMENT_RETURN);
+            ASSERT_FALSE(return_statement->return_statement.is_empty);
+            ASSERT_TYPE_STRINGS_ARE_EQUAL(return_statement->return_statement.expression.type_id, "s64");
+        }
+
+        destroy_compilation_context(&context);
+    }
+}
+
+internal void
 test_variables_of_invalid_types(Test_Context* test_context)
 {
     // NOTE(vlad): Testing variables of a 'void' type.
@@ -5447,6 +5641,122 @@ test_mutability_mismatches(Test_Context* test_context)
     }
 }
 
+internal void
+test_invalid_casts(Test_Context* test_context)
+{
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    var := 1000 as s8;\n"
+                                                 "}\n");
+
+        parse_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:2:12: error: Cannot cast expression '1000' to type 's8'\n"
+                                                        "  2 |     var := 1000 as s8;\n"
+                                                        "    |            ^~~~\n");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                 "    var: s64 = 123 as s32;\n"
+                                                 "}\n");
+
+        parse_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:2:16: error: Cannot initialise variable of type 's64' with expression of type 's32'\n"
+                                                        "  2 |     var: s64 = 123 as s32;\n"
+                                                        "    |                ^~~~~~~~~~\n");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {\n"
+                                                 "    return foo as s32;\n"
+                                                 "}\n");
+
+        parse_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:2:12: error: Cannot cast expression of type '() -> s32' to type 's32'\n"
+                                                        "  2 |     return foo as s32;\n"
+                                                        "    |            ^~~\n");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_compilation_context(&context);
+    }
+
+    {
+        CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> s32 = {\n"
+                                                 "    return (foo& as * s32)*;\n"
+                                                 "}\n");
+
+        parse_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        validate_ast(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        create_lexical_scopes(&context);
+        ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        resolve_and_validate_types(&context);
+        ASSERT_TRUE(has_diagnostic_messages(&context));
+
+        const String_View dumped_messages = dump_diagnostic_messages(test_context->arena,
+                                                                     &context,
+                                                                     MAX_MESSAGE_LEVEL);
+        const String_View expected_output = string_view("<test-input>:2:13: error: Cannot cast expression of type '* () -> s32' to type '* s32'\n"
+                                                        "  2 |     return (foo& as * s32)*;\n"
+                                                        "    |             ^~~~\n");
+        ASSERT_STRINGS_ARE_EQUAL(dumped_messages, expected_output);
+
+        destroy_compilation_context(&context);
+    }
+}
+
 REGISTER_TESTS(
     test_builtin_types_resolving,
     test_pointers,
@@ -5460,11 +5770,13 @@ REGISTER_TESTS(
     test_unsigned_integers,
     test_floats,
     test_number_types_inference_in_arithmetic_expressions,
+    test_casts,
     test_variables_of_invalid_types,
     test_type_mismatches,
     test_number_type_mismatches,
     test_lvalue_mismatches,
-    test_mutability_mismatches
+    test_mutability_mismatches,
+    test_invalid_casts
 )
 
 #include "eon_ast.c"

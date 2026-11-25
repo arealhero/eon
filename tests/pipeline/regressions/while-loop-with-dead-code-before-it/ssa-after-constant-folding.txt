@@ -1,15 +1,15 @@
 good_example:
-     1 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
+     1 |           ASSIGN           VARIABLE s32 a@1, CONSTANT s32 10
      2 |           JUMP             LABEL_1
        |
-       |           PHI              VARIABLE a@2, VARIABLE a@1, VARIABLE a@3
+       |           PHI              VARIABLE s32 a@2, VARIABLE s32 a@1, VARIABLE s32 a@3
      3 | LABEL_1:
-     4 |           GREATER          VARIABLE <temp_1>@1, VARIABLE a@2, CONSTANT s32 0
-     5 |           JUMP_IF_FALSE    LABEL_2, VARIABLE <temp_1>@1
+     4 |           GREATER          VARIABLE bool <temp_1>@1, VARIABLE s32 a@2, CONSTANT s32 0
+     5 |           JUMP_IF_FALSE    LABEL_2, VARIABLE bool <temp_1>@1
      6 |           JUMP             LABEL_3
      7 | LABEL_3:
-     8 |           SUBTRACT         VARIABLE <temp_2>@1, VARIABLE a@2, CONSTANT s32 1
-     9 |           ASSIGN           VARIABLE a@3, VARIABLE <temp_2>@1
+     8 |           SUBTRACT         VARIABLE s32 <temp_2>@1, VARIABLE s32 a@2, CONSTANT s32 1
+     9 |           ASSIGN           VARIABLE s32 a@3, VARIABLE s32 <temp_2>@1
     10 |           JUMP             LABEL_1
     11 | LABEL_2:
     12 |           RETURN
@@ -18,17 +18,17 @@ bad_example:
      1 | LABEL_1:
      2 |           JUMP             LABEL_2
      3 | LABEL_2:
-     4 |           ASSIGN           VARIABLE a@1, CONSTANT s32 10
+     4 |           ASSIGN           VARIABLE s32 a@1, CONSTANT s32 10
      5 |           JUMP             LABEL_3
        |
-       |           PHI              VARIABLE a@2, VARIABLE a@1, VARIABLE a@3
+       |           PHI              VARIABLE s32 a@2, VARIABLE s32 a@1, VARIABLE s32 a@3
      6 | LABEL_3:
-     7 |           GREATER          VARIABLE <temp_1>@1, VARIABLE a@2, CONSTANT s32 0
-     8 |           JUMP_IF_FALSE    LABEL_4, VARIABLE <temp_1>@1
+     7 |           GREATER          VARIABLE bool <temp_1>@1, VARIABLE s32 a@2, CONSTANT s32 0
+     8 |           JUMP_IF_FALSE    LABEL_4, VARIABLE bool <temp_1>@1
      9 |           JUMP             LABEL_6
     10 | LABEL_6:
-    11 |           SUBTRACT         VARIABLE <temp_2>@1, VARIABLE a@2, CONSTANT s32 1
-    12 |           ASSIGN           VARIABLE a@3, VARIABLE <temp_2>@1
+    11 |           SUBTRACT         VARIABLE s32 <temp_2>@1, VARIABLE s32 a@2, CONSTANT s32 1
+    12 |           ASSIGN           VARIABLE s32 a@3, VARIABLE s32 <temp_2>@1
     13 |           JUMP             LABEL_3
     14 | LABEL_4:
     15 |           RETURN

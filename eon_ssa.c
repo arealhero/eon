@@ -939,11 +939,12 @@ perform_constant_folding(Compilation_Context* context)
                     Tac_Constant* first_argument = get_tac_constant_by_id(tac, instruction->first_argument.constant_id);
                     Tac_Constant* second_argument = get_tac_constant_by_id(tac, instruction->second_argument.constant_id);
 
-                    ASSERT(first_argument->kind == second_argument->kind);
+                    ASSERT(type_ids_are_equal(context, first_argument->type_id, second_argument->type_id));
+
+                    const Type_Id argument_type_id = first_argument->type_id;
+                    const Type* argument_type = get_type_by_id(context, argument_type_id);
 
                     Tac_Constant folded_constant = {0};
-
-                    const Tac_Constant_Kind argument_kind = first_argument->kind;
 
                     switch (instruction->operation)
                     {
@@ -951,39 +952,36 @@ perform_constant_folding(Compilation_Context* context)
 #define DECLARE_ARITHMETIC_CASE(operation, operator)                    \
                         case operation:                                 \
                         {                                               \
-                            folded_constant.kind = argument_kind;       \
+                            folded_constant.type_id = argument_type_id; \
                                                                         \
-                            switch (argument_kind)                      \
+                            switch (argument_type->kind)                \
                             {                                           \
-                                case TAC_CONSTANT_UNDEFINED:            \
-                                case TAC_CONSTANT_BOOLEAN:              \
+                                case TYPE_INTEGER:                      \
                                 {                                       \
-                                    UNREACHABLE();                      \
-                                } break;                                \
-                                                                        \
-                                case TAC_CONSTANT_INT8:                 \
-                                case TAC_CONSTANT_INT16:                \
-                                case TAC_CONSTANT_INT32:                \
-                                case TAC_CONSTANT_INT64:                \
-                                case TAC_CONSTANT_UINT8:                \
-                                case TAC_CONSTANT_UINT16:               \
-                                case TAC_CONSTANT_UINT32:               \
-                                case TAC_CONSTANT_UINT64:               \
-                                {                                       \
-                                    folded_constant.kind = argument_kind; \
                                     folded_constant.integer_value = first_argument->integer_value operator second_argument->integer_value; \
                                 } break;                                \
                                                                         \
-                                case TAC_CONSTANT_FLOAT32:              \
+                                case TYPE_FLOAT:                        \
                                 {                                       \
-                                    folded_constant.kind = argument_kind; \
-                                    folded_constant.float32_value = first_argument->float32_value operator second_argument->float32_value; \
+                                    const Float_Type_Info* info = &argument_type->float_info; \
+                                                                        \
+                                    if (info->width_in_bits == 0 || info->width_in_bits == 32) \
+                                    {                                   \
+                                        folded_constant.float32_value = first_argument->float32_value operator second_argument->float32_value; \
+                                    }                                   \
+                                    else if (info->width_in_bits == 64) \
+                                    {                                   \
+                                        folded_constant.float64_value = first_argument->float64_value operator second_argument->float64_value; \
+                                    }                                   \
+                                    else                                \
+                                    {                                   \
+                                        UNREACHABLE();                  \
+                                    }                                   \
                                 } break;                                \
                                                                         \
-                                case TAC_CONSTANT_FLOAT64:              \
+                                default:                                \
                                 {                                       \
-                                    folded_constant.kind = argument_kind; \
-                                    folded_constant.float64_value = first_argument->float64_value operator second_argument->float64_value; \
+                                    UNREACHABLE();                      \
                                 } break;                                \
                             }                                           \
                         } break
@@ -998,40 +996,41 @@ perform_constant_folding(Compilation_Context* context)
 #define DECLARE_COMPARISON_CASE(operation, operator)                    \
                         case operation:                                 \
                         {                                               \
-                            folded_constant.kind = TAC_CONSTANT_BOOLEAN; \
+                            folded_constant.type_id = get_boolean_type_id(context); \
                                                                         \
-                            switch (argument_kind)                      \
+                            switch (argument_type->kind)                \
                             {                                           \
-                                case TAC_CONSTANT_UNDEFINED:            \
-                                {                                       \
-                                    UNREACHABLE();                      \
-                                } break;                                \
-                                                                        \
-                                case TAC_CONSTANT_BOOLEAN:              \
+                                case TYPE_BOOLEAN:                      \
                                 {                                       \
                                     folded_constant.boolean_value = first_argument->boolean_value operator second_argument->boolean_value; \
                                 } break;                                \
                                                                         \
-                                case TAC_CONSTANT_INT8:                 \
-                                case TAC_CONSTANT_INT16:                \
-                                case TAC_CONSTANT_INT32:                \
-                                case TAC_CONSTANT_INT64:                \
-                                case TAC_CONSTANT_UINT8:                \
-                                case TAC_CONSTANT_UINT16:               \
-                                case TAC_CONSTANT_UINT32:               \
-                                case TAC_CONSTANT_UINT64:               \
+                                case TYPE_INTEGER:                      \
                                 {                                       \
                                     folded_constant.boolean_value = first_argument->integer_value operator second_argument->integer_value; \
                                 } break;                                \
                                                                         \
-                                case TAC_CONSTANT_FLOAT32:              \
+                                case TYPE_FLOAT:                        \
                                 {                                       \
-                                    folded_constant.boolean_value = first_argument->float32_value operator second_argument->float32_value; \
+                                    const Float_Type_Info* info = &argument_type->float_info; \
+                                                                        \
+                                    if (info->width_in_bits == 0 || info->width_in_bits == 32) \
+                                    {                                   \
+                                        folded_constant.boolean_value = first_argument->float32_value operator second_argument->float32_value; \
+                                    }                                   \
+                                    else if (info->width_in_bits == 64) \
+                                    {                                   \
+                                        folded_constant.boolean_value = first_argument->float64_value operator second_argument->float64_value; \
+                                    }                                   \
+                                    else                                \
+                                    {                                   \
+                                        UNREACHABLE();                  \
+                                    }                                   \
                                 } break;                                \
                                                                         \
-                                case TAC_CONSTANT_FLOAT64:              \
+                                default:                                \
                                 {                                       \
-                                    folded_constant.boolean_value = first_argument->float64_value operator second_argument->float64_value; \
+                                    UNREACHABLE();                      \
                                 } break;                                \
                             }                                           \
                         } break
@@ -1155,7 +1154,10 @@ remove_unreachable_jumps(Compilation_Context* context)
                 }
 
                 const Tac_Constant* constant = get_tac_constant_by_id(tac, condition->constant_id);
-                ASSERT(constant->kind == TAC_CONSTANT_BOOLEAN);
+                {
+                    const Type_Id boolean_type_id = get_boolean_type_id(context);
+                    ASSERT(type_ids_are_equal(context, constant->type_id, boolean_type_id));
+                }
 
                 switch (instruction->operation)
                 {

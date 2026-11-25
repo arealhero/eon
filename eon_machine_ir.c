@@ -25,6 +25,7 @@ instruction_is_a_block_terminator(const MIR_Instruction* instruction)
         case MIR_MULTIPLY:
         case MIR_DIVIDE:
         case MIR_COMPARE:
+        case MIR_CAST:
         case MIR_LOAD32:
         case MIR_STORE32:
         case MIR_LOAD64:
@@ -252,35 +253,35 @@ make_immediate_value_for_constant(Compilation_Context* context,
     operand->kind = MIR_OPERAND_IMMEDIATE_VALUE;
 
     const Tac_Constant* constant = get_tac_constant_by_id(&context->tac, constant_id);
+    const Type* type = get_type_by_id(context, constant->type_id);
 
-    switch (constant->kind)
+    switch (type->kind)
     {
-        case TAC_CONSTANT_UNDEFINED:
-        {
-            UNREACHABLE();
-        } break;
-
-        case TAC_CONSTANT_BOOLEAN:
-        {
-            operand->immediate_value = constant->boolean_value ? 1 : 0;
-        } break;
-
-        case TAC_CONSTANT_INT8:
-        case TAC_CONSTANT_INT16:
-        case TAC_CONSTANT_INT32:
-        case TAC_CONSTANT_INT64:
-        case TAC_CONSTANT_UINT8:
-        case TAC_CONSTANT_UINT16:
-        case TAC_CONSTANT_UINT32:
-        case TAC_CONSTANT_UINT64:
+        case TYPE_INTEGER:
         {
             operand->immediate_value = constant->integer_value;
         } break;
 
-        case TAC_CONSTANT_FLOAT32:
-        case TAC_CONSTANT_FLOAT64:
+        case TYPE_FLOAT:
         {
             FAIL("[MIR] Floating-point immediate values are not supported yet.");
+        } break;
+
+        case TYPE_BOOLEAN:
+        {
+            operand->immediate_value = constant->boolean_value ? 1 : 0;
+        } break;
+
+        case TYPE_UNDEFINED:
+        case TYPE_INVALID:
+        case TYPE_VOID:
+        case TYPE_VARIABLE:
+        case TYPE_NUMBER_VARIABLE:
+        case TYPE_POINTER:
+        case TYPE_FUNCTION:
+        case TYPE_KIND_COUNT:
+        {
+            UNREACHABLE();
         } break;
     }
 }
@@ -495,6 +496,72 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                 FAIL("[MIR] STORE_BY_ADDRESS is not supported yet");
             } break;
 
+            case TAC_CAST:
+            {
+                ASSERT(ssa_destination->kind == TAC_OPERAND_VARIABLE);
+                ASSERT(ssa_first_argument->kind != TAC_OPERAND_NONE);
+                ASSERT(ssa_second_argument->kind == TAC_OPERAND_NONE);
+
+                MIR_Instruction* instruction = add_new_instruction_to_mir_block(context, this_block);
+                instruction->opcode = MIR_CAST;
+                instruction->cast_kind = ssa_instruction->cast_kind;
+
+                {
+                    MIR_Operand* destination = add_new_def_operand(instruction);
+                    destination->kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                    destination->virtual_register_index = get_virtual_register_index_for_ssa_variable(context,
+                                                                                                      ssa_destination->variable_id);
+
+                    const Tac_Variable* variable = get_tac_variable_by_id(&context->tac, ssa_destination->variable_id);
+                    const Type* type = get_type_by_id(context, variable->type_id);
+
+                    ASSERT(type->kind == TYPE_INTEGER);
+                    instruction->to_width_in_bits = type->integer_info.width_in_bits;
+                }
+
+                MIR_Operand* argument = add_new_use_operand(instruction);
+                switch (ssa_first_argument->kind)
+                {
+                    case TAC_OPERAND_VARIABLE:
+                    {
+                        argument->kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                        argument->virtual_register_index
+                            = get_virtual_register_index_for_ssa_variable(context, ssa_first_argument->variable_id);
+
+                        const Tac_Variable* variable = get_tac_variable_by_id(&context->tac, ssa_first_argument->variable_id);
+                        const Type* type = get_type_by_id(context, variable->type_id);
+
+                        ASSERT(type->kind == TYPE_INTEGER);
+                        instruction->from_width_in_bits = type->integer_info.width_in_bits;
+                    } break;
+
+                    case TAC_OPERAND_CONSTANT:
+                    {
+                        make_immediate_value_for_constant(context, argument, ssa_first_argument->constant_id);
+
+                        const Tac_Constant* constant = get_tac_constant_by_id(&context->tac, ssa_first_argument->constant_id);
+                        const Type* type = get_type_by_id(context, constant->type_id);
+
+                        ASSERT(type->kind == TYPE_INTEGER);
+                        instruction->from_width_in_bits = type->integer_info.width_in_bits;
+                    } break;
+
+                    case TAC_OPERAND_NONE:
+                    case TAC_OPERAND_FUNCTION_LABEL:
+                    case TAC_OPERAND_FOREIGN_FUNCTION:
+                    case TAC_OPERAND_LABEL:
+                    case TAC_OPERAND_PARAMETER_INDEX:
+                    case TAC_OPERAND_NUMBER_OF_ARGUMENTS:
+                    {
+                        FAIL("[MIR] Unexpected cast operand kind encountered.");
+                    } break;
+                }
+
+                ASSERT(instruction->cast_kind != CAST_TRIVIAL);
+                ASSERT(instruction->from_width_in_bits != 0);
+                ASSERT(instruction->to_width_in_bits != 0);
+            } break;
+
             case TAC_ADD:
             case TAC_SUBTRACT:
             case TAC_MULTIPLY:
@@ -544,7 +611,6 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                 def->kind = MIR_OPERAND_VIRTUAL_REGISTER;
                 def->virtual_register_index = get_virtual_register_index_for_ssa_variable(context,
                                                                                           ssa_destination->variable_id);
-
                 {
                     MIR_Operand* first_use = add_new_use_operand(instruction);
                     switch (ssa_first_argument->kind)
@@ -1012,561 +1078,560 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
 {
     const Calling_Convention_Info calling_convention_info = get_calling_convention_info(function->calling_convention);
 
-    switch (context->target_architecture)
+    if (context->target_architecture != TARGET_ARCH_X86_64)
     {
-        case TARGET_ARCH_X86_64:
+        FAIL("[MIR] This architecture is not supported yet.");
+    }
+
+    switch (instruction->opcode)
+    {
+        case MIR_UNDEFINED:
         {
-            switch (instruction->opcode)
+            UNREACHABLE();
+        } break;
+
+        case MIR_NOP:
+        {
+            // NOTE(vlad): 'nop' instruction has no constraints.
+        } break;
+
+        case MIR_PUSH_REGISTER_ON_STACK:
+        case MIR_POP_REGISTER_FROM_STACK:
+        {
+            // NOTE(vlad): These instructions must be unreachable here because we decide what registers
+            //             should be pushed/popped only after register allocation.
+            FAIL("[MIR] Push/pop register instruction encountered before register allocation."
+                    " This is probably a bug in the compiler.");
+        } break;
+
+        case MIR_SHRINK_STACK:
+        case MIR_GROW_STACK:
+        {
+            // NOTE(vlad): These instructions clobber EFLAGS, but since we rematerialize them before
+            //             conditional jumps we don't actually need to track them.
+            //
+            //             But note that this will not be true if we would implement the peephole optimization
+            //             pass, so be careful.
+        } break;
+
+        case MIR_ADD:
+        case MIR_SUBTRACT:
+        {
+            ASSERT(instruction->definitions_count == 1);
+            ASSERT(instruction->uses_count == 2);
+
+            MIR_Operand* destination = &instruction->definitions[0];
+            ASSERT(destination->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+
+            MIR_Operand* first_argument = &instruction->uses[0];
+            MIR_Operand* second_argument = &instruction->uses[1];
+
+            if (first_argument->kind == MIR_OPERAND_IMMEDIATE_VALUE
+                && second_argument->kind == MIR_OPERAND_IMMEDIATE_VALUE)
             {
-                case MIR_UNDEFINED:
+                FAIL("[MIR] Found instruction with both arguments being immediage values. "
+                        "Seems like we have a bug in the constant folding pass.");
+            }
+
+            switch (first_argument->kind)
+            {
+                case MIR_OPERAND_NONE:
+                case MIR_OPERAND_PHYSICAL_REGISTER:
+                case MIR_OPERAND_BLOCK:
+                case MIR_OPERAND_STACK_SLOT:
                 {
                     UNREACHABLE();
                 } break;
 
-                case MIR_NOP:
+                case MIR_OPERAND_VIRTUAL_REGISTER:
                 {
-                    // NOTE(vlad): 'nop' instruction has no constraints.
-                } break;
-
-                case MIR_PUSH_REGISTER_ON_STACK:
-                case MIR_POP_REGISTER_FROM_STACK:
-                {
-                    // NOTE(vlad): These instructions must be unreachable here because we decide what registers
-                    //             should be pushed/popped only after register allocation.
-                    FAIL("[MIR] Push/pop register instruction encountered before register allocation."
-                         " This is probably a bug in the compiler.");
-                } break;
-
-                case MIR_SHRINK_STACK:
-                case MIR_GROW_STACK:
-                {
-                    // NOTE(vlad): These instructions clobber EFLAGS, but since we rematerialize them before
-                    //             conditional jumps we don't actually need to track them.
+                    // NOTE(vlad): Converting
                     //
-                    //             But note that this will not be true if we would implement the peephole optimization
-                    //             pass, so be careful.
-                } break;
-
-                case MIR_ADD:
-                case MIR_SUBTRACT:
-                {
-                    ASSERT(instruction->definitions_count == 1);
-                    ASSERT(instruction->uses_count == 2);
-
-                    MIR_Operand* destination = &instruction->definitions[0];
-                    ASSERT(destination->kind == MIR_OPERAND_VIRTUAL_REGISTER);
-
-                    MIR_Operand* first_argument = &instruction->uses[0];
-                    MIR_Operand* second_argument = &instruction->uses[1];
-
-                    if (first_argument->kind == MIR_OPERAND_IMMEDIATE_VALUE
-                        && second_argument->kind == MIR_OPERAND_IMMEDIATE_VALUE)
-                    {
-                        FAIL("[MIR] Found instruction with both arguments being immediage values. "
-                             "Seems like we have a bug in the constant folding pass.");
-                    }
-
-                    switch (first_argument->kind)
-                    {
-                        case MIR_OPERAND_NONE:
-                        case MIR_OPERAND_PHYSICAL_REGISTER:
-                        case MIR_OPERAND_BLOCK:
-                        case MIR_OPERAND_STACK_SLOT:
-                        {
-                            UNREACHABLE();
-                        } break;
-
-                        case MIR_OPERAND_VIRTUAL_REGISTER:
-                        {
-                            // NOTE(vlad): Converting
-                            //
-                            //                 VREG1 = VREG2 + ARG
-                            //
-                            //             into
-                            //
-                            //                 VREG1 = VREG2
-                            //                 VREG1 += ARG
-                            //
-                            //             due to the two-address nature of the add/sub instructions on x86.
-
-                            {
-                                MIR_Instruction* move_instruction = prepend_instruction(context, block, instruction);
-                                move_instruction->opcode = MIR_MOVE;
-
-                                MIR_Operand* move_destination_operand = add_new_def_operand(move_instruction);
-                                *move_destination_operand = *destination;
-
-                                MIR_Operand* move_source_operand = add_new_use_operand(move_instruction);
-                                *move_source_operand = *first_argument;
-
-                                add_isa_constraints_to_mir_instruction(context, function, block, move_instruction);
-                            }
-
-                            {
-                                *first_argument = *destination;
-                            }
-                        } break;
-
-                        case MIR_OPERAND_IMMEDIATE_VALUE:
-                        {
-                            FAIL("[MIR] Should we swap first and second arguments here?");
-                        } break;
-                    }
-
-                    if (second_argument->kind == MIR_OPERAND_IMMEDIATE_VALUE
-                        && !x86_fits_imm32(second_argument->immediate_value))
-                    {
-                        // NOTE(vlad): 'add/sub r64, imm' supports at most a sign-extended imm32,
-                        //             so we need to materialize imm64 into a fresh virtual register.
-
-                        MIR_Instruction* move_instruction = prepend_instruction(context, block, instruction);
-                        move_instruction->opcode = MIR_MOVE;
-
-                        const Index temp_register_index = create_virtual_register(function);
-
-                        MIR_Operand* temp_operand = add_new_def_operand(move_instruction);
-                        temp_operand->kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                        temp_operand->virtual_register_index = temp_register_index;
-
-                        MIR_Operand* immediate_value_operand = add_new_use_operand(move_instruction);
-                        *immediate_value_operand = *second_argument;
-
-                        add_isa_constraints_to_mir_instruction(context, function, block, move_instruction);
-
-                        *second_argument = *temp_operand;
-                    }
-                } break;
-
-                case MIR_MULTIPLY:
-                {
-                    ASSERT(instruction->definitions_count == 1);
-                    ASSERT(instruction->uses_count == 2);
-
-                    {
-                        MIR_Operand* second_argument = &instruction->uses[1];
-                        if (second_argument->kind == MIR_OPERAND_IMMEDIATE_VALUE)
-                        {
-                            // NOTE(vlad): 'imul' operation does not support immediate values so we need to add explicit
-                            //             MOVE instruction here.
-
-                            MIR_Instruction* second_move_instruction = prepend_instruction(context, block, instruction);
-                            second_move_instruction->opcode = MIR_MOVE;
-
-                            const Index temp_register_index = create_virtual_register(function);
-
-                            MIR_Operand* temp_operand = add_new_def_operand(second_move_instruction);
-                            temp_operand->kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                            temp_operand->virtual_register_index = temp_register_index;
-
-                            MIR_Operand* immediate_value_operand = add_new_use_operand(second_move_instruction);
-                            *immediate_value_operand = *second_argument;
-
-                            add_isa_constraints_to_mir_instruction(context, function, block, second_move_instruction);
-
-                            *second_argument = *temp_operand;
-                        }
-                    }
-
-                    // NOTE(vlad): Note that 'imul' operation is semantically equivalent to '*=' operator in C
-                    //             so we need to add a tie constraint. Register allocator will use this information
-                    //             to color destination and first_argument to the same color (coalesce them).
-                    //             If it can't, it will emit a MOVE.
-                    {
-                        MIR_Operand* destination = &instruction->definitions[0];
-                        MIR_Operand* first_argument = &instruction->uses[0];
-
-                        ASSERT(destination->kind == MIR_OPERAND_VIRTUAL_REGISTER);
-                        ASSERT(first_argument->kind == MIR_OPERAND_VIRTUAL_REGISTER);
-
-                        add_coalescing_hint_to_instruction(context,
-                                                           instruction,
-                                                           destination->virtual_register_index,
-                                                           first_argument->virtual_register_index);
-                    }
-                } break;
-
-                case MIR_DIVIDE:
-                {
-                    // NOTE(vlad): 'imul' instruction expects the dividend, quotient and remainder to be
-                    //             in specific registers, so we create temporary virtual registers and force them
-                    //             to be in these specific registers.
-
-                    // TODO(vlad): Support numbers with bit widths other than 64.
-
-                    ASSERT(instruction->definitions_count == 1);
-                    ASSERT(instruction->uses_count == 2);
-
-                    MIR_Operand quotient = instruction->definitions[0];
-                    MIR_Operand dividend = instruction->uses[0];
-                    MIR_Operand divisor = instruction->uses[1];
-
-                    MIR_Operand rax_operand = {0};
-                    MIR_Operand rdx_operand = {0};
-
-                    {
-                        const Index rax_register_index = create_virtual_register(function);
-
-                        Virtual_Register* rax_register = &function->virtual_registers[rax_register_index];
-                        rax_register->kind = REGISTER_GPR64;
-                        rax_register->fixed_physical_register = X86_64_RAX;
-
-                        rax_operand.kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                        rax_operand.virtual_register_index = rax_register_index;
-                    }
-
-                    {
-                        const Index rdx_register_index = create_virtual_register(function);
-
-                        Virtual_Register* rdx_register = &function->virtual_registers[rdx_register_index];
-                        rdx_register->kind = REGISTER_GPR64;
-                        rdx_register->fixed_physical_register = X86_64_RDX;
-
-                        rdx_operand.kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                        rdx_operand.virtual_register_index = rdx_register_index;
-                    }
-
-                    {
-                        MIR_Instruction* move_instruction = prepend_instruction(context, block, instruction);
-                        move_instruction->opcode = MIR_MOVE;
-
-                        MIR_Operand* move_destination = add_new_def_operand(move_instruction);
-                        *move_destination = rax_operand;
-
-                        MIR_Operand* move_argument = add_new_use_operand(move_instruction);
-                        *move_argument = dividend;
-
-                        add_isa_constraints_to_mir_instruction(context, function, block, move_instruction);
-                    }
-
-                    // NOTE(vlad): We will need to emit 'cqo' instruction before 'imul' to extend the sign of RAX to RDX.
-
-                    instruction->definitions_count = 0;
-                    instruction->uses_count = 0;
-
-                    {
-                        MIR_Operand* new_divisor = add_new_use_operand(instruction);
-                        *new_divisor = divisor;
-                    }
-
-                    {
-                        MIR_Operand* rax_use = add_new_implicit_use_operand(instruction);
-                        *rax_use = rax_operand;
-
-                        MIR_Operand* rdx_use = add_new_implicit_use_operand(instruction);
-                        *rdx_use = rdx_operand;
-                    }
-
-                    {
-                        MIR_Operand* rax_def = add_new_implicit_def_operand(instruction);
-                        *rax_def = rax_operand;
-
-                        MIR_Operand* rdx_def = add_new_implicit_def_operand(instruction);
-                        *rdx_def = rdx_operand;
-                    }
-
-                    // NOTE(vlad): Moving quotient to the destination.
-                    {
-                        MIR_Instruction* move_instruction = append_instruction(context, block, instruction);
-                        move_instruction->opcode = MIR_MOVE;
-
-                        MIR_Operand* move_destination = add_new_def_operand(move_instruction);
-                        *move_destination = quotient;
-
-                        MIR_Operand* move_argument = add_new_use_operand(move_instruction);
-                        *move_argument = rax_operand;
-
-                        add_isa_constraints_to_mir_instruction(context, function, block, move_instruction);
-                    }
-                } break;
-
-                case MIR_COMPARE:
-                {
-                    // NOTE(vlad): These instructions clobber EFLAGS, but since we rematerialize them we don't
-                    //             need to track them.
-                } break;
-
-                case MIR_LOAD32:
-                {
-                    FAIL("[MIR] LOAD32 instruction is not supported yet.");
-                } break;
-
-                case MIR_STORE32:
-                {
-                    FAIL("[MIR] STORE32 instruction is not supported yet.");
-                } break;
-
-                case MIR_LOAD64:
-                {
-                    FAIL("[MIR] LOAD64 instruction is not supported yet.");
-                } break;
-
-                case MIR_STORE64:
-                {
-                    FAIL("[MIR] STORE64 instruction is not supported yet.");
-                } break;
-
-                case MIR_GET_ADDRESS:
-                {
-                    FAIL("[MIR] GET_ADDRESS instruction is not supported yet.");
-                } break;
-
-                case MIR_GET_PARAMETER:
-                {
-                    // TODO(vlad): Remove code duplication (see MIR_CALL).
-
-                    ASSERT(instruction->uses_count == 1);
-
-                    MIR_Operand* parameter_index_operand = &instruction->uses[0];
-                    ASSERT(parameter_index_operand->kind == MIR_OPERAND_IMMEDIATE_VALUE);
-
-                    const u64 parameter_index = parameter_index_operand->immediate_value;
-                    if (parameter_index > (USize)calling_convention_info.argument_registers_count)
-                    {
-                        FAIL("[MIR] Stack arguments are not supported yet");
-                    }
-
-                    MIR_Operand abi_parameter = {0};
-                    {
-                        const Index parameter_register_index = create_virtual_register(function);
-
-                        Virtual_Register* parameter_register = &function->virtual_registers[parameter_register_index];
-                        parameter_register->kind = REGISTER_GPR64;
-                        parameter_register->fixed_physical_register = calling_convention_info.argument_registers[parameter_index];
-
-                        abi_parameter.kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                        abi_parameter.virtual_register_index = parameter_register_index;
-                    }
-
-                    instruction->opcode = MIR_MOVE;
-                    instruction->uses[0] = abi_parameter;
-
-                    add_isa_constraints_to_mir_instruction(context, function, block, instruction);
-                } break;
-
-                case MIR_MOVE:
-                {
-                    // NOTE(vlad): 'mov' instruction has no constraints.
-
-                    // NOTE(vlad): Adding coalescing hint so we could eliminate this move if possible.
-                    {
-                        ASSERT(instruction->definitions_count == 1);
-                        ASSERT(instruction->uses_count == 1);
-
-                        // NOTE(vlad): Sanity check.
-                        ASSERT(instruction->implicit_definitions_count == 0);
-                        ASSERT(instruction->implicit_uses_count == 0);
-
-                        MIR_Operand* destination = &instruction->definitions[0];
-                        MIR_Operand* first_argument = &instruction->uses[0];
-
-                        ASSERT(destination->kind == MIR_OPERAND_VIRTUAL_REGISTER);
-
-                        if (first_argument->kind == MIR_OPERAND_VIRTUAL_REGISTER)
-                        {
-                            add_coalescing_hint_to_instruction(context,
-                                                               instruction,
-                                                               destination->virtual_register_index,
-                                                               first_argument->virtual_register_index);
-                        }
-                    }
-                } break;
-
-                case MIR_JUMP:
-                {
-                    // NOTE(vlad): 'jmp' instruction has no constraints.
-                } break;
-
-                case MIR_JUMP_IF_FALSE:
-                {
-                    // NOTE(vlad): We don't keep track of the EFLAGS, thus conditional jumps have no ISA-specific
-                    //             constraints here. The condition will be rematerialized during the binary emission.
-                } break;
-
-                case MIR_PHI:
-                {
-                    // NOTE(vlad): PHI instruction is not implemented in CPUs, thus it has no ISA-specific constraints.
-
-                    // NOTE(vlad): Adding coalescing hints so we can later remove redundant moves.
-                    {
-                        const MIR_Operand* definition = &instruction->phi_definition;
-                        ASSERT(definition->kind == MIR_OPERAND_VIRTUAL_REGISTER);
-
-                        // NOTE(vlad): Sanity check.
-                        ASSERT(instruction->definitions_count == 0);
-                        ASSERT(instruction->uses_count == 0);
-
-                        ASSERT(instruction->implicit_definitions_count == 0);
-                        ASSERT(instruction->implicit_uses_count == 0);
-
-                        for (Index phi_argument_index = 0;
-                             phi_argument_index < instruction->phi_arguments_count;
-                             ++phi_argument_index)
-                        {
-                            const MIR_PHI_Argument* argument = &instruction->phi_arguments[phi_argument_index];
-                            add_coalescing_hint_to_instruction(context,
-                                                               instruction,
-                                                               definition->virtual_register_index,
-                                                               argument->virtual_register_index);
-                        }
-                    }
-                } break;
-
-                case MIR_CALL:
-                {
-                    if (instruction->function_arguments_count > calling_convention_info.argument_registers_count)
-                    {
-                        FAIL("[MIR] Stack arguments are not supported yet");
-                    }
-
-                    for (Index argument_index = 0;
-                         argument_index < instruction->function_arguments_count;
-                         ++argument_index)
-                    {
-                        const MIR_Operand* argument = &instruction->function_arguments[argument_index];
-
-                        MIR_Operand abi_argument = {0};
-                        {
-                            const Index argument_register_index = create_virtual_register(function);
-
-                            Virtual_Register* argument_register = &function->virtual_registers[argument_register_index];
-                            argument_register->kind = REGISTER_GPR64;
-                            argument_register->fixed_physical_register = calling_convention_info.argument_registers[argument_index];
-
-                            abi_argument.kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                            abi_argument.virtual_register_index = argument_register_index;
-                        }
-
-                        MIR_Instruction* move_instruction = prepend_instruction(context, block, instruction);
-                        move_instruction->opcode = MIR_MOVE;
-
-                        MIR_Operand* move_destination = add_new_def_operand(move_instruction);
-                        *move_destination = abi_argument;
-
-                        MIR_Operand* move_argument = add_new_use_operand(move_instruction);
-                        *move_argument = *argument;
-
-                        {
-                            MIR_Operand* argument_use = add_new_implicit_use_operand(instruction);
-                            *argument_use = abi_argument;
-                        }
-
-                        add_isa_constraints_to_mir_instruction(context, function, block, move_instruction);
-                    }
-
-                    instruction->function_arguments_count = 0;
-
-                    // TODO(vlad): Handle stack arguments. We need to emit 'STORE SLOT, operand' here.
-                    //             We will need a new MIR_OPERAND_STACK_SLOT kind of operand here.
-
-                    MIR_Operand* return_value_operand = NULL;
-
-                    // NOTE(vlad): Treat caller-saved registers as clobbered.
-                    for (Index register_index = 0;
-                         register_index < calling_convention_info.caller_saved_registers_count;
-                         ++register_index)
-                    {
-                        MIR_Operand* operand = add_new_implicit_def_operand(instruction);
-
-                        const Index virtual_register_index = create_virtual_register(function);
-                        const Index physical_register = calling_convention_info.caller_saved_registers[register_index];
-
-                        Virtual_Register* virtual_register = &function->virtual_registers[virtual_register_index];
-                        virtual_register->kind = REGISTER_GPR64;
-                        virtual_register->fixed_physical_register = physical_register;
-
-                        operand->kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                        operand->virtual_register_index = virtual_register_index;
-
-                        if (physical_register == calling_convention_info.return_value_register)
-                        {
-                            return_value_operand = operand;
-                        }
-                    }
-
-                    if (instruction->has_return_value)
-                    {
-                        // NOTE(vlad): Retrieving returned value.
-                        MIR_Instruction* return_value_retrieving_instruction = append_instruction(context,
-                                                                                                  block,
-                                                                                                  instruction);
-                        return_value_retrieving_instruction->opcode = MIR_MOVE;
-
-                        const MIR_Operand* return_operand = &instruction->return_operand;
-
-                        MIR_Operand* move_destination = add_new_def_operand(return_value_retrieving_instruction);
-                        *move_destination = *return_operand;
-
-                        MIR_Operand* move_argument = add_new_use_operand(return_value_retrieving_instruction);
-                        *move_argument = *return_value_operand;
-
-                        add_isa_constraints_to_mir_instruction(context,
-                                                               function,
-                                                               block,
-                                                               return_value_retrieving_instruction);
-
-                        instruction->return_value_retrieving_instruction = return_value_retrieving_instruction;
-                    }
-                } break;
-
-                case MIR_RETURN:
-                {
-                    ASSERT(instruction->definitions_count == 0);
-
-                    // TODO(vlad): Restore callee-saved registers here. Although we need to do that after register
-                    //             allocation because we need to know what registers to save/restore in this function.
-
-                    // STUDY(vlad): Does that mean that we need to prioritize caller-saved registers during allocation?
-                    //              I mean, they were already pushed/popped so there is no need to push/pop some
-                    //              other registers, right?
+                    //                 VREG1 = VREG2 + ARG
                     //
-                    //              UPD: no, we need to prioritize callee-saved registers to reduce the total number of
-                    //              push/pop instructions.
+                    //             into
+                    //
+                    //                 VREG1 = VREG2
+                    //                 VREG1 += ARG
+                    //
+                    //             due to the two-address nature of the add/sub instructions on x86.
 
-                    if (instruction->uses_count != 0)
                     {
-                        ASSERT(instruction->uses_count == 1);
+                        MIR_Instruction* move_instruction = prepend_instruction(context, block, instruction);
+                        move_instruction->opcode = MIR_MOVE;
 
-                        MIR_Operand* return_value = &instruction->uses[0];
+                        MIR_Operand* move_destination_operand = add_new_def_operand(move_instruction);
+                        *move_destination_operand = *destination;
 
-                        MIR_Operand return_register_operand = {0};
-                        {
-                            const Index return_register_index = create_virtual_register(function);
+                        MIR_Operand* move_source_operand = add_new_use_operand(move_instruction);
+                        *move_source_operand = *first_argument;
 
-                            Virtual_Register* return_register = &function->virtual_registers[return_register_index];
-                            return_register->kind = REGISTER_GPR64;
-                            return_register->fixed_physical_register = calling_convention_info.return_value_register;
+                        add_isa_constraints_to_mir_instruction(context, function, block, move_instruction);
+                    }
 
-                            return_register_operand.kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                            return_register_operand.virtual_register_index = return_register_index;
-                        }
-
-                        {
-                            MIR_Instruction* move_instruction = prepend_instruction(context, block, instruction);
-                            move_instruction->opcode = MIR_MOVE;
-
-                            MIR_Operand* move_destination = add_new_def_operand(move_instruction);
-                            *move_destination = return_register_operand;
-
-                            MIR_Operand* move_argument = add_new_use_operand(move_instruction);
-                            *move_argument = *return_value;
-
-                            add_isa_constraints_to_mir_instruction(context, function, block, move_instruction);
-                        }
-
-                        instruction->uses_count = 0;
-
-                        {
-                            MIR_Operand* return_register_use = add_new_implicit_use_operand(instruction);
-                            *return_register_use = return_register_operand;
-                        }
+                    {
+                        *first_argument = *destination;
                     }
                 } break;
+
+                case MIR_OPERAND_IMMEDIATE_VALUE:
+                {
+                    FAIL("[MIR] Should we swap first and second arguments here?");
+                } break;
+            }
+
+            if (second_argument->kind == MIR_OPERAND_IMMEDIATE_VALUE
+                && !x86_fits_imm32(second_argument->immediate_value))
+            {
+                // NOTE(vlad): 'add/sub r64, imm' supports at most a sign-extended imm32,
+                //             so we need to materialize imm64 into a fresh virtual register.
+
+                MIR_Instruction* move_instruction = prepend_instruction(context, block, instruction);
+                move_instruction->opcode = MIR_MOVE;
+
+                const Index temp_register_index = create_virtual_register(function);
+
+                MIR_Operand* temp_operand = add_new_def_operand(move_instruction);
+                temp_operand->kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                temp_operand->virtual_register_index = temp_register_index;
+
+                MIR_Operand* immediate_value_operand = add_new_use_operand(move_instruction);
+                *immediate_value_operand = *second_argument;
+
+                add_isa_constraints_to_mir_instruction(context, function, block, move_instruction);
+
+                *second_argument = *temp_operand;
             }
         } break;
 
-        case TARGET_ARCH_AARCH64:
+        case MIR_MULTIPLY:
         {
-            FAIL("[MIR] This architecture is not supported yet.");
+            ASSERT(instruction->definitions_count == 1);
+            ASSERT(instruction->uses_count == 2);
+
+            {
+                MIR_Operand* second_argument = &instruction->uses[1];
+                if (second_argument->kind == MIR_OPERAND_IMMEDIATE_VALUE)
+                {
+                    // NOTE(vlad): 'imul' operation does not support immediate values so we need to add explicit
+                    //             MOVE instruction here.
+
+                    MIR_Instruction* second_move_instruction = prepend_instruction(context, block, instruction);
+                    second_move_instruction->opcode = MIR_MOVE;
+
+                    const Index temp_register_index = create_virtual_register(function);
+
+                    MIR_Operand* temp_operand = add_new_def_operand(second_move_instruction);
+                    temp_operand->kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                    temp_operand->virtual_register_index = temp_register_index;
+
+                    MIR_Operand* immediate_value_operand = add_new_use_operand(second_move_instruction);
+                    *immediate_value_operand = *second_argument;
+
+                    add_isa_constraints_to_mir_instruction(context, function, block, second_move_instruction);
+
+                    *second_argument = *temp_operand;
+                }
+            }
+
+            // NOTE(vlad): Note that 'imul' operation is semantically equivalent to '*=' operator in C
+            //             so we need to add a tie constraint. Register allocator will use this information
+            //             to color destination and first_argument to the same color (coalesce them).
+            //             If it can't, it will emit a MOVE.
+            {
+                MIR_Operand* destination = &instruction->definitions[0];
+                MIR_Operand* first_argument = &instruction->uses[0];
+
+                ASSERT(destination->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+                ASSERT(first_argument->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+
+                add_coalescing_hint_to_instruction(context,
+                                                    instruction,
+                                                    destination->virtual_register_index,
+                                                    first_argument->virtual_register_index);
+            }
+        } break;
+
+        case MIR_DIVIDE:
+        {
+            // NOTE(vlad): 'imul' instruction expects the dividend, quotient and remainder to be
+            //             in specific registers, so we create temporary virtual registers and force them
+            //             to be in these specific registers.
+
+            // TODO(vlad): Support numbers with bit widths other than 64.
+
+            ASSERT(instruction->definitions_count == 1);
+            ASSERT(instruction->uses_count == 2);
+
+            MIR_Operand quotient = instruction->definitions[0];
+            MIR_Operand dividend = instruction->uses[0];
+            MIR_Operand divisor = instruction->uses[1];
+
+            MIR_Operand rax_operand = {0};
+            MIR_Operand rdx_operand = {0};
+
+            {
+                const Index rax_register_index = create_virtual_register(function);
+
+                Virtual_Register* rax_register = &function->virtual_registers[rax_register_index];
+                rax_register->kind = REGISTER_GPR64;
+                rax_register->fixed_physical_register = X86_64_RAX;
+
+                rax_operand.kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                rax_operand.virtual_register_index = rax_register_index;
+            }
+
+            {
+                const Index rdx_register_index = create_virtual_register(function);
+
+                Virtual_Register* rdx_register = &function->virtual_registers[rdx_register_index];
+                rdx_register->kind = REGISTER_GPR64;
+                rdx_register->fixed_physical_register = X86_64_RDX;
+
+                rdx_operand.kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                rdx_operand.virtual_register_index = rdx_register_index;
+            }
+
+            {
+                MIR_Instruction* move_instruction = prepend_instruction(context, block, instruction);
+                move_instruction->opcode = MIR_MOVE;
+
+                MIR_Operand* move_destination = add_new_def_operand(move_instruction);
+                *move_destination = rax_operand;
+
+                MIR_Operand* move_argument = add_new_use_operand(move_instruction);
+                *move_argument = dividend;
+
+                add_isa_constraints_to_mir_instruction(context, function, block, move_instruction);
+            }
+
+            // NOTE(vlad): We will need to emit 'cqo' instruction before 'imul' to extend the sign of RAX to RDX.
+
+            instruction->definitions_count = 0;
+            instruction->uses_count = 0;
+
+            {
+                MIR_Operand* new_divisor = add_new_use_operand(instruction);
+                *new_divisor = divisor;
+            }
+
+            {
+                MIR_Operand* rax_use = add_new_implicit_use_operand(instruction);
+                *rax_use = rax_operand;
+
+                MIR_Operand* rdx_use = add_new_implicit_use_operand(instruction);
+                *rdx_use = rdx_operand;
+            }
+
+            {
+                MIR_Operand* rax_def = add_new_implicit_def_operand(instruction);
+                *rax_def = rax_operand;
+
+                MIR_Operand* rdx_def = add_new_implicit_def_operand(instruction);
+                *rdx_def = rdx_operand;
+            }
+
+            // NOTE(vlad): Moving quotient to the destination.
+            {
+                MIR_Instruction* move_instruction = append_instruction(context, block, instruction);
+                move_instruction->opcode = MIR_MOVE;
+
+                MIR_Operand* move_destination = add_new_def_operand(move_instruction);
+                *move_destination = quotient;
+
+                MIR_Operand* move_argument = add_new_use_operand(move_instruction);
+                *move_argument = rax_operand;
+
+                add_isa_constraints_to_mir_instruction(context, function, block, move_instruction);
+            }
+        } break;
+
+        case MIR_COMPARE:
+        {
+            // NOTE(vlad): These instructions clobber EFLAGS, but since we rematerialize them we don't
+            //             need to track them.
+        } break;
+
+        case MIR_CAST:
+        {
+            // TODO(vlad): Is there some ISA constraints here?
+        } break;
+
+        case MIR_LOAD32:
+        {
+            FAIL("[MIR] LOAD32 instruction is not supported yet.");
+        } break;
+
+        case MIR_STORE32:
+        {
+            FAIL("[MIR] STORE32 instruction is not supported yet.");
+        } break;
+
+        case MIR_LOAD64:
+        {
+            FAIL("[MIR] LOAD64 instruction is not supported yet.");
+        } break;
+
+        case MIR_STORE64:
+        {
+            FAIL("[MIR] STORE64 instruction is not supported yet.");
+        } break;
+
+        case MIR_GET_ADDRESS:
+        {
+            FAIL("[MIR] GET_ADDRESS instruction is not supported yet.");
+        } break;
+
+        case MIR_GET_PARAMETER:
+        {
+            // TODO(vlad): Remove code duplication (see MIR_CALL).
+
+            ASSERT(instruction->uses_count == 1);
+
+            MIR_Operand* parameter_index_operand = &instruction->uses[0];
+            ASSERT(parameter_index_operand->kind == MIR_OPERAND_IMMEDIATE_VALUE);
+
+            const u64 parameter_index = parameter_index_operand->immediate_value;
+            if (parameter_index > (USize)calling_convention_info.argument_registers_count)
+            {
+                FAIL("[MIR] Stack arguments are not supported yet");
+            }
+
+            MIR_Operand abi_parameter = {0};
+            {
+                const Index parameter_register_index = create_virtual_register(function);
+
+                Virtual_Register* parameter_register = &function->virtual_registers[parameter_register_index];
+                parameter_register->kind = REGISTER_GPR64;
+                parameter_register->fixed_physical_register = calling_convention_info.argument_registers[parameter_index];
+
+                abi_parameter.kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                abi_parameter.virtual_register_index = parameter_register_index;
+            }
+
+            instruction->opcode = MIR_MOVE;
+            instruction->uses[0] = abi_parameter;
+
+            add_isa_constraints_to_mir_instruction(context, function, block, instruction);
+        } break;
+
+        case MIR_MOVE:
+        {
+            // NOTE(vlad): 'mov' instruction has no constraints.
+
+            // NOTE(vlad): Adding coalescing hint so we could eliminate this move if possible.
+            {
+                ASSERT(instruction->definitions_count == 1);
+                ASSERT(instruction->uses_count == 1);
+
+                // NOTE(vlad): Sanity check.
+                ASSERT(instruction->implicit_definitions_count == 0);
+                ASSERT(instruction->implicit_uses_count == 0);
+
+                MIR_Operand* destination = &instruction->definitions[0];
+                MIR_Operand* first_argument = &instruction->uses[0];
+
+                ASSERT(destination->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+
+                if (first_argument->kind == MIR_OPERAND_VIRTUAL_REGISTER)
+                {
+                    add_coalescing_hint_to_instruction(context,
+                                                        instruction,
+                                                        destination->virtual_register_index,
+                                                        first_argument->virtual_register_index);
+                }
+            }
+        } break;
+
+        case MIR_JUMP:
+        {
+            // NOTE(vlad): 'jmp' instruction has no constraints.
+        } break;
+
+        case MIR_JUMP_IF_FALSE:
+        {
+            // NOTE(vlad): We don't keep track of the EFLAGS, thus conditional jumps have no ISA-specific
+            //             constraints here. The condition will be rematerialized during the binary emission.
+        } break;
+
+        case MIR_PHI:
+        {
+            // NOTE(vlad): PHI instruction is not implemented in CPUs, thus it has no ISA-specific constraints.
+
+            // NOTE(vlad): Adding coalescing hints so we can later remove redundant moves.
+            {
+                const MIR_Operand* definition = &instruction->phi_definition;
+                ASSERT(definition->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+
+                // NOTE(vlad): Sanity check.
+                ASSERT(instruction->definitions_count == 0);
+                ASSERT(instruction->uses_count == 0);
+
+                ASSERT(instruction->implicit_definitions_count == 0);
+                ASSERT(instruction->implicit_uses_count == 0);
+
+                for (Index phi_argument_index = 0;
+                        phi_argument_index < instruction->phi_arguments_count;
+                        ++phi_argument_index)
+                {
+                    const MIR_PHI_Argument* argument = &instruction->phi_arguments[phi_argument_index];
+                    add_coalescing_hint_to_instruction(context,
+                                                        instruction,
+                                                        definition->virtual_register_index,
+                                                        argument->virtual_register_index);
+                }
+            }
+        } break;
+
+        case MIR_CALL:
+        {
+            if (instruction->function_arguments_count > calling_convention_info.argument_registers_count)
+            {
+                FAIL("[MIR] Stack arguments are not supported yet");
+            }
+
+            for (Index argument_index = 0;
+                    argument_index < instruction->function_arguments_count;
+                    ++argument_index)
+            {
+                const MIR_Operand* argument = &instruction->function_arguments[argument_index];
+
+                MIR_Operand abi_argument = {0};
+                {
+                    const Index argument_register_index = create_virtual_register(function);
+
+                    Virtual_Register* argument_register = &function->virtual_registers[argument_register_index];
+                    argument_register->kind = REGISTER_GPR64;
+                    argument_register->fixed_physical_register = calling_convention_info.argument_registers[argument_index];
+
+                    abi_argument.kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                    abi_argument.virtual_register_index = argument_register_index;
+                }
+
+                MIR_Instruction* move_instruction = prepend_instruction(context, block, instruction);
+                move_instruction->opcode = MIR_MOVE;
+
+                MIR_Operand* move_destination = add_new_def_operand(move_instruction);
+                *move_destination = abi_argument;
+
+                MIR_Operand* move_argument = add_new_use_operand(move_instruction);
+                *move_argument = *argument;
+
+                {
+                    MIR_Operand* argument_use = add_new_implicit_use_operand(instruction);
+                    *argument_use = abi_argument;
+                }
+
+                add_isa_constraints_to_mir_instruction(context, function, block, move_instruction);
+            }
+
+            instruction->function_arguments_count = 0;
+
+            // TODO(vlad): Handle stack arguments. We need to emit 'STORE SLOT, operand' here.
+            //             We will need a new MIR_OPERAND_STACK_SLOT kind of operand here.
+
+            MIR_Operand* return_value_operand = NULL;
+
+            // NOTE(vlad): Treat caller-saved registers as clobbered.
+            for (Index register_index = 0;
+                    register_index < calling_convention_info.caller_saved_registers_count;
+                    ++register_index)
+            {
+                MIR_Operand* operand = add_new_implicit_def_operand(instruction);
+
+                const Index virtual_register_index = create_virtual_register(function);
+                const Index physical_register = calling_convention_info.caller_saved_registers[register_index];
+
+                Virtual_Register* virtual_register = &function->virtual_registers[virtual_register_index];
+                virtual_register->kind = REGISTER_GPR64;
+                virtual_register->fixed_physical_register = physical_register;
+
+                operand->kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                operand->virtual_register_index = virtual_register_index;
+
+                if (physical_register == calling_convention_info.return_value_register)
+                {
+                    return_value_operand = operand;
+                }
+            }
+
+            if (instruction->has_return_value)
+            {
+                // NOTE(vlad): Retrieving returned value.
+                MIR_Instruction* return_value_retrieving_instruction = append_instruction(context,
+                                                                                            block,
+                                                                                            instruction);
+                return_value_retrieving_instruction->opcode = MIR_MOVE;
+
+                const MIR_Operand* return_operand = &instruction->return_operand;
+
+                MIR_Operand* move_destination = add_new_def_operand(return_value_retrieving_instruction);
+                *move_destination = *return_operand;
+
+                MIR_Operand* move_argument = add_new_use_operand(return_value_retrieving_instruction);
+                *move_argument = *return_value_operand;
+
+                add_isa_constraints_to_mir_instruction(context,
+                                                        function,
+                                                        block,
+                                                        return_value_retrieving_instruction);
+
+                instruction->return_value_retrieving_instruction = return_value_retrieving_instruction;
+            }
+        } break;
+
+        case MIR_RETURN:
+        {
+            ASSERT(instruction->definitions_count == 0);
+
+            // TODO(vlad): Restore callee-saved registers here. Although we need to do that after register
+            //             allocation because we need to know what registers to save/restore in this function.
+
+            // STUDY(vlad): Does that mean that we need to prioritize caller-saved registers during allocation?
+            //              I mean, they were already pushed/popped so there is no need to push/pop some
+            //              other registers, right?
+            //
+            //              UPD: no, we need to prioritize callee-saved registers to reduce the total number of
+            //              push/pop instructions.
+
+            if (instruction->uses_count != 0)
+            {
+                ASSERT(instruction->uses_count == 1);
+
+                MIR_Operand* return_value = &instruction->uses[0];
+
+                MIR_Operand return_register_operand = {0};
+                {
+                    const Index return_register_index = create_virtual_register(function);
+
+                    Virtual_Register* return_register = &function->virtual_registers[return_register_index];
+                    return_register->kind = REGISTER_GPR64;
+                    return_register->fixed_physical_register = calling_convention_info.return_value_register;
+
+                    return_register_operand.kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                    return_register_operand.virtual_register_index = return_register_index;
+                }
+
+                {
+                    MIR_Instruction* move_instruction = prepend_instruction(context, block, instruction);
+                    move_instruction->opcode = MIR_MOVE;
+
+                    MIR_Operand* move_destination = add_new_def_operand(move_instruction);
+                    *move_destination = return_register_operand;
+
+                    MIR_Operand* move_argument = add_new_use_operand(move_instruction);
+                    *move_argument = *return_value;
+
+                    add_isa_constraints_to_mir_instruction(context, function, block, move_instruction);
+                }
+
+                instruction->uses_count = 0;
+
+                {
+                    MIR_Operand* return_register_use = add_new_implicit_use_operand(instruction);
+                    *return_register_use = return_register_operand;
+                }
+            }
         } break;
     }
 }

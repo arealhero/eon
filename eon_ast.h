@@ -62,6 +62,7 @@ enum Ast_Expression_Type
     AST_EXPRESSION_NEGATE,
     AST_EXPRESSION_DEREFERENCE,
     AST_EXPRESSION_ADDRESS_OF,
+    AST_EXPRESSION_CAST,
 
     AST_EXPRESSION_CALL,
 };
@@ -90,6 +91,13 @@ struct Ast_Call
 };
 typedef struct Ast_Call Ast_Call;
 
+struct Ast_Cast
+{
+    struct Ast_Expression* casted_expression;
+    struct Ast_Type* resulting_type;
+};
+typedef struct Ast_Cast Ast_Cast;
+
 struct Ast_Expression
 {
     Source_Location location;
@@ -111,6 +119,8 @@ struct Ast_Expression
         Ast_Binary_Expression binary_expression;
 
         Ast_Call call;
+
+        Ast_Cast cast;
     };
 };
 typedef struct Ast_Expression Ast_Expression;

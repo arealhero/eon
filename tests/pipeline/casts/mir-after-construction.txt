@@ -1,0 +1,20 @@
+number_literal_cast:
+       |
+       | LABEL_1:
+     1 |           RETURN              IMM 123
+
+inferred_integer_to_s64_cast:
+       |
+       | LABEL_2:
+     1 |           MOVE                VREG 1, IMM 10
+     2 |           CAST                SIGN EXTEND VREG 2, VREG 1
+     3 |           MOVE                VREG 3, VREG 2
+     4 |           RETURN              VREG 3
+
+s64_to_u8_cast:
+       |
+       | LABEL_3:
+     1 |           MOVE                VREG 1, IMM 256
+     2 |           CAST                TRUNCATE VREG 2, VREG 1
+     3 |           MOVE                VREG 3, VREG 2
+     4 |           RETURN              VREG 3

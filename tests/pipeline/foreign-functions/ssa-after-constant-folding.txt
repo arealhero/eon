@@ -1,3 +1,3 @@
 main:
-     1 |           CALL             VARIABLE <temp_1>@1, external_function FROM "mylib", ARGUMENTS COUNT 0
-     2 |           RETURN           VARIABLE <temp_1>@1
+     1 |           CALL             VARIABLE s32 <temp_1>@1, external_function FROM "mylib", ARGUMENTS COUNT 0
+     2 |           RETURN           VARIABLE s32 <temp_1>@1

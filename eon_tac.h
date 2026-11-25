@@ -6,6 +6,7 @@
 
 #include "eon_ast.h"
 #include "eon_forward_declarations.h"
+#include "eon_types.h"
 
 #define DEFINE_TAC_ID_FOR(name)                                         \
     struct CONCATENATE(name, _Id)                                       \
@@ -30,6 +31,7 @@ enum Tac_Operation
     // FIXME(vlad): Add 'TAC_MOD'.
 
     TAC_COMPARE,
+    TAC_CAST,
 
     // FIXME(vlad): Add logical operations.
 
@@ -96,30 +98,9 @@ struct Tac_Variable_Id
 };
 typedef struct Tac_Variable_Id Tac_Variable_Id;
 
-enum Tac_Constant_Kind
-{
-    TAC_CONSTANT_UNDEFINED = 0,
-
-    TAC_CONSTANT_BOOLEAN,
-
-    TAC_CONSTANT_INT8,
-    TAC_CONSTANT_INT16,
-    TAC_CONSTANT_INT32,
-    TAC_CONSTANT_INT64,
-
-    TAC_CONSTANT_UINT8,
-    TAC_CONSTANT_UINT16,
-    TAC_CONSTANT_UINT32,
-    TAC_CONSTANT_UINT64,
-
-    TAC_CONSTANT_FLOAT32,
-    TAC_CONSTANT_FLOAT64,
-};
-typedef enum Tac_Constant_Kind Tac_Constant_Kind;
-
 struct Tac_Constant
 {
-    Tac_Constant_Kind kind;
+    Type_Id type_id;
 
     union
     {
@@ -210,15 +191,24 @@ struct Tac_Instruction
     struct Tac_Instruction* previous_instruction;
     struct Tac_Instruction* next_instruction;
 
-    Bool was_automatically_inserted;
-
     Ast_Statement* ast_statement;
     Ast_Expression* ast_expression;
+
+    Bool was_automatically_inserted;
 
     union
     {
         // NOTE(vlad): For TAC_COMPARE.
-        Comparison_Kind comparison_kind;
+        struct
+        {
+            Comparison_Kind comparison_kind;
+        };
+
+        // NOTE(vlad): For TAC_CAST.
+        struct
+        {
+            Cast_Kind cast_kind;
+        };
     };
 };
 typedef struct Tac_Instruction Tac_Instruction;

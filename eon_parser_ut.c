@@ -2145,8 +2145,10 @@ test_expressions(Test_Context* test_context)
             ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
             ASSERT_FALSE(definition->type->is_mutable);
             ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
+
             ASSERT_TRUE(definition->has_initial_value);
             ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_NEGATE);
+            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "-1");
 
             const Ast_Unary_Expression* unary_expression = &definition->initial_value.unary_expression;
 
@@ -2641,6 +2643,302 @@ test_expressions(Test_Context* test_context)
 
             destroy_compilation_context(&context);
         }
+    }
+
+    // NOTE(vlad): Testing casts.
+    {
+        {
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: () -> void = {\n"
+                                                     "    var := -1 as s8;\n"
+                                                     "}");
+
+            parse_ast(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+            ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
+
+            const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+            ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
+
+            const Ast_Type* function_type = function_definition->type;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_FALSE(function_type->is_mutable);
+            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location,
+                                              "() -> void");
+
+            ASSERT_EQUAL(function_type->function.parameters_count, 0);
+
+            const Ast_Type* return_type = function_type->function.return_type;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_FALSE(return_type->is_mutable);
+            ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
+            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
+
+            ASSERT_EQUAL(function_definition->body.statements_count, 1);
+
+            const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+
+            const Ast_Variable_Definition* definition = &statement->variable_definition;
+            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_FALSE(definition->type->is_mutable);
+            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
+            ASSERT_TRUE(definition->has_initial_value);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_CAST);
+            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "-1 as s8");
+
+            {
+                const Ast_Cast* cast = &definition->initial_value.cast;
+
+                const Ast_Expression* casted_expression = cast->casted_expression;
+                ASSERT_ENUM_VALUES_ARE_EQUAL(casted_expression->kind, AST_EXPRESSION_NEGATE);
+                ASSERT_LOCATION_STRINGS_ARE_EQUAL(&casted_expression->location, "-1");
+
+                {
+                    const Ast_Unary_Expression* negate_expression = &casted_expression->unary_expression;
+                    const Ast_Expression* operand = negate_expression->operand;
+
+                    ASSERT_ENUM_VALUES_ARE_EQUAL(operand->kind, AST_EXPRESSION_NUMBER);
+                    ASSERT_LOCATION_STRINGS_ARE_EQUAL(&operand->location, "1");
+                    ASSERT_FALSE(operand->number.is_a_floating_point_number);
+                }
+
+                const Ast_Type* resulting_type = cast->resulting_type;
+                ASSERT_LOCATION_STRINGS_ARE_EQUAL(&resulting_type->location, "s8");
+            }
+
+            destroy_compilation_context(&context);
+        }
+
+        {
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (arg: s32) -> void = {\n"
+                                                     "    var := arg as s64;\n"
+                                                     "}");
+
+            parse_ast(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+            ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
+
+            const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+            ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
+
+            const Ast_Type* function_type = function_definition->type;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_FALSE(function_type->is_mutable);
+            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location,
+                                              "(arg: s32) -> void");
+
+            ASSERT_EQUAL(function_type->function.parameters_count, 1);
+
+            {
+                const Ast_Function_Parameter* parameter = &function_type->function.parameters[0];
+                ASSERT_STRINGS_ARE_EQUAL(parameter->name.token.lexeme, "arg");
+                ASSERT_ENUM_VALUES_ARE_EQUAL(parameter->type->kind, AST_TYPE_NAME);
+                ASSERT_FALSE(parameter->type->is_mutable);
+                ASSERT_LOCATION_STRINGS_ARE_EQUAL(&parameter->type->location, "s32");
+            }
+
+            const Ast_Type* return_type = function_type->function.return_type;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_FALSE(return_type->is_mutable);
+            ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
+            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
+
+            ASSERT_EQUAL(function_definition->body.statements_count, 1);
+
+            const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+
+            const Ast_Variable_Definition* definition = &statement->variable_definition;
+            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_FALSE(definition->type->is_mutable);
+            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
+            ASSERT_TRUE(definition->has_initial_value);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_CAST);
+            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "arg as s64");
+
+            {
+                const Ast_Cast* cast = &definition->initial_value.cast;
+
+                const Ast_Expression* casted_expression = cast->casted_expression;
+                ASSERT_ENUM_VALUES_ARE_EQUAL(casted_expression->kind, AST_EXPRESSION_IDENTIFIER);
+                ASSERT_LOCATION_STRINGS_ARE_EQUAL(&casted_expression->location, "arg");
+                ASSERT_STRINGS_ARE_EQUAL(casted_expression->identifier.token.lexeme, "arg");
+
+                const Ast_Type* resulting_type = cast->resulting_type;
+                ASSERT_ENUM_VALUES_ARE_EQUAL(resulting_type->kind, AST_TYPE_NAME);
+                ASSERT_FALSE(resulting_type->is_mutable);
+                ASSERT_STRINGS_ARE_EQUAL(resulting_type->named_type.token.lexeme, "s64");
+                ASSERT_LOCATION_STRINGS_ARE_EQUAL(&resulting_type->location, "s64");
+            }
+
+            destroy_compilation_context(&context);
+        }
+
+        {
+            CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (arg: u64) -> void = {\n"
+                                                     "    var := arg as * () -> void;\n"
+                                                     "}");
+
+            parse_ast(&context);
+            ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+            ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+            ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
+
+            const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+            ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
+
+            const Ast_Type* function_type = function_definition->type;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+            ASSERT_FALSE(function_type->is_mutable);
+            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location,
+                                              "(arg: u64) -> void");
+
+            ASSERT_EQUAL(function_type->function.parameters_count, 1);
+
+            {
+                const Ast_Function_Parameter* parameter = &function_type->function.parameters[0];
+                ASSERT_STRINGS_ARE_EQUAL(parameter->name.token.lexeme, "arg");
+                ASSERT_ENUM_VALUES_ARE_EQUAL(parameter->type->kind, AST_TYPE_NAME);
+                ASSERT_FALSE(parameter->type->is_mutable);
+                ASSERT_LOCATION_STRINGS_ARE_EQUAL(&parameter->type->location, "u64");
+            }
+
+            const Ast_Type* return_type = function_type->function.return_type;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
+            ASSERT_FALSE(return_type->is_mutable);
+            ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
+            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
+
+            ASSERT_EQUAL(function_definition->body.statements_count, 1);
+
+            const Ast_Statement* statement = &function_definition->body.statements[0];
+            ASSERT_EQUAL(statement->start_location.line, 1);
+            ASSERT_EQUAL(statement->start_location.column, 4);
+
+            ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+
+            const Ast_Variable_Definition* definition = &statement->variable_definition;
+            ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+            ASSERT_FALSE(definition->type->is_mutable);
+            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
+            ASSERT_TRUE(definition->has_initial_value);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_CAST);
+            ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "arg as * () -> void");
+
+            {
+                const Ast_Cast* cast = &definition->initial_value.cast;
+
+                const Ast_Expression* casted_expression = cast->casted_expression;
+                ASSERT_ENUM_VALUES_ARE_EQUAL(casted_expression->kind, AST_EXPRESSION_IDENTIFIER);
+                ASSERT_LOCATION_STRINGS_ARE_EQUAL(&casted_expression->location, "arg");
+                ASSERT_STRINGS_ARE_EQUAL(casted_expression->identifier.token.lexeme, "arg");
+
+                const Ast_Type* resulting_type = cast->resulting_type;
+                ASSERT_LOCATION_STRINGS_ARE_EQUAL(&resulting_type->location, "* () -> void");
+            }
+
+            destroy_compilation_context(&context);
+        }
+
+        // {
+        //     CREATE_TEST_COMPILATION_CONTEXT_FOR_CODE("foo: (arg: * s32) -> void = {\n"
+        //                                              "    var := arg* as s64;\n"
+        //                                              "}");
+
+        //     parse_ast(&context);
+        //     ASSERT_THAT_THERE_ARE_NO_DIAGNOSTIC_MESSAGES();
+
+        //     ASSERT_EQUAL(context.ast.function_definitions_count, 1);
+        //     ASSERT_EQUAL(context.ast.foreign_functions_count, 0);
+
+        //     const Ast_Function_Definition* function_definition = &context.ast.function_definitions[0];
+        //     ASSERT_STRINGS_ARE_EQUAL(function_definition->name.token.lexeme, "foo");
+
+        //     const Ast_Type* function_type = function_definition->type;
+        //     ASSERT_ENUM_VALUES_ARE_EQUAL(function_type->kind, AST_TYPE_FUNCTION);
+        //     ASSERT_FALSE(function_type->is_mutable);
+        //     ASSERT_LOCATION_STRINGS_ARE_EQUAL(&function_type->location,
+        //                                       "(arg: * s32) -> void");
+
+        //     ASSERT_EQUAL(function_type->function.parameters_count, 1);
+
+        //     {
+        //         const Ast_Function_Parameter* parameter = &function_type->function.parameters[0];
+        //         ASSERT_STRINGS_ARE_EQUAL(parameter->name.token.lexeme, "arg");
+        //         ASSERT_ENUM_VALUES_ARE_EQUAL(parameter->type->kind, AST_TYPE_POINTER);
+        //         ASSERT_FALSE(parameter->type->is_mutable);
+        //         ASSERT_LOCATION_STRINGS_ARE_EQUAL(&parameter->type->location, "* s32");
+        //         ASSERT_ENUM_VALUES_ARE_EQUAL(parameter->type->pointer.pointed_to->kind, AST_TYPE_NAME);
+        //         ASSERT_FALSE(parameter->type->pointer.pointed_to->is_mutable);
+        //         ASSERT_STRINGS_ARE_EQUAL(parameter->type->pointer.pointed_to->named_type.token.lexeme, "s32");
+        //         ASSERT_LOCATION_STRINGS_ARE_EQUAL(&parameter->type->pointer.pointed_to->location,
+        //                                           "s32");
+        //     }
+
+        //     const Ast_Type* return_type = function_type->function.return_type;
+        //     ASSERT_ENUM_VALUES_ARE_EQUAL(return_type->kind, AST_TYPE_NAME);
+        //     ASSERT_FALSE(return_type->is_mutable);
+        //     ASSERT_STRINGS_ARE_EQUAL(return_type->named_type.token.lexeme, "void");
+        //     ASSERT_LOCATION_STRINGS_ARE_EQUAL(&return_type->location, "void");
+
+        //     ASSERT_EQUAL(function_definition->body.statements_count, 1);
+
+        //     const Ast_Statement* statement = &function_definition->body.statements[0];
+        //     ASSERT_EQUAL(statement->start_location.line, 1);
+        //     ASSERT_EQUAL(statement->start_location.column, 4);
+
+        //     ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
+
+        //     const Ast_Variable_Definition* definition = &statement->variable_definition;
+        //     ASSERT_STRINGS_ARE_EQUAL(definition->name.token.lexeme, "var");
+        //     ASSERT_ENUM_VALUES_ARE_EQUAL(definition->type->kind, AST_TYPE_OMITTED);
+        //     ASSERT_FALSE(definition->type->is_mutable);
+        //     ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->type->location, "");
+        //     ASSERT_TRUE(definition->has_initial_value);
+        //     ASSERT_ENUM_VALUES_ARE_EQUAL(definition->initial_value.kind, AST_EXPRESSION_MULTIPLY);
+        //     ASSERT_LOCATION_STRINGS_ARE_EQUAL(&definition->initial_value.location, "arg* * 2");
+
+        //     {
+        //         const Ast_Binary_Expression* binary_expression = &definition->initial_value.binary_expression;
+
+        //         ASSERT_STRINGS_ARE_EQUAL(binary_expression->operator.lexeme, "*");
+
+        //         const Ast_Expression* lhs = binary_expression->lhs;
+        //         ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->kind, AST_EXPRESSION_DEREFERENCE);
+        //         ASSERT_STRINGS_ARE_EQUAL(lhs->unary_expression.operator.lexeme, "*");
+        //         ASSERT_LOCATION_STRINGS_ARE_EQUAL(&lhs->location, "arg*");
+
+        //         ASSERT_ENUM_VALUES_ARE_EQUAL(lhs->unary_expression.operand->kind, AST_EXPRESSION_IDENTIFIER);
+        //         ASSERT_LOCATION_STRINGS_ARE_EQUAL(&lhs->unary_expression.operand->location, "arg");
+
+        //         ASSERT_STRINGS_ARE_EQUAL(lhs->unary_expression.operand->identifier.token.lexeme, "arg");
+        //         ASSERT_LOCATION_STRINGS_ARE_EQUAL(&lhs->unary_expression.operand->identifier.token.location, "arg");
+
+        //         const Ast_Expression* rhs = binary_expression->rhs;
+        //         ASSERT_ENUM_VALUES_ARE_EQUAL(rhs->kind, AST_EXPRESSION_NUMBER);
+        //         ASSERT_LOCATION_STRINGS_ARE_EQUAL(&rhs->location, "2");
+        //         ASSERT_FALSE(rhs->number.is_a_floating_point_number);
+
+        //         ASSERT_STRINGS_ARE_EQUAL(rhs->number.token.lexeme, "2");
+        //         ASSERT_LOCATION_STRINGS_ARE_EQUAL(&rhs->number.token.location, "2");
+        //     }
+
+        //     destroy_compilation_context(&context);
+        // }
     }
 }
 

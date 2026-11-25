@@ -3,7 +3,7 @@
 #include <eon/types.h>
 #include <eon/memory.h>
 
-#include "eon_compilation_context.h"
+#include "eon_forward_declarations.h"
 
 enum Type_Kind
 {
@@ -24,6 +24,8 @@ enum Type_Kind
 
     TYPE_POINTER,
     TYPE_FUNCTION,
+
+    TYPE_KIND_COUNT,
 
     // TYPE_STRUCT, // TODO(vlad): Rename to something like 'USER_DEFINED_TYPE'?
     // TYPE_ENUMERATION,
@@ -75,6 +77,17 @@ struct Number_Constraints
 };
 typedef struct Number_Constraints Number_Constraints;
 
+enum Cast_Kind
+{
+    CAST_TRIVIAL,
+    CAST_TRUNCATE,
+    CAST_ZERO_EXTEND,
+    CAST_SIGN_EXTEND,
+
+    // TODO(vlad): Add floating-point cast kinds.
+};
+typedef enum Cast_Kind Cast_Kind;
+
 // NOTE(vlad): Type is a node in a disjoint-set.
 struct Type
 {
@@ -83,12 +96,35 @@ struct Type
 
     union
     {
-        Integer_Type_Info integer_info;
-        Float_Type_Info float_info;
-        Pointer_Type_Info pointer_info;
-        Function_Type_Info function_info;
+        // NOTE(vlad): For 'TYPE_NUMBER_VARIABLE'.
+        struct
+        {
+            Number_Constraints number_constraints;
+        };
 
-        Number_Constraints number_constraints;
+        // NOTE(vlad): For 'TYPE_INTEGER'.
+        struct
+        {
+            Integer_Type_Info integer_info;
+        };
+
+        // NOTE(vlad): For 'TYPE_FLOAT'.
+        struct
+        {
+            Float_Type_Info float_info;
+        };
+
+        // NOTE(vlad): For 'TYPE_POINTER'.
+        struct
+        {
+            Pointer_Type_Info pointer_info;
+        };
+
+        // NOTE(vlad): For 'TYPE_FUNCTION'.
+        struct
+        {
+            Function_Type_Info function_info;
+        };
     };
 };
 typedef struct Type Type;
@@ -96,15 +132,20 @@ typedef struct Type Type;
 maybe_unused internal inline Bool type_id_is_defined(const Type_Id type_id);
 maybe_unused internal inline Bool type_id_is_undefined(const Type_Id type_id);
 
-maybe_unused internal inline Bool type_id_is_valid(Compilation_Context* context, const Type_Id type_id);
-maybe_unused internal inline Bool type_id_is_invalid(Compilation_Context* context, const Type_Id type_id);
+maybe_unused internal inline Bool type_id_is_valid(struct Compilation_Context* context, const Type_Id type_id);
+maybe_unused internal inline Bool type_id_is_invalid(struct Compilation_Context* context, const Type_Id type_id);
 
-maybe_unused internal void resolve_and_validate_types(Compilation_Context* context);
+maybe_unused internal void resolve_and_validate_types(struct Compilation_Context* context);
 maybe_unused internal String_View convert_type_to_string(Arena* arena,
-                                                         Compilation_Context* context,
+                                                         struct Compilation_Context* context,
                                                          const Type_Id type_id);
 
-maybe_unused internal inline Type_Id get_void_type_id(Compilation_Context* context);
+maybe_unused internal inline Type_Id get_void_type_id(struct Compilation_Context* context);
+maybe_unused internal inline Type_Id get_boolean_type_id(struct Compilation_Context* context);
 
-maybe_unused internal inline const Type* get_the_most_suitable_type_for_number_variable(Compilation_Context* context,
-                                                                                        const Number_Constraints* constraints);
+maybe_unused internal inline void set_the_most_suitable_type_for_number_variable(struct Compilation_Context* context,
+                                                                                 const Type_Id type_id);
+
+maybe_unused internal Cast_Kind classify_cast(struct Compilation_Context* context,
+                                              const Type_Id from_type_id,
+                                              const Type_Id to_type_id);

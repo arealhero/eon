@@ -198,190 +198,49 @@ create_tac_temporary_variable(Compilation_Context* context,
     return operand;
 }
 
-// TODO(vlad): Remove code duplication here and in type-to-string conversion function.
-internal Tac_Constant_Kind
-get_constant_kind_by_type_id(Compilation_Context* context,
-                             const Type_Id type_id)
+internal Tac_Operand
+create_tac_constant_for_number(Compilation_Context* context,
+                               const Ast_Expression* expression)
 {
-    const Type* type = get_type_by_id(context, type_id);
+    ASSERT(expression->kind == AST_EXPRESSION_NUMBER);
+    const Ast_Number* number = &expression->number;
+
+    const Tac_Constant_Id id = create_tac_constant(context);
+    Tac_Constant* constant = get_tac_constant_by_id(&context->tac, id);
+
+    const Type_Id constant_type_id = expression->type_id;
+
+    const Type* type = get_type_by_id(context, constant_type_id);
+    if (type->kind == TYPE_NUMBER_VARIABLE)
+    {
+        set_the_most_suitable_type_for_number_variable(context, constant_type_id);
+        type = get_type_by_id(context, constant_type_id);
+    }
+
+    constant->type_id = constant_type_id;
 
     switch (type->kind)
     {
-        case TYPE_NUMBER_VARIABLE:
-        {
-            const Number_Constraints* constraints = &type->number_constraints;
-
-            if (constraints->must_be_a_floating_point_number)
-            {
-                switch (constraints->min_bit_width)
-                {
-                    case 0:
-                    case 32:
-                    {
-                        return TAC_CONSTANT_FLOAT32;
-                    } break;
-
-                    case 64:
-                    {
-                        return TAC_CONSTANT_FLOAT64;
-                    } break;
-
-                    default:
-                    {
-                        UNREACHABLE();
-                    } break;
-                }
-            }
-            else
-            {
-                if (constraints->sign == SIGN_UNSIGNED)
-                {
-                    switch (constraints->min_bit_width)
-                    {
-                        case 8:
-                        {
-                            return TAC_CONSTANT_UINT8;
-                        } break;
-
-                        case 16:
-                        {
-                            return TAC_CONSTANT_UINT16;
-                        } break;
-
-                        case 0:
-                        case 32:
-                        {
-                            return TAC_CONSTANT_UINT32;
-                        } break;
-
-                        case 64:
-                        {
-                            return TAC_CONSTANT_UINT64;
-                        } break;
-
-                        default:
-                        {
-                            UNREACHABLE();
-                        } break;
-                    }
-                }
-                else
-                {
-                    switch (constraints->min_bit_width)
-                    {
-                        case 8:
-                        {
-                            return TAC_CONSTANT_INT8;
-                        } break;
-
-                        case 16:
-                        {
-                            return TAC_CONSTANT_INT16;
-                        } break;
-
-                        case 0:
-                        case 32:
-                        {
-                            return TAC_CONSTANT_INT32;
-                        } break;
-
-                        case 64:
-                        {
-                            return TAC_CONSTANT_INT64;
-                        } break;
-
-                        default:
-                        {
-                            UNREACHABLE();
-                        } break;
-                    }
-                }
-            }
-        } break;
-
         case TYPE_INTEGER:
         {
-            const Integer_Type_Info* integer_info = &type->integer_info;
-
-            if (integer_info->is_signed)
-            {
-                switch (integer_info->width_in_bits)
-                {
-                    case 8:
-                    {
-                        return TAC_CONSTANT_INT8;
-                    } break;
-
-                    case 16:
-                    {
-                        return TAC_CONSTANT_INT16;
-                    } break;
-
-                    case 0:
-                    case 32:
-                    {
-                        return TAC_CONSTANT_INT32;
-                    } break;
-
-                    case 64:
-                    {
-                        return TAC_CONSTANT_INT64;
-                    } break;
-
-                    default:
-                    {
-                        UNREACHABLE();
-                    } break;
-                }
-            }
-            else
-            {
-                switch (integer_info->width_in_bits)
-                {
-                    case 8:
-                    {
-                        return TAC_CONSTANT_UINT8;
-                    } break;
-
-                    case 16:
-                    {
-                        return TAC_CONSTANT_UINT16;
-                    } break;
-
-                    case 0:
-                    case 32:
-                    {
-                        return TAC_CONSTANT_UINT32;
-                    } break;
-
-                    case 64:
-                    {
-                        return TAC_CONSTANT_UINT64;
-                    } break;
-
-                    default:
-                    {
-                        UNREACHABLE();
-                    } break;
-                }
-            }
+            ASSERT(parse_integer(number->token.lexeme, &constant->integer_value));
         } break;
 
         case TYPE_FLOAT:
         {
-            const Float_Type_Info* float_info = &type->float_info;
+            const Float_Type_Info* info = &type->float_info;
 
-            switch (float_info->width_in_bits)
+            switch (info->width_in_bits)
             {
                 case 0:
                 case 32:
                 {
-                    return TAC_CONSTANT_FLOAT32;
+                    ASSERT(parse_float(number->token.lexeme, &constant->float32_value));
                 } break;
 
                 case 64:
                 {
-                    return TAC_CONSTANT_FLOAT64;
+                    ASSERT(parse_float(number->token.lexeme, &constant->float64_value));
                 } break;
 
                 default:
@@ -391,70 +250,17 @@ get_constant_kind_by_type_id(Compilation_Context* context,
             }
         } break;
 
-        case TYPE_BOOLEAN:
-        {
-            return TAC_CONSTANT_BOOLEAN;
-        } break;
-
+        case TYPE_NUMBER_VARIABLE:
         case TYPE_UNDEFINED:
         case TYPE_INVALID:
         case TYPE_VOID:
         case TYPE_VARIABLE:
+        case TYPE_BOOLEAN:
         case TYPE_POINTER:
         case TYPE_FUNCTION:
+        case TYPE_KIND_COUNT:
         {
             UNREACHABLE();
-        } break;
-    }
-
-    UNREACHABLE();
-}
-
-internal Tac_Operand
-create_tac_constant_for_number(Compilation_Context* context,
-                               const Ast_Expression* expression)
-{
-    ASSERT(expression->kind == AST_EXPRESSION_NUMBER);
-
-    const Tac_Constant_Id id = create_tac_constant(context);
-
-    Tac_Constant* constant = get_tac_constant_by_id(&context->tac, id);
-    constant->kind = get_constant_kind_by_type_id(context, expression->type_id);
-
-    const Ast_Number* number = &expression->number;
-
-    switch (constant->kind)
-    {
-        case TAC_CONSTANT_UNDEFINED:
-        {
-            UNREACHABLE();
-        } break;
-
-        case TAC_CONSTANT_BOOLEAN:
-        {
-            FAIL("[TAC] Booleans are not supported yet");
-        } break;
-
-        case TAC_CONSTANT_INT8:
-        case TAC_CONSTANT_INT16:
-        case TAC_CONSTANT_INT32:
-        case TAC_CONSTANT_INT64:
-        case TAC_CONSTANT_UINT8:
-        case TAC_CONSTANT_UINT16:
-        case TAC_CONSTANT_UINT32:
-        case TAC_CONSTANT_UINT64:
-        {
-            ASSERT(parse_integer(number->token.lexeme, &constant->integer_value));
-        } break;
-
-        case TAC_CONSTANT_FLOAT32:
-        {
-            ASSERT(parse_float(number->token.lexeme, &constant->float32_value));
-        } break;
-
-        case TAC_CONSTANT_FLOAT64:
-        {
-            ASSERT(parse_float(number->token.lexeme, &constant->float64_value));
         } break;
     }
 
@@ -501,20 +307,22 @@ lower_expression_to_tac(Compilation_Context* context,
 
                 const Tac_Constant_Id constant_id = create_tac_constant(context);
 
-                Tac_Constant* constant = get_tac_constant_by_id(&context->tac, constant_id);
-                constant->kind = TAC_CONSTANT_BOOLEAN;
+                {
+                    Tac_Constant* constant = get_tac_constant_by_id(&context->tac, constant_id);
+                    constant->type_id = get_boolean_type_id(context);
 
-                if (strings_are_equal(identifier_symbol->name, "true"))
-                {
-                    constant->boolean_value = true;
-                }
-                else if (strings_are_equal(identifier_symbol->name, "false"))
-                {
-                    constant->boolean_value = false;
-                }
-                else
-                {
-                    FAIL("[TAC] Unknown builtin symbol encountered");
+                    if (strings_are_equal(identifier_symbol->name, "true"))
+                    {
+                        constant->boolean_value = true;
+                    }
+                    else if (strings_are_equal(identifier_symbol->name, "false"))
+                    {
+                        constant->boolean_value = false;
+                    }
+                    else
+                    {
+                        FAIL("[TAC] Unknown builtin symbol encountered");
+                    }
                 }
 
                 result.kind = TAC_OPERAND_CONSTANT;
@@ -621,10 +429,10 @@ lower_expression_to_tac(Compilation_Context* context,
                 ASSERT(lhs_type == rhs_type);
 
                 const Type* type = lhs_type;
-
                 if (type->kind == TYPE_NUMBER_VARIABLE)
                 {
-                    type = get_the_most_suitable_type_for_number_variable(context, &type->number_constraints);
+                    set_the_most_suitable_type_for_number_variable(context, lhs_type_id);
+                    type = get_type_by_id(context, lhs_type_id);
                 }
 
                 switch (type->kind)
@@ -633,8 +441,9 @@ lower_expression_to_tac(Compilation_Context* context,
                     case TYPE_INVALID:
                     case TYPE_VOID:
                     case TYPE_VARIABLE:
-                    case TYPE_FUNCTION:
                     case TYPE_NUMBER_VARIABLE:
+                    case TYPE_FUNCTION:
+                    case TYPE_KIND_COUNT:
                     {
                         UNREACHABLE();
                     } break;
@@ -823,6 +632,53 @@ lower_expression_to_tac(Compilation_Context* context,
             }
 
             result = call_instruction->destination;
+        } break;
+
+        case AST_EXPRESSION_CAST:
+        {
+            const Ast_Cast* cast = &expression->cast;
+
+            const Tac_Operand operand = lower_expression_to_tac(context,
+                                                                tac_function,
+                                                                parent_statement,
+                                                                cast->casted_expression);
+
+            Type_Id type_id_of_casted_expression = {0};
+
+            if (operand.kind == TAC_OPERAND_VARIABLE)
+            {
+                const Tac_Variable* variable = get_tac_variable_by_id(&context->tac, operand.variable_id);
+                type_id_of_casted_expression = variable->type_id;
+            }
+            else if (operand.kind == TAC_OPERAND_CONSTANT)
+            {
+                const Tac_Constant* constant = get_tac_constant_by_id(&context->tac, operand.constant_id);
+                type_id_of_casted_expression = constant->type_id;
+            }
+            else
+            {
+                UNREACHABLE();
+            }
+
+            const Cast_Kind cast_kind = classify_cast(context, type_id_of_casted_expression, expression->type_id);
+
+            if (cast_kind == CAST_TRIVIAL)
+            {
+                result = operand;
+            }
+            else
+            {
+                Tac_Instruction* instruction = add_new_instruction_to_tac_function(context,
+                                                                                   tac_function,
+                                                                                   parent_statement,
+                                                                                   expression);
+                instruction->operation = TAC_CAST;
+                instruction->destination = create_tac_temporary_variable(context, expression->type_id);
+                instruction->first_argument = operand;
+                instruction->cast_kind = cast_kind;
+
+                result = instruction->destination;
+            }
         } break;
     }
 
