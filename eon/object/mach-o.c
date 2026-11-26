@@ -55,11 +55,9 @@ build_macho64_object_file(Compilation_Context* context)
         append_byte_to_buffer(context->scratch_arena, &string_table_buffer, '_');
         append_string_to_buffer(context->scratch_arena, &string_table_buffer, function_name);
 
-        Bytes_View binary_code = {0};
-        binary_code.data = function->binary_code;
-        binary_code.data_size_in_bytes = function->binary_code_count;
-
-        append_bytes_to_buffer(context->scratch_arena, &text_section_buffer, binary_code);
+        append_bytes_to_buffer(context->scratch_arena,
+                               &text_section_buffer,
+                               as_bytes_view(function->binary_code_buffer));
     }
 
     const u64 total_headers_size = (size_of(struct mach_header_64)

@@ -70,11 +70,9 @@ build_pe64_object_file(Compilation_Context* context)
             file_header.NumberOfSymbols += 1;
         }
 
-        Bytes_View binary_code = {0};
-        binary_code.data = function->binary_code;
-        binary_code.data_size_in_bytes = function->binary_code_count;
-
-        append_bytes_to_buffer(context->scratch_arena, &text_section_buffer, binary_code);
+        append_bytes_to_buffer(context->scratch_arena,
+                               &text_section_buffer,
+                               as_bytes_view(function->binary_code_buffer));
 
         for (Index relocation_index = 0;
              relocation_index < function->relocations_count;

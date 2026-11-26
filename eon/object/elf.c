@@ -131,13 +131,9 @@ build_elf64_object_file(Compilation_Context* context)
             ASSERT(function->offset_of_code_in_the_text_section == text_section_buffer->bytes_count);
             ASSERT(function->relocations_count == 0);
 
-            Bytes_View binary_code_view = {0};
-            binary_code_view.data = function->binary_code;
-            binary_code_view.data_size_in_bytes = function->binary_code_count;
-
             append_bytes_to_section_buffer(context,
                                            text_section_buffer,
-                                           binary_code_view);
+                                           as_bytes_view(function->binary_code_buffer));
         }
     }
 
@@ -202,7 +198,7 @@ build_elf64_object_file(Compilation_Context* context)
             symbol.st_info = ELF64_ST_INFO(STB_GLOBAL, STT_FUNC);
             symbol.st_shndx = ELF64_SECTION_TEXT;
             symbol.st_value = (u32)(function->offset_of_code_in_the_text_section);
-            symbol.st_size = (u32)(function->binary_code_count);
+            symbol.st_size = (u32)(function->binary_code_buffer.bytes_count);
 
             append_bytes_to_section_buffer(context, symbol_table_buffer, as_bytes_view(symbol));
         }

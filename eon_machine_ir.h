@@ -349,7 +349,7 @@ struct MIR_Function
     Index current_stack_offset_in_bytes;
 
     // TODO(vlad): Rename to 'binary_code_bytes'? Otherwise 'binary_code_count' looks cursed.
-    array(Byte, binary_code);
+    Buffer binary_code_buffer;
     array(MIR_Relocation, relocations);
 
     Index offset_of_code_in_the_text_section;
