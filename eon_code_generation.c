@@ -101,6 +101,20 @@ emit_x86_64_rex_byte(Arena* arena,
 }
 
 internal inline void
+emit_imm16(Arena* arena,
+           Buffer* buffer,
+           const u16 value)
+{
+    for (u64 offset = 0;
+         offset < 2;
+         ++offset)
+    {
+        const Byte byte = (Byte)(value >> (offset * 8));
+        emit_byte(arena, buffer, byte);
+    }
+}
+
+internal inline void
 emit_imm32(Arena* arena,
            Buffer* buffer,
            const u32 value)
@@ -128,6 +142,28 @@ emit_imm64(Arena* arena,
     }
 }
 
+internal inline void
+x86_64_emit_memory_operand(Arena* binary_code_arena,
+                           Buffer* binary_code_buffer,
+                           const u8 source_register_number,
+                           const u8 destination_register_number,
+                           const u32 displacement)
+{
+    Byte modrm = 0x80;
+    modrm |= (source_register_number & 0x07) << 3;
+    modrm |= destination_register_number & 0x07;
+
+    emit_byte(binary_code_arena, binary_code_buffer, modrm);
+
+    if ((destination_register_number & 0x07) == 4)
+    {
+        // NOTE(vlad): RSP or R12 => we need to emit the SIB byte.
+        emit_byte(binary_code_arena, binary_code_buffer, 0x24);
+    }
+
+    emit_imm32(binary_code_arena, binary_code_buffer, displacement);
+}
+
 internal void
 x86_64_emit_add_or_subtract(Arena* binary_code_arena,
                             Buffer* binary_code_buffer,
@@ -136,9 +172,6 @@ x86_64_emit_add_or_subtract(Arena* binary_code_arena,
 {
     ASSERT(instruction->definitions_count == 1);
     ASSERT(instruction->uses_count == 2);
-
-    ASSERT(instruction->implicit_definitions_count == 0);
-    ASSERT(instruction->implicit_uses_count == 0);
 
     const MIR_Operand* destination = &instruction->definitions[0];
     const MIR_Operand* lhs = &instruction->uses[0];
@@ -156,7 +189,10 @@ x86_64_emit_add_or_subtract(Arena* binary_code_arena,
     const Index lhs_register = lhs_virtual_register->assigned_physical_register;
 
     ASSERT(destination_register != NO_REGISTER);
+    ASSERT(destination_register != SPILLED_TO_STACK);
+
     ASSERT(lhs_register != NO_REGISTER);
+    ASSERT(lhs_register != SPILLED_TO_STACK);
 
     ASSERT(destination_register == lhs_register);
 
@@ -181,6 +217,7 @@ x86_64_emit_add_or_subtract(Arena* binary_code_arena,
 
             const Index rhs_register = rhs_virtual_register->assigned_physical_register;
             ASSERT(rhs_register != NO_REGISTER);
+            ASSERT(rhs_register != SPILLED_TO_STACK);
             ASSERT(destination_register != rhs_register);
 
             const Index rhs_register_number = get_x86_64_register_number(rhs_register);
@@ -261,9 +298,6 @@ x86_64_emit_compare(Arena* binary_code_arena,
     ASSERT(instruction->definitions_count == 1);
     ASSERT(instruction->uses_count == 2);
 
-    ASSERT(instruction->implicit_definitions_count == 0);
-    ASSERT(instruction->implicit_uses_count == 0);
-
     const MIR_Operand* destination_operand = &instruction->definitions[0];
     ASSERT(destination_operand->kind == MIR_OPERAND_VIRTUAL_REGISTER);
 
@@ -272,6 +306,8 @@ x86_64_emit_compare(Arena* binary_code_arena,
 
     const Index destination_register = destination_virtual_register->assigned_physical_register;
     ASSERT(destination_register != NO_REGISTER);
+    ASSERT(destination_register != SPILLED_TO_STACK);
+
     const Byte destination_register_number = get_x86_64_register_number(destination_register);
 
     const MIR_Operand* first_argument_operand = &instruction->uses[0];
@@ -288,6 +324,8 @@ x86_64_emit_compare(Arena* binary_code_arena,
 
     const Index first_argument_register = first_argument_virtual_register->assigned_physical_register;
     ASSERT(first_argument_register != NO_REGISTER);
+    ASSERT(first_argument_register != SPILLED_TO_STACK);
+
     const Byte first_argument_register_number = get_x86_64_register_number(first_argument_register);
 
     const u64 value_to_compare_with = second_argument_operand->immediate_value;
@@ -473,6 +511,414 @@ x86_64_emit_compare(Arena* binary_code_arena,
 }
 
 internal void
+x86_64_emit_load(Arena* binary_code_arena,
+                 Buffer* binary_code_buffer,
+                 const MIR_Function* function,
+                 const MIR_Instruction* instruction)
+{
+    ASSERT(instruction->definitions_count == 1);
+    ASSERT(instruction->uses_count == 1);
+
+    const MIR_Operand* destination = &instruction->definitions[0];
+    const MIR_Operand* source = &instruction->uses[0];
+
+    u8 source_register_number = 0;
+    u32 displacement = 0;
+    Size pointee_size_in_bytes = 0;
+
+    // NOTE(vlad): Resolving where we are loading from.
+    switch (source->kind)
+    {
+        case MIR_OPERAND_STACK_SLOT:
+        {
+            const MIR_Stack_Slot* stack_slot = &function->stack_slots[source->stack_slot_index];
+
+            source_register_number = 4; // TODO(vlad): Change to the RSP register number.
+            displacement = (u32)(stack_slot->offset_in_bytes);
+            pointee_size_in_bytes = stack_slot->size_in_bytes;
+        } break;
+
+        case MIR_OPERAND_POINTER:
+        {
+            const MIR_Pointer_Info* info = &source->pointer_info;
+
+            switch (info->location)
+            {
+                case MIR_POINTER_UNDEFINED:
+                {
+                    UNREACHABLE();
+                } break;
+
+                case MIR_POINTER_ON_THE_STACK:
+                {
+                    const MIR_Stack_Slot* stack_slot = &function->stack_slots[info->stack_slot_index];
+
+                    source_register_number = 4; // TODO(vlad): Change to the RSP register number.
+                    displacement = (u32)(stack_slot->offset_in_bytes);
+                    pointee_size_in_bytes = stack_slot->size_in_bytes;
+
+                    // NOTE(vlad): Sanity check.
+                    ASSERT(info->pointee_size_in_bytes == pointee_size_in_bytes);
+                } break;
+
+                case MIR_POINTER_IN_REGISTER:
+                {
+                    const Virtual_Register* pointer_register = &function->virtual_registers[info->virtual_register_index];
+
+                    ASSERT(pointer_register->assigned_physical_register != NO_REGISTER);
+                    ASSERT(pointer_register->assigned_physical_register != SPILLED_TO_STACK);
+
+                    source_register_number = get_x86_64_register_number(pointer_register->assigned_physical_register);
+                    displacement = 0;
+                    pointee_size_in_bytes = info->pointee_size_in_bytes;
+                } break;
+            }
+        } break;
+
+        default:
+        {
+            UNREACHABLE();
+        } break;
+    }
+
+    ASSERT(pointee_size_in_bytes == 1
+           || pointee_size_in_bytes == 2
+           || pointee_size_in_bytes == 4
+           || pointee_size_in_bytes == 8);
+
+    ASSERT(destination->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+    const Virtual_Register* destination_register = &function->virtual_registers[destination->virtual_register_index];
+
+    ASSERT(destination_register->assigned_physical_register != NO_REGISTER);
+    ASSERT(destination_register->assigned_physical_register != SPILLED_TO_STACK);
+
+    const u8 destination_register_number = get_x86_64_register_number(destination_register->assigned_physical_register);
+
+    // FIXME(vlad): We are always zero-extending here. For signed 8-bit and 16-bit pointees we need to emit 'movsx'
+    //              instead of 'movzx'.
+
+    {
+        x86_64_REX rex = {0};
+
+        if (pointee_size_in_bytes == 8)
+        {
+            rex.w = true;
+        }
+
+        if (destination_register_number >= 8) // TODO(vlad): Use R8 register number here.
+        {
+            rex.r = true;
+        }
+
+        if (source_register_number >= 8) // TODO(vlad): Use R8 register number here.
+        {
+            rex.b = true;
+        }
+
+        const Bool rex_is_needed = (*(Byte*)(&rex)) != 0;
+        if (rex_is_needed)
+        {
+            emit_x86_64_rex_byte(binary_code_arena, binary_code_buffer, rex);
+        }
+    }
+
+    switch (pointee_size_in_bytes)
+    {
+        case 1:
+        {
+            emit_byte(binary_code_arena, binary_code_buffer, 0x0F);
+            emit_byte(binary_code_arena, binary_code_buffer, 0xB6);
+        } break;
+
+        case 2:
+        {
+            emit_byte(binary_code_arena, binary_code_buffer, 0x0F);
+            emit_byte(binary_code_arena, binary_code_buffer, 0xB7);
+        } break;
+
+        case 4:
+        case 8:
+        {
+            emit_byte(binary_code_arena, binary_code_buffer, 0x8B);
+        } break;
+
+        default:
+        {
+            UNREACHABLE();
+        } break;
+    }
+
+    x86_64_emit_memory_operand(binary_code_arena,
+                                binary_code_buffer,
+                                destination_register_number,
+                                source_register_number,
+                                displacement);
+}
+
+internal void
+x86_64_emit_store(Arena* binary_code_arena,
+                  Buffer* binary_code_buffer,
+                  const MIR_Function* function,
+                  const MIR_Instruction* instruction)
+{
+    ASSERT(instruction->definitions_count == 1);
+    ASSERT(instruction->uses_count == 1);
+
+    const MIR_Operand* destination = &instruction->definitions[0];
+    const MIR_Operand* source = &instruction->uses[0];
+
+    u8 destination_register_number = 0;
+    u32 displacement = 0;
+    Size pointee_size_in_bytes = 0;
+
+    // NOTE(vlad): Resolving where we are storing to.
+    switch (destination->kind)
+    {
+        case MIR_OPERAND_STACK_SLOT:
+        {
+            const MIR_Stack_Slot* stack_slot = &function->stack_slots[destination->stack_slot_index];
+
+            destination_register_number = 4; // TODO(vlad): Change to the RSP register number.
+            displacement = (u32)(stack_slot->offset_in_bytes);
+            pointee_size_in_bytes = stack_slot->size_in_bytes;
+        } break;
+
+        case MIR_OPERAND_POINTER:
+        {
+            const MIR_Pointer_Info* info = &destination->pointer_info;
+
+            switch (info->location)
+            {
+                case MIR_POINTER_UNDEFINED:
+                {
+                    UNREACHABLE();
+                } break;
+
+                case MIR_POINTER_ON_THE_STACK:
+                {
+                    const MIR_Stack_Slot* stack_slot = &function->stack_slots[info->stack_slot_index];
+
+                    destination_register_number = 4; // TODO(vlad): Change to the RSP register number.
+                    displacement = (u32)(stack_slot->offset_in_bytes);
+                    pointee_size_in_bytes = stack_slot->size_in_bytes;
+
+                    // NOTE(vlad): Sanity check.
+                    ASSERT(info->pointee_size_in_bytes == pointee_size_in_bytes);
+                } break;
+
+                case MIR_POINTER_IN_REGISTER:
+                {
+                    const Virtual_Register* pointer_register = &function->virtual_registers[info->virtual_register_index];
+
+                    ASSERT(pointer_register->assigned_physical_register != NO_REGISTER);
+                    ASSERT(pointer_register->assigned_physical_register != SPILLED_TO_STACK);
+
+                    destination_register_number = get_x86_64_register_number(pointer_register->assigned_physical_register);
+                    displacement = 0;
+                    pointee_size_in_bytes = info->pointee_size_in_bytes;
+                } break;
+            }
+        } break;
+
+        default:
+        {
+            UNREACHABLE();
+        } break;
+    }
+
+    ASSERT(pointee_size_in_bytes == 1
+           || pointee_size_in_bytes == 2
+           || pointee_size_in_bytes == 4
+           || pointee_size_in_bytes == 8);
+
+    switch (source->kind)
+    {
+        case MIR_OPERAND_VIRTUAL_REGISTER:
+        {
+            const Virtual_Register* source_register = &function->virtual_registers[source->virtual_register_index];
+
+            ASSERT(source_register->assigned_physical_register != NO_REGISTER);
+            ASSERT(source_register->assigned_physical_register != SPILLED_TO_STACK);
+
+            const u8 source_register_number = get_x86_64_register_number(source_register->assigned_physical_register);
+
+            // NOTE(vlad): The operand-size prefix always goes before the REX byte.
+            if (pointee_size_in_bytes == 2)
+            {
+                emit_byte(binary_code_arena, binary_code_buffer, 0x66);
+            }
+
+            {
+                x86_64_REX rex = {0};
+
+                if (pointee_size_in_bytes == 8)
+                {
+                    rex.w = true;
+                }
+
+                if (destination_register_number >= 8) // TODO(vlad): Use R8 register number here.
+                {
+                    rex.b = true;
+                }
+
+                if (source_register_number >= 8) // TODO(vlad): Use R8 register number here.
+                {
+                    rex.r = true;
+                }
+
+                const Bool rex_is_needed = (*(Byte*)(&rex)) != 0;
+                if (rex_is_needed)
+                {
+                    emit_x86_64_rex_byte(binary_code_arena, binary_code_buffer, rex);
+                }
+            }
+
+            if (pointee_size_in_bytes == 1)
+            {
+                emit_byte(binary_code_arena, binary_code_buffer, 0x88);
+            }
+            else
+            {
+                emit_byte(binary_code_arena, binary_code_buffer, 0x89);
+            }
+
+            x86_64_emit_memory_operand(binary_code_arena,
+                                       binary_code_buffer,
+                                       source_register_number,
+                                       destination_register_number,
+                                       displacement);
+        } break;
+
+        case MIR_OPERAND_IMMEDIATE_VALUE:
+        {
+            // NOTE(vlad): The operand-size prefix always goes before the REX byte.
+            if (pointee_size_in_bytes == 2)
+            {
+                emit_byte(binary_code_arena, binary_code_buffer, 0x66);
+            }
+
+            {
+                x86_64_REX rex = {0};
+
+                if (pointee_size_in_bytes == 8)
+                {
+                    rex.w = true;
+                }
+
+                if (destination_register_number >= 8) // TODO(vlad): Use R8 register number here.
+                {
+                    rex.b = true;
+                }
+
+                const Bool rex_is_needed = (*(Byte*)(&rex)) != 0;
+                if (rex_is_needed)
+                {
+                    emit_x86_64_rex_byte(binary_code_arena, binary_code_buffer, rex);
+                }
+            }
+
+            if (pointee_size_in_bytes == 1)
+            {
+                emit_byte(binary_code_arena, binary_code_buffer, 0xC6);
+            }
+            else
+            {
+                emit_byte(binary_code_arena, binary_code_buffer, 0xC7);
+            }
+
+            x86_64_emit_memory_operand(binary_code_arena,
+                                       binary_code_buffer,
+                                       0,
+                                       destination_register_number,
+                                       displacement);
+
+            const u64 value = source->immediate_value;
+
+            switch (pointee_size_in_bytes)
+            {
+                case 1:
+                {
+                    emit_byte(binary_code_arena, binary_code_buffer, (Byte)(value));
+                } break;
+
+                case 2:
+                {
+                    emit_imm16(binary_code_arena, binary_code_buffer, (u16)(value));
+                } break;
+
+                case 4:
+                {
+                    emit_imm32(binary_code_arena, binary_code_buffer, (u32)(value));
+                } break;
+
+                case 8:
+                {
+                    ASSERT(x86_fits_imm32(value));
+                    emit_imm32(binary_code_arena, binary_code_buffer, (u32)(value));
+                } break;
+
+                default:
+                {
+                    UNREACHABLE();
+                }
+            }
+        } break;
+
+        default:
+        {
+            UNREACHABLE();
+        } break;
+    }
+}
+
+internal void
+x86_64_emit_get_address(Arena* binary_code_arena,
+                        Buffer* binary_code_buffer,
+                        const MIR_Function* function,
+                        const MIR_Instruction* instruction)
+{
+    ASSERT(instruction->definitions_count == 1);
+    ASSERT(instruction->uses_count == 1);
+
+    const MIR_Operand* destination = &instruction->definitions[0];
+    const MIR_Operand* source = &instruction->uses[0];
+
+    ASSERT(destination->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+    ASSERT(source->kind == MIR_OPERAND_STACK_SLOT);
+
+    const Virtual_Register* destination_virtual_register
+        = &function->virtual_registers[destination->virtual_register_index];
+
+    const Index destination_register = destination_virtual_register->assigned_physical_register;
+    ASSERT(destination_register != NO_REGISTER);
+    ASSERT(destination_register != SPILLED_TO_STACK);
+
+    const Byte destination_register_number = get_x86_64_register_number(destination_register);
+
+    const MIR_Stack_Slot* source_stack_slot = &function->stack_slots[source->stack_slot_index];
+
+    {
+        x86_64_REX rex = {0};
+        rex.w = true;
+
+        if (destination_register >= X86_64_R8)
+        {
+            rex.r = true;
+        }
+
+        emit_x86_64_rex_byte(binary_code_arena, binary_code_buffer, rex);
+    }
+
+    emit_byte(binary_code_arena, binary_code_buffer, 0x8D); // NOTE(vlad): LEA opcode.
+
+    x86_64_emit_memory_operand(binary_code_arena,
+                               binary_code_buffer,
+                               destination_register_number,
+                               4, // FIXME(vlad): Replace this '4' with an RSP number.
+                               (u32)(source_stack_slot->offset_in_bytes));
+}
+
+internal void
 x86_64_emit_push_or_pop_register(Arena* binary_code_arena,
                                  Buffer* binary_code_buffer,
                                  const MIR_Function* function,
@@ -512,9 +958,6 @@ x86_64_emit_grow_or_shrink_stack(Arena* binary_code_arena,
 
     ASSERT(instruction->definitions_count == 0);
     ASSERT(instruction->uses_count == 1);
-
-    ASSERT(instruction->implicit_definitions_count == 0);
-    ASSERT(instruction->implicit_uses_count == 0);
 
     const MIR_Operand* amount_operand = &instruction->uses[0];
     ASSERT(amount_operand->kind == MIR_OPERAND_IMMEDIATE_VALUE);
@@ -557,9 +1000,6 @@ x86_64_emit_move(Arena* binary_code_arena,
     ASSERT(instruction->definitions_count == 1);
     ASSERT(instruction->uses_count == 1);
 
-    ASSERT(instruction->implicit_definitions_count == 0);
-    ASSERT(instruction->implicit_uses_count == 0);
-
     const MIR_Operand* source_operand = &instruction->uses[0];
     const MIR_Operand* destination_operand = &instruction->definitions[0];
 
@@ -570,6 +1010,7 @@ x86_64_emit_move(Arena* binary_code_arena,
 
     const Index destination_register = destination_virtual_register->assigned_physical_register;
     ASSERT(destination_register != NO_REGISTER);
+    ASSERT(destination_register != SPILLED_TO_STACK);
 
     switch (source_operand->kind)
     {
@@ -589,6 +1030,7 @@ x86_64_emit_move(Arena* binary_code_arena,
 
             const Index source_register = source_virtual_register->assigned_physical_register;
             ASSERT(source_register != NO_REGISTER);
+            ASSERT(source_register != SPILLED_TO_STACK);
 
             x86_64_REX rex = {0};
 
@@ -654,9 +1096,6 @@ x86_64_emit_jump(Arena* binary_code_arena,
     ASSERT(instruction->definitions_count == 0);
     ASSERT(instruction->uses_count == 1);
 
-    ASSERT(instruction->implicit_definitions_count == 0);
-    ASSERT(instruction->implicit_uses_count == 0);
-
     const MIR_Operand* destination_operand = &instruction->uses[0];
     ASSERT(destination_operand->kind == MIR_OPERAND_BLOCK);
 
@@ -685,9 +1124,6 @@ x86_64_emit_jump_if_false(Arena* binary_code_arena,
     ASSERT(instruction->definitions_count == 0);
     ASSERT(instruction->uses_count == 2);
 
-    ASSERT(instruction->implicit_definitions_count == 0);
-    ASSERT(instruction->implicit_uses_count == 0);
-
     const MIR_Operand* condition_operand = &instruction->uses[0];
     const MIR_Operand* destination_operand = &instruction->uses[1];
 
@@ -701,6 +1137,7 @@ x86_64_emit_jump_if_false(Arena* binary_code_arena,
 
         const Index condition_register = condition_virtual_register->assigned_physical_register;
         ASSERT(condition_register != NO_REGISTER);
+        ASSERT(condition_register != SPILLED_TO_STACK);
 
         x86_64_REX rex = {0};
         if (condition_register >= X86_64_R8)
@@ -801,9 +1238,6 @@ x86_64_emit_return(Arena* binary_code_arena,
     ASSERT(instruction->definitions_count == 0);
     ASSERT(instruction->uses_count == 0);
 
-    ASSERT(instruction->implicit_definitions_count == 0);
-    // NOTE(vlad): RETURN instruction can have an implicit use: the return value register.
-
     emit_byte(binary_code_arena, binary_code_buffer, 0xC3);
 }
 
@@ -886,17 +1320,17 @@ emit_binary_code(Compilation_Context* context)
 
                             case MIR_LOAD:
                             {
-                                FAIL("[MIR] LOAD instruction is not supported yet.");
+                                x86_64_emit_load(scratch_arena, &scratch_buffer, function, instruction);
                             } break;
 
                             case MIR_STORE:
                             {
-                                FAIL("[MIR] STORE instruction is not supported yet.");
+                                x86_64_emit_store(scratch_arena, &scratch_buffer, function, instruction);
                             } break;
 
                             case MIR_GET_ADDRESS:
                             {
-                                FAIL("[MIR] GET_ADDRESS instruction is not supported yet.");
+                                x86_64_emit_get_address(scratch_arena, &scratch_buffer, function, instruction);
                             } break;
 
                             case MIR_PUSH_REGISTER_ON_STACK:
@@ -1031,17 +1465,26 @@ emit_binary_code(Compilation_Context* context)
 
                     case MIR_LOAD:
                     {
-                        FAIL("[MIR] LOAD instruction is not supported yet.");
+                        x86_64_emit_load(context->binary_code_arena,
+                                         &function->binary_code_buffer,
+                                         function,
+                                         instruction);
                     } break;
 
                     case MIR_STORE:
                     {
-                        FAIL("[MIR] STORE instruction is not supported yet.");
+                        x86_64_emit_store(context->binary_code_arena,
+                                          &function->binary_code_buffer,
+                                          function,
+                                          instruction);
                     } break;
 
                     case MIR_GET_ADDRESS:
                     {
-                        FAIL("[MIR] GET_ADDRESS instruction is not supported yet.");
+                        x86_64_emit_get_address(context->binary_code_arena,
+                                                &function->binary_code_buffer,
+                                                function,
+                                                instruction);
                     } break;
 
                     case MIR_PUSH_REGISTER_ON_STACK:

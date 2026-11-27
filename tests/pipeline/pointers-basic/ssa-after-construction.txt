@@ -1,0 +1,121 @@
+simple_test:
+     1 |           ASSIGN           STACK VARIABLE s32 a, CONSTANT s32 10
+     2 |           GET_ADDRESS      VARIABLE * s32 <temp_1>@1, STACK VARIABLE s32 a
+     3 |           ASSIGN           VARIABLE * s32 ptr@1, VARIABLE * s32 <temp_1>@1
+     4 |           LOAD_BY_ADDRESS  VARIABLE s32 <temp_3>@1, VARIABLE * s32 ptr@1
+     5 |           RETURN           VARIABLE s32 <temp_3>@1
+
+local_modification_test:
+     1 |           ASSIGN           STACK VARIABLE s32 a, CONSTANT s32 10
+     2 |           GET_ADDRESS      VARIABLE * mutable s32 <temp_1>@1, STACK VARIABLE s32 a
+     3 |           ASSIGN           VARIABLE * mutable s32 ptr@1, VARIABLE * mutable s32 <temp_1>@1
+     4 |           STORE_BY_ADDRESS VARIABLE * mutable s32 ptr@1, CONSTANT s32 20
+     5 |           LOAD_BY_ADDRESS  VARIABLE s32 <temp_3>@1, VARIABLE * mutable s32 ptr@1
+     6 |           RETURN           VARIABLE s32 <temp_3>@1
+
+set_value:
+     1 |           GET_PARAMETER    VARIABLE * mutable s32 var@1, ARGUMENT 0
+     2 |           STORE_BY_ADDRESS VARIABLE * mutable s32 var@1, CONSTANT s32 20
+     3 |           RETURN
+
+non_local_modification_test:
+     1 |           ASSIGN           STACK VARIABLE s32 a, CONSTANT s32 10
+     2 |           GET_ADDRESS      VARIABLE * mutable s32 <temp_1>@1, STACK VARIABLE s32 a
+     3 |           ASSIGN           VARIABLE * mutable s32 ptr@1, VARIABLE * mutable s32 <temp_1>@1
+     4 |           SET_PARAMETER    VARIABLE * mutable s32 ptr@1
+     5 |           CALL             set_value, ARGUMENTS COUNT 1
+     6 |           LOAD_BY_ADDRESS  VARIABLE s32 <temp_3>@1, VARIABLE * mutable s32 ptr@1
+     7 |           RETURN           VARIABLE s32 <temp_3>@1
+
+inline_pointer_creation_test:
+     1 |           ASSIGN           STACK VARIABLE s32 result, CONSTANT s32 10
+     2 |           GET_ADDRESS      VARIABLE * mutable s32 <temp_1>@1, STACK VARIABLE s32 result
+     3 |           SET_PARAMETER    VARIABLE * mutable s32 <temp_1>@1
+     4 |           CALL             set_value, ARGUMENTS COUNT 1
+     5 |           RETURN           STACK VARIABLE s32 result
+
+conditional_assignment:
+     1 |           GET_PARAMETER    VARIABLE bool condition@1, ARGUMENT 0
+     2 |           ASSIGN           STACK VARIABLE s32 a, CONSTANT s32 10
+     3 |           GET_ADDRESS      VARIABLE * mutable s32 <temp_1>@1, STACK VARIABLE s32 a
+     4 |           ASSIGN           VARIABLE * mutable s32 ptr@1, VARIABLE * mutable s32 <temp_1>@1
+     5 |           JUMP_IF_FALSE    LABEL_1, VARIABLE bool condition@1
+     6 |           JUMP             LABEL_3
+     7 | LABEL_3:
+     8 |           STORE_BY_ADDRESS VARIABLE * mutable s32 ptr@1, CONSTANT s32 20
+     9 |           JUMP             LABEL_2
+    10 | LABEL_1:
+    11 |           JUMP             LABEL_2
+    12 | LABEL_2:
+    13 |           RETURN           STACK VARIABLE s32 a
+
+test_direct_and_indirect_assignments:
+     1 |           GET_PARAMETER    VARIABLE bool condition@1, ARGUMENT 0
+     2 |           ASSIGN           STACK VARIABLE s32 a, CONSTANT s32 10
+     3 |           GET_ADDRESS      VARIABLE * mutable s32 <temp_1>@1, STACK VARIABLE s32 a
+     4 |           ASSIGN           VARIABLE * mutable s32 ptr@1, VARIABLE * mutable s32 <temp_1>@1
+     5 |           JUMP_IF_FALSE    LABEL_1, VARIABLE bool condition@1
+     6 |           JUMP             LABEL_3
+     7 | LABEL_3:
+     8 |           STORE_BY_ADDRESS VARIABLE * mutable s32 ptr@1, CONSTANT s32 20
+     9 |           JUMP             LABEL_2
+    10 | LABEL_1:
+    11 |           ASSIGN           STACK VARIABLE s32 a, CONSTANT s32 20
+    12 |           JUMP             LABEL_2
+    13 | LABEL_2:
+    14 |           RETURN           STACK VARIABLE s32 a
+
+test_phi_nodes_with_stack_arguments:
+     1 |           ASSIGN           STACK VARIABLE s32 a, CONSTANT s32 10
+     2 |           GET_ADDRESS      VARIABLE * mutable s32 <temp_1>@1, STACK VARIABLE s32 a
+     3 |           ASSIGN           VARIABLE * mutable s32 ptr@1, VARIABLE * mutable s32 <temp_1>@1
+     4 |           ASSIGN           VARIABLE s32 b@1, CONSTANT s32 20
+     5 |           EQUAL            VARIABLE bool <temp_4>@1, VARIABLE s32 b@1, CONSTANT s32 20
+     6 |           JUMP_IF_FALSE    LABEL_1, VARIABLE bool <temp_4>@1
+     7 |           JUMP             LABEL_3
+     8 | LABEL_3:
+     9 |           ASSIGN           VARIABLE s32 b@2, STACK VARIABLE s32 a
+    10 |           JUMP             LABEL_2
+    11 | LABEL_1:
+    12 |           LOAD_BY_ADDRESS  VARIABLE s32 <temp_5>@1, VARIABLE * mutable s32 ptr@1
+    13 |           ASSIGN           VARIABLE s32 b@3, VARIABLE s32 <temp_5>@1
+    14 |           JUMP             LABEL_2
+       |
+       |           PHI              VARIABLE s32 b@4, VARIABLE s32 b@2, VARIABLE s32 b@3
+    15 | LABEL_2:
+    16 |           RETURN           VARIABLE s32 b@4
+
+test_pointers_to_pointers:
+     1 |           GET_PARAMETER    VARIABLE bool condition@1, ARGUMENT 0
+     2 |           ASSIGN           STACK VARIABLE s32 a, CONSTANT s32 10
+     3 |           ASSIGN           STACK VARIABLE s32 b, CONSTANT s32 20
+     4 |           GET_ADDRESS      VARIABLE * s32 <temp_1>@1, STACK VARIABLE s32 a
+     5 |           ASSIGN           STACK VARIABLE * s32 a_ptr, VARIABLE * s32 <temp_1>@1
+     6 |           GET_ADDRESS      VARIABLE * s32 <temp_3>@1, STACK VARIABLE s32 b
+     7 |           ASSIGN           STACK VARIABLE * s32 b_ptr, VARIABLE * s32 <temp_3>@1
+     8 |           GET_ADDRESS      VARIABLE * * s32 <temp_5>@1, STACK VARIABLE * s32 a_ptr
+     9 |           ASSIGN           VARIABLE * * s32 pointer_to_pointer@1, VARIABLE * * s32 <temp_5>@1
+    10 |           JUMP_IF_FALSE    LABEL_1, VARIABLE bool condition@1
+    11 |           JUMP             LABEL_3
+    12 | LABEL_3:
+    13 |           GET_ADDRESS      VARIABLE * * s32 <temp_7>@1, STACK VARIABLE * s32 b_ptr
+    14 |           ASSIGN           VARIABLE * * s32 pointer_to_pointer@2, VARIABLE * * s32 <temp_7>@1
+    15 |           JUMP             LABEL_2
+    16 | LABEL_1:
+    17 |           JUMP             LABEL_2
+       |
+       |           PHI              VARIABLE * * s32 pointer_to_pointer@3, VARIABLE * * s32 pointer_to_pointer@2, VARIABLE * * s32 pointer_to_pointer@1
+    18 | LABEL_2:
+    19 |           LOAD_BY_ADDRESS  VARIABLE * s32 <temp_8>@1, VARIABLE * * s32 pointer_to_pointer@3
+    20 |           LOAD_BY_ADDRESS  VARIABLE s32 <temp_9>@1, VARIABLE * s32 <temp_8>@1
+    21 |           RETURN           VARIABLE s32 <temp_9>@1
+
+unused_pointer_value_test:
+     1 |           ASSIGN           STACK VARIABLE s32 a, CONSTANT s32 10
+     2 |           ASSIGN           STACK VARIABLE s32 b, CONSTANT s32 20
+     3 |           GET_ADDRESS      VARIABLE * s32 <temp_1>@1, STACK VARIABLE s32 a
+     4 |           ASSIGN           VARIABLE * s32 ptr@1, VARIABLE * s32 <temp_1>@1
+     5 |           GET_ADDRESS      VARIABLE * s32 <temp_3>@1, STACK VARIABLE s32 b
+     6 |           ASSIGN           VARIABLE * s32 ptr@2, VARIABLE * s32 <temp_3>@1
+     7 |           LOAD_BY_ADDRESS  VARIABLE s32 <temp_4>@1, VARIABLE * s32 ptr@2
+     8 |           RETURN           VARIABLE s32 <temp_4>@1

@@ -1607,8 +1607,6 @@ parse_global_statement(Compilation_Context* context)
             return false;
         };
     }
-
-    return true;
 }
 
 internal void

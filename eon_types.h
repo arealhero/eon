@@ -136,6 +136,7 @@ maybe_unused internal inline Bool type_id_is_valid(struct Compilation_Context* c
 maybe_unused internal inline Bool type_id_is_invalid(struct Compilation_Context* context, const Type_Id type_id);
 
 maybe_unused internal void resolve_and_validate_types(struct Compilation_Context* context);
+
 maybe_unused internal String_View convert_type_to_string(Arena* arena,
                                                          struct Compilation_Context* context,
                                                          const Type_Id type_id);
@@ -149,3 +150,5 @@ maybe_unused internal inline void set_the_most_suitable_type_for_number_variable
 maybe_unused internal Cast_Kind classify_cast(struct Compilation_Context* context,
                                               const Type_Id from_type_id,
                                               const Type_Id to_type_id);
+
+maybe_unused internal Size get_type_size_in_bytes(struct Compilation_Context* context, const Type_Id type_id);

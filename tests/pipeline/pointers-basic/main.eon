@@ -1,0 +1,113 @@
+simple_test: () -> s32 =
+{
+    a := 10;
+    ptr := a&;
+    return ptr*;
+}
+
+local_modification_test: () -> s32 =
+{
+    a: mutable _ = 10;
+    ptr := a&;
+    ptr* = 20;
+    return ptr*;
+}
+
+set_value: (var: * mutable s32) -> void =
+{
+    var* = 20;
+}
+
+non_local_modification_test: () -> s32 =
+{
+    a: mutable _ = 10;
+    ptr := a&;
+    set_value(ptr);
+    return ptr*;
+}
+
+inline_pointer_creation_test: () -> s32 =
+{
+    result: mutable _ = 10;
+    set_value(result&);
+    return result;
+}
+
+conditional_assignment: (condition: bool) -> s32 =
+{
+    a: mutable _ = 10;
+    ptr := a&;
+
+    if condition
+    {
+        ptr* = 20;
+    }
+
+    return a;
+}
+
+test_direct_and_indirect_assignments: (condition: bool) -> s32 =
+{
+    a: mutable _ = 10;
+    ptr := a&;
+
+    if condition
+    {
+        ptr* = 20;
+    }
+    else
+    {
+        a = 20;
+    }
+    // NOTE(vlad): We should not create the PHI node for 'a' here because it is stored on the stack.
+
+    return a;
+}
+
+test_phi_nodes_with_stack_arguments: () -> s32 =
+{
+    a: mutable _ = 10;
+    ptr := a&;
+
+    b: mutable _ = 20;
+
+    if b == 20
+    {
+        b = a;
+    }
+    else
+    {
+        b = ptr*;
+    }
+
+    return b;
+}
+
+test_pointers_to_pointers: (condition: bool) -> s32 =
+{
+    a := 10;
+    b := 20;
+
+    a_ptr := a&;
+    b_ptr := b&;
+
+    pointer_to_pointer: mutable _ = a_ptr&;
+
+    if condition
+    {
+        pointer_to_pointer = b_ptr&;
+    }
+
+    return pointer_to_pointer**;
+}
+
+unused_pointer_value_test: () -> s32 =
+{
+    a := 10;
+    b := 20;
+
+    ptr: mutable _ = a&; // NOTE(vlad): This assignment is unused.
+    ptr = b&;
+
+    return ptr*;
+}

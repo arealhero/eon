@@ -1,0 +1,160 @@
+simple_test:
+       |
+       | LABEL_1:
+     1 |           STORE               STACK SLOT 0 (OFFSET 0, 4 BYTES), IMM 10
+     2 |           GET_ADDRESS         VREG 1, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+     3 |           MOVE                VREG 2, VREG 1
+     4 |           LOAD                VREG 3, POINTER VREG 2 (4 BYTES)
+     5 |           MOVE                RAX, VREG 3
+     6 |           RETURN
+
+local_modification_test:
+       |
+       | LABEL_2:
+     1 |           STORE               STACK SLOT 0 (OFFSET 0, 4 BYTES), IMM 10
+     2 |           GET_ADDRESS         VREG 1, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+     3 |           MOVE                VREG 2, VREG 1
+     4 |           STORE               POINTER VREG 2 (4 BYTES), IMM 20
+     5 |           LOAD                VREG 3, POINTER VREG 2 (4 BYTES)
+     6 |           MOVE                RAX, VREG 3
+     7 |           RETURN
+
+set_value:
+       |
+       | LABEL_3:
+     1 |           MOVE                VREG 1, RCX
+     2 |           STORE               POINTER VREG 1 (4 BYTES), IMM 20
+     3 |           RETURN
+
+non_local_modification_test:
+       |
+       | LABEL_4:
+     1 |           STORE               STACK SLOT 0 (OFFSET 0, 4 BYTES), IMM 10
+     2 |           GET_ADDRESS         VREG 1, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+     3 |           MOVE                VREG 2, VREG 1
+     4 |           MOVE                RCX, VREG 2
+     5 |           CALL                set_value
+     6 |           LOAD                VREG 3, POINTER VREG 2 (4 BYTES)
+     7 |           MOVE                RAX, VREG 3
+     8 |           RETURN
+
+inline_pointer_creation_test:
+       |
+       | LABEL_5:
+     1 |           STORE               STACK SLOT 0 (OFFSET 0, 4 BYTES), IMM 10
+     2 |           GET_ADDRESS         VREG 1, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+     3 |           MOVE                RCX, VREG 1
+     4 |           CALL                set_value
+     5 |           LOAD                RAX, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+     6 |           RETURN
+
+conditional_assignment:
+       |
+       | LABEL_6:
+     1 |           MOVE                VREG 1, RCX
+     2 |           STORE               STACK SLOT 0 (OFFSET 0, 4 BYTES), IMM 10
+     3 |           GET_ADDRESS         VREG 2, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+     4 |           MOVE                VREG 3, VREG 2
+     5 |           JUMP_IF_FALSE       VREG 1, LABEL_7
+     6 |           JUMP                LABEL_9
+       |
+       | LABEL_9:
+     7 |           STORE               POINTER VREG 3 (4 BYTES), IMM 20
+     8 |           JUMP                LABEL_8
+       |
+       | LABEL_8:
+     9 |           LOAD                RAX, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+    10 |           RETURN
+       |
+       | LABEL_7:
+    11 |           JUMP                LABEL_8
+
+test_direct_and_indirect_assignments:
+       |
+       | LABEL_10:
+     1 |           MOVE                VREG 1, RCX
+     2 |           STORE               STACK SLOT 0 (OFFSET 0, 4 BYTES), IMM 10
+     3 |           GET_ADDRESS         VREG 2, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+     4 |           MOVE                VREG 3, VREG 2
+     5 |           JUMP_IF_FALSE       VREG 1, LABEL_11
+     6 |           JUMP                LABEL_13
+       |
+       | LABEL_13:
+     7 |           STORE               POINTER VREG 3 (4 BYTES), IMM 20
+     8 |           JUMP                LABEL_12
+       |
+       | LABEL_12:
+     9 |           LOAD                RAX, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+    10 |           RETURN
+       |
+       | LABEL_11:
+    11 |           STORE               STACK SLOT 0 (OFFSET 0, 4 BYTES), IMM 20
+    12 |           JUMP                LABEL_12
+
+test_phi_nodes_with_stack_arguments:
+       |
+       | LABEL_14:
+     1 |           STORE               STACK SLOT 0 (OFFSET 0, 4 BYTES), IMM 10
+     2 |           GET_ADDRESS         VREG 1, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+     3 |           MOVE                VREG 2, VREG 1
+     4 |           MOVE                VREG 3, IMM 20
+     5 |           EQUAL               VREG 7, VREG 3, IMM 20
+     6 |           JUMP_IF_FALSE       VREG 7, LABEL_15
+     7 |           JUMP                LABEL_17
+       |
+       | LABEL_17:
+     8 |           LOAD                VREG 4, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+     9 |           JUMP                LABEL_16
+       |
+       | LABEL_16:
+    10 |           PHI                 VREG 6, VREG 4, VREG 5
+    11 |           MOVE                RAX, VREG 6
+    12 |           RETURN
+       |
+       | LABEL_15:
+    13 |           LOAD                VREG 8, POINTER VREG 2 (4 BYTES)
+    14 |           MOVE                VREG 5, VREG 8
+    15 |           JUMP                LABEL_16
+
+test_pointers_to_pointers:
+       |
+       | LABEL_18:
+     1 |           MOVE                VREG 1, RCX
+     2 |           STORE               STACK SLOT 0 (OFFSET 0, 4 BYTES), IMM 10
+     3 |           STORE               STACK SLOT 1 (OFFSET 4, 4 BYTES), IMM 20
+     4 |           GET_ADDRESS         VREG 2, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+     5 |           STORE               STACK SLOT 2 (OFFSET 8, 8 BYTES), VREG 2
+     6 |           GET_ADDRESS         VREG 3, STACK SLOT 1 (OFFSET 4, 4 BYTES)
+     7 |           STORE               STACK SLOT 3 (OFFSET 16, 8 BYTES), VREG 3
+     8 |           GET_ADDRESS         VREG 4, STACK SLOT 2 (OFFSET 8, 8 BYTES)
+     9 |           MOVE                VREG 5, VREG 4
+    10 |           JUMP_IF_FALSE       VREG 1, LABEL_19
+    11 |           JUMP                LABEL_21
+       |
+       | LABEL_21:
+    12 |           GET_ADDRESS         VREG 8, STACK SLOT 3 (OFFSET 16, 8 BYTES)
+    13 |           MOVE                VREG 6, VREG 8
+    14 |           JUMP                LABEL_20
+       |
+       | LABEL_20:
+    15 |           PHI                 VREG 7, VREG 6, VREG 5
+    16 |           LOAD                VREG 9, POINTER VREG 7 (8 BYTES)
+    17 |           LOAD                VREG 10, POINTER VREG 9 (4 BYTES)
+    18 |           MOVE                RAX, VREG 10
+    19 |           RETURN
+       |
+       | LABEL_19:
+    20 |           JUMP                LABEL_20
+
+unused_pointer_value_test:
+       |
+       | LABEL_22:
+     1 |           STORE               STACK SLOT 0 (OFFSET 0, 4 BYTES), IMM 10
+     2 |           STORE               STACK SLOT 1 (OFFSET 4, 4 BYTES), IMM 20
+     3 |           GET_ADDRESS         VREG 1, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+     4 |           MOVE                VREG 2, VREG 1
+     5 |           GET_ADDRESS         VREG 4, STACK SLOT 1 (OFFSET 4, 4 BYTES)
+     6 |           MOVE                VREG 3, VREG 4
+     7 |           LOAD                VREG 5, POINTER VREG 3 (4 BYTES)
+     8 |           MOVE                RAX, VREG 5
+     9 |           RETURN

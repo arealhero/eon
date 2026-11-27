@@ -1,0 +1,162 @@
+simple_test:
+       |
+       | LABEL_1:
+     1 |           GROW_STACK          IMM 4
+     2 |           STORE               STACK SLOT 0 (OFFSET 0, 4 BYTES), IMM 10
+     3 |           GET_ADDRESS         RAX, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+     4 |           LOAD                RAX, POINTER RAX (4 BYTES)
+     5 |           SHRINK_STACK        IMM 4
+     6 |           RETURN
+
+local_modification_test:
+       |
+       | LABEL_2:
+     1 |           GROW_STACK          IMM 4
+     2 |           STORE               STACK SLOT 0 (OFFSET 0, 4 BYTES), IMM 10
+     3 |           GET_ADDRESS         RAX, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+     4 |           STORE               POINTER RAX (4 BYTES), IMM 20
+     5 |           LOAD                RAX, POINTER RAX (4 BYTES)
+     6 |           SHRINK_STACK        IMM 4
+     7 |           RETURN
+
+set_value:
+       |
+       | LABEL_3:
+     1 |           STORE               POINTER RCX (4 BYTES), IMM 20
+     2 |           RETURN
+
+non_local_modification_test:
+       |
+       | LABEL_4:
+     1 |           PUSH                RBX
+     2 |           GROW_STACK          IMM 4
+     3 |           STORE               STACK SLOT 0 (OFFSET 0, 4 BYTES), IMM 10
+     4 |           GET_ADDRESS         RBX, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+     5 |           MOVE                RCX, RBX
+     6 |           GROW_STACK          IMM 44
+     7 |           CALL                set_value
+     8 |           SHRINK_STACK        IMM 44
+     9 |           LOAD                RAX, POINTER RBX (4 BYTES)
+    10 |           SHRINK_STACK        IMM 4
+    11 |           POP                 RBX
+    12 |           RETURN
+
+inline_pointer_creation_test:
+       |
+       | LABEL_5:
+     1 |           GROW_STACK          IMM 4
+     2 |           STORE               STACK SLOT 0 (OFFSET 0, 4 BYTES), IMM 10
+     3 |           GET_ADDRESS         RCX, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+     4 |           GROW_STACK          IMM 36
+     5 |           CALL                set_value
+     6 |           SHRINK_STACK        IMM 36
+     7 |           LOAD                RAX, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+     8 |           SHRINK_STACK        IMM 4
+     9 |           RETURN
+
+conditional_assignment:
+       |
+       | LABEL_6:
+     1 |           GROW_STACK          IMM 4
+     2 |           STORE               STACK SLOT 0 (OFFSET 0, 4 BYTES), IMM 10
+     3 |           GET_ADDRESS         RAX, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+     4 |           JUMP_IF_FALSE       RCX, LABEL_7
+     5 |           JUMP                LABEL_9
+       |
+       | LABEL_9:
+     6 |           STORE               POINTER RAX (4 BYTES), IMM 20
+     7 |           JUMP                LABEL_8
+       |
+       | LABEL_8:
+     8 |           LOAD                RAX, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+     9 |           SHRINK_STACK        IMM 4
+    10 |           RETURN
+       |
+       | LABEL_7:
+    11 |           JUMP                LABEL_8
+
+test_direct_and_indirect_assignments:
+       |
+       | LABEL_10:
+     1 |           GROW_STACK          IMM 4
+     2 |           STORE               STACK SLOT 0 (OFFSET 0, 4 BYTES), IMM 10
+     3 |           GET_ADDRESS         RAX, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+     4 |           JUMP_IF_FALSE       RCX, LABEL_11
+     5 |           JUMP                LABEL_13
+       |
+       | LABEL_13:
+     6 |           STORE               POINTER RAX (4 BYTES), IMM 20
+     7 |           JUMP                LABEL_12
+       |
+       | LABEL_12:
+     8 |           LOAD                RAX, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+     9 |           SHRINK_STACK        IMM 4
+    10 |           RETURN
+       |
+       | LABEL_11:
+    11 |           STORE               STACK SLOT 0 (OFFSET 0, 4 BYTES), IMM 20
+    12 |           JUMP                LABEL_12
+
+test_phi_nodes_with_stack_arguments:
+       |
+       | LABEL_14:
+     1 |           PUSH                RBX
+     2 |           GROW_STACK          IMM 4
+     3 |           STORE               STACK SLOT 0 (OFFSET 0, 4 BYTES), IMM 10
+     4 |           GET_ADDRESS         RBX, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+     5 |           MOVE                RAX, IMM 20
+     6 |           EQUAL               RAX, RAX, IMM 20
+     7 |           JUMP_IF_FALSE       RAX, LABEL_15
+     8 |           JUMP                LABEL_17
+       |
+       | LABEL_17:
+     9 |           LOAD                RAX, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+    10 |           JUMP                LABEL_16
+       |
+       | LABEL_16:
+    11 |           SHRINK_STACK        IMM 4
+    12 |           POP                 RBX
+    13 |           RETURN
+       |
+       | LABEL_15:
+    14 |           LOAD                RAX, POINTER RBX (4 BYTES)
+    15 |           JUMP                LABEL_16
+
+test_pointers_to_pointers:
+       |
+       | LABEL_18:
+     1 |           GROW_STACK          IMM 24
+     2 |           STORE               STACK SLOT 0 (OFFSET 0, 4 BYTES), IMM 10
+     3 |           STORE               STACK SLOT 1 (OFFSET 4, 4 BYTES), IMM 20
+     4 |           GET_ADDRESS         RAX, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+     5 |           STORE               STACK SLOT 2 (OFFSET 8, 8 BYTES), RAX
+     6 |           GET_ADDRESS         RAX, STACK SLOT 1 (OFFSET 4, 4 BYTES)
+     7 |           STORE               STACK SLOT 3 (OFFSET 16, 8 BYTES), RAX
+     8 |           GET_ADDRESS         RAX, STACK SLOT 2 (OFFSET 8, 8 BYTES)
+     9 |           JUMP_IF_FALSE       RCX, LABEL_19
+    10 |           JUMP                LABEL_21
+       |
+       | LABEL_21:
+    11 |           GET_ADDRESS         RAX, STACK SLOT 3 (OFFSET 16, 8 BYTES)
+    12 |           JUMP                LABEL_20
+       |
+       | LABEL_20:
+    13 |           LOAD                RAX, POINTER RAX (8 BYTES)
+    14 |           LOAD                RAX, POINTER RAX (4 BYTES)
+    15 |           SHRINK_STACK        IMM 24
+    16 |           RETURN
+       |
+       | LABEL_19:
+    17 |           JUMP                LABEL_20
+
+unused_pointer_value_test:
+       |
+       | LABEL_22:
+     1 |           GROW_STACK          IMM 8
+     2 |           STORE               STACK SLOT 0 (OFFSET 0, 4 BYTES), IMM 10
+     3 |           STORE               STACK SLOT 1 (OFFSET 4, 4 BYTES), IMM 20
+     4 |           GET_ADDRESS         RAX, STACK SLOT 0 (OFFSET 0, 4 BYTES)
+     5 |           GET_ADDRESS         RAX, STACK SLOT 1 (OFFSET 4, 4 BYTES)
+     6 |           LOAD                RAX, POINTER RAX (4 BYTES)
+     7 |           SHRINK_STACK        IMM 8
+     8 |           RETURN

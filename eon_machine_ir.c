@@ -26,10 +26,8 @@ instruction_is_a_block_terminator(const MIR_Instruction* instruction)
         case MIR_DIVIDE:
         case MIR_COMPARE:
         case MIR_CAST:
-        case MIR_LOAD32:
-        case MIR_STORE32:
-        case MIR_LOAD64:
-        case MIR_STORE64:
+        case MIR_LOAD:
+        case MIR_STORE:
         case MIR_GET_ADDRESS:
         case MIR_PUSH_REGISTER_ON_STACK:
         case MIR_POP_REGISTER_FROM_STACK:
@@ -194,6 +192,7 @@ get_virtual_register_index_for_ssa_variable(Compilation_Context* context, const 
 
     ASSERT(id.ssa_version != SSA_VERSION_UNDEFINED);
     ASSERT(id.ssa_version != SSA_VERSION_UNSET);
+    ASSERT(id.ssa_version != SSA_VERSION_LIVES_ON_STACK);
     ASSERT(id.ssa_version <= ssa_variable->max_ssa_version);
 
     return ssa_variable->mir_virtual_register_offset + id.ssa_version - 1;
@@ -360,9 +359,60 @@ append_instruction(Compilation_Context* context,
     return instruction;
 }
 
+internal inline MIR_Operand
+get_operand_for_tac_variable(Compilation_Context* context, const Tac_Variable_Id variable_id)
+{
+    MIR_Operand operand = {0};
+
+    const Tac_Variable* variable = get_tac_variable_by_id(&context->tac, variable_id);
+
+    if (variable->must_be_on_stack)
+    {
+        operand.kind = MIR_OPERAND_STACK_SLOT;
+        operand.stack_slot_index = variable->stack_slot_index;
+    }
+    else
+    {
+        operand.kind = MIR_OPERAND_VIRTUAL_REGISTER;
+        operand.virtual_register_index = get_virtual_register_index_for_ssa_variable(context,
+                                                                                     variable_id);
+    }
+
+    return operand;
+}
+
+internal inline Bool
+convert_move_to_load_or_store_if_needed(MIR_Instruction* instruction)
+{
+    ASSERT(instruction->opcode == MIR_MOVE);
+
+    ASSERT(instruction->definitions_count == 1);
+    ASSERT(instruction->uses_count == 1);
+
+    const MIR_Operand* def = &instruction->definitions[0];
+    const MIR_Operand* use = &instruction->uses[0];
+
+    if (def->kind == MIR_OPERAND_STACK_SLOT)
+    {
+        ASSERT(use->kind == MIR_OPERAND_VIRTUAL_REGISTER
+               || use->kind == MIR_OPERAND_IMMEDIATE_VALUE);
+        instruction->opcode = MIR_STORE;
+        return true;
+    }
+    else if (use->kind == MIR_OPERAND_STACK_SLOT)
+    {
+        ASSERT(def->kind == MIR_OPERAND_VIRTUAL_REGISTER);
+        instruction->opcode = MIR_LOAD;
+        return true;
+    }
+
+    return false;
+}
+
 internal MIR_Block*
 lower_ssa_block_to_mir(Compilation_Context* context,
                        Tac_Function* ssa_function,
+                       MIR_Function* mir_function,
                        const Cfg_Block_Id this_ssa_block_id,
                        MIR_Block** mir_blocks_map)
 {
@@ -394,9 +444,8 @@ lower_ssa_block_to_mir(Compilation_Context* context,
         MIR_Instruction* instruction = add_new_instruction_to_mir_block(context, this_block);
 
         instruction->opcode = MIR_PHI;
-        instruction->phi_definition.kind = MIR_OPERAND_VIRTUAL_REGISTER;
-        instruction->phi_definition.virtual_register_index
-            = get_virtual_register_index_for_ssa_variable(context, phi_node->destination);
+        instruction->phi_definition = get_operand_for_tac_variable(context, phi_node->destination);
+        ASSERT(instruction->phi_definition.kind == MIR_OPERAND_VIRTUAL_REGISTER);
 
         for (Index phi_argument_index = 0;
              phi_argument_index < phi_node->previous_variables_count;
@@ -414,7 +463,11 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                                                                                           phi_node->previous_variables[phi_argument_index]);
 
             const Cfg_Block_Id predecessor_block_id = this_ssa_block->predecessors[phi_argument_index];
-            argument.source_block = lower_ssa_block_to_mir(context, ssa_function, predecessor_block_id, mir_blocks_map);
+            argument.source_block = lower_ssa_block_to_mir(context,
+                                                           ssa_function,
+                                                           mir_function,
+                                                           predecessor_block_id,
+                                                           mir_blocks_map);
 
             append_array(context->mir_operands_arena, instruction->phi_arguments, MIR_PHI_Argument, argument);
         }
@@ -449,9 +502,7 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                 instruction->opcode = MIR_MOVE;
 
                 MIR_Operand* def = add_new_def_operand(instruction);
-                def->kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                def->virtual_register_index = get_virtual_register_index_for_ssa_variable(context,
-                                                                                          ssa_destination->variable_id);
+                *def = get_operand_for_tac_variable(context, ssa_destination->variable_id);
 
                 MIR_Operand* use = add_new_use_operand(instruction);
 
@@ -459,9 +510,8 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                 {
                     case TAC_OPERAND_VARIABLE:
                     {
-                        use->kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                        use->virtual_register_index
-                            = get_virtual_register_index_for_ssa_variable(context, ssa_first_argument->variable_id);
+                        // TODO(vlad): If this operand is a stack slot then we need to emit LOAD instead of MOVE.
+                        *use = get_operand_for_tac_variable(context, ssa_first_argument->variable_id);
                     } break;
 
                     case TAC_OPERAND_CONSTANT:
@@ -483,17 +533,124 @@ lower_ssa_block_to_mir(Compilation_Context* context,
 
             case TAC_GET_ADDRESS:
             {
-                FAIL("[MIR] GET_ADDRESS is not supported yet");
+                ASSERT(ssa_destination->kind == TAC_OPERAND_VARIABLE);
+                ASSERT(ssa_first_argument->kind == TAC_OPERAND_VARIABLE);
+                ASSERT(ssa_second_argument->kind == TAC_OPERAND_NONE);
+
+                MIR_Instruction* instruction = add_new_instruction_to_mir_block(context, this_block);
+                instruction->opcode = MIR_GET_ADDRESS;
+
+                MIR_Operand* def = add_new_def_operand(instruction);
+                *def = get_operand_for_tac_variable(context, ssa_destination->variable_id);
+
+                MIR_Operand* use = add_new_use_operand(instruction);
+                *use = get_operand_for_tac_variable(context, ssa_first_argument->variable_id);
+
+                ASSERT(use->kind == MIR_OPERAND_STACK_SLOT);
             } break;
 
             case TAC_LOAD_BY_ADDRESS:
             {
-                FAIL("[MIR] LOAD_BY_ADDRESS is not supported yet");
+                ASSERT(ssa_destination->kind == TAC_OPERAND_VARIABLE);
+                ASSERT(ssa_first_argument->kind == TAC_OPERAND_VARIABLE);
+                ASSERT(ssa_second_argument->kind == TAC_OPERAND_NONE);
+
+                MIR_Instruction* instruction = add_new_instruction_to_mir_block(context, this_block);
+                instruction->opcode = MIR_LOAD;
+
+                MIR_Operand* def = add_new_def_operand(instruction);
+                *def = get_operand_for_tac_variable(context, ssa_destination->variable_id);
+
+                {
+                    MIR_Operand* use = add_new_use_operand(instruction);
+                    use->kind = MIR_OPERAND_POINTER;
+
+                    const Tac_Variable* pointer = get_tac_variable_by_id(&context->tac,
+                                                                         ssa_first_argument->variable_id);
+
+                    const Type* type = get_type_by_id(context, pointer->type_id);
+                    ASSERT(type->kind == TYPE_POINTER);
+
+                    if (pointer->must_be_on_stack)
+                    {
+                        use->pointer_info.location = MIR_POINTER_ON_THE_STACK;
+                        use->pointer_info.stack_slot_index = pointer->stack_slot_index;
+
+                        const MIR_Stack_Slot* stack_slot = &mir_function->stack_slots[pointer->stack_slot_index];
+                        use->pointer_info.pointee_size_in_bytes = stack_slot->size_in_bytes;
+                    }
+                    else
+                    {
+                        use->pointer_info.location = MIR_POINTER_IN_REGISTER;
+                        use->pointer_info.virtual_register_index = get_virtual_register_index_for_ssa_variable(context,
+                                                                                                               ssa_first_argument->variable_id);
+                        use->pointer_info.pointee_size_in_bytes = get_type_size_in_bytes(context,
+                                                                                         type->pointer_info.points_to_type_id);
+                    }
+                }
             } break;
 
             case TAC_STORE_BY_ADDRESS:
             {
-                FAIL("[MIR] STORE_BY_ADDRESS is not supported yet");
+                ASSERT(ssa_destination->kind == TAC_OPERAND_NONE);
+                ASSERT(ssa_first_argument->kind == TAC_OPERAND_VARIABLE);
+                ASSERT(ssa_second_argument->kind != TAC_OPERAND_NONE);
+
+                MIR_Instruction* instruction = add_new_instruction_to_mir_block(context, this_block);
+                instruction->opcode = MIR_STORE;
+
+                {
+                    const Tac_Variable* pointer = get_tac_variable_by_id(&context->tac,
+                                                                         ssa_first_argument->variable_id);
+                    const Type* type = get_type_by_id(context, pointer->type_id);
+                    ASSERT(type->kind == TYPE_POINTER);
+
+                    MIR_Operand* def = add_new_def_operand(instruction);
+                    def->kind = MIR_OPERAND_POINTER;
+
+                    if (pointer->must_be_on_stack)
+                    {
+                        def->pointer_info.location = MIR_POINTER_ON_THE_STACK;
+                        def->pointer_info.stack_slot_index = pointer->stack_slot_index;
+
+                        const MIR_Stack_Slot* stack_slot = &mir_function->stack_slots[pointer->stack_slot_index];
+                        def->pointer_info.pointee_size_in_bytes = stack_slot->size_in_bytes;
+                    }
+                    else
+                    {
+                        def->pointer_info.location = MIR_POINTER_IN_REGISTER;
+                        def->pointer_info.virtual_register_index = get_virtual_register_index_for_ssa_variable(context,
+                                                                                                               ssa_first_argument->variable_id);
+                        def->pointer_info.pointee_size_in_bytes = get_type_size_in_bytes(context,
+                                                                                         type->pointer_info.points_to_type_id);
+                    }
+                }
+
+                {
+                    MIR_Operand* value = add_new_use_operand(instruction);
+                    switch (ssa_second_argument->kind)
+                    {
+                        case TAC_OPERAND_VARIABLE:
+                        {
+                            *value = get_operand_for_tac_variable(context, ssa_second_argument->variable_id);
+                        } break;
+
+                        case TAC_OPERAND_CONSTANT:
+                        {
+                            make_immediate_value_for_constant(context, value, ssa_second_argument->constant_id);
+                        } break;
+
+                        case TAC_OPERAND_NONE:
+                        case TAC_OPERAND_FUNCTION_LABEL:
+                        case TAC_OPERAND_FOREIGN_FUNCTION:
+                        case TAC_OPERAND_LABEL:
+                        case TAC_OPERAND_PARAMETER_INDEX:
+                        case TAC_OPERAND_NUMBER_OF_ARGUMENTS:
+                        {
+                            FAIL("[MIR] Unexpected STORE operand kind encountered.");
+                        } break;
+                    }
+                }
             } break;
 
             case TAC_CAST:
@@ -508,9 +665,7 @@ lower_ssa_block_to_mir(Compilation_Context* context,
 
                 {
                     MIR_Operand* destination = add_new_def_operand(instruction);
-                    destination->kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                    destination->virtual_register_index = get_virtual_register_index_for_ssa_variable(context,
-                                                                                                      ssa_destination->variable_id);
+                    *destination = get_operand_for_tac_variable(context, ssa_destination->variable_id);
 
                     const Tac_Variable* variable = get_tac_variable_by_id(&context->tac, ssa_destination->variable_id);
                     const Type* type = get_type_by_id(context, variable->type_id);
@@ -524,9 +679,7 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                 {
                     case TAC_OPERAND_VARIABLE:
                     {
-                        argument->kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                        argument->virtual_register_index
-                            = get_virtual_register_index_for_ssa_variable(context, ssa_first_argument->variable_id);
+                        *argument = get_operand_for_tac_variable(context, ssa_first_argument->variable_id);
 
                         const Tac_Variable* variable = get_tac_variable_by_id(&context->tac, ssa_first_argument->variable_id);
                         const Type* type = get_type_by_id(context, variable->type_id);
@@ -608,18 +761,15 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                 }
 
                 MIR_Operand* def = add_new_def_operand(instruction);
-                def->kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                def->virtual_register_index = get_virtual_register_index_for_ssa_variable(context,
-                                                                                          ssa_destination->variable_id);
+                *def = get_operand_for_tac_variable(context, ssa_destination->variable_id);
+
                 {
                     MIR_Operand* first_use = add_new_use_operand(instruction);
                     switch (ssa_first_argument->kind)
                     {
                         case TAC_OPERAND_VARIABLE:
                         {
-                            first_use->kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                            first_use->virtual_register_index
-                                = get_virtual_register_index_for_ssa_variable(context, ssa_first_argument->variable_id);
+                            *first_use = get_operand_for_tac_variable(context, ssa_first_argument->variable_id);
                         } break;
 
                         case TAC_OPERAND_CONSTANT:
@@ -645,9 +795,7 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                     {
                         case TAC_OPERAND_VARIABLE:
                         {
-                            second_use->kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                            second_use->virtual_register_index
-                                = get_virtual_register_index_for_ssa_variable(context, ssa_second_argument->variable_id);
+                            *second_use = get_operand_for_tac_variable(context, ssa_second_argument->variable_id);
                         } break;
 
                         case TAC_OPERAND_CONSTANT:
@@ -687,7 +835,7 @@ lower_ssa_block_to_mir(Compilation_Context* context,
 
                 MIR_Operand* use = add_new_use_operand(instruction);
                 use->kind = MIR_OPERAND_BLOCK;
-                use->block = lower_ssa_block_to_mir(context, ssa_function, destination_block_id, mir_blocks_map);
+                use->block = lower_ssa_block_to_mir(context, ssa_function, mir_function, destination_block_id, mir_blocks_map);
             } break;
 
             case TAC_JUMP_IF_FALSE:
@@ -703,13 +851,15 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                 instruction->opcode = MIR_JUMP_IF_FALSE;
 
                 MIR_Operand* condition_operand = add_new_use_operand(instruction);
-                condition_operand->kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                condition_operand->virtual_register_index
-                    = get_virtual_register_index_for_ssa_variable(context, ssa_first_argument->variable_id);
+                *condition_operand = get_operand_for_tac_variable(context, ssa_first_argument->variable_id);
 
                 MIR_Operand* destination_operand = add_new_use_operand(instruction);
                 destination_operand->kind = MIR_OPERAND_BLOCK;
-                destination_operand->block = lower_ssa_block_to_mir(context, ssa_function, destination_block_id, mir_blocks_map);
+                destination_operand->block = lower_ssa_block_to_mir(context,
+                                                                    ssa_function,
+                                                                    mir_function,
+                                                                    destination_block_id,
+                                                                    mir_blocks_map);
             } break;
 
             case TAC_SET_PARAMETER:
@@ -724,9 +874,7 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                 {
                     case TAC_OPERAND_VARIABLE:
                     {
-                        parameter.kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                        parameter.virtual_register_index
-                            = get_virtual_register_index_for_ssa_variable(context, ssa_first_argument->variable_id);
+                        parameter = get_operand_for_tac_variable(context, ssa_first_argument->variable_id);
                     } break;
 
                     case TAC_OPERAND_CONSTANT:
@@ -758,9 +906,7 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                 instruction->opcode = MIR_GET_PARAMETER;
 
                 MIR_Operand* def = add_new_def_operand(instruction);
-                def->kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                def->virtual_register_index
-                    = get_virtual_register_index_for_ssa_variable(context, ssa_destination->variable_id);
+                *def = get_operand_for_tac_variable(context, ssa_destination->variable_id);
 
                 ASSERT(ssa_first_argument->parameter_index.index >= 0);
 
@@ -783,9 +929,7 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                     ASSERT(ssa_destination->kind == TAC_OPERAND_VARIABLE);
 
                     instruction->has_return_value = true;
-                    instruction->return_operand.kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                    instruction->return_operand.virtual_register_index
-                        = get_virtual_register_index_for_ssa_variable(context, ssa_destination->variable_id);
+                    instruction->return_operand = get_operand_for_tac_variable(context, ssa_destination->variable_id);
                 }
 
                 if (ssa_first_argument->kind == TAC_OPERAND_FUNCTION_LABEL)
@@ -838,9 +982,7 @@ lower_ssa_block_to_mir(Compilation_Context* context,
                     case TAC_OPERAND_VARIABLE:
                     {
                         MIR_Operand* use = add_new_use_operand(instruction);
-                        use->kind = MIR_OPERAND_VIRTUAL_REGISTER;
-                        use->virtual_register_index
-                            = get_virtual_register_index_for_ssa_variable(context, ssa_first_argument->variable_id);
+                        *use = get_operand_for_tac_variable(context, ssa_first_argument->variable_id);
                     } break;
 
                     case TAC_OPERAND_CONSTANT:
@@ -869,7 +1011,11 @@ lower_ssa_block_to_mir(Compilation_Context* context,
         const Cfg_Block_Id successor_id = this_ssa_block->edges[successor_index];
         const Cfg_Block* ssa_successor = get_cfg_block_by_id(ssa_function, successor_id);
 
-        MIR_Block* successor = lower_ssa_block_to_mir(context, ssa_function, successor_id, mir_blocks_map);
+        MIR_Block* successor = lower_ssa_block_to_mir(context,
+                                                      ssa_function,
+                                                      mir_function,
+                                                      successor_id,
+                                                      mir_blocks_map);
         this_block->successors[successor_index] = successor;
 
         Bool predecessor_found = false;
@@ -930,15 +1076,26 @@ lower_ssa_to_mir(Compilation_Context* context)
              ++variable_index)
         {
             Tac_Variable* ssa_variable = &tac->variables[variable_index];
-            ssa_variable->mir_virtual_register_offset = mir_function->virtual_registers_count;
 
-            ASSERT(ssa_variable->max_ssa_version != 0);
-
-            for (Index version = 1;
-                 version <= ssa_variable->max_ssa_version;
-                 ++version)
+            if (ssa_variable->must_be_on_stack)
             {
-                create_virtual_register(mir_function);
+                const Size variable_size_in_bytes = get_type_size_in_bytes(context, ssa_variable->type_id);
+                ASSERT(variable_size_in_bytes != 0);
+
+                ssa_variable->stack_slot_index = create_stack_slot(mir_function, variable_size_in_bytes);
+            }
+            else
+            {
+                ssa_variable->mir_virtual_register_offset = mir_function->virtual_registers_count;
+
+                ASSERT(ssa_variable->max_ssa_version != 0);
+
+                for (Index version = 1;
+                     version <= ssa_variable->max_ssa_version;
+                     ++version)
+                {
+                    create_virtual_register(mir_function);
+                }
             }
         }
     }
@@ -952,7 +1109,11 @@ lower_ssa_to_mir(Compilation_Context* context)
 
         const Cfg_Block_Id entry_block_id = {0};
         MIR_Block** mir_blocks_map = allocate_array(context->scratch_arena, tac_function->cfg_blocks_count, MIR_Block*);
-        mir_function->entry_block = lower_ssa_block_to_mir(context, tac_function, entry_block_id, mir_blocks_map);
+        mir_function->entry_block = lower_ssa_block_to_mir(context,
+                                                           tac_function,
+                                                           mir_function,
+                                                           entry_block_id,
+                                                           mir_blocks_map);
     }
 
     request_arena_reset(context->arena_provider, context->scratch_arena);
@@ -1086,13 +1247,9 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
     switch (instruction->opcode)
     {
         case MIR_UNDEFINED:
-        {
-            UNREACHABLE();
-        } break;
-
         case MIR_NOP:
         {
-            // NOTE(vlad): 'nop' instruction has no constraints.
+            UNREACHABLE();
         } break;
 
         case MIR_PUSH_REGISTER_ON_STACK:
@@ -1139,6 +1296,7 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
                 case MIR_OPERAND_PHYSICAL_REGISTER:
                 case MIR_OPERAND_BLOCK:
                 case MIR_OPERAND_STACK_SLOT:
+                case MIR_OPERAND_POINTER:
                 {
                     UNREACHABLE();
                 } break;
@@ -1357,29 +1515,19 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
             // TODO(vlad): Is there some ISA constraints here?
         } break;
 
-        case MIR_LOAD32:
+        case MIR_LOAD:
         {
-            FAIL("[MIR] LOAD32 instruction is not supported yet.");
+            // TODO(vlad): Is there some ISA constraints here?
         } break;
 
-        case MIR_STORE32:
+        case MIR_STORE:
         {
-            FAIL("[MIR] STORE32 instruction is not supported yet.");
-        } break;
-
-        case MIR_LOAD64:
-        {
-            FAIL("[MIR] LOAD64 instruction is not supported yet.");
-        } break;
-
-        case MIR_STORE64:
-        {
-            FAIL("[MIR] STORE64 instruction is not supported yet.");
+            // TODO(vlad): Is there some ISA constraints here?
         } break;
 
         case MIR_GET_ADDRESS:
         {
-            FAIL("[MIR] GET_ADDRESS instruction is not supported yet.");
+            // TODO(vlad): Is there some ISA constraints here?
         } break;
 
         case MIR_GET_PARAMETER:
@@ -1417,28 +1565,34 @@ add_isa_constraints_to_mir_instruction(Compilation_Context* context,
 
         case MIR_MOVE:
         {
-            // NOTE(vlad): 'mov' instruction has no constraints.
-
-            // NOTE(vlad): Adding coalescing hint so we could eliminate this move if possible.
+            if (convert_move_to_load_or_store_if_needed(instruction))
             {
-                ASSERT(instruction->definitions_count == 1);
-                ASSERT(instruction->uses_count == 1);
+                add_isa_constraints_to_mir_instruction(context, function, block, instruction);
+            }
+            else
+            {
+                // NOTE(vlad): 'mov' instruction has no constraints.
 
-                // NOTE(vlad): Sanity check.
-                ASSERT(instruction->implicit_definitions_count == 0);
-                ASSERT(instruction->implicit_uses_count == 0);
-
-                MIR_Operand* destination = &instruction->definitions[0];
-                MIR_Operand* first_argument = &instruction->uses[0];
-
-                ASSERT(destination->kind == MIR_OPERAND_VIRTUAL_REGISTER);
-
-                if (first_argument->kind == MIR_OPERAND_VIRTUAL_REGISTER)
+                // NOTE(vlad): Adding coalescing hint so we could eliminate this move if possible.
                 {
-                    add_coalescing_hint_to_instruction(context,
-                                                        instruction,
-                                                        destination->virtual_register_index,
-                                                        first_argument->virtual_register_index);
+                    ASSERT(instruction->definitions_count == 1);
+                    ASSERT(instruction->uses_count == 1);
+
+                    // NOTE(vlad): Sanity check.
+                    ASSERT(instruction->implicit_definitions_count == 0);
+                    ASSERT(instruction->implicit_uses_count == 0);
+
+                    MIR_Operand* destination = &instruction->definitions[0];
+                    MIR_Operand* first_argument = &instruction->uses[0];
+
+                    if (destination->kind == MIR_OPERAND_VIRTUAL_REGISTER
+                        && first_argument->kind == MIR_OPERAND_VIRTUAL_REGISTER)
+                    {
+                        add_coalescing_hint_to_instruction(context,
+                                                           instruction,
+                                                           destination->virtual_register_index,
+                                                           first_argument->virtual_register_index);
+                    }
                 }
             }
         } break;
@@ -1888,6 +2042,29 @@ struct MIR_Perfect_Elimination_Order
 };
 typedef struct MIR_Perfect_Elimination_Order MIR_Perfect_Elimination_Order;
 
+internal Bool
+try_to_get_virtual_register_index_of_the_operand(const MIR_Operand* operand,
+                                                 Index* virtual_register_index)
+{
+    if (operand->kind == MIR_OPERAND_VIRTUAL_REGISTER)
+    {
+        *virtual_register_index = operand->virtual_register_index;
+        return true;
+    }
+    else if (operand->kind == MIR_OPERAND_POINTER)
+    {
+        const MIR_Pointer_Info* info = &operand->pointer_info;
+
+        if (info->location == MIR_POINTER_IN_REGISTER)
+        {
+            *virtual_register_index = info->virtual_register_index;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 internal void
 allocate_registers(Compilation_Context* context)
 {
@@ -2019,9 +2196,12 @@ allocate_registers(Compilation_Context* context)
                                      ++definition_index)
                                 {
                                     MIR_Operand* definition = &instruction->definitions[definition_index];
-                                    ASSERT(definition->kind == MIR_OPERAND_VIRTUAL_REGISTER);
 
-                                    clear_register_bit(&current_live_in_registers, definition->virtual_register_index);
+                                    Index virtual_register_index = -1;
+                                    if (try_to_get_virtual_register_index_of_the_operand(definition, &virtual_register_index))
+                                    {
+                                        clear_register_bit(&current_live_in_registers, virtual_register_index);
+                                    }
                                 }
 
                                 // NOTE(vlad): If virtual register was used here then it must be born before this instruction.
@@ -2030,9 +2210,11 @@ allocate_registers(Compilation_Context* context)
                                      ++use_index)
                                 {
                                     MIR_Operand* use = &instruction->uses[use_index];
-                                    if (use->kind == MIR_OPERAND_VIRTUAL_REGISTER)
+
+                                    Index virtual_register_index = -1;
+                                    if (try_to_get_virtual_register_index_of_the_operand(use, &virtual_register_index))
                                     {
-                                        set_register_bit(&current_live_in_registers, use->virtual_register_index);
+                                        set_register_bit(&current_live_in_registers, virtual_register_index);
                                     }
                                 }
                             } break;
@@ -2058,9 +2240,11 @@ allocate_registers(Compilation_Context* context)
                                  ++use_index)
                             {
                                 MIR_Operand* use = &instruction->implicit_uses[use_index];
-                                if (use->kind == MIR_OPERAND_VIRTUAL_REGISTER)
+
+                                Index virtual_register_index = -1;
+                                if (try_to_get_virtual_register_index_of_the_operand(use, &virtual_register_index))
                                 {
-                                    set_register_bit(&current_live_in_registers, use->virtual_register_index);
+                                    set_register_bit(&current_live_in_registers, virtual_register_index);
                                 }
                             }
                         }
@@ -2138,10 +2322,14 @@ allocate_registers(Compilation_Context* context)
                              ++definition_index)
                         {
                             const MIR_Operand* definition = &instruction->definitions[definition_index];
-                            ASSERT(definition->kind == MIR_OPERAND_VIRTUAL_REGISTER);
-                            add_interference_with_live_registers(&graph,
-                                                                 definition->virtual_register_index,
-                                                                 &live_registers);
+
+                            Index virtual_register_index = -1;
+                            if (try_to_get_virtual_register_index_of_the_operand(definition, &virtual_register_index))
+                            {
+                                add_interference_with_live_registers(&graph,
+                                                                     virtual_register_index,
+                                                                     &live_registers);
+                            }
                         }
 
                         for (Index definition_index = 0;
@@ -2149,10 +2337,14 @@ allocate_registers(Compilation_Context* context)
                              ++definition_index)
                         {
                             const MIR_Operand* definition = &instruction->implicit_definitions[definition_index];
-                            ASSERT(definition->kind == MIR_OPERAND_VIRTUAL_REGISTER);
-                            add_interference_with_live_registers(&graph,
-                                                                 definition->virtual_register_index,
-                                                                 &live_registers);
+
+                            Index virtual_register_index = -1;
+                            if (try_to_get_virtual_register_index_of_the_operand(definition, &virtual_register_index))
+                            {
+                                add_interference_with_live_registers(&graph,
+                                                                     virtual_register_index,
+                                                                     &live_registers);
+                            }
                         }
                     }
 
@@ -2163,8 +2355,12 @@ allocate_registers(Compilation_Context* context)
                              ++definition_index)
                         {
                             const MIR_Operand* definition = &instruction->definitions[definition_index];
-                            ASSERT(definition->kind == MIR_OPERAND_VIRTUAL_REGISTER);
-                            clear_register_bit(&live_registers, definition->virtual_register_index);
+
+                            Index virtual_register_index = -1;
+                            if (try_to_get_virtual_register_index_of_the_operand(definition, &virtual_register_index))
+                            {
+                                clear_register_bit(&live_registers, virtual_register_index);
+                            }
                         }
 
                         for (Index definition_index = 0;
@@ -2172,8 +2368,12 @@ allocate_registers(Compilation_Context* context)
                              ++definition_index)
                         {
                             const MIR_Operand* definition = &instruction->implicit_definitions[definition_index];
-                            ASSERT(definition->kind == MIR_OPERAND_VIRTUAL_REGISTER);
-                            clear_register_bit(&live_registers, definition->virtual_register_index);
+
+                            Index virtual_register_index = -1;
+                            if (try_to_get_virtual_register_index_of_the_operand(definition, &virtual_register_index))
+                            {
+                                clear_register_bit(&live_registers, virtual_register_index);
+                            }
                         }
                     }
 
@@ -2184,9 +2384,11 @@ allocate_registers(Compilation_Context* context)
                              ++use_index)
                         {
                             const MIR_Operand* use = &instruction->uses[use_index];
-                            if (use->kind == MIR_OPERAND_VIRTUAL_REGISTER)
+
+                            Index virtual_register_index = -1;
+                            if (try_to_get_virtual_register_index_of_the_operand(use, &virtual_register_index))
                             {
-                                set_register_bit(&live_registers, use->virtual_register_index);
+                                set_register_bit(&live_registers, virtual_register_index);
                             }
                         }
 
@@ -2195,9 +2397,11 @@ allocate_registers(Compilation_Context* context)
                              ++use_index)
                         {
                             const MIR_Operand* use = &instruction->implicit_uses[use_index];
-                            if (use->kind == MIR_OPERAND_VIRTUAL_REGISTER)
+
+                            Index virtual_register_index = -1;
+                            if (try_to_get_virtual_register_index_of_the_operand(use, &virtual_register_index))
                             {
-                                set_register_bit(&live_registers, use->virtual_register_index);
+                                set_register_bit(&live_registers, virtual_register_index);
                             }
                         }
                     }
@@ -2931,11 +3135,15 @@ allocate_registers(Compilation_Context* context)
             }
         }
 
-        u64 stack_size_after_prologue = 0;
+        u64 used_stack_size_in_bytes = 0;
 
-        // NOTE(vlad): Emitting function's prologue and epilogue if necessary.
-        if (used_callee_saved_registers_count != 0)
+        // NOTE(vlad): Emitting function's prologue and epilogue and allocating memory for stack slots.
         {
+            ASSERT(function->entry_block != NULL);
+            ASSERT(function->entry_block->first_instruction != NULL);
+
+            MIR_Instruction* first_non_prologue_instruction = function->entry_block->first_instruction;
+
             // NOTE(vlad): Emitting the prologue.
             {
                 MIR_Block* entry_block = function->entry_block;
@@ -2955,11 +3163,38 @@ allocate_registers(Compilation_Context* context)
                     register_operand->kind = MIR_OPERAND_PHYSICAL_REGISTER;
                     register_operand->physical_register = callee_saved_register;
 
-                    stack_size_after_prologue += 8;
+                    used_stack_size_in_bytes += 8;
                 }
             }
 
-            // NOTE(vlad): Emitting the epilogue for every terminal MIR block.
+            u64 stack_slots_memory_size_in_bytes = 0;
+
+            // NOTE(vlad): Allocating memory for stack slots.
+            {
+                for (Index stack_slot_index = 0;
+                     stack_slot_index < function->stack_slots_count;
+                     ++stack_slot_index)
+                {
+                    const MIR_Stack_Slot* slot = &function->stack_slots[stack_slot_index];
+                    stack_slots_memory_size_in_bytes += (u64)(slot->size_in_bytes);
+                }
+
+                if (stack_slots_memory_size_in_bytes != 0)
+                {
+                    MIR_Instruction* grow_instruction = prepend_instruction(context,
+                                                                            function->entry_block,
+                                                                            first_non_prologue_instruction);
+                    grow_instruction->opcode = MIR_GROW_STACK;
+
+                    MIR_Operand* amount_operand = add_new_use_operand(grow_instruction);
+                    amount_operand->kind = MIR_OPERAND_IMMEDIATE_VALUE;
+                    amount_operand->immediate_value = stack_slots_memory_size_in_bytes;
+                }
+
+                used_stack_size_in_bytes += stack_slots_memory_size_in_bytes;
+            }
+
+            // NOTE(vlad): Emitting the epilogue and deallocating stack slots memory for every terminal MIR block.
             {
                 // NOTE(vlad): Again, the order does not matter, thus we use the RPO.
                 for (Index block_index = 0;
@@ -2973,6 +3208,8 @@ allocate_registers(Compilation_Context* context)
                         MIR_Instruction* last_instruction = block->last_instruction;
                         ASSERT(last_instruction != NULL);
                         ASSERT(last_instruction->opcode == MIR_RETURN);
+
+                        MIR_Instruction* last_non_epilogue_instruction = last_instruction;
 
                         // NOTE(vlad): Popping the registers in reverse order.
                         for (Index register_index = 0;
@@ -2989,6 +3226,21 @@ allocate_registers(Compilation_Context* context)
                             MIR_Operand* register_operand = add_new_use_operand(pop_instruction);
                             register_operand->kind = MIR_OPERAND_PHYSICAL_REGISTER;
                             register_operand->physical_register = callee_saved_register;
+
+                            last_non_epilogue_instruction = pop_instruction;
+                        }
+
+                        // NOTE(vlad): Deallocating stack slots memory.
+                        if (stack_slots_memory_size_in_bytes != 0)
+                        {
+                            MIR_Instruction* shrink_instruction = prepend_instruction(context,
+                                                                                      block,
+                                                                                      last_non_epilogue_instruction);
+                            shrink_instruction->opcode = MIR_SHRINK_STACK;
+
+                            MIR_Operand* amount_operand = add_new_use_operand(shrink_instruction);
+                            amount_operand->kind = MIR_OPERAND_IMMEDIATE_VALUE;
+                            amount_operand->immediate_value = stack_slots_memory_size_in_bytes;
                         }
                     }
                 }
@@ -3023,12 +3275,13 @@ allocate_registers(Compilation_Context* context)
                         instruction_to_restore_after = instruction->return_value_retrieving_instruction;
                     }
 
-                    const u64 stack_size_before_this_call = stack_size_after_prologue;
+                    const u64 stack_size_before_this_call = used_stack_size_in_bytes;
 
                     // NOTE(vlad): Allocating shadow space (32 bytes) and aligning the stack to 16 bytes.
                     //             Also we need to take into account the 8 byte that will be allocated for the return
                     //             address.
-                    const u64 stack_space_to_allocate = 32 + ((8 + stack_size_before_this_call) % 16);
+                    const u64 stack_misalignment = (8 + stack_size_before_this_call) % 16;
+                    const u64 stack_space_to_allocate = 32 + ((16 - stack_misalignment) % 16);
 
                     // NOTE(vlad): Sanity checks.
                     ASSERT(stack_space_to_allocate >= 32);
@@ -3087,8 +3340,9 @@ allocate_registers(Compilation_Context* context)
                         const MIR_Operand* destination = &instruction->definitions[0];
                         const MIR_Operand* source = &instruction->uses[0];
 
-                        ASSERT(destination->kind == MIR_OPERAND_VIRTUAL_REGISTER);
-                        if (source->kind == MIR_OPERAND_VIRTUAL_REGISTER)
+                        // TODO(vlad): Support pointers here?
+                        if (destination->kind == MIR_OPERAND_VIRTUAL_REGISTER
+                            && source->kind == MIR_OPERAND_VIRTUAL_REGISTER)
                         {
                             const Virtual_Register* destination_virtual_register
                                 = &function->virtual_registers[destination->virtual_register_index];

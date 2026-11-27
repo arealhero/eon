@@ -563,6 +563,11 @@ lower_expression_to_tac(Compilation_Context* context,
                                                                 address_of_expression->operand);
             ASSERT(operand.kind == TAC_OPERAND_VARIABLE);
 
+            {
+                Tac_Variable* variable = get_tac_variable_by_id(&context->tac, operand.variable_id);
+                variable->must_be_on_stack = true;
+            }
+
             Tac_Instruction* instruction = add_new_instruction_to_tac_function(context,
                                                                                tac_function,
                                                                                parent_statement,
@@ -737,8 +742,8 @@ lower_statement_to_tac(Compilation_Context* context,
                                                                                    statement,
                                                                                    NULL);
                 instruction->operation = TAC_STORE_BY_ADDRESS;
-                instruction->destination = lhs_dereference_operand;
-                instruction->first_argument = rhs;
+                instruction->first_argument = lhs_dereference_operand;
+                instruction->second_argument = rhs;
             }
             else
             {

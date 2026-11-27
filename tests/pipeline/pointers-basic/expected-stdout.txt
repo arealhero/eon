@@ -1,0 +1,3 @@
+tests/pipeline/pointers-basic/main.eon:109:5: error: This assignment is unused
+  109 |     ptr: mutable _ = a&; // NOTE(vlad): This assignment is unused.
+      |     ^

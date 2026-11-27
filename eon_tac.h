@@ -75,8 +75,9 @@ typedef struct Tac_Function_Label Tac_Function_Label;
 
 enum
 {
-    SSA_VERSION_UNSET = -1,
-    SSA_VERSION_UNDEFINED = 0,
+    SSA_VERSION_UNDEFINED      = 0,
+    SSA_VERSION_UNSET          = -1,
+    SSA_VERSION_LIVES_ON_STACK = -2,
 };
 
 struct Tac_Variable
@@ -87,7 +88,16 @@ struct Tac_Variable
     Bool is_temporary;
     Symbol_Id symbol_id;
 
-    Index mir_virtual_register_offset;
+    Bool must_be_on_stack;
+
+    union
+    {
+        // NOTE(vlad): If 'must_be_on_stack == true'.
+        Index stack_slot_index;
+
+        // NOTE(vlad): If 'must_be_on_stack == false'.
+        Index mir_virtual_register_offset;
+    };
 };
 typedef struct Tac_Variable Tac_Variable;
 

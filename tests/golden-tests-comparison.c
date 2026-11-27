@@ -56,27 +56,14 @@ compare_outputs_and_optionally_canonize(Arena* scratch_arena,
             break;
         }
     }
+#else
+    Bool diff_detected = !strings_are_equal(output, canon);
+#endif
 
     if (!diff_detected)
     {
-        if (canonize_output)
-        {
-            println("{}: Outputs are the same", test_name);
-        }
-
         return true;
     }
-#else
-    if (strings_are_equal(output, canon))
-    {
-        if (canonize_output)
-        {
-            println("{}: Outputs are the same", test_name);
-        }
-
-        return true;
-    }
-#endif
 
     if (canonize_output)
     {
@@ -96,6 +83,9 @@ compare_outputs_and_optionally_canonize(Arena* scratch_arena,
         const String_View diff_string = line_diff_to_string(scratch_arena, &diff);
 
         println("{}: Test failed with this diff:\n\n{}", test_name, diff_string);
+        println("\n=== Current output ===\n"
+                "\n{}"
+                "\n======================", output);
         return false;
     }
 }

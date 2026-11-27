@@ -74,6 +74,7 @@ enum MIR_Operand_Kind
     MIR_OPERAND_IMMEDIATE_VALUE,
     MIR_OPERAND_BLOCK,
     MIR_OPERAND_STACK_SLOT,
+    MIR_OPERAND_POINTER,
 
     // TODO(vlad): Add MEMORY, GLOBAL, FLAGS, etc.
 };
@@ -85,6 +86,30 @@ struct MIR_Stack_Slot
     Size size_in_bytes;
 };
 typedef struct MIR_Stack_Slot MIR_Stack_Slot;
+
+enum MIR_Pointer_Location
+{
+    MIR_POINTER_UNDEFINED = 0,
+    MIR_POINTER_ON_THE_STACK,
+    MIR_POINTER_IN_REGISTER,
+};
+typedef enum MIR_Pointer_Location MIR_Pointer_Location;
+
+struct MIR_Pointer_Info
+{
+    MIR_Pointer_Location location;
+    Size pointee_size_in_bytes;
+
+    union
+    {
+        // NOTE(vlad): If location == ON_THE_STACK.
+        Index stack_slot_index;
+
+        // NOTE(vlad): If location == IN_REGISTER.
+        Index virtual_register_index;
+    };
+};
+typedef struct MIR_Pointer_Info MIR_Pointer_Info;
 
 struct MIR_Operand
 {
@@ -121,6 +146,9 @@ struct MIR_Operand
         {
             Index stack_slot_index;
         };
+
+        // NOTE(vlad): For MIR_POINTER.
+        MIR_Pointer_Info pointer_info;
     };
 };
 typedef struct MIR_Operand MIR_Operand;
@@ -141,11 +169,8 @@ enum MIR_Opcode
     MIR_COMPARE,
     MIR_CAST,
 
-    MIR_LOAD32,
-    MIR_STORE32,
-
-    MIR_LOAD64,
-    MIR_STORE64,
+    MIR_LOAD,
+    MIR_STORE,
 
     MIR_GET_ADDRESS,
 

@@ -2191,23 +2191,23 @@ test_indirect_memory_access(Test_Context* test_context)
             ASSERT_ENUM_VALUES_ARE_EQUAL(instruction->operation, TAC_STORE_BY_ADDRESS);
 
             const Tac_Operand* destination = &instruction->destination;
-            ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_VARIABLE);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(destination->kind, TAC_OPERAND_NONE);
+
+            const Tac_Operand* first_argument = &instruction->first_argument;
+            ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_VARIABLE);
             {
                 const Ast_Statement* statement = &ast_function->body.statements[1];
                 ASSERT_ENUM_VALUES_ARE_EQUAL(statement->kind, AST_STATEMENT_VARIABLE_DEFINITION);
 
                 const Ast_Variable_Definition* variable_definition = &statement->variable_definition;
                 ASSERT_STRINGS_ARE_EQUAL(variable_definition->name.token.lexeme, "ptr");
-                ASSERT_VARIABLE_POINTS_TO_SYMBOL(destination->variable_id,
+                ASSERT_VARIABLE_POINTS_TO_SYMBOL(first_argument->variable_id,
                                                  variable_definition->name.symbol_id);
             }
 
-            const Tac_Operand* first_argument = &instruction->first_argument;
-            ASSERT_ENUM_VALUES_ARE_EQUAL(first_argument->kind, TAC_OPERAND_CONSTANT);
-            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(first_argument->constant_id, "s32", integer_value, 20);
-
             const Tac_Operand* second_argument = &instruction->second_argument;
-            ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_NONE);
+            ASSERT_ENUM_VALUES_ARE_EQUAL(second_argument->kind, TAC_OPERAND_CONSTANT);
+            ASSERT_CONSTANT_HAS_NUMERIC_VALUE_AND_TYPE(second_argument->constant_id, "s32", integer_value, 20);
 
             ASSERT_FALSE(instruction->was_automatically_inserted);
         }

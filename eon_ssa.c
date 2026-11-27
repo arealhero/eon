@@ -265,7 +265,7 @@ insert_phi_nodes(Compilation_Context* context)
 
             {
                 Tac_Variable* this_variable = get_tac_variable_by_id(tac, this_variable_id);
-                if (this_variable->is_temporary)
+                if (this_variable->is_temporary || this_variable->must_be_on_stack)
                 {
                     continue;
                 }
@@ -454,6 +454,7 @@ set_tac_variable_versions_in_cfg_block(Compilation_Context* context,
             const Tac_Variable_Id destination_id = phi_node->destination;
             Tac_Variable* destination = get_tac_variable_by_id(&context->tac, destination_id);
             ASSERT(!destination->is_temporary);
+            ASSERT(!destination->must_be_on_stack);
         }
 
         const Index version = push_new_tac_variable_version(renaming_info, phi_node->destination);
@@ -464,28 +465,59 @@ set_tac_variable_versions_in_cfg_block(Compilation_Context* context,
                    phi_node->destination);
     }
 
+    Tac* tac = &context->tac;
+
     for (Tac_Instruction* instruction = block->first_tac_instruction;
          instruction != NULL;
          instruction = instruction->next_instruction)
     {
+        if (instruction->destination.kind == TAC_OPERAND_VARIABLE)
+        {
+            Tac_Variable* variable = get_tac_variable_by_id(tac, instruction->destination.variable_id);
+
+            if (variable->must_be_on_stack)
+            {
+                instruction->destination.variable_id.ssa_version = SSA_VERSION_LIVES_ON_STACK;
+            }
+            else
+            {
+                const Index version = push_new_tac_variable_version(renaming_info, instruction->destination.variable_id);
+                instruction->destination.variable_id.ssa_version = version;
+                stack_push(context->scratch_arena,
+                           encountered_variable_ids,
+                           Tac_Variable_Id,
+                           instruction->destination.variable_id);
+            }
+        }
+
         if (instruction->first_argument.kind == TAC_OPERAND_VARIABLE)
         {
-            instruction->first_argument.variable_id.ssa_version = get_tac_variable_version(renaming_info, instruction->first_argument.variable_id);
+            Tac_Variable* variable = get_tac_variable_by_id(tac, instruction->first_argument.variable_id);
+
+            if (variable->must_be_on_stack)
+            {
+                instruction->first_argument.variable_id.ssa_version = SSA_VERSION_LIVES_ON_STACK;
+            }
+            else
+            {
+                instruction->first_argument.variable_id.ssa_version
+                    = get_tac_variable_version(renaming_info, instruction->first_argument.variable_id);
+            }
         }
 
         if (instruction->second_argument.kind == TAC_OPERAND_VARIABLE)
         {
-            instruction->second_argument.variable_id.ssa_version = get_tac_variable_version(renaming_info, instruction->second_argument.variable_id);
-        }
+            Tac_Variable* variable = get_tac_variable_by_id(tac, instruction->second_argument.variable_id);
 
-        if (instruction->destination.kind == TAC_OPERAND_VARIABLE)
-        {
-            const Index version = push_new_tac_variable_version(renaming_info, instruction->destination.variable_id);
-            instruction->destination.variable_id.ssa_version = version;
-            stack_push(context->scratch_arena,
-                       encountered_variable_ids,
-                       Tac_Variable_Id,
-                       instruction->destination.variable_id);
+            if (variable->must_be_on_stack)
+            {
+                instruction->second_argument.variable_id.ssa_version = SSA_VERSION_LIVES_ON_STACK;
+            }
+            else
+            {
+                instruction->second_argument.variable_id.ssa_version
+                    = get_tac_variable_version(renaming_info, instruction->second_argument.variable_id);
+            }
         }
     }
 
@@ -652,6 +684,7 @@ emit_diagnostic_message_about_unused_ssa_version(Compilation_Context* context,
 
             ASSERT(argument_id.index != INVALID_TAC_INDEX);
             ASSERT(argument_id.ssa_version != SSA_VERSION_UNDEFINED);
+            ASSERT(argument_id.ssa_version != SSA_VERSION_LIVES_ON_STACK);
 
             const Ssa_Variable_Versions_Info* argument_info = &variable_versions_info[argument_id.index];
             const Version_Info* argument_version_info = &argument_info->version_infos[argument_id.ssa_version];
@@ -684,7 +717,9 @@ find_unused_ssa_assignments(Compilation_Context* context)
 {
     Tac* tac = &context->tac;
 
-    Ssa_Variable_Versions_Info* infos = allocate_array(context->scratch_arena, tac->variables_count, Ssa_Variable_Versions_Info);
+    Ssa_Variable_Versions_Info* infos = allocate_array(context->scratch_arena,
+                                                       tac->variables_count,
+                                                       Ssa_Variable_Versions_Info);
 
     for (Index variable_index = INVALID_TAC_INDEX + 1;
          variable_index < tac->variables_count;
@@ -697,8 +732,13 @@ find_unused_ssa_assignments(Compilation_Context* context)
 
         Tac_Variable* variable = get_tac_variable_by_id(tac, variable_id);
 
-        version_info->versions_count = variable->max_ssa_version + 1;
-        version_info->version_infos = allocate_array(context->scratch_arena, version_info->versions_count, Version_Info);
+        if (!variable->must_be_on_stack)
+        {
+            version_info->versions_count = variable->max_ssa_version + 1;
+            version_info->version_infos = allocate_array(context->scratch_arena,
+                                                         version_info->versions_count,
+                                                         Version_Info);
+        }
     }
 
     for (Index function_index = 0;
@@ -723,10 +763,10 @@ find_unused_ssa_assignments(Compilation_Context* context)
                 Phi_Node* phi_node = &this_block->phi_nodes[phi_node_index];
 
                 {
-                    ASSERT(phi_node->destination.ssa_version != SSA_VERSION_UNDEFINED);
-
                     const Tac_Variable_Id destination_id = phi_node->destination;
                     ASSERT(destination_id.ssa_version != SSA_VERSION_UNDEFINED);
+                    ASSERT(destination_id.ssa_version != SSA_VERSION_UNSET);
+                    ASSERT(destination_id.ssa_version != SSA_VERSION_LIVES_ON_STACK);
 
                     Ssa_Variable_Versions_Info* destination_info = &infos[destination_id.index];
                     Version_Info* this_version_info = &destination_info->version_infos[destination_id.ssa_version];
@@ -748,8 +788,11 @@ find_unused_ssa_assignments(Compilation_Context* context)
 
                     ASSERT(argument_id.ssa_version != SSA_VERSION_UNDEFINED);
 
-                    Ssa_Variable_Versions_Info* argument_info = &infos[argument_id.index];
-                    argument_info->version_infos[argument_id.ssa_version].was_used = true;
+                    if (argument_id.ssa_version != SSA_VERSION_LIVES_ON_STACK)
+                    {
+                        Ssa_Variable_Versions_Info* argument_info = &infos[argument_id.index];
+                        argument_info->version_infos[argument_id.ssa_version].was_used = true;
+                    }
                 }
             }
         }
@@ -768,30 +811,42 @@ find_unused_ssa_assignments(Compilation_Context* context)
                 {
                     const Tac_Variable_Id variable_id = instruction->destination.variable_id;
                     ASSERT(variable_id.ssa_version != SSA_VERSION_UNDEFINED);
+                    ASSERT(variable_id.ssa_version != SSA_VERSION_UNSET);
 
-                    Ssa_Variable_Versions_Info* info = &infos[variable_id.index];
-                    info->version_infos[variable_id.ssa_version].instruction = instruction;
-                    info->version_infos[variable_id.ssa_version].was_assigned_to = true;
+                    if (variable_id.ssa_version != SSA_VERSION_LIVES_ON_STACK)
+                    {
+                        Ssa_Variable_Versions_Info* info = &infos[variable_id.index];
+                        info->version_infos[variable_id.ssa_version].instruction = instruction;
+                        info->version_infos[variable_id.ssa_version].was_assigned_to = true;
+                    }
                 }
 
                 if (instruction->first_argument.kind == TAC_OPERAND_VARIABLE)
                 {
                     const Tac_Variable_Id variable_id = instruction->first_argument.variable_id;
                     ASSERT(variable_id.ssa_version != SSA_VERSION_UNDEFINED);
+                    ASSERT(variable_id.ssa_version != SSA_VERSION_UNSET);
 
-                    Ssa_Variable_Versions_Info* info = &infos[variable_id.index];
-                    info->version_infos[variable_id.ssa_version].was_used = true;
-                    info->version_infos[variable_id.ssa_version].was_used_outside_of_phi_nodes = true;
+                    if (variable_id.ssa_version != SSA_VERSION_LIVES_ON_STACK)
+                    {
+                        Ssa_Variable_Versions_Info* info = &infos[variable_id.index];
+                        info->version_infos[variable_id.ssa_version].was_used = true;
+                        info->version_infos[variable_id.ssa_version].was_used_outside_of_phi_nodes = true;
+                    }
                 }
 
                 if (instruction->second_argument.kind == TAC_OPERAND_VARIABLE)
                 {
                     const Tac_Variable_Id variable_id = instruction->second_argument.variable_id;
                     ASSERT(variable_id.ssa_version != SSA_VERSION_UNDEFINED);
+                    ASSERT(variable_id.ssa_version != SSA_VERSION_UNSET);
 
-                    Ssa_Variable_Versions_Info* info = &infos[variable_id.index];
-                    info->version_infos[variable_id.ssa_version].was_used = true;
-                    info->version_infos[variable_id.ssa_version].was_used_outside_of_phi_nodes = true;
+                    if (variable_id.ssa_version != SSA_VERSION_LIVES_ON_STACK)
+                    {
+                        Ssa_Variable_Versions_Info* info = &infos[variable_id.index];
+                        info->version_infos[variable_id.ssa_version].was_used = true;
+                        info->version_infos[variable_id.ssa_version].was_used_outside_of_phi_nodes = true;
+                    }
                 }
             }
         }
@@ -808,6 +863,11 @@ find_unused_ssa_assignments(Compilation_Context* context)
         if (variable->is_temporary)
         {
             // XXX(vlad): We should probably report that the result of some expression is unused.
+            continue;
+        }
+
+        if (variable->must_be_on_stack)
+        {
             continue;
         }
 

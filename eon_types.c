@@ -2260,3 +2260,51 @@ classify_cast(struct Compilation_Context* context,
         }
     }
 }
+
+internal Size
+get_type_size_in_bytes(struct Compilation_Context* context, const Type_Id type_id)
+{
+    const Type* type = get_type_by_id(context, type_id);
+
+    switch (type->kind)
+    {
+        case TYPE_INTEGER:
+        {
+            const Integer_Type_Info* info = &type->integer_info;
+            ASSERT(info->width_in_bits != 0 && (info->width_in_bits % 8 == 0));
+
+            return info->width_in_bits / 8;
+        } break;
+
+        case TYPE_FLOAT:
+        {
+            const Float_Type_Info* info = &type->float_info;
+            ASSERT(info->width_in_bits != 0 && (info->width_in_bits % 8 == 0));
+
+            return info->width_in_bits / 8;
+        } break;
+
+        case TYPE_BOOLEAN:
+        {
+            return 1;
+        } break;
+
+        case TYPE_POINTER:
+        {
+            return 8;
+        } break;
+
+        case TYPE_UNDEFINED:
+        case TYPE_INVALID:
+        case TYPE_VOID:
+        case TYPE_VARIABLE:
+        case TYPE_NUMBER_VARIABLE:
+        case TYPE_FUNCTION:
+        case TYPE_KIND_COUNT:
+        {
+            UNREACHABLE();
+        } break;
+    }
+
+    UNREACHABLE();
+}

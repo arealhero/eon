@@ -50,8 +50,6 @@ convert_tac_operand_to_string(Compilation_Context* context,
         {
             const Tac_Variable_Id variable_id = operand->variable_id;
             ASSERT(variable_id.index != INVALID_TAC_INDEX);
-            ASSERT(variable_id.ssa_version != SSA_VERSION_UNDEFINED);
-            ASSERT(variable_id.ssa_version != SSA_VERSION_UNSET);
 
             const Tac_Variable* variable = &tac->variables[variable_id.index];
 
@@ -73,11 +71,28 @@ convert_tac_operand_to_string(Compilation_Context* context,
                 name = symbol->name;
             }
 
-            append_string(builder, format_string(context->scratch_arena,
-                                                 " VARIABLE {} {}@{}",
-                                                 convert_type_to_string(context->scratch_arena, context, variable->type_id),
-                                                 name,
-                                                 variable_id.ssa_version));
+            if (variable->must_be_on_stack)
+            {
+                append_string(builder, format_string(context->scratch_arena,
+                                                     " STACK VARIABLE {} {}",
+                                                     convert_type_to_string(context->scratch_arena,
+                                                                            context,
+                                                                            variable->type_id),
+                                                     name));
+            }
+            else
+            {
+                ASSERT(variable_id.ssa_version != SSA_VERSION_UNDEFINED);
+                ASSERT(variable_id.ssa_version != SSA_VERSION_UNSET);
+
+                append_string(builder, format_string(context->scratch_arena,
+                                                     " VARIABLE {} {}@{}",
+                                                     convert_type_to_string(context->scratch_arena,
+                                                                            context,
+                                                                            variable->type_id),
+                                                     name,
+                                                     variable_id.ssa_version));
+            }
         } break;
 
         case TAC_OPERAND_LABEL:
@@ -310,13 +325,13 @@ convert_ssa_to_string(Arena* arena, Compilation_Context* context)
                     {
                         append_string(&builder, "          STORE_BY_ADDRESS");
 
-                        ASSERT(instruction->destination.kind == TAC_OPERAND_VARIABLE);
-                        ASSERT(instruction->first_argument.kind != TAC_OPERAND_NONE);
-                        ASSERT(instruction->second_argument.kind == TAC_OPERAND_NONE);
+                        ASSERT(instruction->destination.kind == TAC_OPERAND_NONE);
+                        ASSERT(instruction->first_argument.kind == TAC_OPERAND_VARIABLE);
+                        ASSERT(instruction->second_argument.kind != TAC_OPERAND_NONE);
 
-                        convert_tac_operand_to_string(context, &builder, &instruction->destination, &conversion_context);
-                        append_string(&builder, ",");
                         convert_tac_operand_to_string(context, &builder, &instruction->first_argument, &conversion_context);
+                        append_string(&builder, ",");
+                        convert_tac_operand_to_string(context, &builder, &instruction->second_argument, &conversion_context);
                     } break;
 
                     case TAC_ADD:
@@ -651,7 +666,49 @@ convert_mir_operand_to_string(Compilation_Context* context,
 
         case MIR_OPERAND_STACK_SLOT:
         {
-            FAIL("Stack slots are not supported yet.");
+            const Index stack_slot_index = operand->stack_slot_index;
+            const MIR_Stack_Slot* stack_slot = &mir_function->stack_slots[stack_slot_index];
+
+            append_string(builder, format_string(context->scratch_arena,
+                                                 " STACK SLOT {} (OFFSET {}, {} BYTES)",
+                                                 stack_slot_index,
+                                                 stack_slot->offset_in_bytes,
+                                                 stack_slot->size_in_bytes));
+        } break;
+
+        case MIR_OPERAND_POINTER:
+        {
+            const MIR_Pointer_Info* info = &operand->pointer_info;
+
+            append_string(builder, " POINTER");
+
+            switch (info->location)
+            {
+                case MIR_POINTER_UNDEFINED:
+                {
+                    UNREACHABLE();
+                } break;
+
+                case MIR_POINTER_ON_THE_STACK:
+                {
+                    MIR_Operand argument = {0};
+                    argument.kind = MIR_OPERAND_STACK_SLOT;
+                    argument.stack_slot_index = info->stack_slot_index;
+
+                    convert_mir_operand_to_string(context, builder, mir_function, &argument);
+                } break;
+
+                case MIR_POINTER_IN_REGISTER:
+                {
+                    MIR_Operand argument = {0};
+                    argument.kind = MIR_OPERAND_VIRTUAL_REGISTER;
+                    argument.virtual_register_index = info->virtual_register_index;
+
+                    convert_mir_operand_to_string(context, builder, mir_function, &argument);
+
+                    append_string(builder, format_string(context->scratch_arena, " ({} BYTES)", info->pointee_size_in_bytes));
+                } break;
+            }
         } break;
     }
 }
@@ -879,29 +936,40 @@ convert_mir_block_to_string(Compilation_Context* context,
                 convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
             } break;
 
-            case MIR_LOAD32:
+            case MIR_LOAD:
             {
-                FAIL("[MIR] LOAD32 is not supported yet.");
+                append_string(builder, "          LOAD               ");
+
+                ASSERT(instruction->definitions_count == 1);
+                ASSERT(instruction->uses_count == 1);
+
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->definitions[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
             } break;
 
-            case MIR_STORE32:
+            case MIR_STORE:
             {
-                FAIL("[MIR] STORE32 is not supported yet.");
-            } break;
+                append_string(builder, "          STORE              ");
 
-            case MIR_LOAD64:
-            {
-                FAIL("[MIR] LOAD64 is not supported yet.");
-            } break;
+                ASSERT(instruction->definitions_count == 1);
+                ASSERT(instruction->uses_count == 1);
 
-            case MIR_STORE64:
-            {
-                FAIL("[MIR] STORE64 is not supported yet.");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->definitions[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
             } break;
 
             case MIR_GET_ADDRESS:
             {
-                FAIL("[MIR] GET_ADDRESS is not supported yet.");
+                append_string(builder, "          GET_ADDRESS        ");
+
+                ASSERT(instruction->definitions_count == 1);
+                ASSERT(instruction->uses_count == 1);
+
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->definitions[0]);
+                append_string(builder, ",");
+                convert_mir_operand_to_string(context, builder, mir_function, &instruction->uses[0]);
             } break;
 
             case MIR_PUSH_REGISTER_ON_STACK:
